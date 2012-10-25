@@ -11,7 +11,7 @@
     "pg": "lastest"
   },
   "engines": {
-    "node": "latest",
+    "node": ">0.8.x",
     "npm":  "1.1.x"
   }
 }
