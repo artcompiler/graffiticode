@@ -8,7 +8,7 @@
     "jade": "latest",
     "passport": "latest",
     "passport-local": "latest",
-    "pg": "lastest"
+    "pg": "0.8.x"
   },
   "engines": {
     "node": ">0.8.x",
