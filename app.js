@@ -81,6 +81,7 @@ passport.use(new LocalStrategy(
 
 // end passportjs setup
 
+/*
 var pg = require('pg'); 
 //or native libpq bindings
 //var pg = require('pg').native
@@ -95,6 +96,7 @@ pg.connect(conString, function(err, client) {
     console.log("Current year: %d", result.rows[0].when.getYear());
   });
 });
+*/
 
 // Configuration
 
