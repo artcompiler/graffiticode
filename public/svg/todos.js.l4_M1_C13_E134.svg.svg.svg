@@ -1,0 +1,117 @@
+<svg width="900px" height="900px" version="1.1" onload="init(evt)" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g id="ideograms">
+    <path d="M 450.000,197.625 A252.375,252.375 0.000 0,1 485.220,200.095 L 495.687,125.829 A327.375,327.375 0.000 0,0 450.000,122.625 Z " style="stroke: none;   fill: rgb(53,100,153); " class=""/>
+    <text x="477.1" y="113.7" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(274.0,477.1,113.7)" class=""></text>
+    <path d="M 485.796,200.177 A252.375,252.375 0.000 0,1 520.310,207.617 L 541.205,135.586 A327.375,327.375 0.000 0,0 496.434,125.935 Z " style="stroke: none;   fill: rgb(53,100,153); " class=""/>
+    <text x="524.5" y="121.0" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(282.2,524.5,121.0)" class=""></text>
+    <path d="M 520.869,207.780 A252.375,252.375 0.000 0,1 553.979,220.040 L 584.879,151.701 A327.375,327.375 0.000 0,0 541.930,135.797 Z " style="stroke: none;   fill: rgb(53,100,153); " class=""/>
+    <text x="570.4" y="134.9" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(290.3,570.4,134.9)" class=""></text>
+    <path d="M 554.509,220.280 A252.375,252.375 0.000 0,1 585.545,237.113 L 625.825,173.848 A327.375,327.375 0.000 0,0 585.566,152.013 Z " style="stroke: none;   fill: rgb(53,100,153); " class=""/>
+    <text x="613.9" y="155.1" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(298.5,613.9,155.1)" class=""></text>
+    <path d="M 586.035,237.426 A252.375,252.375 0.000 0,1 614.370,258.491 L 663.217,201.579 A327.375,327.375 0.000 0,0 626.462,174.254 Z " style="stroke: none;   fill: rgb(53,100,153); " class=""/>
+    <text x="654.1" y="181.4" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(306.6,654.1,181.4)" class=""></text>
+    <path d="M 614.811,258.870 A252.375,252.375 0.000 0,1 639.871,283.741 L 696.297,234.333 A327.375,327.375 0.000 0,0 663.789,202.071 Z " style="stroke: none;   fill: rgb(53,100,153); " class=""/>
+    <text x="690.1" y="213.0" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(314.8,690.1,213.0)" class=""></text>
+    <path d="M 647.887,277.527 A262.500,262.500 0.000 0,1 657.231,288.874 L 716.440,242.838 A337.500,337.500 0.000 0,0 704.426,228.249 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="720.5" y="231.8" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(320.5,720.5,231.8)" class=""></text>
+    <path d="M 657.602,289.352 A262.500,262.500 0.000 0,1 672.325,310.437 L 735.846,270.562 A337.500,337.500 0.000 0,0 716.916,243.452 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="736.9" y="253.9" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(325.1,736.9,253.9)" class=""></text>
+    <path d="M 672.646,310.949 A262.500,262.500 0.000 0,1 678.288,320.421 L 743.514,283.399 A337.500,337.500 0.000 0,0 736.259,271.221 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="750.3" y="275.2" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(329.2,750.3,275.2)" class=""></text>
+    <path d="M 678.586,320.947 A262.500,262.500 0.000 0,1 683.804,330.660 L 750.605,296.563 A337.500,337.500 0.000 0,0 743.897,284.075 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="757.8" y="288.6" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(331.8,757.8,288.6)" class=""></text>
+    <path d="M 684.078,331.199 A262.500,262.500 0.000 0,1 693.221,351.259 L 762.713,323.047 A337.500,337.500 0.000 0,0 750.957,297.255 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="767.6" y="309.1" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(335.5,767.6,309.1)" class=""></text>
+    <path d="M 693.448,351.819 A262.500,262.500 0.000 0,1 704.767,386.755 L 777.558,368.684 A337.500,337.500 0.000 0,0 763.004,323.768 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="781.6" y="346.2" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(342.0,781.6,346.2)" class=""></text>
+    <path d="M 704.912,387.341 A262.500,262.500 0.000 0,1 707.318,398.101 L 780.838,383.273 A337.500,337.500 0.000 0,0 777.744,369.439 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="789.9" y="377.6" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(347.4,789.9,377.6)" class=""></text>
+    <path d="M 697.507,400.673 A252.375,252.375 0.000 0,1 702.375,449.823 L 777.375,449.770 A327.375,327.375 0.000 0,0 771.061,386.014 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="786.1" y="420.2" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(354.3,786.1,420.2)" class=""></text>
+    <path d="M 702.375,450.404 A252.375,252.375 0.000 0,1 698.753,492.602 L 772.677,505.262 A327.375,327.375 0.000 0,0 777.375,450.524 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="785.8" y="482.3" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(4.9,785.8,482.3)" class=""></text>
+    <path d="M 708.630,494.907 A262.500,262.500 0.000 0,1 675.693,584.048 L 740.177,622.348 A337.500,337.500 0.000 0,0 782.525,507.737 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="774.7" y="573.7" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(20.3,774.7,573.7)" class=""></text>
+    <path d="M 666.690,579.377 A252.375,252.375 0.000 0,1 622.493,634.226 L 673.754,688.974 A327.375,327.375 0.000 0,0 731.086,617.825 Z " style="stroke: none;   fill: rgb(157,55,110); " class=""/>
+    <text x="710.5" y="664.4" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(38.9,710.5,664.4)" class=""></text>
+    <path d="M 622.068,634.624 A252.375,252.375 0.000 0,1 564.339,674.988 L 598.318,741.850 A327.375,327.375 0.000 0,0 673.202,689.490 Z " style="stroke: none;   fill: rgb(157,55,110); " class=""/>
+    <text x="640.4" y="728.5" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(55.0,640.4,728.5)" class=""></text>
+    <path d="M 563.820,675.251 A252.375,252.375 0.000 0,1 497.132,697.935 L 511.138,771.615 A327.375,327.375 0.000 0,0 597.645,742.191 Z " style="stroke: none;   fill: rgb(157,55,110); " class=""/>
+    <text x="555.3" y="770.5" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(71.2,555.3,770.5)" class=""></text>
+    <path d="M 498.428,707.994 A262.500,262.500 0.000 0,1 469.287,711.791 L 474.797,786.588 A337.500,337.500 0.000 0,0 512.264,781.707 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="491.4" y="795.0" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:start;fill:rgb(0,0,0)" transform="rotate(82.6,491.4,795.0)" class=""></text>
+    <path d="M 468.684,711.834 A262.500,262.500 0.000 0,1 424.635,711.272 L 417.388,785.921 A337.500,337.500 0.000 0,0 474.022,786.644 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="449.1" y="797.5" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-89.3,449.1,797.5)" class=""></text>
+    <path d="M 424.034,711.213 A262.500,262.500 0.000 0,1 402.207,708.113 L 388.552,781.859 A337.500,337.500 0.000 0,0 416.615,785.845 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="404.6" y="794.5" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-81.9,404.6,794.5)" class=""></text>
+    <path d="M 401.613,708.002 A262.500,262.500 0.000 0,1 387.247,704.889 L 369.317,777.714 A337.500,337.500 0.000 0,0 387.788,781.717 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="379.8" y="790.3" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-77.8,379.8,790.3)" class=""></text>
+    <path d="M 386.660,704.744 A262.500,262.500 0.000 0,1 376.019,701.859 L 354.881,773.819 A337.500,337.500 0.000 0,0 368.563,777.527 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="362.5" y="786.3" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-74.8,362.5,786.3)" class=""></text>
+    <path d="M 375.439,701.688 A262.500,262.500 0.000 0,1 293.649,660.857 L 248.978,721.102 A337.500,337.500 0.000 0,0 354.136,773.599 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="297.9" y="762.5" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-63.5,297.9,762.5)" class=""></text>
+    <path d="M 293.164,660.497 A262.500,262.500 0.000 0,1 252.726,623.175 L 196.363,672.653 A337.500,337.500 0.000 0,0 248.354,720.638 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="216.9" y="707.7" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-47.3,216.9,707.7)" class=""></text>
+    <path d="M 252.328,622.720 A262.500,262.500 0.000 0,1 228.172,590.351 L 164.792,630.452 A337.500,337.500 0.000 0,0 195.851,672.068 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="173.6" y="660.6" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-36.7,173.6,660.6)" class=""></text>
+    <path d="M 227.849,589.840 A262.500,262.500 0.000 0,1 220.370,577.186 L 154.761,613.524 A337.500,337.500 0.000 0,0 164.377,629.794 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="152.6" y="629.8" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-30.6,152.6,629.8)" class=""></text>
+    <path d="M 220.077,576.657 A262.500,262.500 0.000 0,1 194.868,511.755 L 121.973,529.400 A337.500,337.500 0.000 0,0 154.385,612.844 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="127.4" y="579.1" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-21.2,127.4,579.1)" class=""></text>
+    <path d="M 194.726,511.168 A262.500,262.500 0.000 0,1 193.114,503.996 L 119.717,519.424 A337.500,337.500 0.000 0,0 121.791,528.644 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="111.8" y="529.6" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-12.7,111.8,529.6)" class=""></text>
+    <path d="M 192.990,503.404 A262.500,262.500 0.000 0,1 189.415,481.651 L 114.962,490.694 A337.500,337.500 0.000 0,0 119.558,518.663 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="107.7" y="509.8" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-9.3,107.7,509.8)" class=""></text>
+    <path d="M 189.343,481.050 A262.500,262.500 0.000 0,1 188.269,470.078 L 113.489,475.814 A337.500,337.500 0.000 0,0 114.869,489.922 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="104.5" y="487.3" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(-5.6,104.5,487.3)" class=""></text>
+    <path d="M 188.223,469.475 A262.500,262.500 0.000 0,1 209.865,343.974 L 141.255,313.681 A337.500,337.500 0.000 0,0 113.430,475.039 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="107.0" y="394.4" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(9.8,107.0,394.4)" class=""></text>
+    <path d="M 210.110,343.421 A262.500,262.500 0.000 0,1 441.442,187.640 L 438.996,112.679 A337.500,337.500 0.000 0,0 141.570,312.970 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="253.0" y="163.7" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(56.0,253.0,163.7)" class=""></text>
+    <path d="M 442.046,187.621 A262.500,262.500 0.000 0,1 449.395,187.501 L 449.223,112.501 A337.500,337.500 0.000 0,0 439.773,112.655 Z " style="stroke: none;   fill: rgb(179,186,212); " class=""/>
+    <text x="440.8" y="102.6" font-size="9.1px" font-family="'CMUBright-Roman'" style="text-anchor:end;fill:rgb(0,0,0)" transform="rotate(89.1,440.8,102.6)" class=""></text>
+  </g>
+  <g id="E134">
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 485.2,424.4 685.1,403.1 A 239.756,239.756 0.00 0,1 689.8,449.8 Q 485.1,428.7 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 685.132,403.139 A 239.756,239.756 0.00 0,1 689.8,449.8 Q 485.1,428.7 561.3,237.7 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 485.2,424.4 685.1,403.1 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 485.2,424.4 685.1,403.1 A 239.756,239.756 0.00 0,1 689.8,449.8 Q 485.1,428.7 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+  </g>
+  <g id="E134">
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 485.7,429.1 689.8,450.4 A 239.756,239.756 0.00 0,1 686.3,490.5 Q 484.8,432.8 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 689.756,450.384 A 239.756,239.756 0.00 0,1 686.3,490.5 Q 484.8,432.8 561.3,237.7 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 485.7,429.1 689.8,450.4 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 485.7,429.1 689.8,450.4 A 239.756,239.756 0.00 0,1 686.3,490.5 Q 484.8,432.8 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+  </g>
+  <g id="E134">
+    <path d="M 558.129,663.989 A 239.756,239.756 0.00 0,1 494.8,685.5 Q 455.8,449.6 463.4,210.6 A 239.756,239.756 0.00 0,1 470.1,211.1 Q 462.8,447.5 558.1,664.0 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 613.464,625.393 A 239.756,239.756 0.00 0,1 558.6,663.7 Q 472.0,450.1 561.3,237.7 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 478.1,446.6 613.5,625.4 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 655.856,572.908 A 239.756,239.756 0.00 0,1 613.9,625.0 Q 483.0,450.2 616.5,277.5 A 239.756,239.756 0.00 0,1 621.3,282.2 Q 487.7,445.5 655.9,572.9 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(143,147,64);" opacity="0.8"/>
+  </g>
+  <g id="E134">
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 463.1,405.1 463.4,210.6 A 239.756,239.756 0.00 0,1 470.1,211.1 Q 463.1,404.9 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(143,147,64);" opacity="0.8"/>
+    <path d="M 463.421,210.620 A 239.756,239.756 0.00 0,1 470.1,211.1 Q 463.1,404.9 561.3,237.7 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 463.1,405.1 463.4,210.6 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 463.1,405.1 463.4,210.6 A 239.756,239.756 0.00 0,1 470.1,211.1 Q 463.1,404.9 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 590.335,255.606 A 239.756,239.756 0.00 0,1 595.7,259.6 Q 475.7,409.7 561.3,237.7 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 475.8,409.6 590.3,255.6 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(143,147,64);" opacity="0.8"/>
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 469.7,406.5 530.1,224.0 A 239.756,239.756 0.00 0,1 536.4,226.4 Q 469.8,406.4 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(143,147,64);" opacity="0.8"/>
+    <path d="M 530.101,224.020 A 239.756,239.756 0.00 0,1 536.4,226.4 Q 469.8,406.4 561.3,237.7 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 469.7,406.5 530.1,224.0 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 561.343,237.666 A 239.756,239.756 0.00 0,1 567.2,240.9 Q 469.7,406.5 530.1,224.0 A 239.756,239.756 0.00 0,1 536.4,226.4 Q 469.8,406.4 561.3,237.7 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(222,220,70);" opacity="0.5"/>
+    <path d="M 616.489,277.476 A 239.756,239.756 0.00 0,1 621.3,282.2 Q 481.2,413.8 590.3,255.6 A 239.756,239.756 0.00 0,1 595.7,259.6 Q 481.2,413.7 616.5,277.5 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(143,147,64);" opacity="0.8"/>
+    <path d="M 590.335,255.606 A 239.756,239.756 0.00 0,1 595.7,259.6 Q 469.3,407.5 497.2,214.9 A 239.756,239.756 0.00 0,1 503.8,216.4 Q 469.4,407.2 590.3,255.6 Z" style="stroke-width: 1.0;  stroke: rgb(180,180,180); fill: rgb(143,147,64);" opacity="0.8"/>
+  </g>
+  <g id="E134"/>
+  <g id="plot0">
+    <g id="plot0-axis"/>
+    <text x="619.4" y="146.6" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(298.5,619.4,146.6)">N119</text>
+    <text x="697.8" y="206.3" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(314.8,697.8,206.3)">N175</text>
+    <text x="660.7" y="173.7" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(306.6,660.7,173.7)">N174</text>
+    <text x="478.5" y="103.7" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(274.0,478.5,103.7)">N17</text>
+    <text x="574.3" y="125.5" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(290.3,574.3,125.5)">N74</text>
+    <text x="527.4" y="111.2" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(282.2,527.4,111.2)">N31</text>
+    <text x="796.2" y="420.0" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(354.3,796.2,420.0)">C10</text>
+    <text x="795.8" y="483.9" font-family="'CMUSansSerif-DemiCondensed'" style="fill: rgb(0,0,0); font-size: 13.0px; text-anchor: start" transform="rotate(4.9,795.8,483.9)">C11</text>
+  </g>
+  <script>function init(evt) {
+    $(evt.target).bind('mouseover', doMouseOver);
+    $(evt.target).bind('mouseup'  , doMouseUp);
+    $(evt.target).bind('mousedown', doMouseDown);
+}</script>
+</svg>
