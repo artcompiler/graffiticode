@@ -136,7 +136,7 @@ app.engine('html', function (str, options, callback) {
 // Routes
 
 app.get('/', function(req, res) {
-    res.render('index.html', { title: 'Home' }, function (error, html) {
+    res.render('index.html', { title: 'Graffiti Code' }, function (error, html) {
 	if (error) res.send(400, error)
 	else res.send(html)
     })
