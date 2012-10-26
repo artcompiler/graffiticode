@@ -1,0 +1,36 @@
+<html>
+<head>
+  <script src="codemirror.js"></script>
+  <script src="simple-hint.js"></script>
+  <link rel="stylesheet" href="codemirror.css">
+  <link rel="stylesheet" href="simple-hint.css">
+  <script src="parse.js"></script>
+  <script src="mode-graffiti.js"></script>
+  <style>
+    .CodeMirror {border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;}
+    span.cm-meta {color: #a0b !important;}
+    span.cm-error { background-color: black; opacity: 0.4;}
+    span.cm-error.cm-string { background-color: red; }
+    span.cm-error.cm-tag { background-color: #2b2; }
+  </style>
+  <link rel="stylesheet" href="docs.css">
+  <title>Graffiti Code</title>
+</head>
+<body>
+  <p><%=title%></p>
+  <script>
+
+var myCodeMirror = CodeMirror(document.body, {
+    value: "",
+    mode:  "graffiti",
+    lineWrapping: "true",
+    lineNumbers: "true",
+    onCursorActivity: function (editor) {
+        CodeMirror.handleCursorEvent(editor)
+        return false
+    }
+})
+
+  </script>
+</body>
+</html>

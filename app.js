@@ -6,9 +6,11 @@
 var express = require('express')
   , util = require('util')
   , passport = require('passport')
-  , LocalStrategy = require('passport-local').Strategy;
+  , LocalStrategy = require('passport-local').Strategy
+  , _ = require('underscore')
+  , fs = require('fs');
 
-var app = module.exports = express.createServer();
+var app = module.exports = express();
 
 // begin passportjs setup
 
@@ -102,13 +104,12 @@ pg.connect(conString, function(err, client) {
 
 app.configure(function(){
   app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
   app.use(express.logger());
   app.use(express.cookieParser());
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(require('stylus').middleware({ src: __dirname + '/public' }));
-  app.use(express.static(__dirname + '/public'));
+  app.use(express.static(__dirname + '/static'));
   app.use(express.session({ secret: 'keyboard cat' }));
   // Initialize Passport!  Also use passport.session() middleware, to support
   // persistent login sessions (recommended).
@@ -125,13 +126,20 @@ app.configure('production', function(){
   app.use(express.errorHandler()); 
 });
 
+app.engine('html', function (str, options, callback) {
+    fs.readFile(str, function (err, data) {
+	var template = _.template(String(data));
+	callback(err, template(options))
+    })
+})
+
 // Routes
 
-app.get('/', function(req, res){
-    res.render('index', {
-          title: 'Code Cartography'
-	, user: req.user 
-    });
+app.get('/', function(req, res) {
+    res.render('index.html', { title: 'Home' }, function (error, html) {
+	if (error) res.send(400, error)
+	else res.send(html)
+    })
 });
 
 app.get('/about', function(req, res){
@@ -193,7 +201,7 @@ app.del('/notes/:id', ensureAuthenticated, function(req, res){
     });
 });
 
-// update a note
+ // update a note
 app.put('/notes/:id', ensureAuthenticated, function(req, res){
     var id = req.params.id
     console.log("put id="+id)
