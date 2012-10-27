@@ -1,11 +1,16 @@
 <html>
 <head>
+  <script src="graffiticode.js"></script>
   <script src="codemirror.js"></script>
   <script src="simple-hint.js"></script>
   <link rel="stylesheet" href="codemirror.css">
   <link rel="stylesheet" href="simple-hint.css">
   <script src="parse.js"></script>
   <script src="mode-graffiti.js"></script>
+  <script src="mode-xml.js"></script>
+  <script src="mode-javascript.js"></script>
+  <script src="jquery.js"></script>
+  <script src="d3.v2.js"></script>
   <style>
     .CodeMirror {border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;}
     span.cm-meta {color: #a0b !important;}
@@ -17,10 +22,17 @@
   <title><%=title%></title>
 </head>
 <body>
-  <p><%=title%></p>
+  <h3>Graffiti</h3>
+  <div id="edit-view" name="code"></div>
+  <br/>
+  <h3>AST</h3>
+  <div id="ast-view" name="code"></div>
+  <br/>
+  <h3>Code</h3>
+  <div id="text-view" name="code"></div>
   <script>
 
-var myCodeMirror = CodeMirror(document.body, {
+var myCodeMirror = CodeMirror(document.querySelector("#edit-view"), {
     value: "",
     mode:  "graffiti",
     lineWrapping: "true",
@@ -29,6 +41,25 @@ var myCodeMirror = CodeMirror(document.body, {
         CodeMirror.handleCursorEvent(editor)
         return false
     }
+})
+
+var astCodeMirror = CodeMirror(document.querySelector("#ast-view"), {
+    value: "",
+    mode: {name: "javascript", json: true},
+    lineWrapping: "true",
+    lineNumbers: "true",
+})
+
+var textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
+    value: "",
+    mode: {name: "xml", alignCDATA: true},
+    lineWrapping: "true",
+    lineNumbers: "true",
+})
+
+$(document).ready(
+  function() {
+    GraffitiCode.ui.updateText()
 })
 
   </script>
