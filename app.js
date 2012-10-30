@@ -8,7 +8,8 @@ var express = require('express')
   , passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy
   , _ = require('underscore')
-  , fs = require('fs');
+  , fs = require('fs')
+  , transformer = require('./static/transform.js')
 
 var app = module.exports = express();
 
@@ -143,6 +144,16 @@ app.get('/', function(req, res) {
     })
 });
 
+app.post('/code', function(req, res){
+    //console.log("/code req="+JSON.stringify(req.body))
+    var pool = req.body
+    var out = transformer.transform(pool)
+    console.log("/code out="+out)
+    res.send(out)
+});
+
+
+
 app.get('/about', function(req, res){
     res.render('about', {
    	  title: 'About'
@@ -170,10 +181,6 @@ app.get('/archive', function(req, res){
     ensureAuthenticated(req, res, function() {
 	res.redirect("/todos.html")
     })
-});
-
-app.get('/text', function(req, res){
-    res.sendfile("static/test.txt")
 });
 
 // get the notes for that label

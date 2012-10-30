@@ -10,14 +10,16 @@ if (!GraffitiCode) {
 GraffitiCode.ui = (function () {
 
     function compileCode(data) {
+	console.log("compileCode() data="+JSON.stringify(data))
 	$.ajax({
 	    type: "POST",
             url: "/code",
 	    data: data,
             dataType: "json",
             success: function(data) {
-		updateText()
-		updateImage()
+		console.log("compileCode() data="+JSON.stringify(data))
+		updateText(JSON.stringify(data))
+//		updateImage()
             },
             error: function(xhr, msg, err) {
 		alert(msg+" "+err)
@@ -29,17 +31,8 @@ GraffitiCode.ui = (function () {
 	astCodeMirror.setValue(data);
     }
 
-    function updateText() {
-	$.ajax({
-            url: "/text",
-            dataType: "text",
-            success: function(data) {
-		textCodeMirror.setValue(data);
-            },
-            error: function(xhr, msg, err) {
-		alert(msg+" "+err)
-            }
-	})
+    function updateText(data) {
+	textCodeMirror.setValue(data);
     }
 
     function updateImage() {
@@ -56,9 +49,9 @@ GraffitiCode.ui = (function () {
     }
 
     return {
-	updateText: updateText,
-	updateImage: updateImage,
 	compileCode: compileCode,
 	updateAST: updateAST,
+	updateGraffiti: updateText,
+	updateImage: updateImage,
     }
 })()

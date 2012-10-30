@@ -3,8 +3,10 @@
 
 /* copyright (c) 2012, Jeff Dyer */
 
+console.log("GraffitiCode")
+
 if (!GraffitiCode) {
-    var GraffitiCode = {}
+    GraffitiCode = {}
 }
 
 function alert(str) {
@@ -49,6 +51,7 @@ function log(str) {
         node: node,
         dump: dump,
         dumpAll: dumpAll,
+        poolToJSON: poolToJSON,
         number: number,
         string: string,
         name: name,
@@ -115,8 +118,8 @@ function log(str) {
     }
 
     function node(ctx, nid) {
-        print("node() nid="+nid)
-        print("node() pool="+dumpAll(ctx))
+        //print("node() nid="+nid)
+        //print("node() pool="+dumpAll(ctx))
         var n = ctx.state.nodePool[nid]
         if (!n) {
             return {}
@@ -136,7 +139,7 @@ function log(str) {
         }
         return n;
     }
-    
+
     function dumpAll(ctx) {
         var nodePool = ctx.state.nodePool
         var s = "\n{"
@@ -144,6 +147,7 @@ function log(str) {
             var n = nodePool[i];
             s = s + "\n    " + i+": "+dump(n) + ","
         }
+        s += "\n    root: " + (nodePool.length-1)
         s += "\n}\n"
         
 //        for (var i=0; i < nodeStack.length; i++) {
@@ -153,6 +157,52 @@ function log(str) {
         return s
     }
     
+    
+    function poolToJSON(ctx) {
+        var nodePool = ctx.state.nodePool
+        var obj = { }
+        for (var i=1; i < nodePool.length; i++) {
+            var n = nodePool[i];
+            obj[i] = nodeToJSON(n)
+        }
+        obj["root"] = (nodePool.length-1)
+        
+//        for (var i=0; i < nodeStack.length; i++) {
+//            var n = nodeStack[i];
+//            s = s + "\n" + i+": "+dump(n)
+//        }
+        return obj
+    }
+    
+    function nodeToJSON(n) {
+
+        if (typeof n === "object") {
+            switch (n.tag) {
+            case "num":
+                var obj = n.elts[0];
+                break;
+            case "str":
+                var obj = n.elts[0];
+                break;
+            default:
+                var obj = {}
+                obj["tag"] = n.tag
+                obj["elts"] = []
+                for (var i=0; i < n.elts.length; i++) {
+                    obj["elts"][i] = nodeToJSON(n.elts[i]);
+                }
+                break;
+            }
+        }
+        else if (typeof n === "string") {
+            var obj = n;
+        }
+        else {
+            var obj = n;
+        }
+        return obj
+    }
+
     function dump(n) {
         
         if (typeof n === "object") {
@@ -203,8 +253,10 @@ function log(str) {
             elts.push(pop(ctx))
             argc--
         }
-        elts.push(pop(ctx))
-        push(ctx, {tag: "CALL", elts: elts})
+        var name = node(ctx, pop(ctx))
+        print("callExpr() name="+name+" elts="+elts)
+        var def = GraffitiCode.findWord(ctx, name)
+        push(ctx, {tag: def.name, elts: elts})
     }
 
     function binaryExpr(ctx, op) {
@@ -351,7 +403,7 @@ function log(str) {
     var TK_DOT          = 0xA9
     var TK_COLON        = 0xAA
 
-    var globalLexicon = {
+    var globalLexicon = GraffitiCode.globalLexicon = {
         "let" : { tk: TK_LET, cls: "keyword" },
         "if" : { tk: TK_IF, cls: "keyword" },
         "then" : { tk: TK_THEN, cls: "keyword" },
@@ -397,7 +449,8 @@ function log(str) {
         // triangle
         "size" : { tk: TK_IDENT, cls: "method", length: 2 },
         "background" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "triangle" : { tk: TK_IDENT, cls: "method", length: 6 },
+        "tri" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
+        "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "draw" : { tk: TK_IDENT, cls: "method", length: 5 },
         "fill" : { tk: TK_IDENT, cls: "method", length: 1 },
         "stroke" : { tk: TK_IDENT, cls: "method", length: 1 },
@@ -440,8 +493,6 @@ function log(str) {
 
     }
 
-    GraffitiCode.globalLexicon = globalLexicon
-
     function findWord(ctx, lexeme) {
         var env = ctx.state.env
         print("findWord() lexeme=" + lexeme)
@@ -453,6 +504,8 @@ function log(str) {
         }
         return null
     }
+
+    GraffitiCode.findWord = findWord
 
     function addWord(ctx, lexeme, entry) {
         print("addWord() lexeme=" + lexeme)
@@ -1011,8 +1064,8 @@ function log(str) {
     }
 
     function parse(stream, state) {
-            var ctx = {scan: scanner(stream), state: state}
-            var cls
+        var ctx = {scan: scanner(stream), state: state}
+        var cls
         try {
             // call the continuation and store the next continuation
             //log(">>parse() cc="+state.cc+"\n")
@@ -1024,21 +1077,21 @@ function log(str) {
             if (cc) {
                 cls = cc.cls
             }
-            
+
             GraffitiCode.ui.updateAST(ast.dumpAll(ctx))
+            GraffitiCode.ui.compileCode(ast.poolToJSON(ctx))
             
-            //            if (cc && emptyInput(ctx)) {
-            //                while((cc=cc(ctx, null))) ;
-            //            }
-            
+//            if (cc && emptyInput(ctx)) {
+//                while((cc=cc(ctx, null))) ;
+//            }
+
             print("---------")
             log("parse() pos="+stream.pos)
             log("parse() lexeme="+lexeme)
             log("parse() cls="+cls)
             print("parse() cc="+cc+"\n")
-            print("parse() emptyInput()="+emptyInput(ctx)+"\n")
             print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
-            
+
         }
         catch (x) {
             log("---------")
@@ -1055,11 +1108,13 @@ function log(str) {
                 
             }
         }
-        
+
         return cls
     }
-    
+
     GraffitiCode.parse = parse
+
+    console.log("parse="+GraffitiCode.parse)
 
     var lexeme = ""
 

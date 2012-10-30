@@ -22,14 +22,16 @@
   <title><%=title%></title>
 </head>
 <body>
-  <h3>Graffiti</h3>
+  <h3>Code</h3>
   <div id="edit-view" name="code"></div>
   <br/>
   <h3>AST</h3>
   <div id="ast-view" name="code"></div>
   <br/>
-  <h3>Code</h3>
+  <h3>Graffiti Text</h3>
   <div id="text-view" name="code"></div>
+  <br/>
+  <h3>Graffiti Picture</h3>
   <script>
 
 var myCodeMirror = CodeMirror(document.querySelector("#edit-view"), {
@@ -52,14 +54,15 @@ var astCodeMirror = CodeMirror(document.querySelector("#ast-view"), {
 
 var textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
     value: "",
-    mode: {name: "xml", alignCDATA: true},
+//    mode: {name: "xml", alignCDATA: true},
+    mode: {name: "javascript", json: true},
     lineWrapping: "true",
     lineNumbers: "true",
 })
 
 $(document).ready(
   function() {
-    GraffitiCode.ui.updateText()
+//    GraffitiCode.ui.updateText()
 })
 
   </script>
