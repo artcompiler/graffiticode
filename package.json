@@ -9,7 +9,7 @@
     "passport": "latest",
     "passport-local": "latest",
     "pg": "0.8.x",
-    "underscore": "1.4.x"
+    "underscore": "1.4.x",
     "http": "latest",
     "https": "latest"
   },
