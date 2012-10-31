@@ -1079,7 +1079,9 @@ function log(str) {
             }
 
             GraffitiCode.ui.updateAST(ast.dumpAll(ctx))
-            GraffitiCode.ui.compileCode(ast.poolToJSON(ctx))
+            if (cc === null) {
+                GraffitiCode.ui.compileCode(ast.poolToJSON(ctx))
+            }
             
 //            if (cc && emptyInput(ctx)) {
 //                while((cc=cc(ctx, null))) ;

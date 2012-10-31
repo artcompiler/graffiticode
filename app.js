@@ -3,13 +3,20 @@
  * Module dependencies.
  */
 
+function print(str) {
+    console.log(str)
+}
+    
 var express = require('express')
   , util = require('util')
   , passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy
   , _ = require('underscore')
   , fs = require('fs')
+  , http = require('http')
+  , https = require('https')
   , transformer = require('./static/transform.js')
+  , renderer = require('./static/render.js')
 
 var app = module.exports = express();
 
@@ -121,11 +128,11 @@ app.configure(function(){
 });
 
 app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 app.configure('production', function(){
-  app.use(express.errorHandler()); 
+  app.use(express.errorHandler());
 });
 
 app.engine('html', function (str, options, callback) {
@@ -144,15 +151,50 @@ app.get('/', function(req, res) {
     })
 });
 
+
+// compile and commit
 app.post('/code', function(req, res){
-    //console.log("/code req="+JSON.stringify(req.body))
+    console.log("/code req="+JSON.stringify(req.body))
     var pool = req.body
-    var out = transformer.transform(pool)
-    console.log("/code out="+out)
-    res.send(out)
+    var pool2 = transformer.transform(pool)
+    var str = renderer.render(pool2)
+    print("/code str="+str)
+//    gist()
+    res.send(str)
+    function gist() {
+	var gistData = {
+	    "description": "graffiti code",
+	    "public": true,
+	    "files": {
+		"out": {
+		    "content": out
+		}
+	    }
+	}
+	var gistStr = JSON.stringify(gistData)
+	console.log("gistStr="+gistStr)
+
+	var options = {
+	    host: 'api.github.com',
+	    path: '/gists',
+	    method: 'POST',
+	    headers: {'Content-Type': 'text/plain',
+		      'Content-Length': gistStr.length},
+	}
+	var gistReq = https.request(options, function(res) {
+	    console.log("Got response: " + res.statusCode);
+	    console.log("res="+JSON.stringify(res.headers))
+	    res.on('data', function (chunk) {
+		console.log('BODY: ' + chunk);
+	    })
+	})
+	gistReq.write(gistStr)
+	gistReq.end()
+	gistReq.on('error', function(e) {
+	    console.log("Got error: " + e.message);
+	})
+    }
 });
-
-
 
 app.get('/about', function(req, res){
     res.render('about', {

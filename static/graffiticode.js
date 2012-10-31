@@ -15,11 +15,11 @@ GraffitiCode.ui = (function () {
 	    type: "POST",
             url: "/code",
 	    data: data,
-            dataType: "json",
+            dataType: "text",
             success: function(data) {
-		console.log("compileCode() data="+JSON.stringify(data))
-		updateText(JSON.stringify(data))
-//		updateImage()
+		console.log("compileCode() data="+data)
+//		updateText(data)
+		updateImage(data)
             },
             error: function(xhr, msg, err) {
 		alert(msg+" "+err)
@@ -28,24 +28,16 @@ GraffitiCode.ui = (function () {
     }
 
     function updateAST(data) {
-	astCodeMirror.setValue(data);
+//	astCodeMirror.setValue(data)
     }
 
     function updateText(data) {
-	textCodeMirror.setValue(data);
+	textCodeMirror.setValue(data)
     }
 
-    function updateImage() {
-	$.ajax({
-            url: "/image",
-            dataType: "xml",
-            success: function(data) {
-		imageView;
-            },
-            error: function(xhr, msg, err) {
-		xhr = xhr
-            }
-	})
+    function updateImage(data) {
+	console.log("updateImage() data="+data)
+	$("#graff-view").html(data)
     }
 
     return {
