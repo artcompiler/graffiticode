@@ -4,7 +4,7 @@
  */
 
 function print(str) {
-    console.log(str)
+//    console.log(str)
 }
     
 var express = require('express')
@@ -92,31 +92,29 @@ passport.use(new LocalStrategy(
 
 // end passportjs setup
 
-/*
 var pg = require('pg'); 
 //or native libpq bindings
 //var pg = require('pg').native
 
 var conString = process.env.DATABASE_URL
-console.log(conString)
+//console.log("conString="+conString)
 
 //error handling omitted
 pg.connect(conString, function(err, client) {
   client.query("SELECT NOW() as when", function(err, result) {
-    console.log("Row count: %d",result.rows.length);  // 1
-    console.log("Current year: %d", result.rows[0].when.getYear());
-  });
-});
-*/
+//    console.log("Row count: %d",result.rows.length);  // 1
+//    console.log("Current year: %d", result.rows[0].when.getYear());
+  })
+})
 
 // Configuration
 
 app.configure(function(){
-  app.set('views', __dirname + '/views');
-  app.use(express.logger());
-  app.use(express.cookieParser());
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
+  app.set('views', __dirname + '/views')
+  app.use(express.logger())
+  app.use(express.cookieParser())
+  app.use(express.bodyParser())
+  app.use(express.methodOverride())
   app.use(require('stylus').middleware({ src: __dirname + '/static' }));
   app.use(express.static(__dirname + '/static'));
   app.use(express.session({ secret: 'keyboard cat' }));
@@ -135,9 +133,9 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 
-app.engine('html', function (str, options, callback) {
-    fs.readFile(str, function (err, data) {
-	var template = _.template(String(data));
+app.engine('html', function (templateFile, options, callback) {
+    fs.readFile(templateFile, function (err, templateData) {
+	var template = _.template(String(templateData));
 	callback(err, template(options))
     })
 })
@@ -145,55 +143,150 @@ app.engine('html', function (str, options, callback) {
 // Routes
 
 app.get('/', function(req, res) {
-    res.render('index.html', { title: 'Graffiti Code' }, function (error, html) {
-	if (error) res.send(400, error)
-	else res.send(html)
+    fs.readFile('views/index.html', function(err, body) {
+//	console.log("body="+body)
+	res.render('layout.html', { 
+	    title: 'Graffiti Code',
+	    vocabulary: 'Triangle',
+	    target: 'SVG',
+	    login: 'Login',
+	    body: body,
+	}, function (error, html) {
+	    if (error) res.send(400, error)
+	    else res.send(html)
+	})
     })
-});
+})
 
 
-// compile and commit
-app.post('/code', function(req, res){
-    console.log("/code req="+JSON.stringify(req.body))
-    var pool = req.body
-    var pool2 = transformer.transform(pool)
-    var str = renderer.render(pool2)
-    print("/code str="+str)
-//    gist()
-    res.send(str)
-    function gist() {
+// get the piece with :id
+app.get('/code/:id', function(req, outerRes){
+    var id = req.params.id
+//    console.log("/code/:id id="+id)
+    var options = {
+	host: 'api.github.com',
+	path: '/gists/'+id,
+	method: 'GET',
+    }
+    var gistReq = https.request(options, function(res) {
+//	console.log("Got response: " + res.statusCode)
+//	console.log("res="+JSON.stringify(res.headers))
+	res.on('data', function (chunk) {
+	    outerRes.send(chunk)
+	})
+    })
+    gistReq.end()
+    gistReq.on('error', function(e) {
+//	console.log("Got error: " + e.message);
+	res.send(e)
+    })
+})
+
+// get N pieces
+app.get('/code', function(req, res){
+    pg.connect(conString, function(err, client) {
+	client.query("SELECT * FROM pieces", function(err, result) {
+	    var rows
+	    if (!result || result.rows.length===0) {
+		rows = [{}]
+	    }
+	    else {
+		rows = result.rows
+	    }
+	    res.send(rows)
+	})
+    })
+})
+
+// compile code (idempotent)
+app.put('/code', function(req, res) {
+//    var src = req.body.src
+//    console.log("/code req.body.ast="+req.body.ast)
+    var srcAst = req.body.ast
+    var objAst = transformer.transform(srcAst)
+    var obj = renderer.render(objAst)
+    res.send(obj)
+})
+
+// commit and return commit id
+app.post('/code', function(req, resPost){
+    var src = req.body.src
+    var obj = req.body.obj
+    commit()
+    function commit() {
 	var gistData = {
-	    "description": "graffiti code",
+	    "description": "graffiticode",
 	    "public": true,
 	    "files": {
-		"out": {
-		    "content": out
+		"src": {
+		    "content": src
+		},
+		"obj": {
+		    "content": obj
 		}
 	    }
 	}
-	var gistStr = JSON.stringify(gistData)
-	console.log("gistStr="+gistStr)
-
+	var gistDataEncoded = JSON.stringify(gistData)
 	var options = {
 	    host: 'api.github.com',
 	    path: '/gists',
 	    method: 'POST',
 	    headers: {'Content-Type': 'text/plain',
-		      'Content-Length': gistStr.length},
+		      'Content-Length': gistDataEncoded.length},
 	}
 	var gistReq = https.request(options, function(res) {
-	    console.log("Got response: " + res.statusCode);
-	    console.log("res="+JSON.stringify(res.headers))
+//	    console.log("Got response: " + res.statusCode)
+//	    console.log("res.headers="+JSON.stringify(res.headers))
 	    res.on('data', function (chunk) {
-		console.log('BODY: ' + chunk);
+		var id = JSON.parse(chunk).id
+//		console.log("/code chunk="+chunk)
+//		console.log("/code chunk.id="+id)
+		pg.connect(conString, function(err, client) {
+		    client.query("INSERT INTO pieces (commit) VALUES ("+id+");")
+		    resPost.send(chunk)
+		})
 	    })
 	})
-	gistReq.write(gistStr)
+	gistReq.write(gistDataEncoded)
 	gistReq.end()
 	gistReq.on('error', function(e) {
-	    console.log("Got error: " + e.message);
+//	    console.log("Got error: " + e.message);
+	    res.send(e)
 	})
     }
+})
+
+// deletes the notes for that label
+app.del('/code/:id', ensureAuthenticated, function(req, res){
+    var id = req.params.id
+//    console.log("delete id="+id);
+    pg.connect(conString, function(err, client) {
+	client.query("DELETE FROM todos WHERE id='"+id+"'", function(err, result) {
+//	    console.log("result=" + util.format("%j", result))
+	    res.send(result.rows)
+	});
+    });
+});
+
+ // update a note
+app.put('/code/:id', ensureAuthenticated, function(req, res){
+    var id = req.params.id
+//    console.log("put id="+id)
+    pg.connect(conString, function(err, client) {
+	client.query("UPDATE todos SET text='"+req.body.text+"' WHERE id="+id, function(err, result) {
+//	    console.log("result=" + util.format("%j", result))
+	    res.send(result.rows)
+	});
+    })
+});
+
+// post a note for a label
+app.post('/notes', ensureAuthenticated, function(req, res){
+//    console.log("post req.body=" + req.url)
+    pg.connect(conString, function(err, client) {
+	client.query("INSERT INTO todos (label, text) VALUES ('"+req.body.label+"', '"+req.body.text+"')")
+	res.send(req.body)
+    });
 });
 
 app.get('/about', function(req, res){
@@ -214,7 +307,7 @@ app.get('/todos', function(req, res){
     var url = req.url
     //var file = "http://s3.amazonaws.com/codecartography/svg/"+url.substring(url.indexOf("?")+1)    
     var file = __dirname + "/public/svg/" + url.substring(url.indexOf("?")+1)    
-    console.log("file="+file);
+//    console.log("file="+file);
     res.sendfile(file)
 });
 
@@ -223,57 +316,6 @@ app.get('/archive', function(req, res){
     ensureAuthenticated(req, res, function() {
 	res.redirect("/todos.html")
     })
-});
-
-// get the notes for that label
-app.get('/notes', function(req, res){
-    var table = req.query.table
-    console.log("get table="+table);
-    pg.connect(conString, function(err, client) {
-	client.query("SELECT * FROM " + table, function(err, result) {
-	    var rows
-	    if (!result || result.rows.length===0) {
-		rows = [{}]
-	    }
-	    else {
-		rows = result.rows
-	    }
-	    res.send(rows)
-	});
-    });
-});
-
-// deletes the notes for that label
-app.del('/notes/:id', ensureAuthenticated, function(req, res){
-    var id = req.params.id
-    console.log("delete id="+id);
-    pg.connect(conString, function(err, client) {
-	client.query("DELETE FROM todos WHERE id='"+id+"'", function(err, result) {
-	    console.log("result=" + util.format("%j", result))
-	    res.send(result.rows)
-	});
-    });
-});
-
- // update a note
-app.put('/notes/:id', ensureAuthenticated, function(req, res){
-    var id = req.params.id
-    console.log("put id="+id)
-    pg.connect(conString, function(err, client) {
-	client.query("UPDATE todos SET text='"+req.body.text+"' WHERE id="+id, function(err, result) {
-	    console.log("result=" + util.format("%j", result))
-	    res.send(result.rows)
-	});
-    })
-});
-
-// post a note for a label
-app.post('/notes', ensureAuthenticated, function(req, res){
-    console.log("post req.body=" + req.url)
-    pg.connect(conString, function(err, client) {
-	client.query("INSERT INTO todos (label, text) VALUES ('"+req.body.label+"', '"+req.body.text+"')")
-	res.send(req.body)
-    });
 });
 
 // begin passportjs routes

@@ -11,7 +11,7 @@ exports.transformer = GraffitiCode.transformer = function() {
 
 
     function print(str) {
-        console.log(str)
+//        console.log(str)
     }
 
     var table = {
@@ -102,7 +102,12 @@ exports.transformer = GraffitiCode.transformer = function() {
 
     // CONTROL FLOW ENDS HERE
 
+    var canvasWidth = 0
+    var canvasHeight = 0
+
     exports.transform = transform
+    exports.canvasWidth = function() {return canvasWidth}
+    exports.canvasHeight =  function() {return canvasHeight}
 
     return {
         transform: transform,
@@ -149,7 +154,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
 
     function isString(v) {
-        console.log("isString() _="+_)
+//        console.log("isString() _="+_)
         return _.isString(v)
     }
 
@@ -204,6 +209,21 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
     }
 
+    function canvasSize(xx, yy) {
+//        console.log("canvasWidth="+xx)
+        for (var i=0; i < xx.length; i++) {
+            if (xx[i] > canvasWidth) {
+                canvasWidth = xx[i]
+            }
+        }
+        for (var i=0; i < yy.length; i++) {
+            if (yy[i] > canvasHeight) {
+                canvasHeight = yy[i]
+            }
+        }
+//        console.log("canvasWidth="+canvasWidth)
+    }
+
     function triangle(node) {
         print("triangle")
 //        var name = visit(node.elts.pop())
@@ -218,6 +238,8 @@ exports.transformer = GraffitiCode.transformer = function() {
                 " L " + x1 + " " + y1 +
                 " L " + x2 + " " + y2 +
                 " L " + x0 + " " + y0
+        canvasSize([x0, x1, x2], [y0, y1, y2])
+        
         return {
             "tag": "path",
             "d": d

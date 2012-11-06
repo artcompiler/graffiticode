@@ -5,6 +5,8 @@ if (GraffitiCode===void 0) {
     var GraffitiCode = {}
 }
 
+var transformer = require('./transform.js')
+
 exports.renderer = GraffitiCode.renderer = function() {
 
     exports.render = render
@@ -16,7 +18,7 @@ exports.renderer = GraffitiCode.renderer = function() {
     // CONTROL FLOW ENDS HERE
 
     function print(str) {
-        console.log(str)
+//        console.log(str)
     }
     
     var nodePool
@@ -25,8 +27,10 @@ exports.renderer = GraffitiCode.renderer = function() {
         return [ '<?xml version="1.0" standalone="no"?>'
                , '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
                , '"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
-               , '<svg viewBox="0 0 10000 10000"'
-               , 'width="10000" height="10000"'
+               , '<svg'
+               , 'viewBox="0 0 1280 720"'
+//               , 'width=' + transformer.canvasWidth() + ' height=' + transformer.canvasHeight()
+               , 'width=640 height=360'
                , 'preserveAspectRatio="xMinYMin meet"'
                , 'xmlns:xlink="http://www.w3.org/1999/xlink"'
                , 'xmlns="http://www.w3.org/2000/svg"'

@@ -1,10 +1,11 @@
 <html>
 <head>
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="codemirror.css">
+  <link rel="stylesheet" href="simple-hint.css">
   <script src="graffiticode.js"></script>
   <script src="codemirror.js"></script>
   <script src="simple-hint.js"></script>
-  <link rel="stylesheet" href="codemirror.css">
-  <link rel="stylesheet" href="simple-hint.css">
   <script src="parse.js"></script>
   <script src="mode-graffiti.js"></script>
   <script src="mode-xml.js"></script>
@@ -18,15 +19,15 @@
     span.cm-error.cm-string { background-color: red; }
     span.cm-error.cm-tag { background-color: #2b2; }
   </style>
-  <link rel="stylesheet" href="docs.css">
   <title><%=title%></title>
 </head>
 <body>
-  <h3>Code</h3>
-  <div id="edit-view" name="code"></div>
-  <br/>
-  <h3>Graffiti</h3>
-  <div id="graff-view"></div>
+  <div class="gallery-panel"></div>
+  <div id="main-panel">
+    <div id="edit-view" name="code"></div>
+    <div id="graff-view"></div>
+  </div>
+  
 <!--
   <br/>
   <h3>AST</h3>
@@ -37,49 +38,53 @@
 -->
   <script>
 
-var myCodeMirror = CodeMirror(document.querySelector("#edit-view"), {
-    value: "tri 000 000 200 300 000 300.\n" +
-           "tri 010 000 080 000 210 300.\n" +
-           "tri 090 000 220 300 290 300.\n" +
-           "tri 100 000 300 300 500 000.\n" +
-           "tri 510 000 510 300 310 300.\n" +
+$(document).ready(function () {
+    editor = CodeMirror(document.querySelector("#edit-view"), {
+	mode:  "graffiti",
+	lineWrapping: "true",
+	lineNumbers: "true",
+	onCursorActivity: function (editor) {
+            CodeMirror.handleCursorEvent(editor)
+            return false
+	}
+    })
 
-           "tri 000 300 200 300 000 600.\n" +
-           "tri 210 300 080 600 010 600.\n" +
-           "tri 220 300 290 300 090 600.\n" +
-           "tri 500 600 100 600 300 300.\n" +
-           "tri 510 600 510 300 310 300.\n" +
-           ".",
+    // delay setting value until the editor has been defined to
+    // so that the called functions can get at it.
+    editor.setValue(
+    "tri 000 000 200 300 000 300.\n" +
+    "tri 010 000 080 000 210 300.\n" +
+    "tri 090 000 220 300 290 300.\n" +
+    "tri 100 000 300 300 500 000.\n" +
+    "tri 510 000 510 300 310 300.\n" +
+    "tri 000 300 200 300 000 600.\n" +
+    "tri 210 300 080 600 010 600.\n" +
+    "tri 220 300 290 300 090 600.\n" +
+    "tri 500 600 100 600 300 300.\n" +
+    "tri 510 600 510 300 310 300.\n" +
+    ".")
 
-    mode:  "graffiti",
-    lineWrapping: "true",
-    lineNumbers: "true",
-    onCursorActivity: function (editor) {
-        CodeMirror.handleCursorEvent(editor)
-        return false
-    }
-})
 
-/*
-var astCodeMirror = CodeMirror(document.querySelector("#ast-view"), {
+    /*
+    var astCodeMirror = CodeMirror(document.querySelector("#ast-view"), {
     value: "",
     mode: {name: "javascript", json: true},
     lineWrapping: "true",
     lineNumbers: "true",
-})
+    })
 
-var textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
+    var textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
     value: "",
     mode: {name: "xml", alignCDATA: true},
 //    mode: {name: "javascript", json: true},
     lineWrapping: "true",
     lineNumbers: "true",
-})
-*/
+    }) 
+    */
 
-$(document).ready(
-  function() {
-//    GraffitiCode.ui.updateText()
+    GraffitiCode.ui.getPieces()
+
+
 })
 
   </script>

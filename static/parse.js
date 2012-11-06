@@ -3,8 +3,6 @@
 
 /* copyright (c) 2012, Jeff Dyer */
 
-console.log("GraffitiCode")
-
 if (!GraffitiCode) {
     GraffitiCode = {}
 }
