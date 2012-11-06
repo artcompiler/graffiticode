@@ -228,12 +228,12 @@ exports.transformer = GraffitiCode.transformer = function() {
         print("triangle")
 //        var name = visit(node.elts.pop())
         var elts = []
-        var x0 = visit(node.elts.pop())
-        var y0 = visit(node.elts.pop())
-        var x1 = visit(node.elts.pop())
-        var y1 = visit(node.elts.pop())
-        var x2 = visit(node.elts.pop())
-        var y2 = visit(node.elts.pop())
+        var x0 = visit(node.elts[5])
+        var y0 = visit(node.elts[4])
+        var x1 = visit(node.elts[3])
+        var y1 = visit(node.elts[2])
+        var x2 = visit(node.elts[1])
+        var y2 = visit(node.elts[0])
         var d = "M " + x0 + " " + y0 + 
                 " L " + x1 + " " + y1 +
                 " L " + x2 + " " + y2 +

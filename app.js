@@ -205,6 +205,8 @@ app.put('/code', function(req, res) {
     var srcAst = req.body.ast
     var objAst = transformer.transform(srcAst)
     var obj = renderer.render(objAst)
+    console.log("/code ast="+JSON.stringify(srcAst))
+    console.log("/code obj="+obj)
     res.send(obj)
 })
 
@@ -236,14 +238,18 @@ app.post('/code', function(req, resPost){
 	}
 	var gistReq = https.request(options, function(res) {
 //	    console.log("Got response: " + res.statusCode)
-//	    console.log("res.headers="+JSON.stringify(res.headers))
+	    console.log("res.headers="+JSON.stringify(res.headers))
+	    var data = ""
 	    res.on('data', function (chunk) {
-		var id = JSON.parse(chunk).id
-//		console.log("/code chunk="+chunk)
-//		console.log("/code chunk.id="+id)
+		console.log("/code chunk="+chunk)
+		data += chunk
+	    })
+	    res.on('end', function () {
+		var id = JSON.parse(data).id
+		console.log("/code chunk.id="+id)
 		pg.connect(conString, function(err, client) {
 		    client.query("INSERT INTO pieces (commit) VALUES ("+id+");")
-		    resPost.send(chunk)
+		    resPost.send({id: id})
 		})
 	    })
 	})
