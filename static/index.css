@@ -4,7 +4,7 @@ body {
   max-width: 100%;
   margin: 3em auto;
   padding: 0 1em;
-  background: #fff;
+  background: #eee;
 }
 
 h1 {
@@ -165,31 +165,31 @@ a.download:hover {
 .clear { display: block; }
 /* close commented backslash hack */
 
-body .gallery-panel {
+#edit-view {
   position: absolute;
   top: 100;
   left: 0;
-  width: 360;
-//  background: #eee;
-}
-
-body .gallery-panel .thumbnail {
-  margin-left: 10;
-  margin-bottom: 20;
-  width: 320;
-  height: 180;
-}
-
-body #main-panel {
-  position: absolute;
-  top: 100;
-  left: 360;
-}
-
-#edit-view {
-  margin-top: 0;
 }
 
 #graff-view {
-  margin-top: 20;
+  position: absolute;
+  top: 100;
+  left: 640;
+  background: #fff;
 }
+
+body .gallery-panel {
+  position: absolute;
+  top: 480;
+  left: 640;
+  width: 640;
+}
+
+body .gallery-panel .thumbnail {
+  margin-left: 0;
+  margin-bottom: 20;
+  width: 640;
+  height: 360;
+  background: #fff;
+}
+

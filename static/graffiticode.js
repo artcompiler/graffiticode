@@ -106,8 +106,8 @@ GraffitiCode.ui = (function () {
 	$(".gallery-panel").prepend("<div class='thumbnail' id='"+id+"'/>")
         jQuery.data($(".gallery-panel div#"+id), "piece", {id: id, src: src, obj: obj})
         $(".gallery-panel div#"+id).append($(obj).clone())
-        $(".gallery-panel div#"+id+" svg").attr("width", "320")
-        $(".gallery-panel div#"+id+" svg").attr("height", "180")
+        $(".gallery-panel div#"+id+" svg").attr("width", "640")
+        $(".gallery-panel div#"+id+" svg").attr("height", "360")
         $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.updateText('"+src.split("\n")+"')")
     }
 
