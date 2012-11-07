@@ -56,8 +56,8 @@ GraffitiCode.ui = (function () {
             url: "/code/"+id,
             dataType: "json",
             success: function(data) {
-		data = data
-		addPiece(id, data.files.src.content, data.files.obj.content)
+		data = data[0]
+		addPiece(id, data.src, data.obj)
             },
             error: function(xhr, msg, err) {
 		alert(msg+" "+err)
@@ -74,8 +74,8 @@ GraffitiCode.ui = (function () {
             dataType: "json",
             success: function(data) {
 		data = data
-		for (var i = data.length-1; i >= 0; i--) {
-		    getPiece(data[i].commit)
+		for (var i = 0; i < data.length; i++) {
+		    getPiece(data[i].id)
 		}
             },
             error: function(xhr, msg, err) {

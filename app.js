@@ -160,6 +160,24 @@ app.get('/', function(req, res) {
 
 
 // get the piece with :id
+app.get('/code/:id', function(req, res){
+    var id = req.params.id
+    pg.connect(conString, function(err, client) {
+	client.query("SELECT * FROM pieces WHERE id = '"+id+"'", function(err, result) {
+	    var rows
+	    if (!result || result.rows.length===0) {
+		rows = [{}]
+	    }
+	    else {
+		rows = result.rows
+	    }
+	    console.log("rows="+JSON.stringify(rows))
+	    res.send(rows)
+	})
+    })
+})
+
+/*
 app.get('/code/:id', function(req, outerRes){
     var id = req.params.id
 //    console.log("/code/:id id="+id)
@@ -181,6 +199,7 @@ app.get('/code/:id', function(req, outerRes){
 	res.send(e)
     })
 })
+*/
 
 // get N pieces
 app.get('/code', function(req, res){
@@ -200,8 +219,6 @@ app.get('/code', function(req, res){
 
 // compile code (idempotent)
 app.put('/code', function(req, res) {
-//    var src = req.body.src
-//    console.log("/code req.body.ast="+req.body.ast)
     var srcAst = req.body.ast
     var objAst = transformer.transform(srcAst)
     var obj = renderer.render(objAst)
@@ -211,6 +228,28 @@ app.put('/code', function(req, res) {
 })
 
 // commit and return commit id
+app.post('/code', function(req, res){
+    var src = req.body.src
+    var obj = req.body.obj
+    commit()
+    function commit() {
+	pg.connect(conString, function(err, client) {
+	    src = src.replace(new RegExp("\n","g"), "\\n")
+	    obj = obj.replace(new RegExp("\n","g"), " ")
+	    obj = obj.replace(new RegExp("'","g"), "\"")
+	    var queryStr = "INSERT INTO pieces (gist_id, src, obj) VALUES ('1000', '"+src+"', '"+obj+"');"
+	    console.log("queryStr="+queryStr)
+	    client.query(queryStr)
+	    client.query("select count(*) from pieces", function (err, result) {
+		console.log("err="+err+" result="+JSON.stringify(result))
+		var id = result.rows[0].count
+		res.send({id: id})
+	    })
+	})
+    }
+})
+
+/*
 app.post('/code', function(req, resPost){
     var src = req.body.src
     var obj = req.body.obj
@@ -261,6 +300,7 @@ app.post('/code', function(req, resPost){
 	})
     }
 })
+*/
 
 // deletes the notes for that label
 app.del('/code/:id', ensureAuthenticated, function(req, res){
