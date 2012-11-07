@@ -171,18 +171,25 @@ a.download:hover {
   left: 0;
 }
 
+#text-view {
+  position: absolute;
+  top: 500;
+  left: 0;
+}
+
 #graff-view {
   position: absolute;
   top: 100;
   left: 640;
+  width: 1280;
+  height: 720;
   background: #fff;
 }
 
 body .gallery-panel {
   position: absolute;
-  top: 480;
+  top: 850;
   left: 640;
-  width: 640;
 }
 
 body .gallery-panel .thumbnail {
