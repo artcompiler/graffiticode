@@ -22,6 +22,7 @@ GraffitiCode.ui = (function () {
 //		console.log("compileCode() data="+data)
 //		updateText(data)
 		updateImage(data, src, ast)
+		updateCode(data)
             },
             error: function(xhr, msg, err) {
 		alert(msg+" "+err)
@@ -88,8 +89,12 @@ GraffitiCode.ui = (function () {
 //	astCodeMirror.setValue(data)
     }
 
-    function updateText(data) {
-	editor.setValue(data.split(",").join("\n"))
+    function updateText(obj) {
+	editor.setValue(obj)
+    }
+
+    function updateCode(obj) {
+	textCodeMirror.setValue(obj)
     }
 
     function updateImage(obj, src, ast) {

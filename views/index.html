@@ -23,6 +23,7 @@
 </head>
 <body>
   <div id="edit-view" name="code"></div>
+  <div id="text-view" name="code"></div>
   <div id="graff-view"></div>
   <div class="gallery-panel"></div>
   <script>
@@ -34,10 +35,29 @@ $(document).ready(function () {
 	lineNumbers: "true",
 	onCursorActivity: function (editor) {
             CodeMirror.handleCursorEvent(editor)
-            return false
-	}
+	},
+        onUpdate: function() {
+            updateDisplay()
+        },
     })
     editor.setValue("tri 640 240 540 400 740 400.\n.")
+
+    // position divs vertically
+    function updateDisplay() {
+        var h = $("#edit-view").height()
+        var offset = $("#edit-view").offset()
+        offset.top += h + 20
+        $("#text-view").offset(offset)
+    }
+
+    textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
+        value: "",
+        mode: {name: "xml", alignCDATA: true},
+        lineWrapping: "true",
+        lineNumbers: "true",
+    })
+
+    updateDisplay()
     GraffitiCode.ui.getPieces()
 })
 
