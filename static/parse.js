@@ -402,6 +402,7 @@ function log(str) {
     var TK_COLON        = 0xAA
 
     var globalLexicon = GraffitiCode.globalLexicon = {
+/*
         "let" : { tk: TK_LET, cls: "keyword" },
         "if" : { tk: TK_IF, cls: "keyword" },
         "then" : { tk: TK_THEN, cls: "keyword" },
@@ -447,8 +448,10 @@ function log(str) {
         // triangle
         "size" : { tk: TK_IDENT, cls: "method", length: 2 },
         "background" : { tk: TK_IDENT, cls: "method", length: 1 },
+*/
         "tri" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
+/*
         "draw" : { tk: TK_IDENT, cls: "method", length: 5 },
         "fill" : { tk: TK_IDENT, cls: "method", length: 1 },
         "stroke" : { tk: TK_IDENT, cls: "method", length: 1 },
@@ -488,7 +491,7 @@ function log(str) {
         "popcorn" : { tk: TK_IDENT, cls: "method", length: 1 },
         "footnote" : { tk: TK_IDENT, cls: "method", length: 1 },
         "struct" : {tk: TK_IDENT, cls: "method", length: 3 },
-
+*/
     }
 
     function findWord(ctx, lexeme) {
@@ -953,7 +956,11 @@ function log(str) {
 //        }
         if (match(ctx, TK_DOT)) {   // second dot
             eat(ctx, TK_DOT)
-            return exprsFinish(ctx, cc)
+            var ret = function(ctx) {
+                return exprsFinish(ctx, cc)
+            }
+            ret.cls = "punc"
+            return ret
         }
 
         var ret = expr(ctx, function (ctx) {
