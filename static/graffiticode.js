@@ -90,7 +90,7 @@ GraffitiCode.ui = (function () {
     }
 
     function updateText(obj) {
-	editor.setValue(obj)
+	editor.setValue(obj.split(",").join("\n"))
     }
 
     function updateCode(obj) {
