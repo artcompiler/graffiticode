@@ -181,14 +181,14 @@ a.download:hover {
   position: absolute;
   top: 100;
   left: 640;
-  width: 1280;
-  height: 720;
+  width: 640;
+  height: 360;
   background: #fff;
 }
 
 body .gallery-panel {
   position: absolute;
-  top: 850;
+  top: 490;
   left: 640;
 }
 

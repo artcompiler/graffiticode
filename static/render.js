@@ -31,7 +31,7 @@ exports.renderer = GraffitiCode.renderer = function() {
                , '<svg'
                , 'viewBox="0 0 1280 720"'
 //               , 'width=' + transformer.canvasWidth() + ' height=' + transformer.canvasHeight()
-               , 'width=1280 height=720'
+               , 'width=640 height=360'
                , 'preserveAspectRatio="xMinYMin meet"'
                , 'xmlns:xlink="http://www.w3.org/1999/xlink"'
                , 'xmlns="http://www.w3.org/2000/svg"'
