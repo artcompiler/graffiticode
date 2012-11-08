@@ -167,7 +167,7 @@ a.download:hover {
 
 #edit-view {
   position: absolute;
-  top: 100;
+  top: 480;
   left: 0;
 }
 
@@ -180,7 +180,7 @@ a.download:hover {
 #graff-view {
   position: absolute;
   top: 100;
-  left: 640;
+  left: 10;
   width: 640;
   height: 360;
   background: #fff;
@@ -188,8 +188,8 @@ a.download:hover {
 
 body .gallery-panel {
   position: absolute;
-  top: 490;
-  left: 640;
+  top: 100;
+  left: 700;
 }
 
 body .gallery-panel .thumbnail {
