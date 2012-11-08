@@ -25,15 +25,6 @@
   <div id="edit-view" name="code"></div>
   <div id="graff-view"></div>
   <div class="gallery-panel"></div>
-  
-<!--
-  <br/>
-  <h3>AST</h3>
-  <div id="ast-view" name="code"></div>
-  <br/>
-  <h3>Graffiti Code</h3>
-  <div id="text-view" name="code"></div>
--->
   <script>
 
 $(document).ready(function () {
@@ -46,32 +37,8 @@ $(document).ready(function () {
             return false
 	}
     })
-
-    // delay setting value until the editor has been defined to
-    // so that the called functions can get at it.
-    editor.setValue(
-    "tri 640 240 540 400 740 400.\n" +
-    ".")
-
-/*
-    var astCodeMirror = CodeMirror(document.querySelector("#ast-view"), {
-    value: "",
-    mode: {name: "javascript", json: true},
-    lineWrapping: "true",
-    lineNumbers: "true",
-    })
-    var textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
-    value: "",
-    mode: {name: "xml", alignCDATA: true},
-    lineWrapping: "true",
-    lineNumbers: "true",
-    }) 
-*/
-
-
+    editor.setValue("tri 640 240 540 400 740 400.\n.")
     GraffitiCode.ui.getPieces()
-
-
 })
 
   </script>
