@@ -37,8 +37,8 @@ exports.renderer = GraffitiCode.renderer = function() {
                , 'xmlns="http://www.w3.org/2000/svg"'
                , 'font-family="monospace"' 
                , 'font-size="10"',
-               , 'fill="blue"'
-               , 'stroke="blue"'
+               , 'fill="#777"'
+               , 'stroke="#777"'
                , 'version="1.1"'
                , '>'
                ].join("\n")
