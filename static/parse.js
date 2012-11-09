@@ -12,7 +12,7 @@ function alert(str) {
 }
 
 function print(str) {
-//    console.log(str)
+    console.log(str)
 }
 
 function log(str) {
@@ -63,6 +63,7 @@ function log(str) {
         pop: pop,
         reset: reset,
         topNode: topNode,
+        peek: peek,
     }
 
 
@@ -81,6 +82,10 @@ function log(str) {
         ctx.state.nodeStack.push(intern(ctx, node))
     }
 
+    function pushNID(ctx, nid) {
+        ctx.state.nodeStack.push(nid)
+    }
+
     function topNode(ctx) {
         var nodeStack = ctx.state.nodeStack
         return nodeStack[nodeStack.length-1]
@@ -90,6 +95,12 @@ function log(str) {
         var nodeStack = ctx.state.nodeStack
         log("nodeStack="+nodeStack)
         return nodeStack.pop()
+    }
+
+    function peek(ctx) {
+        var nodeStack = ctx.state.nodeStack
+        log("nodeStack="+nodeStack)
+        return nodeStack[nodeStack.length-1]
     }
 
     function intern(ctx, n) {
@@ -255,7 +266,12 @@ function log(str) {
         print("callExpr() name="+name+" elts="+elts)
         var def = GraffitiCode.findWord(ctx, name)
         if (!def) return
-        push(ctx, {tag: def.name, elts: elts})
+        if (def.nid) {
+            pushNID(ctx, def.nid)
+        }
+        else {
+            push(ctx, {tag: def.name, elts: elts})
+        }
     }
 
     function binaryExpr(ctx, op) {
@@ -284,13 +300,18 @@ function log(str) {
         log("ast.exprs() n="+n)
         var elts = []
         for (var i = n; i > 0; i--) {
-            elts.push(pop(ctx))
+            var elt = pop(ctx)
+            if (elt !== void 0) {
+                elts.push(elt)
+            }
         }
         push(ctx, {tag: "EXPRS", elts: elts})
     }
 
     function letDefn(ctx) {
-        push(ctx, {tag: "LET", elts: [pop(ctx), pop(ctx)]})
+        //push(ctx, {tag: "LET", elts: [pop(ctx), pop(ctx)]})
+        pop(ctx)
+        pop(ctx)
     }
 
     function program(ctx) {
@@ -403,8 +424,8 @@ function log(str) {
     var TK_COLON        = 0xAA
 
     var globalLexicon = GraffitiCode.globalLexicon = {
-/*
         "let" : { tk: TK_LET, cls: "keyword" },
+/*
         "if" : { tk: TK_IF, cls: "keyword" },
         "then" : { tk: TK_THEN, cls: "keyword" },
         "else" : { tk: TK_ELSE, cls: "keyword" },
@@ -524,7 +545,7 @@ function log(str) {
     }
 
     function enterEnv(ctx, name) {
-        ctx.state.env.push({name: name, lexicon: []})
+        ctx.state.env.push({name: name, lexicon: {}})
     }
 
     function exitEnv(ctx) {
@@ -1031,6 +1052,8 @@ function log(str) {
                         eat(ctx, TK_EQUAL)
                         var ret = function(ctx) {
                             return exprsStart(ctx, function (ctx) {
+                                var def = findWord(ctx, topEnv(ctx).name)
+                                def.nid = ast.peek(ctx)
                                 exitEnv(ctx)
                                 ast.letDefn(ctx)
                                 return cc

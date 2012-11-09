@@ -457,7 +457,7 @@ exports.transformer = GraffitiCode.transformer = function() {
             "stopCol": col,
             "stopLn": ln,
             "elts": elts
-        } 
+        }
     }
 
     function returnStmt(node) {
