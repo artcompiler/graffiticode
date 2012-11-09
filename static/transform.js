@@ -98,6 +98,15 @@ exports.transformer = GraffitiCode.transformer = function() {
         "IDENT" : ident,
         "NUM" : num,
         "TRI" : triangle,
+        "ROTATE" : rotate,
+        "TRANSLATE" : translate,
+        "SKEWX" : skewX,
+        "SKEWY" : skewY,
+        "RGB" : rgb,
+        "RGBA" : rgba,
+        "FILL" : fill,
+        "STROKE" : stroke,
+        "COLOR" : color,
     }
 
     // CONTROL FLOW ENDS HERE
@@ -221,12 +230,10 @@ exports.transformer = GraffitiCode.transformer = function() {
                 canvasHeight = yy[i]
             }
         }
-//        console.log("canvasWidth="+canvasWidth)
     }
 
     function triangle(node) {
         print("triangle")
-//        var name = visit(node.elts.pop())
         var elts = []
         var x0 = visit(node.elts[5])
         var y0 = visit(node.elts[4])
@@ -243,6 +250,157 @@ exports.transformer = GraffitiCode.transformer = function() {
         return {
             "tag": "path",
             "d": d
+        }
+    }
+
+    function rotate(node) {
+        print("rotate")
+        var elts = []
+        var angle = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        return {
+            "tag": "g",
+            "transform": "rotate("+angle+")",
+            "elts": [shape],
+        }
+    }
+
+    function translate(node) {
+        print("translate")
+        var elts = []
+        var x = visit(node.elts[2])
+        var y = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        return {
+            "tag": "g",
+            "transform": "translate("+x+", "+y+")",
+            "elts": [shape],
+        }
+    }
+
+    function skewX(node) {
+        print("skewX")
+        var elts = []
+        var angle = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        return {
+            "tag": "g",
+            "transform": "skewX("+angle+")",
+            "elts": [shape],
+        }
+    }
+
+    function skewY(node) {
+        print("skewY")
+        var elts = []
+        var angle = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        return {
+            "tag": "g",
+            "transform": "skewY("+angle+")",
+            "elts": [shape],
+        }
+    }
+
+    function rgb(node) {
+        print("rgb")
+        var elts = []
+        var r = visit(node.elts[2])
+        var g = visit(node.elts[1])
+        var b = visit(node.elts[0])
+        return {
+            r: r,
+            g: g,
+            b: b,
+        }
+    }
+
+    function rgba(node) {
+        print("rgb")
+        var elts = []
+        var r = visit(node.elts[3])
+        var g = visit(node.elts[2])
+        var b = visit(node.elts[1])
+        var a = visit(node.elts[0])
+        return {
+            r: r,
+            g: g,
+            b: b,
+            a: a,
+        }
+    }
+
+    function color(node) {
+        print("color")
+        var elts = []
+        var rgb = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        var r = rgb.r
+        var g = rgb.g
+        var b = rgb.b
+        if (rgb.a !== void 0) {
+            var a = rgb.a / 255
+            return {
+                "tag": "g",
+                "stroke": "rgba("+r+", "+g+", "+b+", "+a+")",
+                "fill": "rgba("+r+", "+g+", "+b+", "+a+")",
+                "elts": [shape],
+            }
+        }
+
+        return {
+            "tag": "g",
+            "stroke": "rgb("+r+", "+g+", "+b+")",
+            "fill": "rgb("+r+", "+g+", "+b+")",
+            "elts": [shape],
+        }
+    }
+
+    function stroke(node) {
+        print("color")
+        var elts = []
+        var rgb = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        var r = rgb.r
+        var g = rgb.g
+        var b = rgb.b
+        if (rgb.a !== void 0) {
+            var a = rgb.a / 255
+            return {
+                "tag": "g",
+                "stroke": "rgba("+r+", "+g+", "+b+", "+a+")",
+                "elts": [shape],
+            }
+        }
+
+        return {
+            "tag": "g",
+            "stroke": "rgb("+r+", "+g+", "+b+")",
+            "elts": [shape],
+        }
+    }
+
+    function fill(node) {
+        print("color")
+        var elts = []
+        var rgb = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        var r = rgb.r
+        var g = rgb.g
+        var b = rgb.b
+        if (rgb.a !== void 0) {
+            var a = rgb.a / 255
+            return {
+                "tag": "g",
+                "fill": "rgba("+r+", "+g+", "+b+", "+a+")",
+                "elts": [shape],
+            }
+        }
+
+        return {
+            "tag": "g",
+            "fill": "rgb("+r+", "+g+", "+b+")",
+            "elts": [shape],
         }
     }
 

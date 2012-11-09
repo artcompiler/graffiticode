@@ -20,6 +20,8 @@ CodeMirror.defineMode("graffiti", function() {
                 cc: GraffitiCode.program,   // top level parsing function
 		argc: 0,
 		argcStack: [0],
+                paramc: 0,
+                paramcStack: [0],
 		env: [ {name: "global", lexicon: GraffitiCode.globalLexicon } ],
 		exprc: 0,
 		exprcStack: [0],

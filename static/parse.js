@@ -8,7 +8,7 @@ if (!GraffitiCode) {
 }
 
 function alert(str) {
-    throw str
+//    throw str
 }
 
 function print(str) {
@@ -254,6 +254,7 @@ function log(str) {
         var name = node(ctx, pop(ctx))
         print("callExpr() name="+name+" elts="+elts)
         var def = GraffitiCode.findWord(ctx, name)
+        if (!def) return
         push(ctx, {tag: def.name, elts: elts})
     }
 
@@ -451,11 +452,19 @@ function log(str) {
 */
         "tri" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
+        "translate" : { tk: TK_IDENT, name: "TRANSLATE", cls: "method", length: 3 },
+        "rotate" : { tk: TK_IDENT, name: "ROTATE", cls: "method", length: 2 },
+        "skewx" : { tk: TK_IDENT, name: "SKEWX", cls: "method", length: 2 },
+        "skewy" : { tk: TK_IDENT, name: "SKEWY", cls: "method", length: 2 },
+        "rgb" : { tk: TK_IDENT, name: "RGB", cls: "method", length: 3 },
+        "rgba" : { tk: TK_IDENT, name: "RGBA", cls: "method", length: 4 },
+        "fill" : { tk: TK_IDENT, name: "FILL", cls: "method", length: 2 },
+        "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
+        "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
 /*
         "draw" : { tk: TK_IDENT, cls: "method", length: 5 },
         "fill" : { tk: TK_IDENT, cls: "method", length: 1 },
         "stroke" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "color" : { tk: TK_IDENT, cls: "method", length: 3 },        
         "noLoop" : { tk: TK_IDENT, cls: "method", length: 0 },
         "deg" : { tk: TK_POSTOP, cls: "operator", length: 0 },
 
@@ -699,11 +708,13 @@ function log(str) {
 
     function startArgs(ctx, len) {
         ctx.state.argcStack.push(ctx.state.argc)
-        ctx.state.length = ctx.state.argc = len
+        ctx.state.paramcStack.push(ctx.state.paramc)
+        ctx.state.paramc = ctx.state.argc = len
     }
 
     function finishArgs(ctx) {
         ctx.state.argc = ctx.state.argcStack.pop()
+        ctx.state.paramc = ctx.state.paramcStack.pop()
     }
  
     function arg(ctx, cc) {
@@ -715,8 +726,8 @@ function log(str) {
     function args(ctx, cc) {
         log("args()")
         if (ctx.state.argc === 0) {
+            ast.callExpr(ctx, ctx.state.paramc)
             finishArgs(ctx)
-            ast.callExpr(ctx, ctx.state.length)
             return cc
         }
         return arg(ctx, function (ctx) {
@@ -836,7 +847,6 @@ function log(str) {
         ret.cls = "keyword"
         return ret
     }
-
 
     function matchesClause(ctx, cc) {
         log("matchesClause()")
@@ -1014,10 +1024,10 @@ function log(str) {
                 var ret = name(ctx, function (ctx) {
                     var name = ast.node(ctx, ast.topNode(ctx))
                     addWord(ctx, name, { tk: TK_IDENT, cls: "method", length: 0 })
-                    ctx.state.argc = 0
+                    ctx.state.paramc = 0
                     enterEnv(ctx, name)
                     return params(ctx, function (ctx) {
-                        findWord(ctx, topEnv(ctx).name).length = ctx.state.argc
+                        findWord(ctx, topEnv(ctx).name).length = ctx.state.paramc
                         eat(ctx, TK_EQUAL)
                         var ret = function(ctx) {
                             return exprsStart(ctx, function (ctx) {
@@ -1046,7 +1056,7 @@ function log(str) {
         }
         return function (ctx) {
             var ret = primaryExpr(ctx, function (ctx) {
-                ctx.state.argc++
+                ctx.state.paramc++
                 addWord(ctx, lexeme, { tk: TK_IDENT, cls: "val" })
                 return params(ctx, cc)
             })
@@ -1257,6 +1267,8 @@ function log(str) {
                 cc: program,   // top level parsing function
                 argc: 0,
                 argcStack: [0],
+                paramc: 0,
+                paramcStack: [0],
                 exprc: 0,
                 exprcStack: [0],
                 env: [ {name: "global", lexicon: globalLexicon } ],
