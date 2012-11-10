@@ -474,6 +474,7 @@ function log(str) {
         "tri" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "translate" : { tk: TK_IDENT, name: "TRANSLATE", cls: "method", length: 3 },
+        "scale" : { tk: TK_IDENT, name: "SCALE", cls: "method", length: 2 },
         "rotate" : { tk: TK_IDENT, name: "ROTATE", cls: "method", length: 2 },
         "skewx" : { tk: TK_IDENT, name: "SKEWX", cls: "method", length: 2 },
         "skewy" : { tk: TK_IDENT, name: "SKEWY", cls: "method", length: 2 },

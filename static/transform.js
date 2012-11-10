@@ -99,6 +99,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "NUM" : num,
         "TRI" : triangle,
         "ROTATE" : rotate,
+        "SCALE" : scale,
         "TRANSLATE" : translate,
         "SKEWX" : skewX,
         "SKEWY" : skewY,
@@ -274,6 +275,18 @@ exports.transformer = GraffitiCode.transformer = function() {
         return {
             "tag": "g",
             "transform": "translate("+x+", "+y+")",
+            "elts": [shape],
+        }
+    }
+
+    function scale(node) {
+        print("scale")
+        var elts = []
+        var factor = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        return {
+            "tag": "g",
+            "transform": "scale("+factor+")",
             "elts": [shape],
         }
     }
