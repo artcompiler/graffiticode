@@ -12,7 +12,7 @@ function alert(str) {
 }
 
 function print(str) {
-    console.log(str)
+//    console.log(str)
 }
 
 function log(str) {
@@ -37,12 +37,7 @@ function log(str) {
         }
     }
     
-//    var nodePool = [ "unused" ];        // nodePool[0] is reserved
-    
-    // maps for fast lookup of nodes
-//    var nodeMap = { }
     var Ast = function() { }
-//    var nodeStack = []
 
     Ast.prototype = {
         intern: intern,
@@ -66,8 +61,6 @@ function log(str) {
         peek: peek,
     }
 
-
-
     GraffitiCode.ast = new Ast;  
 
     // private implementation
@@ -82,10 +75,6 @@ function log(str) {
         ctx.state.nodeStack.push(intern(ctx, node))
     }
 
-    function pushNID(ctx, nid) {
-        ctx.state.nodeStack.push(nid)
-    }
-
     function topNode(ctx) {
         var nodeStack = ctx.state.nodeStack
         return nodeStack[nodeStack.length-1]
@@ -93,7 +82,7 @@ function log(str) {
 
     function pop(ctx) {
         var nodeStack = ctx.state.nodeStack
-        log("nodeStack="+nodeStack)
+        print("nodeStack="+nodeStack)
         return nodeStack.pop()
     }
 
@@ -103,6 +92,7 @@ function log(str) {
         return nodeStack[nodeStack.length-1]
     }
 
+    // deep
     function intern(ctx, n) {
         var nodeMap = ctx.state.nodeMap
         var nodePool = ctx.state.nodePool
@@ -112,6 +102,9 @@ function log(str) {
         var elts = "";
         var elts_nids = [ ];
         for (var i=0; i < count; i++) {
+            if (typeof n.elts[i] === "object") {
+                n.elts[i] = intern(ctx, n.elts[i])
+            }
             elts += n.elts[i]
         }
         var key = tag+count+elts;
@@ -138,7 +131,8 @@ function log(str) {
         case "NUM":
         case "STR":
         case "IDENT":
-            n = n.elts[0];
+            //do nothing
+            //n = n.elts[0];
             break;
         default:
             for (var i=0; i < n.elts.length; i++) {
@@ -157,12 +151,7 @@ function log(str) {
             s = s + "\n    " + i+": "+dump(n) + ","
         }
         s += "\n    root: " + (nodePool.length-1)
-        s += "\n}\n"
-        
-//        for (var i=0; i < nodeStack.length; i++) {
-//            var n = nodeStack[i];
-//            s = s + "\n" + i+": "+dump(n)
-//        }
+        s += "\n}\n"        
         return s
     }
     
@@ -174,17 +163,11 @@ function log(str) {
             var n = nodePool[i];
             obj[i] = nodeToJSON(n)
         }
-        obj["root"] = (nodePool.length-1)
-        
-//        for (var i=0; i < nodeStack.length; i++) {
-//            var n = nodeStack[i];
-//            s = s + "\n" + i+": "+dump(n)
-//        }
+        obj.root = (nodePool.length-1)
         return obj
     }
     
     function nodeToJSON(n) {
-
         if (typeof n === "object") {
             switch (n.tag) {
             case "num":
@@ -213,7 +196,6 @@ function log(str) {
     }
 
     function dump(n) {
-        
         if (typeof n === "object") {
             switch (n.tag) {
             case "num":
@@ -255,6 +237,29 @@ function log(str) {
         push(ctx, {tag: "IDENT", elts: [str]})
     }
 
+    // interpret a nid in the current environment
+    
+
+    function fold(ctx, def, args) {
+        var lexicon = def.env.lexicon
+        for (var id in lexicon) {
+            var word = lexicon[id]
+            word.val = args[word.offset]
+        }
+        foldNID(ctx, def.nid)
+    }
+
+    function foldNID(ctx, nid) {
+        var n = node(ctx, nid)
+        // FIXME re-interpret node in current lexical env
+        // ...
+        push(ctx, n)
+    }
+
+
+    // FIXME
+    // -- setup lexical environment
+    // -- interpreted body
     function callExpr(ctx, argc) {
         log("ast.callExpr() argc="+argc)
         var elts = []
@@ -262,12 +267,12 @@ function log(str) {
             elts.push(pop(ctx))
             argc--
         }
-        var name = node(ctx, pop(ctx))
+        var name = node(ctx, pop(ctx)).elts[0]   // assumes node is a primitive
         print("callExpr() name="+name+" elts="+elts)
         var def = GraffitiCode.findWord(ctx, name)
         if (!def) return
         if (def.nid) {
-            pushNID(ctx, def.nid)
+            return fold(ctx, def, elts)
         }
         else {
             push(ctx, {tag: def.name, elts: elts})
@@ -297,7 +302,7 @@ function log(str) {
     }
 
     function exprs(ctx, n) {
-        log("ast.exprs() n="+n)
+        print("ast.exprs() n="+n)
         var elts = []
         for (var i = n; i > 0; i--) {
             var elt = pop(ctx)
@@ -309,9 +314,16 @@ function log(str) {
     }
 
     function letDefn(ctx) {
-        //push(ctx, {tag: "LET", elts: [pop(ctx), pop(ctx)]})
         pop(ctx)
         pop(ctx)
+//        var elts = []
+//        elts.push(pop(ctx))  // name
+//        elts.push(number(ctx, String(ctx.state.paramc)))  // name
+//        for (var i = 0; i < ctx.state.paramc; i++) {
+//            elts.push(pop(ctx)) // params
+//        }
+//        elts.push(pop(ctx))  // body
+//        push(ctx, {tag: "LET", elts: elts})
     }
 
     function program(ctx) {
@@ -471,7 +483,7 @@ function log(str) {
         "size" : { tk: TK_IDENT, cls: "method", length: 2 },
         "background" : { tk: TK_IDENT, cls: "method", length: 1 },
 */
-        "tri" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
+        "tri" :      { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "translate" : { tk: TK_IDENT, name: "TRANSLATE", cls: "method", length: 3 },
         "scale" : { tk: TK_IDENT, name: "SCALE", cls: "method", length: 2 },
@@ -527,7 +539,7 @@ function log(str) {
 
     function findWord(ctx, lexeme) {
         var env = ctx.state.env
-        print("findWord() lexeme=" + lexeme)
+        print("findWord() lexeme=" + JSON.stringify(lexeme))
         for (var i = env.length-1; i >= 0; i--) {
             var word = env[i].lexicon[lexeme]
             if (word) {
@@ -716,7 +728,7 @@ function log(str) {
         log("callExpr()")
         var ret = primaryExpr(ctx, function (ctx) {
             log("found primaryExpr topNode="+ast.node(ctx, ast.topNode(ctx)))
-            var name = ast.node(ctx, ast.topNode(ctx))
+            var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
             var tk = findWord(ctx, name)
             if (tk && tk.cls === "method") {
                 startArgs(ctx, tk.length)
@@ -1044,17 +1056,19 @@ function log(str) {
             eat(ctx, TK_LET)
             var ret = function (ctx) {
                 var ret = name(ctx, function (ctx) {
-                    var name = ast.node(ctx, ast.topNode(ctx))
+                    var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
                     addWord(ctx, name, { tk: TK_IDENT, cls: "method", length: 0 })
                     ctx.state.paramc = 0
-                    enterEnv(ctx, name)
+                    enterEnv(ctx, name)  // FIXME need to link to outer env
                     return params(ctx, function (ctx) {
-                        findWord(ctx, topEnv(ctx).name).length = ctx.state.paramc
+                        var func = findWord(ctx, topEnv(ctx).name)
+                        func.length = ctx.state.paramc
+                        func.env = topEnv(ctx)
                         eat(ctx, TK_EQUAL)
                         var ret = function(ctx) {
                             return exprsStart(ctx, function (ctx) {
                                 var def = findWord(ctx, topEnv(ctx).name)
-                                def.nid = ast.peek(ctx)
+                                def.nid = ast.peek(ctx)   // save node id for aliased code
                                 exitEnv(ctx)
                                 ast.letDefn(ctx)
                                 return cc
@@ -1080,8 +1094,8 @@ function log(str) {
         }
         return function (ctx) {
             var ret = primaryExpr(ctx, function (ctx) {
+                addWord(ctx, lexeme, { tk: TK_IDENT, cls: "val", offset: ctx.state.paramc })
                 ctx.state.paramc++
-                addWord(ctx, lexeme, { tk: TK_IDENT, cls: "val" })
                 return params(ctx, cc)
             })
             ret.cls = "ident"
@@ -1132,6 +1146,7 @@ function log(str) {
             log("parse() cls="+cls)
             print("parse() cc="+cc+"\n")
             print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
+            print("parse() nodeStack="+ctx.state.nodeStack+"\n")
 
         }
         catch (x) {
@@ -1155,7 +1170,7 @@ function log(str) {
 
     GraffitiCode.parse = parse
 
-    console.log("parse="+GraffitiCode.parse)
+//    console.log("parse="+GraffitiCode.parse)
 
     var lexeme = ""
 
