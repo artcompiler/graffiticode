@@ -493,6 +493,7 @@ function log(str) {
         "fill" : { tk: TK_IDENT, name: "FILL", cls: "method", length: 2 },
         "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
         "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
+        "size" : { tk: TK_IDENT, name: "SIZE", cls: "method", length: 2 },
 /*
         "draw" : { tk: TK_IDENT, cls: "method", length: 5 },
         "fill" : { tk: TK_IDENT, cls: "method", length: 1 },
@@ -1346,6 +1347,7 @@ GraffitiCode.folder = function() {
         "FILL" : fill,
         "STROKE" : stroke,
         "COLOR" : color,
+        "SIZE" : size,
     }
 
     var canvasWidth = 0
@@ -1508,6 +1510,14 @@ GraffitiCode.folder = function() {
 
     function color(node) {
         ast.name(ctx, "color")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function size(node) {
+        ast.name(ctx, "size")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }

@@ -24,19 +24,20 @@ exports.renderer = GraffitiCode.renderer = function() {
     
     var nodePool
 
-    function prefix() {
+    function prefix() {        
         return [ '<?xml version="1.0" standalone="no"?>'
                , '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
                , '"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
                , '<svg'
-               , 'viewBox="0 0 1280 720"'
-//               , 'width=' + transformer.canvasWidth() + ' height=' + transformer.canvasHeight()
-               , 'width="640" height="360"'
-               , 'preserveAspectRatio="xMinYMin meet"'
+//               , 'viewBox="0 0 1280 720"'
+               , 'viewBox="0 0 ' + transformer.canvasWidth() + ' ' + transformer.canvasHeight()+'"'
+//               , 'width="' + transformer.canvasWidth() + '" height="' + transformer.canvasHeight() + '"'
+//               , 'width="640" height="360"'
+//               , 'preserveAspectRatio="xMinYMin meet"'
                , 'xmlns:xlink="http://www.w3.org/1999/xlink"'
                , 'xmlns="http://www.w3.org/2000/svg"'
                , 'font-family="monospace"' 
-               , 'font-size="10"',
+               , 'font-size="10"'
                , 'fill="#777"'
                , 'stroke="#777"'
                , 'version="1.1"'

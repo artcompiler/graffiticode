@@ -108,6 +108,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "FILL" : fill,
         "STROKE" : stroke,
         "COLOR" : color,
+        "SIZE" : size,
     }
 
     // CONTROL FLOW ENDS HERE
@@ -184,6 +185,7 @@ exports.transformer = GraffitiCode.transformer = function() {
 
     function program(node) {
         print("program()")
+        canvasSize(1280, 720) // default size
         var elts = [ ]
         elts.push(visit(node.elts[0]))
         return {
@@ -219,7 +221,10 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
     }
 
-    function canvasSize(xx, yy) {
+    function canvasSize(width, height) {
+        canvasWidth = width
+        canvasHeight = height
+/*
 //        console.log("canvasWidth="+xx)
         for (var i=0; i < xx.length; i++) {
             if (xx[i] > canvasWidth) {
@@ -231,6 +236,7 @@ exports.transformer = GraffitiCode.transformer = function() {
                 canvasHeight = yy[i]
             }
         }
+*/
     }
 
     function triangle(node) {
@@ -246,7 +252,7 @@ exports.transformer = GraffitiCode.transformer = function() {
                 " L " + x1 + " " + y1 +
                 " L " + x2 + " " + y2 +
                 " L " + x0 + " " + y0
-        canvasSize([x0, x1, x2], [y0, y1, y2])
+        //canvasSize([x0, x1, x2], [y0, y1, y2])
         
         return {
             "tag": "path",
@@ -334,7 +340,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         var r = visit(node.elts[3])
         var g = visit(node.elts[2])
         var b = visit(node.elts[1])
-        var a = visit(node.elts[0])
+        var a = visit(node.elts[0])/100
         return {
             r: r,
             g: g,
@@ -351,8 +357,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         var r = rgb.r
         var g = rgb.g
         var b = rgb.b
-        if (rgb.a !== void 0) {
-            var a = rgb.a / 255
+        var a = rgb.a
+        if (a !== void 0) {
             return {
                 "tag": "g",
                 "stroke": "rgba("+r+", "+g+", "+b+", "+a+")",
@@ -369,6 +375,15 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
     }
 
+    function size(node) {
+        print("size")
+        var elts = []
+        var width = visit(node.elts[1])
+        var height = visit(node.elts[0])
+        canvasSize(width, height)
+        return [ ]
+    }
+
     function stroke(node) {
         print("color")
         var elts = []
@@ -377,8 +392,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         var r = rgb.r
         var g = rgb.g
         var b = rgb.b
-        if (rgb.a !== void 0) {
-            var a = rgb.a / 255
+        var a = rgb.a
+        if (a !== void 0) {
             return {
                 "tag": "g",
                 "stroke": "rgba("+r+", "+g+", "+b+", "+a+")",
@@ -401,8 +416,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         var r = rgb.r
         var g = rgb.g
         var b = rgb.b
-        if (rgb.a !== void 0) {
-            var a = rgb.a / 255
+        var a = rgb.a
+        if (a !== void 0) {
             return {
                 "tag": "g",
                 "fill": "rgba("+r+", "+g+", "+b+", "+a+")",

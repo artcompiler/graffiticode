@@ -124,6 +124,8 @@ GraffitiCode.ui = (function () {
 	    //console.log("updateImage() data="+data)
 	    $("#graff-view").html(obj)
         $("#graff-view svg").attr("onclick", "GraffitiCode.ui.postPiece(this)")
+        $("#graff-view svg").attr("width", "640")
+        $("#graff-view svg").attr("height", "360")
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
