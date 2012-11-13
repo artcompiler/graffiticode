@@ -231,13 +231,22 @@ app.put('/code', function(req, res) {
 app.post('/code', function(req, res){
     var src = req.body.src
     var obj = req.body.obj
+    var user = req.body.user
+    var parent = req.body.parent
+    var views = 0
+    var forks = 0
+
+    parent = parent?parent:1
+    user = user?user:1
+    console.log("POST /code: parent="+parent)
     commit()
     function commit() {
 	pg.connect(conString, function(err, client) {
 	    src = src.replace(new RegExp("\n","g"), "\\n")
 	    obj = obj.replace(new RegExp("\n","g"), " ")
 	    obj = obj.replace(new RegExp("'","g"), "\"")
-	    var queryStr = "INSERT INTO pieces (gist_id, src, obj) VALUES ('1000', '"+src+"', '"+obj+"');"
+	    var queryStr = "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj)" +
+		           " VALUES ('"+user+"', '"+parent+"', '"+views+"', '"+forks+"', now(), '"+src+"', '"+obj+"');"
 	    console.log("queryStr="+queryStr)
 	    client.query(queryStr)
 	    client.query("select count(*) from pieces", function (err, result) {

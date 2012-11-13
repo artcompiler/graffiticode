@@ -168,13 +168,13 @@ a.download:hover {
 #edit-view {
   position: absolute;
   top: 480;
-  left: 0;
+  left: 10;
 }
 
 #text-view {
   position: absolute;
   top: 500;
-  left: 0;
+  left: 10;
 }
 
 #graff-view {

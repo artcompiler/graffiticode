@@ -3,7 +3,7 @@
 
 /* copyright (c) 2012, Jeff Dyer */
 
-if (!GraffitiCode) {
+if (!this.GraffitiCode) {
     GraffitiCode = {}
 }
 
@@ -59,6 +59,7 @@ function log(str) {
         reset: reset,
         topNode: topNode,
         peek: peek,
+        push: push,
     }
 
     GraffitiCode.ast = new Ast;  
@@ -72,7 +73,12 @@ function log(str) {
     }
 
     function push(ctx, node) {
-        ctx.state.nodeStack.push(intern(ctx, node))
+        if (_.isNumber(node)) {
+            ctx.state.nodeStack.push(node)
+        }
+        else {
+            ctx.state.nodeStack.push(intern(ctx, node))
+        }
     }
 
     function topNode(ctx) {
@@ -241,21 +247,18 @@ function log(str) {
     
 
     function fold(ctx, def, args) {
+        var env = GraffitiCode.env
+        env.enterEnv(ctx, def.name)
         var lexicon = def.env.lexicon
+        // setup inner environment record (lexicon)
         for (var id in lexicon) {
             var word = lexicon[id]
             word.val = args[word.offset]
+            env.addWord(ctx, id, word)
         }
-        foldNID(ctx, def.nid)
+        GraffitiCode.folder.fold(ctx, def.nid)
+        env.exitEnv(ctx)
     }
-
-    function foldNID(ctx, nid) {
-        var n = node(ctx, nid)
-        // FIXME re-interpret node in current lexical env
-        // ...
-        push(ctx, n)
-    }
-
 
     // FIXME
     // -- setup lexical environment
@@ -269,7 +272,7 @@ function log(str) {
         }
         var name = node(ctx, pop(ctx)).elts[0]   // assumes node is a primitive
         print("callExpr() name="+name+" elts="+elts)
-        var def = GraffitiCode.findWord(ctx, name)
+        var def = GraffitiCode.env.findWord(ctx, name)
         if (!def) return
         if (def.nid) {
             return fold(ctx, def, elts)
@@ -314,16 +317,11 @@ function log(str) {
     }
 
     function letDefn(ctx) {
-        pop(ctx)
-        pop(ctx)
-//        var elts = []
-//        elts.push(pop(ctx))  // name
-//        elts.push(number(ctx, String(ctx.state.paramc)))  // name
-//        for (var i = 0; i < ctx.state.paramc; i++) {
-//            elts.push(pop(ctx)) // params
-//        }
-//        elts.push(pop(ctx))  // body
-//        push(ctx, {tag: "LET", elts: elts})
+        pop(ctx)  // name
+        pop(ctx)  // body
+        for (var i = 0; i < ctx.state.paramc; i++) {
+            pop(ctx) // params
+        }
     }
 
     function program(ctx) {
@@ -537,6 +535,8 @@ function log(str) {
 */
     }
 
+    GraffitiCode.env = { }
+
     function findWord(ctx, lexeme) {
         var env = ctx.state.env
         print("findWord() lexeme=" + JSON.stringify(lexeme))
@@ -549,7 +549,7 @@ function log(str) {
         return null
     }
 
-    GraffitiCode.findWord = findWord
+    GraffitiCode.env.findWord = findWord
 
     function addWord(ctx, lexeme, entry) {
         print("addWord() lexeme=" + lexeme)
@@ -557,14 +557,19 @@ function log(str) {
         return null
     }
 
+    GraffitiCode.env.addWord = addWord
+
     function enterEnv(ctx, name) {
         ctx.state.env.push({name: name, lexicon: {}})
     }
+
+    GraffitiCode.env.enterEnv = enterEnv
 
     function exitEnv(ctx) {
         ctx.state.env.pop()
     }
 
+    GraffitiCode.env.exitEnv = exitEnv
 
     function eat(ctx, tk) {
         log("eat() tk="+tk)
@@ -1028,11 +1033,7 @@ function log(str) {
 
     function program(ctx, cc) {
         log("program()")
-//        ast.reset(ctx)
         return exprsStart(ctx, function (ctx) {
-//            while (match(ctx, TK_DOT)) {   // consume extra dots at end of program
-//                eat(ctx, TK_DOT)
-//            }
             ast.program(ctx)
             return cc
         })
@@ -1320,3 +1321,276 @@ function log(str) {
         parse: parse
     }
 })()
+
+GraffitiCode.folder = function() {
+
+
+    function print(str) {
+//        console.log(str)
+    }
+
+    var table = {
+        "PROG" : program,
+        "EXPRS" : exprs,
+        "CALL" : callExpr,
+        "IDENT" : ident,
+        "NUM" : num,
+        "TRI" : triangle,
+        "ROTATE" : rotate,
+        "SCALE" : scale,
+        "TRANSLATE" : translate,
+        "SKEWX" : skewX,
+        "SKEWY" : skewY,
+        "RGB" : rgb,
+        "RGBA" : rgba,
+        "FILL" : fill,
+        "STROKE" : stroke,
+        "COLOR" : color,
+    }
+
+    var canvasWidth = 0
+    var canvasHeight = 0
+
+    return {
+        fold: fold,
+    }
+
+    // CONTROL FLOW ENDS HERE
+    
+    var nodePool
+    var ast
+    var ctx
+
+    function fold(cx, nid) {
+        ctx = cx
+        ast = GraffitiCode.ast
+        nodePool = ctx.state.nodePool
+        visit(nid)
+    }
+
+    function visit(nid) {
+
+        var node = nodePool[nid]
+        
+        print("visit() nid="+nid)
+
+        if (node == null) {
+            return null
+        }
+
+        if (node.tag === void 0) {
+            return [ ]  // clean up stubs
+        }
+        else if (isFunction(table[node.tag])) {
+            var ret = table[node.tag](node)
+            print("ret="+ret)
+            return ret
+        }
+        else {
+            throw "missing visitor method for " + node.tag                
+        }
+
+        throw "missing visitor method for " + node
+    }
+
+    function isArray(v) {
+        return _.isArray(v)
+    }
+
+    function isObject(v) {
+        return _isObjet(v)
+    }
+
+    function isString(v) {
+//        console.log("isString() _="+_)
+        return _.isString(v)
+    }
+
+    function isPrimitive(v) {
+        return _.isNull(v) || _.isString(v) || _.isNumber(v) || _.isBoolean(v)
+    }
+
+    function isFunction(v) {
+        return _.isFunction(v)
+    }
+
+    // BEGIN VISITOR METHODS
+
+    var edgesNode
+
+    function program(node) {
+        print("program()")
+        visit(node.elts[0])
+        ast.program(ctx)
+    }
+
+    function exprs(node) {
+        print("exprs()")
+        for (var i = 0; i < node.elts.length; i++) {
+            visit(node.elts[i])
+        }
+        ast.exprs(ctx, node.elts.length)
+    }
+
+    function callExpr(node) {
+        throw "not used"
+        print("callExpr")
+        visit(node.elts[node.elts.length-1])
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function triangle(node) {
+        ast.name(ctx, "triangle")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function rotate(node) {
+        ast.name(ctx, "rotate")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function translate(node) {
+        ast.name(ctx, "translate")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function scale(node) {
+        ast.name(ctx, "scale")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function skewX(node) {
+        ast.name(ctx, "skewx")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function skewY(node) {
+        ast.name(ctx, "skewy")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function rgb(node) {
+        ast.name(ctx, "rgb")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function rgba(node) {
+        ast.name(ctx, "rgba")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function color(node) {
+        ast.name(ctx, "color")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function stroke(node) {
+        ast.name(ctx, "stroke")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function fill(node) {
+        ast.name(ctx, "fill")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function ident(node) {
+        print("identifier()")
+        var name = node.elts[0]
+        var word = GraffitiCode.env.findWord(ctx, name)
+        GraffitiCode.ast.push(ctx, word.val)
+    }
+
+    function num(node) {
+        ast.number(ctx, node.elts[0])
+    }
+
+    function literalString(node) {
+        print("literalString")
+        var startCol = col
+        var startLn = ln
+        var elts = []
+        if (node.strValue.charAt(0) === "'") {
+            elts.push('"'+node.strValue+'"')
+        }
+        else {
+            elts.push("'"+node.strValue+"'")
+        }
+        var n = {
+            "tag": "tspan",
+            "class": "LiteralString",
+            "id": node.id,
+            "startCol": col,
+            "startLn": ln,
+            "stopCol": (col += (node.strValue + "  ").length),
+            "stopLn": ln,
+            "elts": elts
+        }
+        return n        
+    }
+
+
+    function letExpr(node) {
+        print("letExpr")
+        var startCol = col
+        var startLn = ln
+        var elts = [ ]
+        elts.push(visit(node.head))
+        ln += 1
+        col = indent()
+        elts.push(visit(node.expr))
+        ln += 1
+        col = indent()
+        return {
+            "tag": "tspan",
+            "class": "LetExpr",
+            "id": node.id,
+            "startCol": startCol,
+            "startLn": startLn,
+            "stopCol": col,
+            "stopLn": ln,
+            "elts": elts
+        } 
+    }
+
+     function stub(node) {
+        print("stub: " + node.tag)
+        return ""
+     }
+}()
