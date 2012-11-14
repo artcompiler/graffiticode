@@ -167,7 +167,7 @@ a.download:hover {
 
 #edit-view {
   position: absolute;
-  top: 480;
+  top: 490;
   left: 10;
 }
 
@@ -194,9 +194,20 @@ body .gallery-panel {
 
 body .gallery-panel .thumbnail {
   margin-left: 0;
-  margin-bottom: 20;
+  margin-bottom: 0;
   width: 640;
   height: 360;
   background: #fff;
+}
+
+body .gallery-panel .label {
+  margin-top: 1;
+  margin-left: 0;
+  margin-bottom: 10;
+  width: 640;
+  height: 20;
+  background: #eee;
+  font-size: 12;
+  color: #555;
 }
 

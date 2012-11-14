@@ -126,7 +126,8 @@ function log(str) {
     }
 
     function node(ctx, nid) {
-        //print("node() nid="+nid)
+        print("node() nid="+nid)
+        var ret = { elts: [] }
         //print("node() pool="+dumpAll(ctx))
         var n = ctx.state.nodePool[nid]
         if (!n) {
@@ -138,15 +139,15 @@ function log(str) {
         case "STR":
         case "IDENT":
             //do nothing
-            //n = n.elts[0];
-            break;
+            ret = n
+            break
         default:
             for (var i=0; i < n.elts.length; i++) {
-                n.elts[i] = node(ctx, n.elts[i]);
+                ret.elts[i] = node(ctx, n.elts[i]);
             }
-            break;
+            break
         }
-        return n;
+        return ret
     }
 
     function dumpAll(ctx) {
@@ -211,14 +212,19 @@ function log(str) {
                 var s = "\""+n.elts[0]+"\"";
                 break;
             default:
-                var s = "{ tag: \"" + n.tag + "\", elts: [ ";
-                for (var i=0; i < n.elts.length; i++) {
-                    if (i > 0) {
-                        s += " , ";
+                if (!n.elts) {
+                    s += "<invalid>"
+                } 
+                else {
+                    var s = "{ tag: \"" + n.tag + "\", elts: [ ";
+                    for (var i=0; i < n.elts.length; i++) {
+                        if (i > 0) {
+                            s += " , ";
+                        }
+                        s += dump(n.elts[i]);
                     }
-                    s += dump(n.elts[i]);
+                    s += " ] }";
                 }
-                s += " ] }";
                 break;
             }
         }
@@ -282,8 +288,18 @@ function log(str) {
         }
     }
 
-    function binaryExpr(ctx, op) {
-        push(ctx, {tag: op, elts: [pop(ctx), pop(ctx)]})
+    function binaryExpr(ctx, name) {
+        log("ast.binaryExpr() name="+name)
+        var elts = []
+        var e2 = pop(ctx)
+        var e1 = pop(ctx)
+        switch (name) {
+        case "DIV":
+            number(ctx, e1/e2)
+            break
+        default:
+            break
+        }
     }
 
     function matchExpr(ctx, n) {
@@ -432,6 +448,9 @@ function log(str) {
     var TK_MINUS        = 0xA8
     var TK_DOT          = 0xA9
     var TK_COLON        = 0xAA
+    var TK_PLUS         = 0xAB
+    var TK_TIMES        = 0xAC
+    var TK_DIVIDE       = 0xAD
 
     var globalLexicon = GraffitiCode.globalLexicon = {
         "let" : { tk: TK_LET, cls: "keyword" },
@@ -494,6 +513,12 @@ function log(str) {
         "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
         "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
         "size" : { tk: TK_IDENT, name: "SIZE", cls: "method", length: 2 },
+
+        "minus" : { tk: TK_BINOP, name: "SUB", cls: "operator", length: 0 },
+        "divide" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
+        "plus" : { tk: TK_BINOP, name: "ADD", cls: "operator", length: 0 },
+        "times" : { tk: TK_BINOP, name: "MULT", cls: "operator", length: 0 },
+        
 /*
         "draw" : { tk: TK_IDENT, cls: "method", length: 5 },
         "fill" : { tk: TK_IDENT, cls: "method", length: 1 },
@@ -513,7 +538,6 @@ function log(str) {
         "seconds" : { tk: TK_POSTOP, cls: "operator", length: 0 },
         "ms" : { tk: TK_POSTOP, cls: "operator", length: 0 },
         "not" : { tk: TK_PREOP, cls: "operator", length: 0 },
-        "minus" : { tk: TK_BINOP, cls: "operator", length: 0 },
         "blink" : { tk: TK_IDENT, cls: "method", length: 4 },
         "left" : { tk: TK_IDENT, cls: "val", length: 0 },
         "right" : { tk: TK_IDENT, cls: "val", length: 0 },
@@ -733,7 +757,7 @@ function log(str) {
     function callExpr(ctx, cc) {
         log("callExpr()")
         var ret = primaryExpr(ctx, function (ctx) {
-            log("found primaryExpr topNode="+ast.node(ctx, ast.topNode(ctx)))
+            log("found primaryExpr topNode="+ast.node(ctx, ast.topNode(ctx)).elts[0])
             var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
             var tk = findWord(ctx, name)
             if (tk && tk.cls === "method") {
@@ -797,10 +821,11 @@ function log(str) {
         log("binaryExpr()")
         var ret = prefixExpr(ctx, function (ctx) {
             if (match(ctx, TK_BINOP)) {
-                var word = eat(ctx, TK_BINOP)
+                eat(ctx, TK_BINOP)
+                var op = findWord(ctx, lexeme).name
                 var ret = function (ctx) {
                     var ret = binaryExpr(ctx, cc)
-                    ast.binaryExpr(ctx, word)
+                    ast.binaryExpr(ctx, op)
                     return ret
                 }
                 ret.cls = "operator"
@@ -1133,9 +1158,14 @@ function log(str) {
                 cls = cc.cls
             }
 
-            GraffitiCode.ui.updateAST(ast.dumpAll(ctx))
+//            GraffitiCode.ui.updateAST(ast.dumpAll(ctx))
             if (cc === null) {
-                GraffitiCode.ui.compileCode(ast.poolToJSON(ctx))
+                var thisAST = ast.poolToJSON(ctx)
+                var lastAST = GraffitiCode.lastAST
+                if (!_.isEqual(lastAST, thisAST)) {
+                    GraffitiCode.ui.compileCode(thisAST)
+                }
+                GraffitiCode.lastAST = thisAST
             }
             
 //            if (cc && emptyInput(ctx)) {
@@ -1201,9 +1231,6 @@ function log(str) {
                 case 13:  // carriage return
                     c = ' '
                     continue
-                case 45:  // dash
-                    lexeme += String.fromCharCode(c);
-                    return TK_MINUS
                 case 46:  // dot
                     lexeme += String.fromCharCode(c);
                     return TK_DOT
@@ -1348,6 +1375,7 @@ GraffitiCode.folder = function() {
         "STROKE" : stroke,
         "COLOR" : color,
         "SIZE" : size,
+        "DIV": divide,
     }
 
     var canvasWidth = 0
@@ -1522,6 +1550,12 @@ GraffitiCode.folder = function() {
             visit(node.elts[i])
         }
         ast.callExpr(ctx, node.elts.length)
+    }
+
+    function divide(node) {
+        var e1 = visit(node.elts[0]).elts[0]
+        var e2 = visit(node.elts[1]).elts[0]
+        ast.number(e1/e2)
     }
 
     function stroke(node) {

@@ -163,7 +163,7 @@ app.get('/', function(req, res) {
 app.get('/code/:id', function(req, res){
     var id = req.params.id
     pg.connect(conString, function(err, client) {
-	client.query("SELECT * FROM pieces WHERE id = '"+id+"'", function(err, result) {
+	client.query("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
 		rows = [{}]
@@ -174,6 +174,7 @@ app.get('/code/:id', function(req, res){
 	    console.log("rows="+JSON.stringify(rows))
 	    res.send(rows)
 	})
+	client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id)
     })
 })
 
@@ -204,7 +205,7 @@ app.get('/code/:id', function(req, outerRes){
 // get N pieces
 app.get('/code', function(req, res){
     pg.connect(conString, function(err, client) {
-	client.query("SELECT * FROM pieces", function(err, result) {
+	client.query("SELECT * FROM pieces ORDER BY forks DESC, views DESC, created DESC", function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
 		rows = [{}]
@@ -248,11 +249,12 @@ app.post('/code', function(req, res){
 	    var queryStr = "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj)" +
 		           " VALUES ('"+user+"', '"+parent+"', '"+views+"', '"+forks+"', now(), '"+src+"', '"+obj+"');"
 	    console.log("queryStr="+queryStr)
-	    client.query(queryStr)
-	    client.query("select count(*) from pieces", function (err, result) {
-		console.log("err="+err+" result="+JSON.stringify(result))
-		var id = result.rows[0].count
-		res.send({id: id})
+	    client.query(queryStr, function(err, result) {
+		client.query("SELECT * FROM pieces ORDER BY id DESC LIMIT 1", function (err, result) {
+		    console.log("err="+err+" result="+JSON.stringify(result))
+		    res.send(result.rows[0])
+		})
+		client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";")
 	    })
 	})
     }

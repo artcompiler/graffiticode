@@ -11,6 +11,13 @@ GraffitiCode.ui = (function () {
 
     // {src, ast} -> {id, obj}
     function compileCode(ast) {
+        if (GraffitiCode.firstCompile) {
+            GraffitiCode.firstCompile = false
+        }
+        else {
+            GraffitiCode.id = 0
+        }
+
 	    var src = editor.getValue()
         //	console.log("compileCode() data="+src)
 	    $.ajax({
@@ -33,6 +40,11 @@ GraffitiCode.ui = (function () {
     // {src, obj} -> {id}
     function postPiece() {
 //        console.log("postPiece() src="+src+" ast="+ast)
+
+        // if there are no changes then don't post
+        if (GraffitiCode.parent === GraffitiCode.id) {
+            return
+        }
 	    var src = GraffitiCode.src
 	    var pool = GraffitiCode.pool
 	    var obj = GraffitiCode.obj
@@ -49,7 +61,7 @@ GraffitiCode.ui = (function () {
             },
             dataType: "json",
             success: function(data) {
-		        addPiece(data.id, src, obj)
+		        addPiece(data, src, obj)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -65,7 +77,7 @@ GraffitiCode.ui = (function () {
             dataType: "json",
             success: function(data) {
 		        data = data[0]
-		        addPiece(id, data.src, data.obj)
+		        addPiece(data, data.src, data.obj)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -81,9 +93,11 @@ GraffitiCode.ui = (function () {
 	        data: {},
             dataType: "json",
             success: function(data) {
-		        for (var i = 0; i < data.length; i++) {
-		            getPiece(data[i].id)
+		        for (var i = data.length-1; i >= 0; i--) {
+		            var d = data[i]
+		            addPiece(d, d.src, d.obj)
 		        }
+                // move the first graffito in the editor
                 GraffitiCode.id = data[0].id
                 updateSrc(data[0].id)
             },
@@ -99,7 +113,10 @@ GraffitiCode.ui = (function () {
 
     // The source should always be associated with an id
     function updateSrc(id) {
+        GraffitiCode.firstCompile = true
         GraffitiCode.id = id
+        GraffitiCode.parent = GraffitiCode.id
+
 	    $.ajax({
 	        type: "GET",
             url: "/code/"+id,
@@ -108,7 +125,11 @@ GraffitiCode.ui = (function () {
 		        data = data[0]
                 console.log("updateSrc() src="+data.src)
 	            editor.setValue(data.src.split("\\n").join("\n"))
-//	            editor.setValue(data.src)
+                // move piece to top of gallery
+                var data = $(".gallery-panel div#"+id).data("piece")
+                $(".gallery-panel div#"+id).remove()
+                $(".gallery-panel div#text"+id).remove()
+                addPiece(data, data.src, data.obj)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -129,17 +150,19 @@ GraffitiCode.ui = (function () {
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
-        GraffitiCode.parent = GraffitiCode.id
     }
 
-    // store info about piece in thumbnail object
-    function addPiece(id, src, obj) {
+    function addPiece(data, src, obj) {
+        var id = data.id
+	    $(".gallery-panel").prepend("<div class='label' id='text"+id+"'/>")
 	    $(".gallery-panel").prepend("<div class='thumbnail' id='"+id+"'/>")
-        jQuery.data($(".gallery-panel div#"+id), "piece", {id: id, src: src, obj: obj})
+        // store info about piece in thumbnail object
+        $(".gallery-panel div#"+id).data("piece", data /*{id: id, src: src, obj: obj}*/)
         $(".gallery-panel div#"+id).append($(obj).clone())
         $(".gallery-panel div#"+id+" svg").attr("width", "640")
         $(".gallery-panel div#"+id+" svg").attr("height", "360")
         $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.updateSrc('"+id+"')")
+        $(".gallery-panel div#text"+id).text(data.forks+" forks, "+data.views+" views, "+new Date(data.created))
     }
 
     return {
