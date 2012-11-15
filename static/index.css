@@ -65,7 +65,7 @@ img.logo {
 }
 
 a:link, a:visited, .quasilink {
-  color: #df0019;
+  color: #000;
   cursor: pointer;
   text-decoration: none;
 }
@@ -167,36 +167,34 @@ a.download:hover {
 
 #edit-view {
   position: absolute;
-  top: 490;
-  left: 10;
+  top: 100;
+  left: 350;
 }
 
 #text-view {
   position: absolute;
-  top: 500;
-  left: 10;
+  top: 200;
+  left: 350;
 }
 
 #graff-view {
   position: absolute;
   top: 100;
-  left: 10;
-  width: 640;
-  height: 360;
+  left: 1010;
   background: #fff;
 }
 
 body .gallery-panel {
   position: absolute;
   top: 100;
-  left: 670;
+  left: 10;
 }
 
 body .gallery-panel .thumbnail {
   margin-left: 0;
   margin-bottom: 0;
-  width: 640;
-  height: 360;
+  width: 320;
+  height: 180;
   background: #fff;
 }
 
@@ -204,10 +202,14 @@ body .gallery-panel .label {
   margin-top: 1;
   margin-left: 0;
   margin-bottom: 10;
-  width: 640;
+  width: 320;
   height: 20;
   background: #eee;
   font-size: 12;
   color: #555;
 }
 
+body .main {
+  margin-left: auto;
+  margin-right: auto;
+}

@@ -60,6 +60,7 @@ function log(str) {
         topNode: topNode,
         peek: peek,
         push: push,
+        divide: divide,
     }
 
     GraffitiCode.ast = new Ast;  
@@ -259,7 +260,7 @@ function log(str) {
         // setup inner environment record (lexicon)
         for (var id in lexicon) {
             var word = lexicon[id]
-            word.val = args[word.offset]
+            word.val = args[args.length-1-word.offset]  // offsets are from end of args
             env.addWord(ctx, id, word)
         }
         GraffitiCode.folder.fold(ctx, def.nid)
@@ -291,15 +292,16 @@ function log(str) {
     function binaryExpr(ctx, name) {
         log("ast.binaryExpr() name="+name)
         var elts = []
-        var e2 = pop(ctx)
-        var e1 = pop(ctx)
-        switch (name) {
-        case "DIV":
-            number(ctx, e1/e2)
-            break
-        default:
-            break
-        }
+        elts.push(pop(ctx))
+        elts.push(pop(ctx))
+        push(ctx, {tag: name, elts: elts})
+    }
+
+    function divide(ctx) {
+        log("ast.divide()")
+        var v2 = node(ctx, pop(ctx)).elts[0]
+        var v1 = node(ctx, pop(ctx)).elts[0]
+        number(ctx, v1/v2)
     }
 
     function matchExpr(ctx, n) {
@@ -1553,9 +1555,9 @@ GraffitiCode.folder = function() {
     }
 
     function divide(node) {
-        var e1 = visit(node.elts[0]).elts[0]
-        var e2 = visit(node.elts[1]).elts[0]
-        ast.number(e1/e2)
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.divide(ctx)
     }
 
     function stroke(node) {

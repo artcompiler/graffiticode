@@ -288,15 +288,15 @@ app.post('/code', function(req, resPost){
 	}
 	var gistReq = https.request(options, function(res) {
 //	    console.log("Got response: " + res.statusCode)
-	    console.log("res.headers="+JSON.stringify(res.headers))
+//	    console.log("res.headers="+JSON.stringify(res.headers))
 	    var data = ""
 	    res.on('data', function (chunk) {
-		console.log("/code chunk="+chunk)
+//		console.log("/code chunk="+chunk)
 		data += chunk
 	    })
 	    res.on('end', function () {
 		var id = JSON.parse(data).id
-		console.log("/code chunk.id="+id)
+//		console.log("/code chunk.id="+id)
 		pg.connect(conString, function(err, client) {
 		    client.query("INSERT INTO pieces (commit) VALUES ("+id+");")
 		    resPost.send({id: id})

@@ -28,7 +28,7 @@ GraffitiCode.ui = (function () {
             success: function(data) {
                 //		console.log("compileCode() data="+data)
                 //		updateText(data)
-		        updateImage(data, src, ast)
+		        updateGraffito(data, src, ast)
 		        updateCode(data)
             },
             error: function(xhr, msg, err) {
@@ -123,7 +123,7 @@ GraffitiCode.ui = (function () {
             dataType: "json",
             success: function(data) {
 		        data = data[0]
-                console.log("updateSrc() src="+data.src)
+//                console.log("updateSrc() src="+data.src)
 	            editor.setValue(data.src.split("\\n").join("\n"))
                 // move piece to top of gallery
                 var data = $(".gallery-panel div#"+id).data("piece")
@@ -141,12 +141,13 @@ GraffitiCode.ui = (function () {
 	    textCodeMirror.setValue(obj)
     }
 
-    function updateImage(obj, src, pool) {
+    function updateGraffito(obj, src, pool) {
 	    //console.log("updateImage() data="+data)
 	    $("#graff-view").html(obj)
         $("#graff-view svg").attr("onclick", "GraffitiCode.ui.postPiece(this)")
-        $("#graff-view svg").attr("width", "640")
-        $("#graff-view svg").attr("height", "360")
+        var width = $("#graff-view svg").width()
+//        $("#graff-view svg").attr("width", "640")
+//        $("#graff-view svg").attr("height", "360")
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
@@ -159,10 +160,11 @@ GraffitiCode.ui = (function () {
         // store info about piece in thumbnail object
         $(".gallery-panel div#"+id).data("piece", data /*{id: id, src: src, obj: obj}*/)
         $(".gallery-panel div#"+id).append($(obj).clone())
-        $(".gallery-panel div#"+id+" svg").attr("width", "640")
-        $(".gallery-panel div#"+id+" svg").attr("height", "360")
+        $(".gallery-panel div#"+id+" svg").attr("width", "320")
+        $(".gallery-panel div#"+id+" svg").attr("height", "180")
         $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.updateSrc('"+id+"')")
-        $(".gallery-panel div#text"+id).text(data.forks+" forks, "+data.views+" views, "+new Date(data.created))
+//        $(".gallery-panel div#text"+id).text(data.forks+" forks, "+data.views+" views, "+new Date(data.created))
+        $(".gallery-panel div#text"+id).text(data.forks+" Forks, "+data.views+" Views, Guest")
     }
 
     return {
@@ -170,7 +172,7 @@ GraffitiCode.ui = (function () {
 	    compileCode: compileCode,
 	    updateAST: updateAST,
 	    updateSrc: updateSrc,
-	    updateImage: updateImage,
+	    updateGraffito: updateGraffito,
 	    getPieces: getPieces,
     }
 })()
