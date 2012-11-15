@@ -1,0 +1,69 @@
+<html>
+<head>
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="codemirror.css">
+  <link rel="stylesheet" href="simple-hint.css">
+  <script src="underscore.js"></script>
+  <script src="graffiticode.js"></script>
+  <script src="parse.js"></script>
+  <script src="codemirror.js"></script>
+  <script src="simple-hint.js"></script>
+  <script src="mode-graffiti.js"></script>
+  <script src="mode-xml.js"></script>
+  <script src="mode-javascript.js"></script>
+  <script src="jquery.js"></script>
+  <script src="d3.v2.js"></script>
+  <style>
+    .CodeMirror {border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;}
+    span.cm-meta {color: #a0b !important;}
+    span.cm-error { background-color: black; opacity: 0.4;}
+    span.cm-error.cm-string { background-color: red; }
+    span.cm-error.cm-tag { background-color: #2b2; }
+  </style>
+  <title><%=title%></title>
+</head>
+<body>
+  <div class="main">
+  <div id="edit-view" name="code"></div>
+  <div id="text-view" name="code"></div>
+  <div id="graff-view"></div>
+  <div class="gallery-panel"></div>
+  </div>
+  <script>
+
+$(document).ready(function () {
+    editor = CodeMirror(document.querySelector("#edit-view"), {
+	mode:  "graffiti",
+	lineWrapping: "true",
+	lineNumbers: "true",
+	onCursorActivity: function (editor) {
+            CodeMirror.handleCursorEvent(editor)
+	},
+        onUpdate: function() {
+            updateDisplay()
+        },
+    })
+//    editor.setValue("size 100 100. color rgb 200 100 100 triangle 50 0 0 100 100 100..")
+
+    // position divs vertically
+    function updateDisplay() {
+        var h = $("#edit-view").height()
+        var offset = $("#edit-view").offset()
+        offset.top += h + 20
+        $("#text-view").offset(offset)
+    }
+
+    textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
+        value: "",
+        mode: {name: "xml", alignCDATA: true},
+        lineWrapping: "true",
+        lineNumbers: "true",
+    })
+
+    updateDisplay()
+    GraffitiCode.ui.getPieces()
+})
+
+  </script>
+</body>
+</html>
