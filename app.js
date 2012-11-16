@@ -222,7 +222,7 @@ app.get('/code/:id', function(req, outerRes){
 // get N pieces
 app.get('/code', function(req, res){
     pg.connect(conString, function(err, client) {
-	client.query("SELECT * FROM pieces ORDER BY forks DESC, views DESC, created DESC", function(err, result) {
+	client.query("SELECT * FROM pieces ORDER BY views DESC, forks DESC, created DESC", function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
 		rows = [{}]
