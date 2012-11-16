@@ -164,7 +164,7 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel div#"+id+" svg").attr("height", "180")
         $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.updateSrc('"+id+"')")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
-        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, Guest")
+        $(".gallery-panel div#text"+id).text(new Date(data.created).toUTCString()+", "+ data.views+" Views, "+data.forks+" Forks, Guest")
     }
 
     return {
