@@ -153,6 +153,17 @@ GraffitiCode.ui = (function () {
         GraffitiCode.obj = obj
     }
 
+    function clickThumbnail(e, id) {
+        if (e.shiftKey) {
+            var host = window.location.host
+            var url = "http://"+host+"/graffiti/"+id
+            window.open(url)
+        }
+        else {
+            updateSrc(id)
+        }
+    }
+
     function addPiece(data, src, obj) {
         var id = data.id
 	    $(".gallery-panel").prepend("<div class='label' id='text"+id+"'/>")
@@ -162,7 +173,7 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel div#"+id).append($(obj).clone())
         $(".gallery-panel div#"+id+" svg").attr("width", "320")
         $(".gallery-panel div#"+id+" svg").attr("height", "180")
-        $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.updateSrc('"+id+"')")
+        $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.clickThumbnail(evt, '"+id+"')")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
         $(".gallery-panel div#text"+id).text(new Date(data.created).toUTCString()+", "+ data.views+" Views, "+data.forks+" Forks, Guest")
     }
@@ -174,6 +185,8 @@ GraffitiCode.ui = (function () {
 	    updateSrc: updateSrc,
 	    updateGraffito: updateGraffito,
 	    getPieces: getPieces,
+        clickThumbnail: clickThumbnail,
+        
     }
 })()
 

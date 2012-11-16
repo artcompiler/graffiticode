@@ -195,6 +195,25 @@ app.get('/code/:id', function(req, res){
     })
 })
 
+// get the piece with :id
+app.get('/graffiti/:id', function(req, res){
+    var id = req.params.id
+    pg.connect(conString, function(err, client) {
+	client.query("SELECT obj FROM pieces WHERE id = "+id, function(err, result) {
+	    var ret
+	    if (!result || result.rows.length===0) {
+		ret = ""
+	    }
+	    else {
+		ret = result.rows[0].obj
+	    }
+//	    console.log("rows="+JSON.stringify(ret))
+	    res.send(ret)
+	})
+	client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id)
+    })
+})
+
 /*
 app.get('/code/:id', function(req, outerRes){
     var id = req.params.id
@@ -220,7 +239,7 @@ app.get('/code/:id', function(req, outerRes){
 */
 
 // get N pieces
-app.get('/code', function(req, res){
+app.get('/code', function(req, res) {
     pg.connect(conString, function(err, client) {
 	client.query("SELECT * FROM pieces ORDER BY created DESC, views DESC, forks DESC", function(err, result) {
 	    var rows
