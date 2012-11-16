@@ -1,6 +1,7 @@
 <html>
 <head>
   <link rel="stylesheet" href="index.css">
+  <script src="jquery.js"></script>
   <title><%=title%></title>
   <style>
     header { display: none; }
@@ -35,10 +36,14 @@
     </h1>
     </div>
   </div>
+  <div class="splash" style="margin-left: 20;"></div>
   </div>
   <script>
 
 $(document).ready(function () {
+  $.get("http://"+location.host+"/graffiti/63", function (data) {
+      $(".splash").html(data)
+  })
 })
 
   </script>
