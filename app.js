@@ -259,7 +259,7 @@ app.get('/code', function(req, res) {
     pg.connect(conString, function(err, client) {
 	var list = req.query.list
 	console.log("/code list="+JSON.stringify(list))
-	client.query("SELECT * FROM pieces WHERE id IN ("+list+")", function(err, result) {
+	client.query("SELECT * FROM pieces WHERE id IN ("+list+") ORDER BY created DESC, views DESC, forks DESC", function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
 		rows = [{}]
