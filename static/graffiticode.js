@@ -71,7 +71,7 @@ GraffitiCode.ui = (function () {
     
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
-    function queryPieces(f) {
+    function queryPieces() {
 	    $.ajax({
 	        type: "GET",
             url: "/pieces",
@@ -82,9 +82,9 @@ GraffitiCode.ui = (function () {
 		        for (var i = 0; i < data.length; i++) {
 		            pieces[i] = data[i].id
 		        }
-                f(pieces.slice(0,10))
                 GraffitiCode.pieces = pieces
-                GraffitiCode.currentPiece = 10
+                GraffitiCode.nextThumbnail = 1
+                loadMoreThumbnails()
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -101,29 +101,6 @@ GraffitiCode.ui = (function () {
             success: function(data) {
 		        data = data[0]
 		        addPiece(data, data.src, data.obj, false)
-            },
-            error: function(xhr, msg, err) {
-		        alert(msg+" "+err)
-            }
-	    })
-    }
-
-    // {} -> [{id}]
-    function getPieces(list) {
-	    $.ajax({
-	        type: "GET",
-            url: "/code",
-            data : {list: String(list)},
-            dataType: "json",
-            success: function(data) {
-		        for (var i = 0; i < data.length; i++) {
-		            var d = data[i]
-		            addPiece(d, d.src, d.obj, true)
-		        }
-                GraffitiCode.nextThumbnail = data.length
-                // move the first graffito in the editor
-                GraffitiCode.id = data[0].id
-                updateSrc(data[0].id)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -240,9 +217,7 @@ GraffitiCode.ui = (function () {
     }
 
     function start() {
-        queryPieces(function (list) {
-            getPieces(list)
-        })
+        queryPieces()
     }
 
     return {
@@ -251,7 +226,6 @@ GraffitiCode.ui = (function () {
 	    updateAST: updateAST,
 	    updateSrc: updateSrc,
 	    updateGraffito: updateGraffito,
-	    getPieces: getPieces,
         clickThumbnail: clickThumbnail,
         loadMoreThumbnails: loadMoreThumbnails,
         start: start,
