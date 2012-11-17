@@ -61,7 +61,7 @@ GraffitiCode.ui = (function () {
             },
             dataType: "json",
             success: function(data) {
-		        addPiece(data, src, obj)
+		        addPiece(data, src, obj, false)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -77,7 +77,7 @@ GraffitiCode.ui = (function () {
             dataType: "json",
             success: function(data) {
 		        data = data[0]
-		        addPiece(data, data.src, data.obj)
+		        addPiece(data, data.src, data.obj, false)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -86,16 +86,19 @@ GraffitiCode.ui = (function () {
     }
     
     // {} -> [{id, src, obj}]
-    function getPieces() {
+    function getPieces(n) {
 	    $.ajax({
 	        type: "GET",
             url: "/code",
 	        data: {},
             dataType: "json",
             success: function(data) {
-		        for (var i = data.length-1; i >= 0; i--) {
+                if (n === void 0) {
+                    n = data.length-1
+                }
+		        for (var i = 0; i < n; i++) {
 		            var d = data[i]
-		            addPiece(d, d.src, d.obj)
+		            addPiece(d, d.src, d.obj, true)
 		        }
                 // move the first graffito in the editor
                 GraffitiCode.id = data[0].id
@@ -129,7 +132,7 @@ GraffitiCode.ui = (function () {
                 var data = $(".gallery-panel div#"+id).data("piece")
                 $(".gallery-panel div#"+id).remove()
                 $(".gallery-panel div#text"+id).remove()
-                addPiece(data, data.src, data.obj)
+                addPiece(data, data.src, data.obj, false)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -164,10 +167,16 @@ GraffitiCode.ui = (function () {
         }
     }
 
-    function addPiece(data, src, obj) {
+    function addPiece(data, src, obj, append) {
         var id = data.id
-	    $(".gallery-panel").prepend("<div class='label' id='text"+id+"'/>")
-	    $(".gallery-panel").prepend("<div class='thumbnail' id='"+id+"'/>")
+        if (append) {
+	        $(".gallery-panel").append("<div class='thumbnail' id='"+id+"'/>")
+	        $(".gallery-panel").append("<div class='label' id='text"+id+"'/>")
+        }
+        else {
+	        $(".gallery-panel").prepend("<div class='label' id='text"+id+"'/>")
+	        $(".gallery-panel").prepend("<div class='thumbnail' id='"+id+"'/>")
+        }
         // store info about piece in thumbnail object
         $(".gallery-panel div#"+id).data("piece", data /*{id: id, src: src, obj: obj}*/)
         $(".gallery-panel div#"+id).append($(obj).clone())

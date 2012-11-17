@@ -188,17 +188,18 @@ body .gallery-panel {
   position: absolute;
   top: 100;
   left: 10;
+  width: 320;
 }
 
 body .gallery-panel .thumbnail {
-  margin-left: 0;
-  margin-bottom: 0;
   width: 320;
   height: 180;
+  float: left;
   background: #fff;
 }
 
 body .gallery-panel .label {
+  float: left;
   margin-top: 1;
   margin-left: 0;
   margin-bottom: 10;
