@@ -69,6 +69,29 @@ GraffitiCode.ui = (function () {
 	    })
     }
     
+    // get a list of piece ids that match a search criterial
+    // {} -> [{id}]
+    function queryPieces(f) {
+	    $.ajax({
+	        type: "GET",
+            url: "/pieces",
+	        data: {},
+            dataType: "json",
+            success: function(data) {
+                var pieces = []
+		        for (var i = 0; i < data.length; i++) {
+		            pieces[i] = data[i].id
+		        }
+                f(pieces.slice(0,10))
+                GraffitiCode.pieces = pieces
+                GraffitiCode.currentPiece = 10
+            },
+            error: function(xhr, msg, err) {
+		        alert(msg+" "+err)
+            }
+	    })
+    }
+
     // {id} -> {id, src, obj}
     function getPiece(id) {
 	    $.ajax({
@@ -84,23 +107,20 @@ GraffitiCode.ui = (function () {
             }
 	    })
     }
-    
-    // {} -> [{id, src, obj}]
-    function getPieces(n) {
+
+    // {} -> [{id}]
+    function getPieces(list) {
 	    $.ajax({
 	        type: "GET",
             url: "/code",
-	        data: {},
+            data : {list: String(list)},
             dataType: "json",
             success: function(data) {
-                if (n === void 0) {
-                    n = data.length-1
-                }
-		        for (var i = 0; i < n; i++) {
+		        for (var i = 0; i < data.length; i++) {
 		            var d = data[i]
 		            addPiece(d, d.src, d.obj, true)
 		        }
-                GraffitiCode.lastThumbnail = n
+                GraffitiCode.nextThumbnail = data.length
                 // move the first graffito in the editor
                 GraffitiCode.id = data[0].id
                 updateSrc(data[0].id)
@@ -113,22 +133,27 @@ GraffitiCode.ui = (function () {
 
     // {} -> [{id, src, obj}]
     function loadMoreThumbnails() {
+        var start = GraffitiCode.nextThumbnail
+        var end = start + 10
+        var len = GraffitiCode.pieces.length
+        if (start >= len) {
+            return
+        }
+        if (end > len) {
+            end = len
+        }
+        var list = GraffitiCode.pieces.slice(start, end)
 	    $.ajax({
 	        type: "GET",
             url: "/code",
-	        data: {},
+            data : {list: String(list)},
             dataType: "json",
             success: function(data) {
-                var start = GraffitiCode.lastThumbnail + 1
-                var end = start + 10
-                if (end < data.length) {
-                    end = data.length
-                }
-		        for (var i = start; i < end; i++) {
+		        for (var i = 0; i < data.length; i++) {
 		            var d = data[i]
 		            addPiece(d, d.src, d.obj, true)
 		        }
-                GraffitiCode.lastThumbnail = end - 1
+                GraffitiCode.nextThumbnail = end
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -214,6 +239,12 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel div#text"+id).text(new Date(data.created).toUTCString()+", "+ data.views+" Views, "+data.forks+" Forks, Guest")
     }
 
+    function start() {
+        queryPieces(function (list) {
+            getPieces(list)
+        })
+    }
+
     return {
 	    postPiece: postPiece,
 	    compileCode: compileCode,
@@ -223,7 +254,7 @@ GraffitiCode.ui = (function () {
 	    getPieces: getPieces,
         clickThumbnail: clickThumbnail,
         loadMoreThumbnails: loadMoreThumbnails,
-        
+        start: start,
     }
 })()
 

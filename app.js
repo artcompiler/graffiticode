@@ -238,10 +238,28 @@ app.get('/code/:id', function(req, outerRes){
 })
 */
 
-// get N pieces
+// get list of piece ids
+app.get('/pieces', function(req, res) {
+    pg.connect(conString, function(err, client) {
+	client.query("SELECT id FROM pieces ORDER BY created DESC, views DESC, forks DESC", function(err, result) {
+	    var rows
+	    if (!result || result.rows.length===0) {
+		rows = [{}]
+	    }
+	    else {
+		rows = result.rows
+	    }
+	    res.send(rows)
+	})
+    })
+})
+
+// get pieces
 app.get('/code', function(req, res) {
     pg.connect(conString, function(err, client) {
-	client.query("SELECT * FROM pieces ORDER BY created DESC, views DESC, forks DESC", function(err, result) {
+	var list = req.query.list
+	console.log("/code list="+JSON.stringify(list))
+	client.query("SELECT * FROM pieces WHERE id IN ("+list+")", function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
 		rows = [{}]
