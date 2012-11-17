@@ -100,9 +100,35 @@ GraffitiCode.ui = (function () {
 		            var d = data[i]
 		            addPiece(d, d.src, d.obj, true)
 		        }
+                GraffitiCode.lastThumbnail = n
                 // move the first graffito in the editor
                 GraffitiCode.id = data[0].id
                 updateSrc(data[0].id)
+            },
+            error: function(xhr, msg, err) {
+		        alert(msg+" "+err)
+            }
+	    })
+    }
+
+    // {} -> [{id, src, obj}]
+    function loadMoreThumbnails() {
+	    $.ajax({
+	        type: "GET",
+            url: "/code",
+	        data: {},
+            dataType: "json",
+            success: function(data) {
+                var start = GraffitiCode.lastThumbnail + 1
+                var end = start + 10
+                if (end < data.length) {
+                    end = data.length
+                }
+		        for (var i = start; i < end; i++) {
+		            var d = data[i]
+		            addPiece(d, d.src, d.obj, true)
+		        }
+                GraffitiCode.lastThumbnail = end - 1
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -178,7 +204,8 @@ GraffitiCode.ui = (function () {
 	        $(".gallery-panel").prepend("<div class='thumbnail' id='"+id+"'/>")
         }
         // store info about piece in thumbnail object
-        $(".gallery-panel div#"+id).data("piece", data /*{id: id, src: src, obj: obj}*/)
+        $(".gallery-panel div#"+id).data("piece", data)
+
         $(".gallery-panel div#"+id).append($(obj).clone())
         $(".gallery-panel div#"+id+" svg").attr("width", "320")
         $(".gallery-panel div#"+id+" svg").attr("height", "180")
@@ -195,6 +222,7 @@ GraffitiCode.ui = (function () {
 	    updateGraffito: updateGraffito,
 	    getPieces: getPieces,
         clickThumbnail: clickThumbnail,
+        loadMoreThumbnails: loadMoreThumbnails,
         
     }
 })()

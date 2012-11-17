@@ -60,6 +60,16 @@ $(document).ready(function () {
         lineNumbers: "true",
     })
 
+    $(document).scroll(function (data) {
+       var pos = window.innerHeight + document.body.scrollTop
+       var bottom = document.body.height
+       var height = $(".gallery-panel").height()
+//       console.log("scroll() pos="+pos+" heigth="+height)
+       if (pos > height) {
+           GraffitiCode.ui.loadMoreThumbnails()
+       }
+    })
+
     updateDisplay()
     GraffitiCode.ui.getPieces(10)
 })
