@@ -110,6 +110,10 @@ GraffitiCode.ui = (function () {
 
     // {} -> [{id, src, obj}]
     function loadMoreThumbnails() {
+        if (GraffitiCode.loading === true) {
+            return
+        }
+        GraffitiCode.loading = true
         var start = GraffitiCode.nextThumbnail
         var end = start + 10
         var len = GraffitiCode.pieces.length
@@ -136,6 +140,7 @@ GraffitiCode.ui = (function () {
 		        alert(msg+" "+err)
             }
 	    })
+        GraffitiCode.loading = false
     }
 
     function updateAST(data) {
