@@ -146,7 +146,9 @@ GraffitiCode.ui = (function () {
         GraffitiCode.firstCompile = true
         GraffitiCode.id = id
         GraffitiCode.parent = GraffitiCode.id
-
+        var data = $(".gallery-panel div#"+id).data("piece")
+	    editor.setValue(data.src.split("\\n").join("\n"))
+/*
 	    $.ajax({
 	        type: "GET",
             url: "/code/"+id,
@@ -164,6 +166,7 @@ GraffitiCode.ui = (function () {
 		        alert(msg+" "+err)
             }
 	    })
+*/
     }
 
     function updateCode(obj) {
