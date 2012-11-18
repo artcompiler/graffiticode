@@ -188,7 +188,7 @@ app.get('/code/:id', function(req, res){
 	    else {
 		rows = result.rows
 	    }
-	    console.log("rows="+JSON.stringify(rows))
+//	    console.log("rows="+JSON.stringify(rows))
 	    res.send(rows)
 	})
 	client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id)
@@ -258,7 +258,7 @@ app.get('/pieces', function(req, res) {
 app.get('/code', function(req, res) {
     pg.connect(conString, function(err, client) {
 	var list = req.query.list
-	console.log("/code list="+JSON.stringify(list))
+//	console.log("/code list="+JSON.stringify(list))
 	client.query("SELECT * FROM pieces WHERE id IN ("+list+") ORDER BY created DESC, views DESC, forks DESC", function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
@@ -277,8 +277,8 @@ app.put('/code', function(req, res) {
     var srcAst = req.body.ast
     var objAst = transformer.transform(srcAst)
     var obj = renderer.render(objAst)
-    console.log("/code ast="+JSON.stringify(srcAst))
-    console.log("/code obj="+obj)
+//    console.log("/code ast="+JSON.stringify(srcAst))
+//    console.log("/code obj="+obj)
     res.send(obj)
 })
 
@@ -293,7 +293,7 @@ app.post('/code', function(req, res){
 
     parent = parent?parent:1
     user = user?user:1
-    console.log("POST /code: parent="+parent)
+//    console.log("POST /code: parent="+parent)
     commit()
     function commit() {
 	pg.connect(conString, function(err, client) {
@@ -302,10 +302,10 @@ app.post('/code', function(req, res){
 	    obj = obj.replace(new RegExp("'","g"), "\"")
 	    var queryStr = "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj)" +
 		           " VALUES ('"+user+"', '"+parent+"', '"+views+"', '"+forks+"', now(), '"+src+"', '"+obj+"');"
-	    console.log("queryStr="+queryStr)
+//	    console.log("queryStr="+queryStr)
 	    client.query(queryStr, function(err, result) {
 		client.query("SELECT * FROM pieces ORDER BY id DESC LIMIT 1", function (err, result) {
-		    console.log("err="+err+" result="+JSON.stringify(result))
+//		    console.log("err="+err+" result="+JSON.stringify(result))
 		    res.send(result.rows[0])
 		})
 		client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";")

@@ -82,7 +82,6 @@ GraffitiCode.ui = (function () {
 		        for (var i = 0; i < data.length; i++) {
 		            pieces[i] = data[i].id
 		        }
-                console.log("queryPieces() pieces="+pieces)
                 GraffitiCode.pieces = pieces
                 GraffitiCode.nextThumbnail = 0
                 loadMoreThumbnails()
@@ -129,7 +128,6 @@ GraffitiCode.ui = (function () {
             success: function(data) {
 		        for (var i = 0; i < data.length; i++) {
 		            var d = data[i]
-                    console.log("loadMore() id="+d.id)
 		            addPiece(d, d.src, d.obj, true)
 		        }
             },
@@ -155,7 +153,6 @@ GraffitiCode.ui = (function () {
             dataType: "json",
             success: function(data) {
 		        data = data[0]
-//                console.log("updateSrc() src="+data.src)
 	            editor.setValue(data.src.split("\\n").join("\n"))
                 // move piece to top of gallery
                 var data = $(".gallery-panel div#"+id).data("piece")
@@ -198,7 +195,6 @@ GraffitiCode.ui = (function () {
 
     function addPiece(data, src, obj, append) {
         var id = data.id
-        console.log("addPiece() id="+id)
         if (append) {
 	        $(".gallery-panel").append("<div class='thumbnail' id='"+id+"'/>")
 	        $(".gallery-panel").append("<div class='label' id='text"+id+"'/>")
