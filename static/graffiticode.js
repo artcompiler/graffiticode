@@ -113,7 +113,7 @@ GraffitiCode.ui = (function () {
         var start = GraffitiCode.nextThumbnail
         var end = GraffitiCode.nextThumbnail = start + 10
         var len = GraffitiCode.pieces.length
-        if (start >= len) {
+        if (GraffitiCode.currentThumbnail >= len) {
             return
         }
         if (end > len) {
@@ -130,6 +130,7 @@ GraffitiCode.ui = (function () {
 		            var d = data[i]
 		            addPiece(d, d.src, d.obj, true)
 		        }
+                GraffitiCode.currentThumbnail = end       // keep track of the current thumbnail in case of async
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
