@@ -70,6 +70,7 @@ navigator.id.watch({
           $("#username").html("<b>Guest</b>")
           $("#signin").css("display", "block")
           $("#signout").css("display", "none")
+          $("#username").data("user", {id:1, email: "guest@graffiticode.org", name: "Guest"})
       },
       error: function(xhr, status, err) { alert("Logout failure: " + err); }
     });
