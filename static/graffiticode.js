@@ -174,7 +174,7 @@ GraffitiCode.ui = (function () {
     }
 
     function updateCode(obj) {
-	    textCodeMirror.setValue(obj)
+//	    textCodeMirror.setValue(obj)
     }
 
     function updateGraffito(obj, src, pool) {

@@ -25,7 +25,9 @@
 <body>
   <div class="main">
   <div id="edit-view" name="code"></div>
+<!--
   <div id="text-view" name="code"></div>
+-->
   <div id="graff-view"></div>
   <div class="gallery-panel"></div>
   </div>
@@ -49,16 +51,18 @@ $(document).ready(function () {
     function updateDisplay() {
         var h = $("#edit-view").height()
         var offset = $("#edit-view").offset()
-        offset.top += h + 20
-        $("#text-view").offset(offset)
+//        offset.top += h + 20
+//        $("#text-view").offset(offset)
     }
 
+/*
     textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
         value: "",
         mode: {name: "xml", alignCDATA: true},
         lineWrapping: "true",
         lineNumbers: "true",
     })
+*/
 
     $(document).scroll(function (data) {
        var pos = window.innerHeight + document.body.scrollTop
