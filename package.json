@@ -1,7 +1,6 @@
 {
   "name": "graffiticode",
   "version": "0.0.1",
-  "audience": "www.graffiticode.org:8080",
   "dependencies": {
     "util": "latest",
     "express": "latest",
