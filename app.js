@@ -458,6 +458,7 @@ if (!module.parent) {
 
 app.post('/login', function login (req, res) {
     var audience = process.env.AUDIENCE  //"http://localhost:5000"
+    console.log("POST /login audience="+audience)
     var vreq = https.request({
           host: "verifier.login.persona.org",
           path: "/verify",
