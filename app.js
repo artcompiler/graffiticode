@@ -451,7 +451,7 @@ if (!module.parent) {
     });
 }
 
-console.log("PORT " + process.env.PORT)
+console.log("HOST " + process.env.HOST + " PORT " + process.env.PORT)
 
 
 /*
