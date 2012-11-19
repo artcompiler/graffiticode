@@ -84,7 +84,7 @@ GraffitiCode.ui = (function () {
 		        }
                 GraffitiCode.pieces = pieces
                 GraffitiCode.nextThumbnail = 0
-                loadMoreThumbnails()
+                loadMoreThumbnails(true)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -109,7 +109,7 @@ GraffitiCode.ui = (function () {
     }
 
     // {} -> [{id, src, obj}]
-    function loadMoreThumbnails() {
+    function loadMoreThumbnails(doUpdateSrc) {
         var start = GraffitiCode.nextThumbnail
         var end = GraffitiCode.nextThumbnail = start + 10
         var len = GraffitiCode.pieces.length
@@ -131,6 +131,9 @@ GraffitiCode.ui = (function () {
 		            addPiece(d, d.src, d.obj, true)
 		        }
                 GraffitiCode.currentThumbnail = end       // keep track of the current thumbnail in case of async
+                if (doUpdateSrc) {
+                    updateSrc(data[0].id)
+                }
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)

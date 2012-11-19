@@ -43,7 +43,7 @@ $(document).ready(function () {
             updateDisplay()
         },
     })
-    editor.setValue("size 100 100.\ncolor rgb 100 100 200\ntriangle 50 17 10 83 90 83..")
+//    editor.setValue("size 100 100.\ncolor rgb 100 100 200\ntriangle 50 17 10 83 90 83..")
 
     // position divs vertically
     function updateDisplay() {
@@ -66,7 +66,7 @@ $(document).ready(function () {
        var height = $(".gallery-panel").height()
 //       console.log("scroll() pos="+pos+" heigth="+height)
        if (pos > height) {
-           GraffitiCode.ui.loadMoreThumbnails()
+           GraffitiCode.ui.loadMoreThumbnails(false)
        }
     })
 
