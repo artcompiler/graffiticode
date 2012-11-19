@@ -12,11 +12,13 @@
       </li></ul>
     </logo>
     <nav>
-      <ul>
-	<li><a id="signin">Sign In</a></li>
-	<li><a id="signout" style="display: none;">Sign Out</a></li>
-	<li style="padding: 12 1 0 15;">Welcome: <span id="username"><b>Guest</b></span></li>
+      <ul style="float: left;">	
 	<li><a id="manual">User Manual</a></li>
+      </ul>
+      <ul style="float: right;">	
+	<li><a id="signout" style="display: none;">Sign Out</a></li>
+	<li><a id="signin">Sign In</a></li>
+	<li style="text-align: right; display: inline-block; margin-top: 3;"><div id="username"><b>Guest</b></div></li>
       </ul>
     </nav>
   </header>
@@ -50,7 +52,7 @@ navigator.id.watch({
 //          window.location.reload();
           $("#username").html("<b>"+res.name+"</b>")
           $("#signin").css("display", "none")
-          $("#signout").css("display", "block")
+          $("#signout").css("display", "inline-block")
           $("#username").data("user", res)
       },
       error: function(xhr, status, err) { 
@@ -68,7 +70,7 @@ navigator.id.watch({
       url: '/logout', // This is a URL on your website.
       success: function(res, status, xhr) {
           $("#username").html("<b>Guest</b>")
-          $("#signin").css("display", "block")
+          $("#signin").css("display", "inline-block")
           $("#signout").css("display", "none")
           $("#username").data("user", {id:1, email: "guest@graffiticode.org", name: "Guest"})
       },
