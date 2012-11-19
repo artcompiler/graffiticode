@@ -1,6 +1,7 @@
 {
-  "name": "codecartography",
+  "name": "graffiticode",
   "version": "0.0.1",
+  "audience": "www.graffiticode.org:8080",
   "dependencies": {
     "util": "latest",
     "express": "latest",
@@ -10,7 +11,8 @@
     "passport-local": "latest",
     "pg": "0.6.x",
     "underscore": "1.4.x",
-    "http": "latest"
+    "http": "latest",
+    "qs": "latest",
   },
   "engines": {
     "node": ">0.8.x",

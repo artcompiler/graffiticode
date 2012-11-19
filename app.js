@@ -17,6 +17,7 @@ var express = require('express')
   , https = require('https')
   , transformer = require('./static/transform.js')
   , renderer = require('./static/render.js')
+  , qs = require("qs")
 
 var app = module.exports = express();
 
@@ -258,8 +259,9 @@ app.get('/pieces', function(req, res) {
 app.get('/code', function(req, res) {
     pg.connect(conString, function(err, client) {
 	var list = req.query.list
-//	console.log("/code list="+JSON.stringify(list))
-	client.query("SELECT * FROM pieces WHERE id IN ("+list+") ORDER BY created DESC, views DESC, forks DESC", function(err, result) {
+	var queryStr = "SELECT pieces.*, users.name FROM pieces, users WHERE pieces.user_id = users.id AND pieces.id IN ("+list+") ORDER BY pieces.created DESC, views DESC, forks DESC"
+//	console.log("/code queryStr="+queryStr)
+	client.query(queryStr, function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
 		rows = [{}]
@@ -293,7 +295,6 @@ app.post('/code', function(req, res){
 
     parent = parent?parent:1
     user = user?user:1
-//    console.log("POST /code: parent="+parent)
     commit()
     function commit() {
 	pg.connect(conString, function(err, client) {
@@ -304,7 +305,9 @@ app.post('/code', function(req, res){
 		           " VALUES ('"+user+"', '"+parent+"', '"+views+"', '"+forks+"', now(), '"+src+"', '"+obj+"');"
 //	    console.log("queryStr="+queryStr)
 	    client.query(queryStr, function(err, result) {
-		client.query("SELECT * FROM pieces ORDER BY id DESC LIMIT 1", function (err, result) {
+		var queryStr = "SELECT pieces.*, users.name FROM pieces, users WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1"
+//		console.log("POST /code queryStr="+queryStr)
+		client.query(queryStr, function (err, result) {
 //		    console.log("err="+err+" result="+JSON.stringify(result))
 		    res.send(result.rows[0])
 		})
@@ -312,6 +315,7 @@ app.post('/code', function(req, res){
 	    })
 	})
     }
+
 })
 
 /*
@@ -429,34 +433,6 @@ app.get('/archive', function(req, res){
     })
 });
 
-// begin passportjs routes
-
-app.get('/login', function(req, res){
-  res.render('login', {
-        title: 'Login'
-      , user: req.user
-      , message: req.flash('error')
-  });
-});
-
-app.post('/login',
-  passport.authenticate('local', { failureRedirect: '/login', failureFlash: true }), function(req, res) {
-      res.redirect('/');
-  });
-  
-app.get('/logout', function(req, res){
-  req.logout();
-  res.redirect('/');
-});
-
-app.get('/account', ensureAuthenticated, function(req, res){
-  res.render('account', { 
-        title: "Account"
-      , user: req.user 
-  });
-});
-
-
 // Simple route middleware to ensure user is authenticated.
 //   Use this route middleware on any resource that needs to be protected.  If
 //   the request is authenticated (typically via a persistent login session),
@@ -474,4 +450,83 @@ if (!module.parent) {
 	console.log("Listening on " + port);
     });
 }
+
+
+/*
+ * GET home page.
+ */
+
+app.post('/login', function login (req, res) {
+    var audience = process.env.AUDIENCE  //"http://localhost:5000"
+    var vreq = https.request({
+          host: "verifier.login.persona.org",
+          path: "/verify",
+          method: "POST"
+    }, function(vres) {
+	var body = "";
+	vres.on('data', function(chunk) { body+=chunk; } )
+            .on('end', function() {
+		try {
+		    var verifierResp = JSON.parse(body);
+		    var valid = verifierResp && verifierResp.status === "okay";
+		    var email = valid ? verifierResp.email : null;
+		    req.session.email = email;
+		    if (valid) {
+//			console.log("assertion verified successfully for email:", email);
+			getUserName(email);
+		    } else {
+//			console.log("failed to verify assertion:", verifierResp.reason);
+			res.send(verifierResp.reason, 401);
+		    }
+		} catch(e) {
+		    console.log("non-JSON response from verifier");
+		    // bogus response from verifier!
+		    res.send("bogus response from verifier!", 401);
+		}
+	    });
+    });
+
+    vreq.setHeader('Content-Type', 'application/x-www-form-urlencoded');
+ 
+    var data = qs.stringify({
+        assertion: req.body.assertion,
+        audience: audience
+    });
+ 
+    vreq.setHeader('Content-Length', data.length);
+    vreq.write(data);
+    vreq.end();
+ 
+//    console.log("verifying assertion!");
+
+    function getUserName(email) {
+	pg.connect(conString, function(err, client) {
+	    var queryStr = "SELECT * FROM users WHERE email = '" + email + "'"
+	    client.query(queryStr, function(err, result) {
+//		console.log("getUserName() result="+JSON.stringify(result))
+		if (!result.rows.length) {
+		    var name = email.substring(0, email.indexOf("@"))
+		    var queryStr = "INSERT INTO users (email, name, created) VALUES ('" + email + "', '" + name + "', now())"
+//		    console.log("getUserName() queryStr="+queryStr)
+		    client.query(queryStr, function(err, result) {
+			var queryString = "SELECT * FROM users ORDER BY id DESC LIMIT 1"
+			client.query(queryString, function (err, result) {
+			    res.send(result.rows[0])
+			})
+		    })
+		}
+		else {
+		    res.send(result.rows[0])
+		}
+	    })
+	})
+    }
+
+})
+
+app.post("/logout", function (req, res) {
+  req.session.destroy()
+  res.send("okay")
+  //res.redirect('/');
+})
 

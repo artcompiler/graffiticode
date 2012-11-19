@@ -45,6 +45,9 @@ GraffitiCode.ui = (function () {
         if (GraffitiCode.parent === GraffitiCode.id) {
             return
         }
+
+        var user = $("#username").data("user")
+
 	    var src = GraffitiCode.src
 	    var pool = GraffitiCode.pool
 	    var obj = GraffitiCode.obj
@@ -56,7 +59,7 @@ GraffitiCode.ui = (function () {
                 src: src,
                 ast: pool,
                 obj: obj,
-                user: GraffitiCode.user,
+                user: user.id,
                 parent: parent,
             },
             dataType: "json",
@@ -128,9 +131,9 @@ GraffitiCode.ui = (function () {
             success: function(data) {
 		        for (var i = 0; i < data.length; i++) {
 		            var d = data[i]
+                    GraffitiCode.currentThumbnail = start + i      // keep track of the current thumbnail in case of async
 		            addPiece(d, d.src, d.obj, true)
 		        }
-                GraffitiCode.currentThumbnail = end       // keep track of the current thumbnail in case of async
                 if (doUpdateSrc) {
                     updateSrc(data[0].id)
                 }
@@ -218,7 +221,7 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel div#"+id+" svg").attr("height", "180")
         $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.clickThumbnail(evt, '"+id+"')")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
-        $(".gallery-panel div#text"+id).text(id+", "+new Date(data.created).toUTCString()+", "+ data.views+" Views, "+data.forks+" Forks, Guest")
+        $(".gallery-panel div#text"+id).text(id+", "+new Date(data.created).toUTCString()+", "+ data.views+" Views, "+data.forks+" Forks, " + data.name)
     }
 
     function start() {
