@@ -44,7 +44,9 @@
 
 $(document).ready(function () {
   $.get("http://"+location.host+"/graffiti/101", function (data) {
-      $(".splash").html(data)
+      $(".splash").html("<a href='http://"+location.host+"/workspace'>"+data+"</a>")
+//      $(".splash").attr("onclick", "window.location='http://"+location.host+"/workspace'")
+//      $(".splash").html("<img src='http://"+location.host+"/graffiti/10'/>")
   })
 })
 
