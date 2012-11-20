@@ -50,6 +50,7 @@ exports.renderer = GraffitiCode.renderer = function() {
 
     function render(node) {
 //        nodePool = pool
+//        console.log("render()")
         var str = ""
         str += prefix()
         str += visit(node)
@@ -68,7 +69,7 @@ exports.renderer = GraffitiCode.renderer = function() {
         }
 */
         var tagName = node.tag
-
+//        console.log("render$visit() tagName="+tagName)
         var attrs = ""
         for (var name in node) {
             if (name=="tag" || name=="elts") {
@@ -87,7 +88,9 @@ exports.renderer = GraffitiCode.renderer = function() {
                 elts += visit(node.elts[i])
             }
         }
-        return "\n<" + tagName + " " + attrs + ">" + elts + "</" + tagName + ">"
+        var tag = "\n<" + tagName + " " + attrs + ">" + elts + "</" + tagName + ">"
+//        console.log("render$visit() tag="+tag);
+        return tag
     }
 
 /*

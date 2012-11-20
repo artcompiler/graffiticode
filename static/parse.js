@@ -506,6 +506,7 @@ function log(str) {
         "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "triside" : { tk: TK_IDENT, name: "TRISIDE", cls: "method", length: 3 },
         "rectangle" : { tk: TK_IDENT, name: "RECT", cls: "method", length: 2 },
+        "grid" : { tk: TK_IDENT, name: "GRID", cls: "method", length: 4 },
         "translate" : { tk: TK_IDENT, name: "TRANSLATE", cls: "method", length: 3 },
         "scale" : { tk: TK_IDENT, name: "SCALE", cls: "method", length: 2 },
         "rotate" : { tk: TK_IDENT, name: "ROTATE", cls: "method", length: 2 },
@@ -1380,6 +1381,7 @@ GraffitiCode.folder = function() {
         "SCALE" : scale,
         "TRISIDE" : triside,
         "RECT" : rectangle,
+        "GRID" : grid,
         "TRANSLATE" : translate,
         "SKEWX" : skewX,
         "SKEWY" : skewY,
@@ -1504,6 +1506,14 @@ GraffitiCode.folder = function() {
 
     function rectangle(node) {
         ast.name(ctx, "rectangle")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function grid(node) {
+        ast.name(ctx, "grid")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }

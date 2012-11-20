@@ -97,6 +97,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "CALL" : callExpr,
         "IDENT" : ident,
         "NUM" : num,
+        "GRID" : grid,
         "TRI" : triangle,
         "TRISIDE" : triside,
         "RECT" : rectangle,
@@ -262,6 +263,36 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
     }
 
+//<pattern x="10" y="10" width="20" height="20">
+//   <rect x="5" y="5" width="10" height="10"/>
+//</pattern>
+
+// <rect x="86" y="61" width="1" height="198" stroke="none" stroke-width="0" fill-opacity="1" stroke-opacity="1" stroke-dasharray="0" fill="#cccccc"></rect>
+
+    function grid(node) {
+        print("grid")
+        var elts = []
+        var w = +visit(node.elts[3])
+        var h = +visit(node.elts[2])
+        var sw = +visit(node.elts[1])
+        var sh = +visit(node.elts[0])
+
+        for (var x = w; w > 0 && x < sw; x+=w) {
+            elts.push({tag: "line", x1: x, y1: 0, x2: x, y2: sh})
+        }
+
+        for (var y = h; h > 0 && y < sh; y+=h) {
+            elts.push({tag: "line", x1: 0, y1: y, x2: sw, y2: y})
+        }
+        
+        var n = {
+            "tag": "g",
+            "elts": elts,
+        }
+//        console.log("grid() n="+JSON.stringify(n))
+        return n
+    }
+
     function rectangle(node) {
         print("rectangle")
         var elts = []
@@ -270,7 +301,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         var d = "M " + 0 + " " + 0 + 
                 " L " + w + " " + 0 +
                 " L " + w + " " + h +
-                " L " + 0 + " " + h
+                " L " + 0 + " " + h +
+                " L " + 0 + " " + 0
         
         return {
             "tag": "path",
@@ -301,7 +333,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         var x2 = x1 + l2*cos2
         var y2 = y1 - l2*sin2
 
-        console.log("triside() x0="+x0+" y0="+y0+" x1="+x1+" y1="+y1+" x2="+x2+" y2="+y2)
+//        console.log("triside() x0="+x0+" y0="+y0+" x1="+x1+" y1="+y1+" x2="+x2+" y2="+y2)
 
         var d = "M " + x0 + " " + y0 + 
                 " L " + x1 + " " + y1 +
