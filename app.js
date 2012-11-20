@@ -242,7 +242,7 @@ app.get('/code/:id', function(req, outerRes){
 // get list of piece ids
 app.get('/pieces', function(req, res) {
     pg.connect(conString, function(err, client) {
-	client.query("SELECT id FROM pieces ORDER BY created DESC, views DESC, forks DESC", function(err, result) {
+	client.query("SELECT id FROM pieces ORDER BY views DESC, forks DESC, created DESC", function(err, result) {
 	    var rows
 	    if (!result || result.rows.length===0) {
 		rows = [{}]
@@ -259,7 +259,7 @@ app.get('/pieces', function(req, res) {
 app.get('/code', function(req, res) {
     pg.connect(conString, function(err, client) {
 	var list = req.query.list
-	var queryStr = "SELECT pieces.*, users.name FROM pieces, users WHERE pieces.user_id = users.id AND pieces.id IN ("+list+") ORDER BY pieces.created DESC, views DESC, forks DESC"
+	var queryStr = "SELECT pieces.*, users.name FROM pieces, users WHERE pieces.user_id = users.id AND pieces.id IN ("+list+") ORDER BY views DESC, forks DESC, pieces.created DESC"
 //	console.log("/code queryStr="+queryStr)
 	client.query(queryStr, function(err, result) {
 	    var rows
