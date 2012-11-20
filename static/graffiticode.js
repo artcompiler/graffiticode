@@ -19,14 +19,14 @@ GraffitiCode.ui = (function () {
         }
 
 	    var src = editor.getValue()
-        //	console.log("compileCode() data="+src)
+//        console.log("compileCode() ast="+JSON.stringify(ast))
 	    $.ajax({
 	        type: "PUT",
             url: "/code",
 	        data: {ast: ast},
             dataType: "text",
             success: function(data) {
-                //		console.log("compileCode() data="+data)
+//                console.log("compileCode() data="+data)
                 //		updateText(data)
 		        updateGraffito(data, src, ast)
 		        updateCode(data)

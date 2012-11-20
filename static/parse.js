@@ -60,7 +60,10 @@ function log(str) {
         topNode: topNode,
         peek: peek,
         push: push,
-        divide: divide,
+        div: div,
+        mul: mul,
+        add: add,
+        sub: sub,
     }
 
     GraffitiCode.ast = new Ast;  
@@ -297,11 +300,32 @@ function log(str) {
         push(ctx, {tag: name, elts: elts})
     }
 
-    function divide(ctx) {
-        log("ast.divide()")
+    function div(ctx) {
+        log("ast.div()")
         var v2 = node(ctx, pop(ctx)).elts[0]
         var v1 = node(ctx, pop(ctx)).elts[0]
         number(ctx, v1/v2)
+    }
+
+    function mul(ctx) {
+        log("ast.mul()")
+        var v2 = node(ctx, pop(ctx)).elts[0]
+        var v1 = node(ctx, pop(ctx)).elts[0]
+        number(ctx, v1*v2)
+    }
+
+    function add(ctx) {
+        log("ast.add()")
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        number(ctx, v1+v2)
+    }
+
+    function sub(ctx) {
+        log("ast.sub()")
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        number(ctx, v1-v2)
     }
 
     function matchExpr(ctx, n) {
@@ -451,8 +475,6 @@ function log(str) {
     var TK_DOT          = 0xA9
     var TK_COLON        = 0xAA
     var TK_PLUS         = 0xAB
-    var TK_TIMES        = 0xAC
-    var TK_DIVIDE       = 0xAD
 
     var globalLexicon = GraffitiCode.globalLexicon = {
         "let" : { tk: TK_LET, cls: "keyword" },
@@ -518,10 +540,14 @@ function log(str) {
         "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
         "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
 
-        "minus" : { tk: TK_BINOP, name: "SUB", cls: "operator", length: 0 },
         "divide" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
+        "div" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
+        "mul" : { tk: TK_BINOP, name: "MUL", cls: "operator", length: 0 },
+        "times" : { tk: TK_BINOP, name: "MUL", cls: "operator", length: 0 },
+        "minus" : { tk: TK_BINOP, name: "SUB", cls: "operator", length: 0 },
+        "sub" : { tk: TK_BINOP, name: "SUB", cls: "operator", length: 0 },
         "plus" : { tk: TK_BINOP, name: "ADD", cls: "operator", length: 0 },
-        "times" : { tk: TK_BINOP, name: "MULT", cls: "operator", length: 0 },
+        "add" : { tk: TK_BINOP, name: "ADD", cls: "operator", length: 0 },
         
 /*
         "draw" : { tk: TK_IDENT, cls: "method", length: 5 },
@@ -1064,6 +1090,7 @@ function log(str) {
     function program(ctx, cc) {
         log("program()")
         return exprsStart(ctx, function (ctx) {
+            GraffitiCode.folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
             ast.program(ctx)
             return cc
         })
@@ -1391,7 +1418,10 @@ GraffitiCode.folder = function() {
         "STROKE" : stroke,
         "COLOR" : color,
         "SIZE" : size,
-        "DIV": divide,
+        "DIV": div,
+        "MUL": mul,
+        "SUB": sub,
+        "ADD": add,
     }
 
     var canvasWidth = 0
@@ -1592,10 +1622,28 @@ GraffitiCode.folder = function() {
         ast.callExpr(ctx, node.elts.length)
     }
 
-    function divide(node) {
+    function div(node) {
         visit(node.elts[1])
         visit(node.elts[0])
-        ast.divide(ctx)
+        ast.div(ctx)
+    }
+
+    function mul(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.mul(ctx)
+    }
+
+    function add(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.add(ctx)
+    }
+
+    function sub(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.sub(ctx)
     }
 
     function stroke(node) {
@@ -1615,10 +1663,12 @@ GraffitiCode.folder = function() {
     }
 
     function ident(node) {
-        print("identifier()")
+        print("ident()")
         var name = node.elts[0]
         var word = GraffitiCode.env.findWord(ctx, name)
-        GraffitiCode.ast.push(ctx, word.val)
+        if (word) {
+            GraffitiCode.ast.push(ctx, word.val)
+        }
     }
 
     function num(node) {
