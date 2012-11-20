@@ -98,6 +98,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         "IDENT" : ident,
         "NUM" : num,
         "TRI" : triangle,
+        "TRISIDE" : triside,
+        "RECT" : rectangle,
         "ROTATE" : rotate,
         "SCALE" : scale,
         "TRANSLATE" : translate,
@@ -253,6 +255,58 @@ exports.transformer = GraffitiCode.transformer = function() {
                 " L " + x2 + " " + y2 +
                 " L " + x0 + " " + y0
         //canvasSize([x0, x1, x2], [y0, y1, y2])
+        
+        return {
+            "tag": "path",
+            "d": d
+        }
+    }
+
+    function rectangle(node) {
+        print("rectangle")
+        var elts = []
+        var w = visit(node.elts[1])
+        var h = visit(node.elts[0])
+        var d = "M " + 0 + " " + 0 + 
+                " L " + w + " " + 0 +
+                " L " + w + " " + h +
+                " L " + 0 + " " + h
+        
+        return {
+            "tag": "path",
+            "d": d
+        }
+    }
+
+    function triside(node) {
+        print("triangle")
+        var elts = []
+        var l2 = visit(node.elts[2])
+        var l1 = visit(node.elts[1])
+        var l0 = visit(node.elts[0])
+
+        var cos0 = (l1*l1 + l2*l2 - l0*l0) / (2*l1*l2)
+        var sin0 = Math.sqrt(1 - cos0*cos0)
+
+        var cos1 = (l2*l2 + l0*l0 - l1*l1) / (2*l2*l0)
+        var sin1 = Math.sqrt(1 - cos1*cos1)
+
+        var cos2 = (l0*l0 + l1*l1 - l2*l2) / (2*l0*l1)
+        var sin2 = Math.sqrt(1 - cos2*cos2)
+
+        var x0 = 0
+        var y0 = 0
+        var x1 = x0 + l1*cos1
+        var y1 = y0 + l1*sin1
+        var x2 = x1 + l2*cos2
+        var y2 = y1 - l2*sin2
+
+        console.log("triside() x0="+x0+" y0="+y0+" x1="+x1+" y1="+y1+" x2="+x2+" y2="+y2)
+
+        var d = "M " + x0 + " " + y0 + 
+                " L " + x1 + " " + y1 +
+                " L " + x2 + " " + y2 +
+                " L " + x0 + " " + y0
         
         return {
             "tag": "path",

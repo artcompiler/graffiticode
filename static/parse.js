@@ -498,12 +498,14 @@ function log(str) {
 
         "print" : { tk: TK_IDENT, cls: "method", length: 1 },
 
-        // triangle
-        "size" : { tk: TK_IDENT, cls: "method", length: 2 },
-        "background" : { tk: TK_IDENT, cls: "method", length: 1 },
 */
+        "size" : { tk: TK_IDENT, name: "SIZE", cls: "method", length: 2 },
+        "background" : { tk: TK_IDENT, name: "BACKGROUND", cls: "method", length: 1 },
+
         "tri" :      { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
         "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
+        "triside" : { tk: TK_IDENT, name: "TRISIDE", cls: "method", length: 3 },
+        "rectangle" : { tk: TK_IDENT, name: "RECT", cls: "method", length: 2 },
         "translate" : { tk: TK_IDENT, name: "TRANSLATE", cls: "method", length: 3 },
         "scale" : { tk: TK_IDENT, name: "SCALE", cls: "method", length: 2 },
         "rotate" : { tk: TK_IDENT, name: "ROTATE", cls: "method", length: 2 },
@@ -514,7 +516,6 @@ function log(str) {
         "fill" : { tk: TK_IDENT, name: "FILL", cls: "method", length: 2 },
         "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
         "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
-        "size" : { tk: TK_IDENT, name: "SIZE", cls: "method", length: 2 },
 
         "minus" : { tk: TK_BINOP, name: "SUB", cls: "operator", length: 0 },
         "divide" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
@@ -1309,7 +1310,16 @@ function log(str) {
         
         function ident(c) {
             while ((c >= 'A'.charCodeAt(0) && c <= 'Z'.charCodeAt(0)) ||
-                   (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0))) {
+                   (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0)) || 
+                   (c === '-'.charCodeAt(0)) || 
+                   (c === '@'.charCodeAt(0)) || 
+                   (c === '+'.charCodeAt(0)) || 
+                   (c === '#'.charCodeAt(0)) || 
+                   (c === ':'.charCodeAt(0)) || 
+                   (c === '_'.charCodeAt(0)) || 
+                   (c === '~'.charCodeAt(0)) || 
+                   (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0))) 
+            {
                 lexeme += String.fromCharCode(c);                
                 c = stream.peek() ? stream.next().charCodeAt(0) : 0
             }
@@ -1368,6 +1378,8 @@ GraffitiCode.folder = function() {
         "TRI" : triangle,
         "ROTATE" : rotate,
         "SCALE" : scale,
+        "TRISIDE" : triside,
+        "RECT" : rectangle,
         "TRANSLATE" : translate,
         "SKEWX" : skewX,
         "SKEWY" : skewY,
@@ -1476,6 +1488,22 @@ GraffitiCode.folder = function() {
 
     function triangle(node) {
         ast.name(ctx, "triangle")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function triside(node) {
+        ast.name(ctx, "triside")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function rectangle(node) {
+        ast.name(ctx, "rectangle")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
