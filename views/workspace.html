@@ -51,8 +51,8 @@ $(document).ready(function () {
     function updateDisplay() {
         var h = $("#edit-view").height()
         var offset = $("#edit-view").offset()
-//        offset.top += h + 20
-//        $("#text-view").offset(offset)
+        offset.top += h + 20
+        $("#graff-view").offset(offset)
     }
 
 /*

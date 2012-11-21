@@ -222,7 +222,7 @@ header {
 }
 
 header logo {
-  width: 200px;
+  width: 240px;
   float: left;
   margin-left: auto;
   margin-right: auto;
@@ -260,7 +260,7 @@ header logo ul li a:hover {
 
 header nav {
   position: relative;
-  left: 125;
+  left: 15;
   width: 660;
   height: 40;
   float: left;

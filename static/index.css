@@ -168,19 +168,19 @@ a.download:hover {
 #edit-view {
   position: absolute;
   top: 100;
-  left: 350;
+  left: 280;
 }
 
 #text-view {
   position: absolute;
   top: 200;
-  left: 350;
+  left: 280;
 }
 
 #graff-view {
   position: absolute;
-  top: 100;
-  left: 1010;
+  top: 300;
+  left: 280;
   background: #fff;
 }
 
@@ -188,12 +188,12 @@ body .gallery-panel {
   position: absolute;
   top: 100;
   left: 10;
-  width: 320;
+  width: 240;
 }
 
 body .gallery-panel .thumbnail {
-  width: 320;
-  height: 180;
+  width: 240;
+  height: 135;
   float: left;
   background: #fff;
 }
@@ -203,7 +203,7 @@ body .gallery-panel .label {
   margin-top: 1;
   margin-left: 0;
   margin-bottom: 10;
-  width: 320;
+  width: 240;
   height: 20;
   background: #eee;
   font-size: 10;
