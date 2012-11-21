@@ -50,6 +50,7 @@ function log(str) {
         name: name,
         callExpr: callExpr,
         binaryExpr: binaryExpr,
+        prefixExpr: prefixExpr,
         letDefn: letDefn,
         matchExpr: matchExpr,
         matchClause: matchClause,
@@ -65,6 +66,7 @@ function log(str) {
         add: add,
         sub: sub,
         random: random,
+        neg: neg,
     }
 
     GraffitiCode.ast = new Ast;  
@@ -305,12 +307,25 @@ function log(str) {
         push(ctx, {tag: name, elts: elts})
     }
 
+    function prefixExpr(ctx, name) {
+        log("ast.prefixExpr() name="+name)
+        var elts = []
+        elts.push(pop(ctx))
+        push(ctx, {tag: name, elts: elts})
+    }
+
     function random(ctx) {
         var max = +node(ctx, pop(ctx)).elts[0]
         var min = +node(ctx, pop(ctx)).elts[0]
         var rand = Math.random()
         var num = Math.floor(min + (max-min)*rand)
         number(ctx, num)
+    }
+
+    function neg(ctx) {
+        log("ast.neg()")
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        number(ctx, -1*v1)
     }
 
     function div(ctx) {
@@ -871,6 +886,17 @@ function log(str) {
     
     function prefixExpr(ctx, cc) {
         log("prefixExpr()")
+        if (match(ctx, TK_MINUS)) {
+            eat(ctx, TK_MINUS)
+            var ret = function(ctx) {
+                return postfixExpr(ctx, function (ctx) {
+                    ast.prefixExpr(ctx, "NEG")
+                    return cc
+                })                
+            }
+            ret.cls = "number"
+            return ret
+        }
         return postfixExpr(ctx, cc)
     }
     
@@ -1310,6 +1336,9 @@ function log(str) {
                 case 43:  // plus
                     lexeme += String.fromCharCode(c);
                     return TK_PLUS
+                case 45:  // dash
+                    lexeme += String.fromCharCode(c);
+                    return TK_MINUS
                 case 91:  // left bracket
                     lexeme += String.fromCharCode(c);
                     return TK_LEFTBRACKET
@@ -1475,6 +1504,7 @@ GraffitiCode.folder = function() {
         "MUL": mul,
         "SUB": sub,
         "ADD": add,
+        "NEG": neg,
     }
 
     var canvasWidth = 0
@@ -1688,6 +1718,11 @@ GraffitiCode.folder = function() {
             visit(node.elts[i])
         }
         ast.callExpr(ctx, node.elts.length)
+    }
+
+    function neg(node) {
+        visit(node.elts[0])
+        ast.neg(ctx)
     }
 
     function div(node) {
