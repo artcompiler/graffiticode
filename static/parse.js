@@ -64,6 +64,7 @@ function log(str) {
         mul: mul,
         add: add,
         sub: sub,
+        random: random,
     }
 
     GraffitiCode.ast = new Ast;  
@@ -302,6 +303,14 @@ function log(str) {
         elts.push(pop(ctx))
         elts.push(pop(ctx))
         push(ctx, {tag: name, elts: elts})
+    }
+
+    function random(ctx) {
+        var max = +node(ctx, pop(ctx)).elts[0]
+        var min = +node(ctx, pop(ctx)).elts[0]
+        var rand = Math.random()
+        var num = Math.floor(min + (max-min)*rand)
+        number(ctx, num)
     }
 
     function div(ctx) {
@@ -545,6 +554,7 @@ function log(str) {
         "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
         "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
         "text" : { tk: TK_IDENT, name: "TEXT", cls: "method", length: 1 },
+        "random" : { tk: TK_IDENT, name: "RAND", cls: "method", length: 2 },
 
         "divide" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
         "div" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
@@ -1449,6 +1459,7 @@ GraffitiCode.folder = function() {
         "SCALE" : scale,
         "TRISIDE" : triside,
         "RECT" : rectangle,
+        "RAND" : random,
         "GRID" : grid,
         "TRANSLATE" : translate,
         "SKEWX" : skewX,
@@ -1582,6 +1593,13 @@ GraffitiCode.folder = function() {
             visit(node.elts[i])
         }
         ast.callExpr(ctx, node.elts.length)
+    }
+
+    function random(node) {
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.random(ctx)
     }
 
     function grid(node) {

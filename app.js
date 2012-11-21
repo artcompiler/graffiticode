@@ -451,9 +451,6 @@ if (!module.parent) {
     });
 }
 
-console.log("HOST " + process.env.HOST + " PORT " + process.env.PORT)
-
-
 /*
  * GET home page.
  */
