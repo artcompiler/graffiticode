@@ -219,11 +219,12 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel div#"+id).data("piece", data)
 
         $(".gallery-panel div#"+id).append($(obj).clone())
-        $(".gallery-panel div#"+id+" svg").attr("width", "240")
-        $(".gallery-panel div#"+id+" svg").attr("height", "135")
+        $(".gallery-panel div#"+id+" svg").attr("width", "220")
+        $(".gallery-panel div#"+id+" svg").attr("height", "124")
         $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.clickThumbnail(evt, '"+id+"')")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
-        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
+//        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
+        $(".gallery-panel div#text"+id).text(data.views+" Views, "+ new Date(data.created).toDateString() + " by " + data.name)
     }
 
     function start() {

@@ -189,6 +189,7 @@ body .gallery-panel {
   position: absolute;
   top: 80;
   margin-left: 20;
+  padding-top:20;
   width: 240;
   border-width: 1;
   border-style: solid;
@@ -196,9 +197,11 @@ body .gallery-panel {
 }
 
 body .gallery-panel .thumbnail {
-  margin-top: 20;
-  width: 240;
-  height: 135;
+  margin-left:10;
+  margin-right:10;
+//  padding-top: 10;
+  width: 220;
+  height: 124;
   float: left;
   background: #fff;
 }
@@ -206,9 +209,9 @@ body .gallery-panel .thumbnail {
 body .gallery-panel .label {
   float: left;
   margin-top: 3;
-  padding-left: 2;
-  margin-bottom: 0;
-  width: 237;
+  padding-left: 10;
+  padding-bottom: 10;
+  width: 220;
   height: 20;
   background: #eee;
   font-size: 10;
