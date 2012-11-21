@@ -167,7 +167,7 @@ a.download:hover {
 
 #edit-view {
   position: absolute;
-  top: 100;
+  top: 600;
   left: 280;
 }
 
@@ -179,7 +179,7 @@ a.download:hover {
 
 #graff-view {
   position: absolute;
-  top: 300;
+  top: 100;
   left: 280;
   background: #fff;
 }

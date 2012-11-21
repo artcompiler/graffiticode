@@ -11,7 +11,7 @@ exports.transformer = GraffitiCode.transformer = function() {
 
 
     function print(str) {
-//        console.log(str)
+        console.log(str)
     }
 
     var table = {
@@ -102,6 +102,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "TRISIDE" : triside,
         "RECT" : rectangle,
         "TEXT" : text,
+        "FSIZE" : fsize,
         "ROTATE" : rotate,
         "SCALE" : scale,
         "TRANSLATE" : translate,
@@ -188,8 +189,8 @@ exports.transformer = GraffitiCode.transformer = function() {
     var edgesNode
 
     function program(node) {
-        print("program()")
-        canvasSize(1280, 720) // default size
+        print("program() nodePool="+JSON.stringify(nodePool))
+        canvasSize(640, 360) // default size
         var elts = [ ]
         elts.push(visit(node.elts[0]))
         return {
@@ -200,7 +201,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
 
     function exprs(node) {
-        print("exprs()")
+        print("exprs() node="+JSON.stringify(node))
         var elts = []
         for (var i = 0; i < node.elts.length; i++) {
             elts.push(visit(node.elts[i]))
@@ -307,6 +308,18 @@ exports.transformer = GraffitiCode.transformer = function() {
         elts.push(str.substring(1,str.length-1))  // strip of quotes
         return {
             "tag": "text",
+            "elts": elts,
+        }
+    }
+
+    function fsize(node) {
+        print("fsize")
+        var elts = []
+        var size = visit(node.elts[1])
+        elts.push(visit(node.elts[0]))
+        return {
+            "tag": "g",
+            "font-size": size,
             "elts": elts,
         }
     }

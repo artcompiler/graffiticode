@@ -569,6 +569,7 @@ function log(str) {
         "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
         "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
         "text" : { tk: TK_IDENT, name: "TEXT", cls: "method", length: 1 },
+        "font-size" : { tk: TK_IDENT, name: "FSIZE", cls: "method", length: 2 },
         "random" : { tk: TK_IDENT, name: "RAND", cls: "method", length: 2 },
 
         "divide" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
@@ -1499,6 +1500,7 @@ GraffitiCode.folder = function() {
         "STROKE" : stroke,
         "COLOR" : color,
         "TEXT" : text,
+        "FSIZE" : fsize,
         "SIZE" : size,
         "DIV": div,
         "MUL": mul,
@@ -1706,6 +1708,14 @@ GraffitiCode.folder = function() {
 
     function text(node) {
         ast.name(ctx, "text")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function fsize(node) {
+        ast.name(ctx, "font-size")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }

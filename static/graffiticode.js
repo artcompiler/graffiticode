@@ -29,7 +29,7 @@ GraffitiCode.ui = (function () {
 //                console.log("compileCode() data="+data)
                 //		updateText(data)
 		        updateGraffito(data, src, ast)
-		        updateCode(data)
+//		        updateCode(data)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -184,9 +184,10 @@ GraffitiCode.ui = (function () {
 	    //console.log("updateImage() data="+data)
 	    $("#graff-view").html(obj)
         $("#graff-view svg").attr("onclick", "GraffitiCode.ui.postPiece(this)")
-        var width = $("#graff-view svg").width()
-//        $("#graff-view svg").attr("width", "640")
-//        $("#graff-view svg").attr("height", "360")
+//        var width = $("#graff-view svg").width()
+        var height = $("#graff-view svg").height()
+        console.log("updateGraffito() height="+height)
+        $("#edit-view").offset({"top": height+120})
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj

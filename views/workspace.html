@@ -42,11 +42,12 @@ $(document).ready(function () {
             CodeMirror.handleCursorEvent(editor)
 	},
         onUpdate: function() {
-            updateDisplay()
+//            updateDisplay()
         },
     })
 //    editor.setValue("size 100 100.\ncolor rgb 100 100 200\ntriangle 50 17 10 83 90 83..")
 
+/*
     // position divs vertically
     function updateDisplay() {
         var h = $("#edit-view").height()
@@ -54,7 +55,7 @@ $(document).ready(function () {
         offset.top += h + 20
         $("#graff-view").offset(offset)
     }
-
+*/
 /*
     textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
         value: "",
@@ -74,7 +75,7 @@ $(document).ready(function () {
        }
     })
 
-    updateDisplay()
+//    updateDisplay()
     GraffitiCode.ui.start()
 })
 
