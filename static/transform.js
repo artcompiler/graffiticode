@@ -50,7 +50,6 @@ exports.transformer = GraffitiCode.transformer = function() {
         "LiteralInt" : literalInt,
         "LiteralUInt" : stub,
         "LiteralBoolean" : literalBoolean,
-        "LiteralString" : literalString,
         "LiteralArray" : literalArray,
         "LiteralComprehension" : arrayComprehension,
         "LiteralObject" : literalObject,
@@ -97,10 +96,12 @@ exports.transformer = GraffitiCode.transformer = function() {
         "CALL" : callExpr,
         "IDENT" : ident,
         "NUM" : num,
+        "STR" : str,
         "GRID" : grid,
         "TRI" : triangle,
         "TRISIDE" : triside,
         "RECT" : rectangle,
+        "TEXT" : text,
         "ROTATE" : rotate,
         "SCALE" : scale,
         "TRANSLATE" : translate,
@@ -251,23 +252,14 @@ exports.transformer = GraffitiCode.transformer = function() {
         var y1 = visit(node.elts[2])
         var x2 = visit(node.elts[1])
         var y2 = visit(node.elts[0])
-        var d = "M " + x0 + " " + y0 + 
-                " L " + x1 + " " + y1 +
-                " L " + x2 + " " + y2 +
-                " L " + x0 + " " + y0
-        //canvasSize([x0, x1, x2], [y0, y1, y2])
-        
+        var d = x0 + " " + y0 + " " +
+                x1 + " " + y1 + " " +
+                x2 + " " + y2
         return {
-            "tag": "path",
-            "d": d
+            "tag": "polygon",
+            "points": d
         }
     }
-
-//<pattern x="10" y="10" width="20" height="20">
-//   <rect x="5" y="5" width="10" height="10"/>
-//</pattern>
-
-// <rect x="86" y="61" width="1" height="198" stroke="none" stroke-width="0" fill-opacity="1" stroke-opacity="1" stroke-dasharray="0" fill="#cccccc"></rect>
 
     function grid(node) {
         print("grid")
@@ -298,15 +290,24 @@ exports.transformer = GraffitiCode.transformer = function() {
         var elts = []
         var w = visit(node.elts[1])
         var h = visit(node.elts[0])
-        var d = "M " + 0 + " " + 0 + 
-                " L " + w + " " + 0 +
-                " L " + w + " " + h +
-                " L " + 0 + " " + h +
-                " L " + 0 + " " + 0
-        
+
         return {
-            "tag": "path",
-            "d": d
+            "tag": "rect",
+            "x": "0",
+            "y": "0",
+            "width": w,
+            "height": h,
+        }
+    }
+
+    function text(node) {
+        print("text")
+        var elts = []
+        var str = visit(node.elts[0])
+        elts.push(str.substring(1,str.length-1))  // strip of quotes
+        return {
+            "tag": "text",
+            "elts": elts,
         }
     }
 
@@ -333,16 +334,12 @@ exports.transformer = GraffitiCode.transformer = function() {
         var x2 = x1 + l2*cos2
         var y2 = y1 - l2*sin2
 
-//        console.log("triside() x0="+x0+" y0="+y0+" x1="+x1+" y1="+y1+" x2="+x2+" y2="+y2)
-
-        var d = "M " + x0 + " " + y0 + 
-                " L " + x1 + " " + y1 +
-                " L " + x2 + " " + y2 +
-                " L " + x0 + " " + y0
-        
+        var d = x0 + " " + y0 + " " +
+                x1 + " " + y1 + " " +
+                x2 + " " + y2
         return {
-            "tag": "path",
-            "d": d
+            "tag": "polygon",
+            "points": d
         }
     }
 
@@ -528,28 +525,9 @@ exports.transformer = GraffitiCode.transformer = function() {
         return node.elts[0]
     }
 
-    function literalString(node) {
-        print("literalString")
-        var startCol = col
-        var startLn = ln
-        var elts = []
-        if (node.strValue.charAt(0) === "'") {
-            elts.push('"'+node.strValue+'"')
-        }
-        else {
-            elts.push("'"+node.strValue+"'")
-        }
-        var n = {
-            "tag": "tspan",
-            "class": "LiteralString",
-            "id": node.id,
-            "startCol": col,
-            "startLn": ln,
-            "stopCol": (col += (node.strValue + "  ").length),
-            "stopLn": ln,
-            "elts": elts
-        }
-        return n        
+    function str(node) {
+        print("str()")
+        return node.elts[0]
     }
 
 

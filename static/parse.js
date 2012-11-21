@@ -92,7 +92,7 @@ function log(str) {
 
     function pop(ctx) {
         var nodeStack = ctx.state.nodeStack
-        print("nodeStack="+nodeStack)
+//        print("nodeStack="+nodeStack)
         return nodeStack.pop()
     }
 
@@ -124,13 +124,13 @@ function log(str) {
             nid = nodePool.length - 1
             nodeMap[key] = nid
         }
-        print("intern() key="+key+" nid="+nid)
-        print("intern() pool="+dumpAll(ctx))
+//        print("intern() key="+key+" nid="+nid)
+//        print("intern() pool="+dumpAll(ctx))
             return nid
     }
 
     function node(ctx, nid) {
-        print("node() nid="+nid)
+//        print("node() nid="+nid)
         var ret = { elts: [] }
         //print("node() pool="+dumpAll(ctx))
         var n = ctx.state.nodePool[nid]
@@ -280,8 +280,12 @@ function log(str) {
             elts.push(pop(ctx))
             argc--
         }
-        var name = node(ctx, pop(ctx)).elts[0]   // assumes node is a primitive
-        print("callExpr() name="+name+" elts="+elts)
+        var e = node(ctx, pop(ctx)).elts
+        if (!e) {
+            return
+        }
+        var name = e[0]   // assumes node is a primitive
+//        print("callExpr() name="+name+" elts="+elts)
         var def = GraffitiCode.env.findWord(ctx, name)
         if (!def) return
         if (def.nid) {
@@ -347,7 +351,7 @@ function log(str) {
     }
 
     function exprs(ctx, n) {
-        print("ast.exprs() n="+n)
+//        print("ast.exprs() n="+n)
         var elts = []
         for (var i = n; i > 0; i--) {
             var elt = pop(ctx)
@@ -447,6 +451,7 @@ function log(str) {
 
     var TK_IDENT  = 0x01
     var TK_NUM    = 0x02
+    var TK_STR    = 0x03
     var TK_EQUAL  = 0x04
     var TK_IF     = 0x05
     var TK_THEN   = 0x06
@@ -539,6 +544,7 @@ function log(str) {
         "fill" : { tk: TK_IDENT, name: "FILL", cls: "method", length: 2 },
         "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
         "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
+        "text" : { tk: TK_IDENT, name: "TEXT", cls: "method", length: 1 },
 
         "divide" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
         "div" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
@@ -594,7 +600,7 @@ function log(str) {
 
     function findWord(ctx, lexeme) {
         var env = ctx.state.env
-        print("findWord() lexeme=" + JSON.stringify(lexeme))
+//        print("findWord() lexeme=" + JSON.stringify(lexeme))
         for (var i = env.length-1; i >= 0; i--) {
             var word = env[i].lexicon[lexeme]
             if (word) {
@@ -607,7 +613,7 @@ function log(str) {
     GraffitiCode.env.findWord = findWord
 
     function addWord(ctx, lexeme, entry) {
-        print("addWord() lexeme=" + lexeme)
+//        print("addWord() lexeme=" + lexeme)
         topEnv(ctx).lexicon[lexeme] = entry
         return null
     }
@@ -665,6 +671,14 @@ function log(str) {
         eat(ctx, TK_NUM)
         cc.cls = "number"
         ast.number(ctx, lexeme)
+        return cc
+    }
+
+    function string(ctx, cc) {
+        log("number()")
+        eat(ctx, TK_STR)
+        cc.cls = "string"
+        ast.string(ctx, lexeme)
         return cc
     }
 
@@ -769,6 +783,9 @@ function log(str) {
         log("primaryExpr()")
         if (match(ctx, TK_NUM)) {
             return number(ctx, cc)
+        }
+        else if (match(ctx, TK_STR)) {
+            return string(ctx, cc)
         }
         else if (match(ctx, TK_LEFTBRACE)) {
             var ret = map(ctx, cc)
@@ -1026,7 +1043,7 @@ function log(str) {
     }
 
     function countCounter(ctx) {
-        print("* * * * countCounter() exprc="+(ctx.state.exprc+1))
+//        print("* * * * countCounter() exprc="+(ctx.state.exprc+1))
         ctx.state.exprc++
     }
 
@@ -1204,9 +1221,9 @@ function log(str) {
 //            }
 
             print("---------")
-            log("parse() pos="+stream.pos)
-            log("parse() lexeme="+lexeme)
-            log("parse() cls="+cls)
+            print("parse() pos="+stream.pos)
+            print("parse() lexeme="+lexeme)
+            print("parse() cls="+cls)
             print("parse() cc="+cc+"\n")
             print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
             print("parse() nodeStack="+ctx.state.nodeStack+"\n")
@@ -1295,7 +1312,10 @@ function log(str) {
                 case 125: // right brace
                     lexeme += String.fromCharCode(c);
                     return TK_RIGHTBRACE
-                    
+                case 34:  // double quote
+                case 39:  // single quote
+                    return string(c)
+
                 case 94:  // caret
                 case 44:  // comma
                 case 47:  // slash
@@ -1334,6 +1354,26 @@ function log(str) {
                 stream.backUp(1);
             }  // otherwise, we are at the end of stream
             return TK_NUM;
+        }
+        
+        function string(c) {
+            var quoteChar = c
+            lexeme += String.fromCharCode(c)
+            c = (s = stream.next()) ? s.charCodeAt(0) : 0
+
+            while (c !== quoteChar && c !== 0) {
+                lexeme += String.fromCharCode(c);
+                var s;
+                c = (s = stream.next()) ? s.charCodeAt(0) : 0
+            }
+
+            if (c) {
+                lexeme += String.fromCharCode(c)
+                return TK_STR;
+            }
+            else {
+                return 0
+            }
         }
         
         function ident(c) {
@@ -1403,6 +1443,7 @@ GraffitiCode.folder = function() {
         "CALL" : callExpr,
         "IDENT" : ident,
         "NUM" : num,
+        "STR" : str,
         "TRI" : triangle,
         "ROTATE" : rotate,
         "SCALE" : scale,
@@ -1417,6 +1458,7 @@ GraffitiCode.folder = function() {
         "FILL" : fill,
         "STROKE" : stroke,
         "COLOR" : color,
+        "TEXT" : text,
         "SIZE" : size,
         "DIV": div,
         "MUL": mul,
@@ -1614,6 +1656,14 @@ GraffitiCode.folder = function() {
         ast.callExpr(ctx, node.elts.length)
     }
 
+    function text(node) {
+        ast.name(ctx, "text")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
     function size(node) {
         ast.name(ctx, "size")
         for (var i = node.elts.length-1; i >= 0; i--) {
@@ -1675,28 +1725,8 @@ GraffitiCode.folder = function() {
         ast.number(ctx, node.elts[0])
     }
 
-    function literalString(node) {
-        print("literalString")
-        var startCol = col
-        var startLn = ln
-        var elts = []
-        if (node.strValue.charAt(0) === "'") {
-            elts.push('"'+node.strValue+'"')
-        }
-        else {
-            elts.push("'"+node.strValue+"'")
-        }
-        var n = {
-            "tag": "tspan",
-            "class": "LiteralString",
-            "id": node.id,
-            "startCol": col,
-            "startLn": ln,
-            "stopCol": (col += (node.strValue + "  ").length),
-            "stopLn": ln,
-            "elts": elts
-        }
-        return n        
+    function str(node) {
+        ast.string(ctx, node.elts[0])
     }
 
 

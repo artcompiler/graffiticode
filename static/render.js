@@ -33,8 +33,8 @@ exports.renderer = GraffitiCode.renderer = function() {
                , 'width="' + transformer.canvasWidth() + '" height="' + transformer.canvasHeight() + '"'
                , 'xmlns:xlink="http://www.w3.org/1999/xlink"'
                , 'xmlns="http://www.w3.org/2000/svg"'
-               , 'font-family="monospace"' 
-               , 'font-size="10"'
+               , 'font-family="Verdana"' 
+               , 'font-size="12"'
                , 'fill="#777"'
                , 'stroke="#777"'
                , 'version="1.1"'
@@ -62,14 +62,13 @@ exports.renderer = GraffitiCode.renderer = function() {
 
 //        var node = nodePool[nid]
 
-/*
         if (typeof node === "string") {
-            var str = sanitize(node)
-            return str
+            return node
         }
-*/
+
+
         var tagName = node.tag
-//        console.log("render$visit() tagName="+tagName)
+//        console.log("render$visit() node="+JSON.stringify(node))
         var attrs = ""
         for (var name in node) {
             if (name=="tag" || name=="elts") {
@@ -94,38 +93,6 @@ exports.renderer = GraffitiCode.renderer = function() {
     }
 
 /*
-    function path(list) {
-        var p = [ ]
-        for (var i = 0; i < list.length; i++) {
-            if (list[i] === "M" || list[i] === "L") {
-                p.push(list[i])
-                //print("path() list[i+1]="+list[i+1])
-                col = list[++i]
-                ln = list[++i]
-                var [x0, y0] = getOffsetPos(col, ln)
-                p.push(x0)
-                p.push(y0-yFactor*0.5)
-            }
-            else
-            if (list[i] is String && list[i].charAt(0) === "N") {
-                var [col, ln] = getStartCoords(list[i])
-                var [x1, y1] = getOffsetPos(col, ln)
-                p.push("C")
-                var [cx0, cy0, cx1, cy1] = cubicControlPoints(x0, y0, x1, y1)
-                p.push(cx0)
-                p.push(cy0)
-                p.push(cx1)
-                p.push(cy1)
-                p.push(x1)
-                p.push(y1)
-            }
-            else {
-                throw "unhandled path command: " + list[i]
-            }
-        }
-        return p.join(" ")
-    }
-
     function sanitize(s) {
         var r = "";
         var i = 0;
@@ -163,6 +130,39 @@ exports.renderer = GraffitiCode.renderer = function() {
             r += s.substring(start, i);
         }
         return r
+    }
+*/
+/*
+    function path(list) {
+        var p = [ ]
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] === "M" || list[i] === "L") {
+                p.push(list[i])
+                //print("path() list[i+1]="+list[i+1])
+                col = list[++i]
+                ln = list[++i]
+                var [x0, y0] = getOffsetPos(col, ln)
+                p.push(x0)
+                p.push(y0-yFactor*0.5)
+            }
+            else
+            if (list[i] is String && list[i].charAt(0) === "N") {
+                var [col, ln] = getStartCoords(list[i])
+                var [x1, y1] = getOffsetPos(col, ln)
+                p.push("C")
+                var [cx0, cy0, cx1, cy1] = cubicControlPoints(x0, y0, x1, y1)
+                p.push(cx0)
+                p.push(cy0)
+                p.push(cx1)
+                p.push(cy1)
+                p.push(x1)
+                p.push(y1)
+            }
+            else {
+                throw "unhandled path command: " + list[i]
+            }
+        }
+        return p.join(" ")
     }
 
     function uescape(c) {
