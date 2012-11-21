@@ -210,34 +210,46 @@ acronym {
 /* Header
 -----------------------------------------------------------------------------*/
 header {
-  background: #aaa;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #ddd;
   border-bottom-width: 1;
   border-bottom-style: solid;
   border-bottom-color: #aaa;
   margin-bottom: 0;
   vertical-align: text-bottom;
-  height: 40;
+  height: 80;
   width: 100%;
   min-width: 980;
+  font-family: 'Cousine', sans-serif;
 }
 
 header logo {
   width: 240px;
+  height: 80;
   float: left;
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 30;
+//  margin-right: auto;
+  border-left-width: 1;
+  border-left-style: solid;
+  border-left-color: #aaa;
+  border-right-width: 1;
+  border-right-style: solid;
+  border-right-color: #aaa;
 }
 
 header logo ul {
   list-style: none;
-  padding: 10px;
+  padding: 15 10 10;
   margin-bottom: 0;
+
 }
 header logo ul li {
   display: inline;
-  margin-left: 1%;
-  font-size: 30;
-  color: #eee;
+  font-size: 20;
+  color: #333;
+  font-weight: 700;
 }
 
 header logo ul li a {
@@ -262,7 +274,7 @@ header nav {
   position: relative;
   left: 15;
   width: 660;
-  height: 40;
+  height: 60;
   float: left;
 //  vertical-align: bottom;
 //  margin-left: auto;
@@ -271,28 +283,31 @@ header nav {
 }
 
 header nav ul {
-//  position: relative;
   float: right;
-  height:40;
-  list-style: none;
-//  width: 600;
+  height:60;
+  width: 100;
+  margin-left: 10;
+  margin-top: 10;
+  border-left-width: 1;
+  border-left-style: solid;
+  border-left-color: #aaa;
 }
 
 header nav ul li {
-  height:40;
+  height:20;
   display: inline-block;
-  float: right;
-  padding: 10px 5px 6px;
+  float: left;
+//  padding: 10px 5px 6px;
 }
 
 header nav ul li a {
-  background: #ccc;
-  -webkit-border-radius: 15px;
-  -moz-border-radius: 15px;
-  -o-border-radius: 15px;
-  border-radius: 15px;
+//  background: #ccc;
+//  -webkit-border-radius: 15px;
+//  -moz-border-radius: 15px;
+//  -o-border-radius: 15px;
+//  border-radius: 15px;
+  padding: 2px 5px 2px;
   display: inline-block;
-  padding: 2px 15px 2px;
   color: #333;
   text-decoration: none;
 //  position: relative;

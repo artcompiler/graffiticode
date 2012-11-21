@@ -184,10 +184,11 @@ GraffitiCode.ui = (function () {
 	    //console.log("updateImage() data="+data)
 	    $("#graff-view").html(obj)
         $("#graff-view svg").attr("onclick", "GraffitiCode.ui.postPiece(this)")
-//        var width = $("#graff-view svg").width()
+        var width = $("#graff-view svg").width()
         var height = $("#graff-view svg").height()
         console.log("updateGraffito() height="+height)
         $("#edit-view").offset({"top": height+120})
+        $("#graff-view").width(width)
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
