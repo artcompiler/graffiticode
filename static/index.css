@@ -166,10 +166,11 @@ a.download:hover {
 /* close commented backslash hack */
 
 #edit-view {
-//  position: absolute;
-//  margin-top: 600;
   float: left;
   margin-left: 282;
+  border-width: 1;
+  border-style: solid;
+  border-color: #aaa;
 }
 
 #text-view {
@@ -182,7 +183,10 @@ a.download:hover {
   //position: absolute;
   margin-top: 100;
   margin-left: 282;
-  background: #fff;
+  background: #eee;
+  border-width: 1;
+  border-style: solid;
+  border-color: #aaa;
 }
 
 body .gallery-panel {
@@ -194,6 +198,7 @@ body .gallery-panel {
   border-width: 1;
   border-style: solid;
   border-color: #aaa;
+  background: #fff;
 }
 
 body .gallery-panel .thumbnail {
@@ -202,7 +207,9 @@ body .gallery-panel .thumbnail {
   width: 220;
   height: 124;
   float: left;
-  background: #fff;
+  border-width: 1;
+  border-style: solid;
+  border-color: #ccc;
 }
 
 body .gallery-panel .label {
@@ -212,7 +219,6 @@ body .gallery-panel .label {
   padding-bottom: 10;
   width: 220;
   height: 20;
-  background: #eee;
   font-size: 10;
   color: #555;
 }
