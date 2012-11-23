@@ -1,6 +1,6 @@
 <html>
 <head>
-  <link rel="stylesheet" href="index.css">
+  <link href='http://fonts.googleapis.com/css?family=Arvo:400,700,400italic,700italic' rel='stylesheet' type='text/css'>  <link rel="stylesheet" href="index.css">
   <link rel="stylesheet" href="codemirror.css">
   <link rel="stylesheet" href="simple-hint.css">
   <script src="underscore.js"></script>
@@ -25,9 +25,10 @@
 <body>
   <div class="main">
     <div class="gallery-panel"></div>
+    <div class="essay-panel" style="display:none;"></div>
     <div class="edit-panel">
-      <div id="graff-view"></div>
       <div id="edit-view" name="code"></div>
+      <div id="graff-view"></div>
     </div>
   </div>
   <script>
@@ -40,13 +41,12 @@ $(document).ready(function () {
 	onCursorActivity: function (editor) {
             CodeMirror.handleCursorEvent(editor)
 	},
-//        onUpdate: function() {
-//            updateDisplay()
-//        },
+        onUpdate: function() {
+            updateDisplay()
+        },
     })
 //    editor.setValue("size 100 100.\ncolor rgb 100 100 200\ntriangle 50 17 10 83 90 83..")
 
-/*
     // position divs vertically
     function updateDisplay() {
         var h = $("#edit-view").height()
@@ -54,7 +54,7 @@ $(document).ready(function () {
         offset.top += h + 20
         $("#graff-view").offset(offset)
     }
-*/
+
 /*
     textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
         value: "",

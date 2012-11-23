@@ -188,12 +188,12 @@ GraffitiCode.ui = (function () {
         var height = $("#graff-view svg").height()
 //        console.log("updateGraffito() height="+height)
         $("#graff-view").width(width)
+        $("#graff-view").offset({"top": height+120})
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
         $(".edit-panel").width(width+40)
-        $(".edit-panel").height(height+$("#edit-view").height()+40)
-        $("#edit-view").offset({"top": height+120})
+        $(".edit-panel").height(height+$("#graff-view").height()+40)
     }
 
     function clickThumbnail(e, id) {
@@ -234,6 +234,21 @@ GraffitiCode.ui = (function () {
         queryPieces()
     }
 
+    function showWhatItIs() {
+        $(".gallery-panel").css("display", "none")
+        $(".essay-panel").css("display", "block")
+        $.get("what-it-is.html", function(data) {
+//            console.log(data)
+            $(".essay-panel").html(data)
+        })
+        
+    }
+
+    function showGallery() {
+        $(".gallery-panel").css("display", "block")
+        $(".essay-panel").css("display", "none")
+    }
+
     return {
 	    postPiece: postPiece,
 	    compileCode: compileCode,
@@ -243,6 +258,8 @@ GraffitiCode.ui = (function () {
         clickThumbnail: clickThumbnail,
         loadMoreThumbnails: loadMoreThumbnails,
         start: start,
+        showWhatItIs: showWhatItIs,
+        showGallery: showGallery,
     }
 })()
 
