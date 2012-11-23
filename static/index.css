@@ -165,9 +165,35 @@ a.download:hover {
 .clear { display: block; }
 /* close commented backslash hack */
 
-#edit-view {
+body .main {
   float: left;
-  margin-left: 282;
+//  position: absolute;
+//  top: 100;
+  margin-left: 20;
+  margin-top:70;
+  width: 100%;
+  background: #eee;
+}
+
+body .main .edit-panel {
+  float: left;
+  width: 1000;
+  height: 100%;
+//  position: absolute;
+  top: 100;
+//  margin-left: 20;
+//  padding-top:20;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
+//  background: #fff;
+}
+
+#edit-view {
+//  position: relative;
+  float: left;
+  margin-top: 20;
+  margin-left: 20;
   border-width: 1;
   border-style: solid;
   border-color: #aaa;
@@ -180,18 +206,20 @@ a.download:hover {
 }
 
 #graff-view {
-  //position: absolute;
-  margin-top: 100;
-  margin-left: 282;
+  position: relative;
+  float: left;
+//  margin-top: 20;
+  margin-left: 20;
   background: #fff;
   border-width: 1;
   border-style: solid;
   border-color: #aaa;
 }
 
-body .gallery-panel {
-  position: absolute;
-  top: 80;
+body .main .gallery-panel {
+  float: left;
+  position: relative;
+//  top: 100;
   margin-left: 20;
   padding-top:20;
   width: 240;

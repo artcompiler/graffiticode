@@ -188,6 +188,8 @@ GraffitiCode.ui = (function () {
         var height = $("#graff-view svg").height()
         console.log("updateGraffito() height="+height)
         $("#edit-view").offset({"top": height+120})
+        $(".edit-panel").width(width+40)
+        $(".edit-panel").height(height+$("#edit-view").height()+40)
         $("#graff-view").width(width)
         GraffitiCode.src = src
         GraffitiCode.pool = pool
