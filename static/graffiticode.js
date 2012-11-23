@@ -186,14 +186,14 @@ GraffitiCode.ui = (function () {
         $("#graff-view svg").attr("onclick", "GraffitiCode.ui.postPiece(this)")
         var width = $("#graff-view svg").width()
         var height = $("#graff-view svg").height()
-        console.log("updateGraffito() height="+height)
-        $("#edit-view").offset({"top": height+120})
-        $(".edit-panel").width(width+40)
-        $(".edit-panel").height(height+$("#edit-view").height()+40)
+//        console.log("updateGraffito() height="+height)
         $("#graff-view").width(width)
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
+        $(".edit-panel").width(width+40)
+        $(".edit-panel").height(height+$("#edit-view").height()+40)
+        $("#edit-view").offset({"top": height+120})
     }
 
     function clickThumbnail(e, id) {
