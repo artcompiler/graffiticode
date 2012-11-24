@@ -185,12 +185,12 @@ GraffitiCode.ui = (function () {
 	    $("#graff-view").html(obj)
         $("#graff-view svg").attr("onclick", "GraffitiCode.ui.postPiece(this)")
         var width = $("#graff-view svg").width()
-        var height = $("#graff-view svg").height()
+        var height = $("#edit-view svg").height()
 //        console.log("updateGraffito() height="+height)
         $(".edit-panel").width(width+40)
-        $(".edit-panel").height(height+$("#graff-view").height()+40)
+        $(".edit-panel").height($("#graff-view").height()+height+40)
         $("#graff-view").width(width)
-        $("#graff-view").offset({"top": height+120})
+//        $("#graff-view").offset({"top": height+120})
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
