@@ -187,13 +187,13 @@ GraffitiCode.ui = (function () {
         var width = $("#graff-view svg").width()
         var height = $("#graff-view svg").height()
 //        console.log("updateGraffito() height="+height)
+        $(".edit-panel").width(width+40)
+        $(".edit-panel").height(height+$("#graff-view").height()+40)
         $("#graff-view").width(width)
         $("#graff-view").offset({"top": height+120})
         GraffitiCode.src = src
         GraffitiCode.pool = pool
         GraffitiCode.obj = obj
-        $(".edit-panel").width(width+40)
-        $(".edit-panel").height(height+$("#graff-view").height()+40)
     }
 
     function clickThumbnail(e, id) {
