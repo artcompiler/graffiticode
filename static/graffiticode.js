@@ -236,16 +236,17 @@ GraffitiCode.ui = (function () {
 
     function showWhatItIs() {
         $(".gallery-panel").css("display", "none")
+        $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
         $.get("what-it-is.html", function(data) {
 //            console.log(data)
             $(".essay-panel").html(data)
-        })
-        
+        })        
     }
 
     function showGallery() {
         $(".gallery-panel").css("display", "block")
+        $(".edit-panel").css("display", "block")
         $(".essay-panel").css("display", "none")
     }
 
