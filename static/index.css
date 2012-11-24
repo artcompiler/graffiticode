@@ -217,6 +217,7 @@ body .main .edit-panel {
 }
 
 body .main .essay-panel {
+  position: relative;
   font-family: 'Arvo', serif;
   font-size: 11;
   float: left;
