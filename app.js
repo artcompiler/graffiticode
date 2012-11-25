@@ -144,7 +144,7 @@ app.engine('html', function (templateFile, options, callback) {
 // Routes
 
 app.get('/', function(req, res) {
-    fs.readFile('views/index.html', function(err, body) {
+    fs.readFile('views/workspace.html', function(err, body) {
 //	console.log("body="+body)
 	res.render('layout.html', { 
 	    title: 'Graffiti Code',
