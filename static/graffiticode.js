@@ -111,10 +111,12 @@ GraffitiCode.ui = (function () {
 	    })
     }
 
+    var loadIncrement = 50;
+
     // {} -> [{id, src, obj}]
     function loadMoreThumbnails(doUpdateSrc) {
         var start = GraffitiCode.nextThumbnail
-        var end = GraffitiCode.nextThumbnail = start + 10
+        var end = GraffitiCode.nextThumbnail = start + loadIncrement
         var len = GraffitiCode.pieces.length
         if (GraffitiCode.currentThumbnail >= len) {
             return
@@ -134,9 +136,9 @@ GraffitiCode.ui = (function () {
                     GraffitiCode.currentThumbnail = start + i      // keep track of the current thumbnail in case of async
 		            addPiece(d, d.src, d.obj, true)
 		        }
-                if (doUpdateSrc) {
-                    updateSrc(data[0].id)
-                }
+//                if (doUpdateSrc) {
+//                    updateSrc(data[0].id)
+//                }
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -153,7 +155,7 @@ GraffitiCode.ui = (function () {
         GraffitiCode.firstCompile = true
         GraffitiCode.id = id
         GraffitiCode.parent = GraffitiCode.id
-        var data = $(".gallery-panel div#"+id).data("piece")
+        var data = $(".gallery-panel #"+id).data("piece")
 	    editor.setValue(data.src.split("\\n").join("\n"))
 /*
 	    $.ajax({
@@ -183,12 +185,12 @@ GraffitiCode.ui = (function () {
     function updateGraffito(obj, src, pool) {
 	    //console.log("updateImage() data="+data)
 	    $("#graff-view").html(obj)
-        $("#graff-view svg").attr("onclick", "GraffitiCode.ui.postPiece(this)")
+        $("#graff-view").attr("ondblclick", "GraffitiCode.ui.postPiece(this)")
         var width = $("#graff-view svg").width()
         var height = $("#edit-view svg").height()
 //        console.log("updateGraffito() height="+height)
-        $(".edit-panel").width(width+40)
-        $(".edit-panel").height($("#graff-view").height()+height+40)
+//        $(".edit-panel").width(width+40)
+//        $(".edit-panel").height($("#graff-view").height()+height+40)
         $("#graff-view").width(width)
 //        $("#graff-view").offset({"top": height+120})
         GraffitiCode.src = src
@@ -203,6 +205,7 @@ GraffitiCode.ui = (function () {
             window.open(url)
         }
         else {
+            showWorkspace()
             updateSrc(id)
         }
     }
@@ -210,28 +213,33 @@ GraffitiCode.ui = (function () {
     function addPiece(data, src, obj, append) {
         var id = data.id
         if (append) {
-	        $(".gallery-panel").append("<div class='thumbnail' id='"+id+"'/>")
-	        $(".gallery-panel").append("<div class='label' id='text"+id+"'/>")
+	        $(".gallery-panel").append("<div class='piece' id='"+id+"'></div>")
+            $(".gallery-panel #"+id).append("<div class='thumbnail'></div>")
+	        $(".gallery-panel #"+id).append("<div class='label'></div>")
         }
         else {
-	        $(".gallery-panel").prepend("<div class='label' id='text"+id+"'/>")
-	        $(".gallery-panel").prepend("<div class='thumbnail' id='"+id+"'/>")
+	        $(".gallery-panel").prepend("<div class='piece' id='"+id+"'/>")
+	        $("div#"+id).append("<div class='thumbnail'/>")
+	        $("div#"+id).append("<div class='label'/>")
         }
-        // store info about piece in thumbnail object
-        $(".gallery-panel div#"+id).data("piece", data)
 
-        $(".gallery-panel div#"+id).append($(obj).clone())
-        $(".gallery-panel div#"+id+" svg").css("width", "220")
-        $(".gallery-panel div#"+id+" svg").css("height", "124")
-        $(".gallery-panel div#"+id+" svg").css("border: 1")
-        $(".gallery-panel div#"+id+" svg").attr("onclick", "GraffitiCode.ui.clickThumbnail(evt, '"+id+"')")
+        // store info about piece in thumbnail object
+        $(".gallery-panel #"+id).data("piece", data)
+
+        $(".gallery-panel #"+id+" .thumbnail").append($(obj).clone())
+        $(".gallery-panel #"+id+" .thumbnail svg").css("width", "220")
+        $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124")
+//        $(".gallery-panel div#"+id+" svg").css("border: 1")
+        $(".gallery-panel #"+id).attr("ondblclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
 //        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
-        $(".gallery-panel div#text"+id).text(data.views+" Views, "+ new Date(data.created).toDateString() + " by " + data.name)
+
+        $(".gallery-panel #"+id+" .label").text(data.views+" Views, "+ new Date(data.created).toDateString() + ", " + data.name +", "+id)
     }
 
     function start() {
         queryPieces()
+        showGallery()
     }
 
     function showWhatItIs() {
@@ -241,13 +249,47 @@ GraffitiCode.ui = (function () {
         $.get("what-it-is.html", function(data) {
 //            console.log(data)
             $(".essay-panel").html(data)
-        })        
+        })
+
+        $("#workspace-link, #gallery-link").css("background-color", "#ddd")
+        $("#workspace-link, #gallery-link").css("font-weight", "400")
+//        $("nav ul li a:hover").css("background-color", "#999")
+//        $("nav ul li a:hover").css("font-weight", "700")
+
+        $("#about-link").css("background-color", "#bbb")
+        $("#about-link").css("font-weight", "700")
     }
 
     function showGallery() {
         $(".gallery-panel").css("display", "block")
-        $(".edit-panel").css("display", "block")
         $(".essay-panel").css("display", "none")
+        $(".edit-panel").css("display", "none")
+
+        $("#gallery-link").css("background-color", "#bbb")
+        $("#gallery-link").css("font-weight", "700")
+
+        $("#workspace-link, #about-link").css("background-color", "#ddd")
+        $("#workspace-link, #about-link").css("font-weight", "400")
+//        var lastColor, lastWeight
+//        $("nav ul li a").hover(
+//            function() { $(this).css("font-weight", "700").css("background-color", "#999") },
+//            function() { $(this).css("font-weight", lastWeight).css("background-color", lastColor) }
+//        )
+
+    }
+
+    function showWorkspace() {
+        $(".gallery-panel").css("display", "none")
+        $(".essay-panel").css("display", "none")
+        $(".edit-panel").css("display", "block")
+
+        $("#about-link, #gallery-link").css("background-color", "#ddd")
+        $("#about-link, #gallery-link").css("font-weight", "400")
+//        $("nav ul li a:hover").css("background-color", "#999")
+//        $("nav ul li a:hover").css("font-weight", "700")
+
+        $("#workspace-link").css("background-color", "#bbb")
+        $("#workspace-link").css("font-weight", "700")
     }
 
     return {
@@ -261,6 +303,7 @@ GraffitiCode.ui = (function () {
         start: start,
         showWhatItIs: showWhatItIs,
         showGallery: showGallery,
+        showWorkspace: showWorkspace,
     }
 })()
 
