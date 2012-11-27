@@ -32,7 +32,6 @@ CodeMirror.defineMode("graffiti", function() {
         },
 
 	copyState: function(state) {
-	    return state
 	    return copyObject(state)
 
 	    function copyObject(obj) {
