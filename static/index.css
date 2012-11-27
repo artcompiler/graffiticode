@@ -203,17 +203,19 @@ body .main .edit-panel {
 
 #help-view .help-heading {
     width: 100%;
-    height: 20;
-    background-color: rgb(140, 140, 140);
+    height: 18;
+    background-color: rgb(50, 150, 250);
     font-size: 14;
     position: relative;
     padding-bottom: 5;
 }
 
 #help-view .help-heading span {
+    padding-top: 10;
     position: relative;
     padding: 5;
     color: #fff;
+    text-align: bottom;
 }
 
 #help-view .help-item {
@@ -237,7 +239,7 @@ body .main .edit-panel {
 
 #help-view .help-item ul li.item-title {
     font-size: 14;
-    background-color: #ddd;
+    background-color: rgb(220, 220, 220);
     padding: 5;
     color: #444;
 }
