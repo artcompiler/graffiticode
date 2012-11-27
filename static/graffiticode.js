@@ -19,14 +19,12 @@ GraffitiCode.ui = (function () {
         }
 
 	    var src = editor.getValue()
-//        console.log("compileCode() ast="+JSON.stringify(ast))
 	    $.ajax({
 	        type: "PUT",
             url: "/code",
 	        data: {ast: ast},
             dataType: "text",
             success: function(data) {
-//                console.log("compileCode() data="+data)
                 //		updateText(data)
 		        updateGraffito(data, src, ast)
 //		        updateCode(data)
@@ -39,7 +37,6 @@ GraffitiCode.ui = (function () {
 
     // {src, obj} -> {id}
     function postPiece() {
-//        console.log("postPiece() src="+src+" ast="+ast)
 
         // if there are no changes then don't post
         if (GraffitiCode.parent === GraffitiCode.id) {
@@ -183,12 +180,10 @@ GraffitiCode.ui = (function () {
     }
 
     function updateGraffito(obj, src, pool) {
-	    //console.log("updateImage() data="+data)
 	    $("#graff-view").html(obj)
         $("#graff-view").attr("ondblclick", "GraffitiCode.ui.postPiece(this)")
         var width = $("#graff-view svg").width()
         var height = $("#edit-view svg").height()
-//        console.log("updateGraffito() height="+height)
 //        $(".edit-panel").width(width+40)
 //        $(".edit-panel").height($("#graff-view").height()+height+40)
         $("#graff-view").width(width)
@@ -247,7 +242,6 @@ GraffitiCode.ui = (function () {
         $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
         $.get("what-it-is.html", function(data) {
-//            console.log(data)
             $(".essay-panel").html(data)
         })
 

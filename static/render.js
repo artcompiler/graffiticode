@@ -38,6 +38,11 @@ exports.renderer = GraffitiCode.renderer = function() {
                , 'fill="#fff"'
                , 'stroke="#000"'
                , 'version="1.1"'
+               , 'preserveAspectRatio="xMidYMid meet"'
+//               , 'style="overflow: hidden; clip: rect(50,50,50,50);"'
+               , 'overflow="hidden"'
+               , 'clip="rect(50,50,50,50)"'
+                 , 'style="background:'+transformer.canvasColor()+'"'
                , '>'
                ].join("\n")
     }
@@ -50,7 +55,6 @@ exports.renderer = GraffitiCode.renderer = function() {
 
     function render(node) {
 //        nodePool = pool
-//        console.log("render()")
         var str = ""
         str += prefix()
         str += visit(node)
@@ -68,7 +72,6 @@ exports.renderer = GraffitiCode.renderer = function() {
 
 
         var tagName = node.tag
-//        console.log("render$visit() node="+JSON.stringify(node))
         var attrs = ""
         for (var name in node) {
             if (name=="tag" || name=="elts") {
@@ -88,7 +91,6 @@ exports.renderer = GraffitiCode.renderer = function() {
             }
         }
         var tag = "\n<" + tagName + " " + attrs + ">" + elts + "</" + tagName + ">"
-//        console.log("render$visit() tag="+tag);
         return tag
     }
 

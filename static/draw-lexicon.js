@@ -53,6 +53,8 @@ GraffitiCode.globalLexicon = {
     "triangle" : { "tk": 0x01, "name": "TRI", "cls": "method", "length": 6 },
     "triside" : { "tk": 0x01, "name": "TRISIDE", "cls": "method", "length": 3 },
     "rectangle" : { "tk": 0x01, "name": "RECT", "cls": "method", "length": 2 },
+    "ellipse" : { "tk": 0x01, "name": "ELLIPSE", "cls": "method", "length": 2 },
+    "bezier" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
     "grid" : { "tk": 0x01, "name": "GRID", "cls": "method", "length": 4 },
     "translate" : { "tk": 0x01, "name": "TRANSLATE", "cls": "method", "length": 3 },
     "scale" : { "tk": 0x01, "name": "SCALE", "cls": "method", "length": 2 },

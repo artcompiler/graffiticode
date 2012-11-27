@@ -101,6 +101,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         "TRI" : triangle,
         "TRISIDE" : triside,
         "RECT" : rectangle,
+        "ELLIPSE" : ellipse,
+        "BEZIER" : bezier,
         "TEXT" : text,
         "FSIZE" : fsize,
         "ROTATE" : rotate,
@@ -114,16 +116,21 @@ exports.transformer = GraffitiCode.transformer = function() {
         "STROKE" : stroke,
         "COLOR" : color,
         "SIZE" : size,
+        "BACKGROUND" : background,
     }
 
     // CONTROL FLOW ENDS HERE
 
     var canvasWidth = 0
     var canvasHeight = 0
+    var canvasColor = ""
 
     exports.transform = transform
     exports.canvasWidth = function() {return canvasWidth}
     exports.canvasHeight =  function() {return canvasHeight}
+    exports.canvasColor =  function() { 
+        return canvasColor
+    }
 
     return {
         transform: transform,
@@ -170,7 +177,6 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
 
     function isString(v) {
-//        console.log("isString() _="+_)
         return _.isString(v)
     }
 
@@ -225,23 +231,10 @@ exports.transformer = GraffitiCode.transformer = function() {
             "elts": elts
         }
     }
-
+    
     function canvasSize(width, height) {
         canvasWidth = width
         canvasHeight = height
-/*
-//        console.log("canvasWidth="+xx)
-        for (var i=0; i < xx.length; i++) {
-            if (xx[i] > canvasWidth) {
-                canvasWidth = xx[i]
-            }
-        }
-        for (var i=0; i < yy.length; i++) {
-            if (yy[i] > canvasHeight) {
-                canvasHeight = yy[i]
-            }
-        }
-*/
     }
 
     function triangle(node) {
@@ -282,7 +275,6 @@ exports.transformer = GraffitiCode.transformer = function() {
             "tag": "g",
             "elts": elts,
         }
-//        console.log("grid() n="+JSON.stringify(n))
         return n
     }
 
@@ -298,6 +290,40 @@ exports.transformer = GraffitiCode.transformer = function() {
             "y": "0",
             "width": w,
             "height": h,
+        }
+    }
+
+    function ellipse(node) {
+        print("ellipse")
+        var elts = []
+        var w = visit(node.elts[1])
+        var h = visit(node.elts[0])
+
+        return {
+            "tag": "ellipse",
+            "rx": w/2,
+            "ry": h/2,
+        }
+    }
+
+    function bezier(node) {
+        print("bezier")
+        var elts = []
+        var x0 = visit(node.elts[7])
+        var y0 = visit(node.elts[6])
+        var x1 = visit(node.elts[5])
+        var y1 = visit(node.elts[4])
+        var x2 = visit(node.elts[3])
+        var y2 = visit(node.elts[2])
+        var x3 = visit(node.elts[1])
+        var y3 = visit(node.elts[0])
+        var d = "M " + x0 + " " + y0 + 
+                " C " + x1 + " " + y1 + " " +
+                        x2 + " " + y2 + " " +
+                        x3 + " " + y3
+        return {
+            "tag": "path",
+            "d": d
         }
     }
 
@@ -477,7 +503,23 @@ exports.transformer = GraffitiCode.transformer = function() {
         var width = visit(node.elts[1])
         var height = visit(node.elts[0])
         canvasSize(width, height)
-        return [ ]
+        return []
+    }
+
+    function background(node) {
+        var elts = []
+        var rgb = visit(node.elts[0])
+        var r = rgb.r
+        var g = rgb.g
+        var b = rgb.b
+        var a = rgb.a
+        if (a !== void 0) {
+            canvasColor = "rgba("+r+", "+g+", "+b+", "+a+")"
+        }
+        else {
+            canvasColor = "rgb("+r+", "+g+", "+b+")"
+        }
+        return []
     }
 
     function stroke(node) {

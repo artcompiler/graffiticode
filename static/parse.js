@@ -1375,6 +1375,8 @@ GraffitiCode.folder = function() {
         "SCALE" : scale,
         "TRISIDE" : triside,
         "RECT" : rectangle,
+        "ELLIPSE" : ellipse,
+        "BEZIER" : bezier,
         "RAND" : random,
         "GRID" : grid,
         "TRANSLATE" : translate,
@@ -1388,6 +1390,7 @@ GraffitiCode.folder = function() {
         "TEXT" : text,
         "FSIZE" : fsize,
         "SIZE" : size,
+        "BACKGROUND": background,
         "DIV": div,
         "MUL": mul,
         "SUB": sub,
@@ -1513,6 +1516,22 @@ GraffitiCode.folder = function() {
         ast.callExpr(ctx, node.elts.length)
     }
 
+    function ellipse(node) {
+        ast.name(ctx, "ellipse")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function bezier(node) {
+        ast.name(ctx, "bezier")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
     function random(node) {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
@@ -1610,6 +1629,14 @@ GraffitiCode.folder = function() {
 
     function size(node) {
         ast.name(ctx, "size")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function background(node) {
+        ast.name(ctx, "background")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
