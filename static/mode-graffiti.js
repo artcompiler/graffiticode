@@ -80,8 +80,8 @@ CodeMirror.defineMode("graffiti", function() {
 CodeMirror.defineMIME("text", "graffiti")
 
 CodeMirror.handleCursorEvent = function (editor, evt) {
-//    CodeMirror.simpleHint(editor, function (editor) {
-//	return {list: ["let", "abc", "xyz"], from: editor.getCursor(), to: editor.getCursor()}
-//    })
+    CodeMirror.simpleHint(editor, function (editor) {
+	return {list: ["let", "abc", "xyz"], from: editor.getCursor(), to: editor.getCursor()+3}
+    })
     return false
 }

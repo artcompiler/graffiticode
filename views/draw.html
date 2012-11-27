@@ -28,6 +28,7 @@
     <div class="gallery-panel"></div>
     <div class="essay-panel" style="display:none;"></div>
     <div class="edit-panel">
+      <div id="help-view"></div>
       <div id="edit-view" name="code"></div>
       <div id="graff-view"></div>
     </div>
@@ -39,9 +40,9 @@ $(document).ready(function () {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
-	onCursorActivity: function (editor) {
-            CodeMirror.handleCursorEvent(editor)
-	},
+//	onCursorActivity: function (editor) {
+//            CodeMirror.handleCursorEvent(editor)
+//	},
         onUpdate: function() {
 //            updateDisplay()
         },
