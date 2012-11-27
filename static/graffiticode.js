@@ -277,6 +277,7 @@ GraffitiCode.ui = (function () {
         $(".essay-panel").css("display", "none")
         $(".edit-panel").css("display", "block")
         showHelp()
+        editor.setValue("size 100 100.\n.")
 
         $("#about-link, #gallery-link").css("background-color", "#ddd")
         $("#about-link, #gallery-link").css("font-weight", "400")
