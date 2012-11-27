@@ -35,8 +35,8 @@ exports.renderer = GraffitiCode.renderer = function() {
                , 'xmlns="http://www.w3.org/2000/svg"'
                , 'font-family="Verdana"' 
                , 'font-size="12"'
-               , 'fill="#777"'
-               , 'stroke="#777"'
+               , 'fill="#fff"'
+               , 'stroke="#000"'
                , 'version="1.1"'
                , '>'
                ].join("\n")
