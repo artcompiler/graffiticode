@@ -160,8 +160,25 @@ app.get('/', function(req, res) {
 })
 
 
-app.get('/workspace', function(req, res) {
-    fs.readFile('views/workspace.html', function(err, body) {
+app.get('/draw', function(req, res) {
+    fs.readFile('views/draw.html', function(err, body) {
+//	console.log("body="+body)
+	res.render('layout.html', { 
+	    title: 'Graffiti Code',
+	    vocabulary: 'Triangle',
+	    target: 'SVG',
+	    login: 'Login',
+	    body: body,
+	}, function (error, html) {
+	    if (error) res.send(400, error)
+	    else res.send(html)
+	})
+    })
+})
+
+
+app.get('/bitzee', function(req, res) {
+    fs.readFile('views/bitzee.html', function(err, body) {
 //	console.log("body="+body)
 	res.render('layout.html', { 
 	    title: 'Graffiti Code',

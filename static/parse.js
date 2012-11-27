@@ -464,7 +464,9 @@ function log(str) {
 })();
 
 (function () {
-    
+
+    var globalLexicon = GraffitiCode.globalLexicon
+
     var ast = GraffitiCode.ast
     
     function assert(b, str) {
@@ -504,123 +506,6 @@ function log(str) {
     var TK_DOT          = 0xA9
     var TK_COLON        = 0xAA
     var TK_PLUS         = 0xAB
-
-    var globalLexicon = GraffitiCode.globalLexicon = {
-        "let" : { tk: TK_LET, cls: "keyword" },
-/*
-        "if" : { tk: TK_IF, cls: "keyword" },
-        "then" : { tk: TK_THEN, cls: "keyword" },
-        "else" : { tk: TK_ELSE, cls: "keyword" },
-        "match" : { tk: TK_MATCH, cls: "keyword" },
-        "with" : { tk: TK_WITH, cls: "keyword", length: 0 },
-        "end" : { tk: TK_END, cls: "keyword", length: 0 },
-        "or" : { tk: TK_OR, cls: "keyword", length: 0 },
-        "is" : { tk: TK_IS, cls: "operator", length: 1 },
-        "equal" : { tk: TK_IDENT, cls: "operator", length: 0 },
-
-        "zero" : { tk: TK_NUM, cls: "number", length: 0 },
-        "one" : { tk: TK_NUM, cls: "number", length: 0 },
-        "two" : { tk: TK_NUM, cls: "number", length: 0 },
-        "three" : { tk: TK_NUM, cls: "number", length: 0 },
-        "four" : { tk: TK_NUM, cls: "number", length: 0 },
-        "five" : { tk: TK_NUM, cls: "number", length: 0 },
-        "six" : { tk: TK_NUM, cls: "number", length: 0 },
-        "seven" : { tk: TK_NUM, cls: "number", length: 0 },
-        "eight" : { tk: TK_NUM, cls: "number", length: 0 },
-        "nine" : { tk: TK_NUM, cls: "number", length: 0 },
-        "ten" : { tk: TK_NUM, cls: "method", length: 0 },
-        "eleven" : { tk: TK_NUM, cls: "method", length: 0 },
-        "twelve" : { tk: TK_NUM, cls: "method", length: 0 },
-        "thirteen" : { tk: TK_NUM, cls: "method", length: 0 },
-        "fourteen" : { tk: TK_NUM, cls: "method", length: 0 },
-        "fifteen" : { tk: TK_NUM, cls: "method", length: 0 },
-        "sixteen" : { tk: TK_NUM, cls: "method", length: 0 },
-        "seventeen" : { tk: TK_NUM, cls: "method", length: 0 },
-        "eighteen" : { tk: TK_NUM, cls: "method", length: 0 },
-        "nineteen" : { tk: TK_NUM, cls: "method", length: 0 },
-        "twenty" : { tk: TK_NUM, cls: "method", length: 0 },
-        "thirty" : { tk: TK_NUM, cls: "method", length: 0 },
-        "forty" : { tk: TK_NUM, cls: "method", length: 0 },
-        "fifty" : { tk: TK_NUM, cls: "method", length: 0 },
-        "sixty" : { tk: TK_NUM, cls: "method", length: 0 },
-        "seventy" : { tk: TK_NUM, cls: "method", length: 0 },
-        "eighty" : { tk: TK_NUM, cls: "method", length: 0 },
-        "ninety" : { tk: TK_NUM, cls: "method", length: 0 },
-
-        "print" : { tk: TK_IDENT, cls: "method", length: 1 },
-
-*/
-        "size" : { tk: TK_IDENT, name: "SIZE", cls: "method", length: 2 },
-        "background" : { tk: TK_IDENT, name: "BACKGROUND", cls: "method", length: 1 },
-
-        "tri" :      { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
-        "triangle" : { tk: TK_IDENT, name: "TRI", cls: "method", length: 6 },
-        "triside" : { tk: TK_IDENT, name: "TRISIDE", cls: "method", length: 3 },
-        "rectangle" : { tk: TK_IDENT, name: "RECT", cls: "method", length: 2 },
-        "grid" : { tk: TK_IDENT, name: "GRID", cls: "method", length: 4 },
-        "translate" : { tk: TK_IDENT, name: "TRANSLATE", cls: "method", length: 3 },
-        "scale" : { tk: TK_IDENT, name: "SCALE", cls: "method", length: 2 },
-        "rotate" : { tk: TK_IDENT, name: "ROTATE", cls: "method", length: 2 },
-        "skewx" : { tk: TK_IDENT, name: "SKEWX", cls: "method", length: 2 },
-        "skewy" : { tk: TK_IDENT, name: "SKEWY", cls: "method", length: 2 },
-        "rgb" : { tk: TK_IDENT, name: "RGB", cls: "method", length: 3 },
-        "rgba" : { tk: TK_IDENT, name: "RGBA", cls: "method", length: 4 },
-        "fill" : { tk: TK_IDENT, name: "FILL", cls: "method", length: 2 },
-        "stroke" : { tk: TK_IDENT, name: "STROKE", cls: "method", length: 2 },
-        "color" : { tk: TK_IDENT, name: "COLOR", cls: "method", length: 2 },
-        "text" : { tk: TK_IDENT, name: "TEXT", cls: "method", length: 1 },
-        "font-size" : { tk: TK_IDENT, name: "FSIZE", cls: "method", length: 2 },
-        "random" : { tk: TK_IDENT, name: "RAND", cls: "method", length: 2 },
-
-        "divide" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
-        "div" : { tk: TK_BINOP, name: "DIV", cls: "operator", length: 0 },
-        "mul" : { tk: TK_BINOP, name: "MUL", cls: "operator", length: 0 },
-        "times" : { tk: TK_BINOP, name: "MUL", cls: "operator", length: 0 },
-        "minus" : { tk: TK_BINOP, name: "SUB", cls: "operator", length: 0 },
-        "sub" : { tk: TK_BINOP, name: "SUB", cls: "operator", length: 0 },
-        "plus" : { tk: TK_BINOP, name: "ADD", cls: "operator", length: 0 },
-        "add" : { tk: TK_BINOP, name: "ADD", cls: "operator", length: 0 },
-        
-/*
-        "draw" : { tk: TK_IDENT, cls: "method", length: 5 },
-        "fill" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "stroke" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "noLoop" : { tk: TK_IDENT, cls: "method", length: 0 },
-        "deg" : { tk: TK_POSTOP, cls: "operator", length: 0 },
-
-        // bitzee
-        "start" : { tk: TK_IDENT, cls: "handler", length: 0 },
-        "remote" : { tk: TK_IDENT, cls: "handler", length: 1 },
-        "forward" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "backward" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "stop" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "spin" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "play" : { tk: TK_NUM, cls: "number", length: 0 },
-        "slow" : { tk: TK_NUM, cls: "number", length: 0 },
-        "seconds" : { tk: TK_POSTOP, cls: "operator", length: 0 },
-        "ms" : { tk: TK_POSTOP, cls: "operator", length: 0 },
-        "not" : { tk: TK_PREOP, cls: "operator", length: 0 },
-        "blink" : { tk: TK_IDENT, cls: "method", length: 4 },
-        "left" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "right" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "speed" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "full" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "half" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "none" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "high" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "low" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "on" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "off" : { tk: TK_IDENT, cls: "val", length: 0 },
-        "delay" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "random" : { tk: TK_IDENT, cls: "method", length: 2 },
-
-        // popcorn
-
-        "popcorn" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "footnote" : { tk: TK_IDENT, cls: "method", length: 1 },
-        "struct" : {tk: TK_IDENT, cls: "method", length: 3 },
-*/
-    }
 
     GraffitiCode.env = { }
 
@@ -1468,7 +1353,8 @@ function log(str) {
 
         parse: parse
     }
-})()
+
+})(); // end parser
 
 GraffitiCode.folder = function() {
 
