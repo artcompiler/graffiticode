@@ -199,6 +199,7 @@ body .main .edit-panel {
   border-width: 1;
   border-style: solid;
   border-color: #aaa;
+  background: #fff;
 }
 
 #help-view .help-heading {
@@ -220,7 +221,7 @@ body .main .edit-panel {
 
 #help-view .help-item {
     width: 240;
-    background-color: rgb(255, 255, 255);
+    background-color: #fff;
     font-size: 10;
 //    height: 60;
     padding-top: 5;
