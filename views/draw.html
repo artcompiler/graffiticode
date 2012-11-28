@@ -66,6 +66,9 @@ $(document).ready(function () {
 */
 
     $(document).scroll(function (data) {
+       if ($(".gallery-panel").css('display') === 'none') {
+          return
+       }
        var pos = window.innerHeight + document.body.scrollTop
        var bottom = document.body.height
        var height = $(".gallery-panel").height()
