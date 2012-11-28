@@ -245,7 +245,25 @@ body .main .edit-panel {
     color: #444;
 }
 
+#editor {
+//  position: relative;
+  width:660;
+  float: left;
+//  margin-top: 20;
+}
+
 #edit-view {
+//  position: relative;
+  float: left;
+//  margin-top: 20;
+  margin-left: 20;
+  margin-bottom: 20;
+  border-width: 1;
+  border-style: solid;
+  border-color: #aaa;
+}
+
+#button-bar {
 //  position: relative;
   float: left;
 //  margin-top: 20;
