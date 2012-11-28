@@ -288,7 +288,7 @@ GraffitiCode.ui = (function () {
         $("#workspace-link").css("background-color", "#bbb")
         $("#workspace-link").css("font-weight", "700")
         showHelp()
-        editor.setValue("size 100 100.\n.")
+//        editor.setValue("size 100 100.\n.")
     }
 
     function showHelp() {
