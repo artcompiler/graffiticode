@@ -503,7 +503,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         var width = visit(node.elts[1])
         var height = visit(node.elts[0])
         canvasSize(width, height)
-        return []
+        return void 0
     }
 
     function background(node) {
@@ -519,7 +519,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         else {
             canvasColor = "rgb("+r+", "+g+", "+b+")"
         }
-        return []
+        return void 0
     }
 
     function stroke(node) {

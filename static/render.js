@@ -87,7 +87,9 @@ exports.renderer = GraffitiCode.renderer = function() {
         var elts = ""
         if (node.elts) {
             for (var i = 0; i < node.elts.length; i++) {
-                elts += visit(node.elts[i])
+                if (node.elts[i]) {  // skip empty elts
+                    elts += visit(node.elts[i])
+                }
             }
         }
         var tag = "\n<" + tagName + " " + attrs + ">" + elts + "</" + tagName + ">"
