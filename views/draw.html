@@ -94,7 +94,7 @@ $(document).ready(function () {
     GraffitiCode.ui.start()
 
         $.get("http://"+location.host+"/graffiti/180", function (data) {
-            $("#button-bar").append("<a href='http://"+location.host+"/'>"+data+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' href='http://"+location.host+"/'>"+data+"</a>")
         })
 
         $.get("http://"+location.host+"/graffiti/182", function (data) {
