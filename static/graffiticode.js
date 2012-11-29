@@ -239,11 +239,11 @@ GraffitiCode.ui = (function () {
             $("#help-view").append(data)
         })
         $.get("http://"+location.host+"/graffiti/183", function (newButton) {
-        $.get("http://"+location.host+"/graffiti/181", function (saveButton) {
-        $.get("http://"+location.host+"/graffiti/182", function (shareButton) {
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' href='#'>"+newButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' href='#'>"+shareButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' href='#'>"+saveButton+"</a>")
+        $.get("http://"+location.host+"/graffiti/181", function (shareButton) {
+        $.get("http://"+location.host+"/graffiti/182", function (saveButton) {
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' alt='New' title='New Piece'>"+newButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' alt='Save' title='Save to Archive'>"+saveButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' alt='Share' title='Share on GitHub'>"+shareButton+"</a>")
         })
         })
         })
