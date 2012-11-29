@@ -476,6 +476,13 @@ exports.transformer = GraffitiCode.transformer = function() {
         var elts = []
         var rgb = visit(node.elts[1])
         var shape = visit(node.elts[0])
+
+        if (rgb.r === void 0) {
+            var val = rgb
+            rgb = {}
+            rgb.r = rgb.g = rgb.b = val;
+        }
+
         var r = rgb.r
         var g = rgb.g
         var b = rgb.b
@@ -488,7 +495,7 @@ exports.transformer = GraffitiCode.transformer = function() {
                 "elts": [shape],
             }
         }
-
+        
         return {
             "tag": "g",
             "stroke": "rgb("+r+", "+g+", "+b+")",
@@ -527,6 +534,13 @@ exports.transformer = GraffitiCode.transformer = function() {
         var elts = []
         var rgb = visit(node.elts[1])
         var shape = visit(node.elts[0])
+
+        if (rgb.r === void 0) {
+            var val = rgb
+            rgb = {}
+            rgb.r = rgb.g = rgb.b = val;
+        }
+
         var r = rgb.r
         var g = rgb.g
         var b = rgb.b
@@ -551,6 +565,13 @@ exports.transformer = GraffitiCode.transformer = function() {
         var elts = []
         var rgb = visit(node.elts[1])
         var shape = visit(node.elts[0])
+
+        if (rgb.r === void 0) {
+            var val = rgb
+            rgb = {}
+            rgb.r = rgb.g = rgb.b = val;
+        }
+
         var r = rgb.r
         var g = rgb.g
         var b = rgb.b

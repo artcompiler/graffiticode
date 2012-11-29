@@ -3,8 +3,8 @@
 
 <div class="help-item" id="button-commands-help">
   <ul>
-    <li class="item-title"><b>Starting, saving and sharing</b></li>
-    <li class="item-body">The buttons above the editor allow you to start a new program, fork an archived program,
+    <li class="item-title"><b>Starting, saving and sharing code</b></li>
+    <li class="item-body">The buttons above the code editor allow you to start a new program, fork an archived program,
         save a program to the archive, and share a program on Github.
     </li>
   </ul>
@@ -39,15 +39,15 @@
 
 <div class="help-item" id="background">
   <ul>
-    <li class="item-title"><b>background</b> rgb</li>
-    <li class="item-body">Set the canvas color with the RGB value <i>rgb</i>.</li>
+    <li class="item-title"><b>background</b> <i>c</i></li>
+    <li class="item-body">Set the canvas color denoted by the color value <i>c</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="size">
   <ul>
-    <li class="item-title"><b>size</b> width height</li>
-    <li>Set the canvas size with two integer values <i>width</i> and <i>height</i>.</li>
+    <li class="item-title"><b>size</b> <i>width height</i></li>
+    <li class="item-body">Set the canvas size denoted by the integer values <i>width</i> and <i>height</i>.</li>
   </ul>
 </div>
 
@@ -55,52 +55,52 @@
 
 <div class="help-item" id="bezier">
   <ul>
-    <li class="item-title"><b>bezier</b> x1 y1 x2 y2 x3 y3 x4 y4</li>
-    <li class="item-body">A bezier curve that starts at point <i>x1, y1</i> and ends at <i>x4, y4</i>
+    <li class="item-title"><b>bezier</b> <i>x1 y1 x2 y2 x3 y3 x4 y4</i></li>
+    <li class="item-body">Construct a bezier curve that starts at point <i>x1, y1</i> and ends at <i>x4, y4</i>
         with intermediate control points <i>x2, y2</i> and <i>x3, y3</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="ellipse">
   <ul>
-    <li class="item-title"><b>ellipse</b> rx ry</li>
-    <li class="item-body">An ellipse with horizontal and vertical diameters dx and dy with center at the origin.</li>
+    <li class="item-title"><b>ellipse</b> <i>dx dy</i></li>
+    <li class="item-body">Construct an ellipse with horizontal and vertical diameters <i>dx</i> and <i>dy</i> with center at the origin.</li>
   </ul>
 </div>
 
 <div class="help-item" id="grid">
   <ul>
-    <li class="item-title"><b>grid</b> dx dy w h</li>
-    <li class="item-body">A grid with x and y mesh size <i>dx</i> and <i>dy</i> and covering the rectangle <i>w</i> and <i>h</i>
+    <li class="item-title"><b>grid</b> <i>dx dy width height</i></li>
+    <li class="item-body">Construct a grid with x and y mesh size <i>dx</i> and <i>dy</i> and covering the rectangle <i>width</i> and <i>height</i>
         with top left corner at the origin.</li>
   </ul>
 </div>
 
 <div class="help-item" id="rectangle">
   <ul>
-    <li class="item-title"><b>rectangle</b> w h</li>
-    <li class="item-body">A rectangle with width <i>w</i> and height <i>h</i> and top left corner at the origin.</li>
+    <li class="item-title"><b>rectangle</b> <i>width height</i></li>
+    <li class="item-body">Construct a rectangle with <i>width</i> and <i>height</i> and top left corner at the origin.</li>
   </ul>
 </div>
 
 <div class="help-item" id="text">
   <ul>
     <li class="item-title"><b>text</b> str</li>
-    <li class="item-body">A text of string <i>str</i> positioned with its bottom left corner at the origin.</li>
+    <li class="item-body">Construct a text of string <i>str</i> positioned with its bottom left corner at the origin.</li>
   </ul>
 </div>
 
 <div class="help-item" id="triangle">
   <ul>
     <li class="item-title"><b>triangle</b> x1 y1 x2 y2 x3 y3</li>
-    <li class="item-body">A triangle with points (x1, y1), (x2, y2),<br>(x3, y3).</li>
+    <li class="item-body">Construct a triangle with points (x1, y1), (x2, y2), (x3, y3).</li>
   </ul>
 </div>
 
 <div class="help-item" id="triside">
   <ul>
     <li class="item-title"><b>triside</b> l1 l2 l3</li>
-    <li class="item-body">A triangle with sides of length l1, l2 and l3 positioned at the origin.</li>
+    <li class="item-body">Construct a triangle with sides of length l1, l2 and l3 positioned at the origin.</li>
   </ul>
 </div>
 
@@ -113,88 +113,71 @@
   </ul>
 </div>
 
-<div class="help-item" id="font-size">
+<div class="help-item" id="color">
   <ul>
-    <li class="item-title"><b>font-size</b> size text</li>
-    <li class="item-body">Change the font size of <i>text</i>.</li>
-  </ul>
-</div>
-
-<div class="help-item" id="translate">
-  <ul>
-    <li class="item-title"><b>translate</b> dx dy val</li>
-    <li class="item-body">Update the position of <i>val</i> by adding <i>dx</i> and <i>dy</i> to its current
-      <i>x</i> and <i>y</i> values, respectively. Return the modified value of <i>val</i>.</li>
-  </ul>
-</div>
-
-<div class="help-item" id="scale">
-  <ul>
-    <li class="item-title"><b>scale</b> n val</li>
-    <li class="item-body">Change the size of <i>val</i> by scaling it by factor <i>n</i>.</li>
-  </ul>
-</div>
-
-<div class="help-item" id="rotate">
-  <ul>
-    <li class="item-title"><b>rotate</b> a val</li>
-    <li class="item-body">Change the....</li>
-  </ul>
-</div>
-
-<div class="help-item" id="skewx">
-  <ul>
-    <li class="item-title"><b>skewx</b> a val</li>
-    <li class="item-body">Change the....</li>
-  </ul>
-</div>
-
-<div class="help-item" id="skewy">
-  <ul>
-    <li class="item-title"><b>skewy</b> a val</li>
-    <li class="item-body">Change the....</li>
+    <li class="item-title"><b>color</b> <i>color val</i></li>
+    <li class="item-body"><i>color</i> represents a stroke and fill color. <i>val</i> is the value to be re-colored. 
+      If <i>color</i> is an integer, use the RGB value that results by calling <b>rgb</b> <i>color color color</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="fill">
   <ul>
-    <li class="item-title"><b>fill</b> rgb val</li>
-    <li class="item-body">Change the....</li>
+    <li class="item-title"><b>fill</b> <i>color val</i></li>
+    <li class="item-body"><i>color</i> represents a color value. <i>val</i> is the value to be re-colored. 
+      If <i>color</i> is an integer, use the RGB value that results by calling <b>rgb</b> <i>color color color</i>.</li>
+  </ul>
+</div>
+
+<div class="help-item" id="font-size">
+  <ul>
+    <li class="item-title"><b>font-size</b> <i>size val</i></li>
+    <li class="item-body">
+      <i>size</i> is a font size in points. <i>val</i> is a text value to be resized.
+    <li>
+  </ul>
+</div>
+
+<div class="help-item" id="rotate">
+  <ul>
+    <li class="item-title"><b>rotate</b> <i>angle val</i></li>
+    <li class="item-body"><i>angle</i> is the rotation angle. <i>val</i> is the value to be rotated.</li>
+  </ul>
+</div>
+
+<div class="help-item" id="scale">
+  <ul>
+    <li class="item-title"><b>scale</b> <i>factor val</i></li>
+    <li class="item-body"><i>factor</i> is the scale factor. <i>val</i> is the value to be scaled.</li>
+  </ul>
+</div>
+
+<div class="help-item" id="skewx">
+  <ul>
+    <li class="item-title"><b>skewx</b> <i>angle val</i></li>
+    <li class="item-body"><i>angle</i> is the rotation angle of the x-axis. <i>val</i> is the value to be skewed.</li>
+  </ul>
+</div>
+
+<div class="help-item" id="skewy">
+  <ul>
+    <li class="item-title"><b>skewy</b> <i>angle val</i></li>
+    <li class="item-body"><i>angle</i> is the rotation angle of the y-axis. <i>val</i> is the value to be skewed.</li>
   </ul>
 </div>
 
 <div class="help-item" id="stroke">
   <ul>
-    <li class="item-title"><b>stroke</b> rgb val</li>
-    <li class="item-body">Change the....</li>
+    <li class="item-title"><b>stroke</b> <i>color val</i></li>
+    <li class="item-body"><i>color</i> is the color to be used. <i>val</i> is the value to be recolored. 
+      If <i>color</i> is an integer, use the RGB value that results by calling <b>rgb</b> <i>color color color</i>.</li>
   </ul>
 </div>
 
-<div class="help-item" id="color">
+<div class="help-item" id="translate">
   <ul>
-    <li class="item-title"><b>color</b> rgb val</li>
-    <li class="item-body">Change the....</li>
-  </ul>
-</div>
-
-<div class="help-item" id="rgb">
-  <ul>
-    <li class="item-title"><b>rgb</b> r g b</li>
-    <li class="item-body">Return the....</li>
-  </ul>
-</div>
-
-<div class="help-item" id="rgb">
-  <ul>
-    <li class="item-title"><b>rgba</b> r g b a</li>
-    <li class="item-body">Return the....</li>
-  </ul>
-</div>
-
-<div class="help-item" id="random">
-  <ul>
-    <li class="item-title"><b>random</b> min max</li>
-    <li class="item-body">Return the....</li>
+    <li class="item-title"><b>translate</b> <i>x y val</i></li>
+    <li class="item-body"><i>x</i> and <i>y</i> are the x and y distance moved. <i>val</i> is the value to be moved.
   </ul>
 </div>
 
@@ -225,6 +208,32 @@
   <ul>
     <li class="item-title">val1 <b>sub</b> val2</li>
     <li class="item-body">Return the result of subtracting <i>val2</i> from <i>val1</i>.</li>
+  </ul>
+</div>
+
+<div class="help-heading"><span><b>Helpers</b></span></div>
+
+<div class="help-item" id="random">
+  <ul>
+    <li class="item-title"><b>random</b> <i>min max</i></li>
+    <li class="item-body">Return a psuedo-random integer between the values of <i>min</i> and <i>max</i>, inclusive.</li>
+  </ul>
+</div>
+
+<div class="help-item" id="rgb">
+  <ul>
+    <li class="item-title"><b>rgb</b> <i>r g b</i></li>
+    <li class="item-body">Return a rgb value composed of the values of <i>r</i>, <i>g</i> and <i>b</i>
+      where each argument is an integer value between 0 and 255, inclusive.</li>
+  </ul>
+</div>
+
+<div class="help-item" id="rgba">
+  <ul>
+    <li class="item-title"><b>rgba</b> <i>r g b a</i></li>
+    <li class="item-body">Return a rgba value composed of the values of <i>r</i>, <i>g</i>, <i>b</i> and <i>a</i>.
+      where each argument r, g, and b is an integer value between 0 and 255, inclusive, and a is an integer value
+    representing the transparency between 0 and 100, inclusive, where 0 denotes invisible and 100 denotes opaque.</li>
   </ul>
 </div>
 
