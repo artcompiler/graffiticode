@@ -235,6 +235,7 @@ GraffitiCode.ui = (function () {
     function start() {
         queryPieces()
 //        showGallery()
+        newCode()
         showWorkspace()
         $.get("draw-help.html", function (data) {
             $("#help-view").append(data)
@@ -304,7 +305,6 @@ GraffitiCode.ui = (function () {
         $("#workspace-link").css("background-color", "#bbb")
         $("#workspace-link").css("font-weight", "700")
         showHelp()
-        newCode()
     }
 
     function newCode() {
