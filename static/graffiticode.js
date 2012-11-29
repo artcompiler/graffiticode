@@ -241,8 +241,8 @@ GraffitiCode.ui = (function () {
         $.get("http://"+location.host+"/graffiti/183", function (newButton) {
         $.get("http://"+location.host+"/graffiti/181", function (saveButton) {
         $.get("http://"+location.host+"/graffiti/182", function (shareButton) {
-            $("#button-bar").append("<a class='button-bar-button' onclick='newCode()' href='#'>"+newButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='postPiece()' href='#'>"+shareButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' href='#'>"+newButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' href='#'>"+shareButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' href='#'>"+saveButton+"</a>")
         })
         })
@@ -323,6 +323,7 @@ GraffitiCode.ui = (function () {
         showWhatItIs: showWhatItIs,
         showGallery: showGallery,
         showWorkspace: showWorkspace,
+        newCode: newCode,
     }
 })()
 
