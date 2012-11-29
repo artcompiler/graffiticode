@@ -93,18 +93,16 @@ $(document).ready(function () {
 //    updateDisplay()
     GraffitiCode.ui.start()
 
-        $.get("http://"+location.host+"/graffiti/183", function (data) {
-            $("#button-bar").append("<a class='button-bar-button' href='http://"+location.host+"/'>"+data+"</a>")
+        $.get("http://"+location.host+"/graffiti/183", function (newButton) {
+        $.get("http://"+location.host+"/graffiti/181", function (shareButton) {
+        $.get("http://"+location.host+"/graffiti/182", function (saveButton) {
+            $("#button-bar").append("<a class='button-bar-button' href='http://"+location.host+"/'>"+newButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' href='http://"+location.host+"/'>"+shareButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' href='http://"+location.host+"/'>"+saveButton+"</a>")
+        })
+        })
         })
 
-        $.get("http://"+location.host+"/graffiti/181", function (data) {
-            $("#button-bar").append("<a class='button-bar-button' href='http://"+location.host+"/'>"+data+"</a>")
-        })
-
-
-        $.get("http://"+location.host+"/graffiti/182", function (data) {
-            $("#button-bar").append("<a class='button-bar-button' href='http://"+location.host+"/'>"+data+"</a>")
-        })
 
 
 })
