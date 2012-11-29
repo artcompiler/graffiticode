@@ -245,7 +245,7 @@ GraffitiCode.ui = (function () {
         $.get("http://"+location.host+"/graffiti/210", function (saveButton) {
         $.get("http://"+location.host+"/graffiti/211", function (shareButton) {
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#'>"+newButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showGallery()' title='New' href='#'>"+openButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showGallery()' title='Fork' href='#'>"+openButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Save' href='#'>"+saveButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' title='Share'>"+shareButton+"</a>")
         })

@@ -142,13 +142,13 @@ app.engine('html', function (templateFile, options, callback) {
 })
 
 // Routes
-
+/*
 app.get('/', function(req, res) {
     fs.readFile('views/draw.html', function(err, body) {
 //	console.log("body="+body)
 	res.render('layout.html', { 
 	    title: 'Graffiti Code',
-	    vocabulary: 'Triangle',
+	    vocabulary: 'draw',
 	    target: 'SVG',
 	    login: 'Login',
 	    body: body,
@@ -158,14 +158,18 @@ app.get('/', function(req, res) {
 	})
     })
 })
+*/
 
+app.get('/', function(req, res) {
+    res.redirect("/draw")
+})
 
 app.get('/draw', function(req, res) {
     fs.readFile('views/draw.html', function(err, body) {
 //	console.log("body="+body)
 	res.render('layout.html', { 
 	    title: 'Graffiti Code',
-	    vocabulary: 'Triangle',
+	    vocabulary: 'draw',
 	    target: 'SVG',
 	    login: 'Login',
 	    body: body,
