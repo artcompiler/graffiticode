@@ -181,7 +181,7 @@ GraffitiCode.ui = (function () {
 
     function updateGraffito(obj, src, pool) {
 	    $("#graff-view").html(obj)
-        $("#graff-view").attr("ondblclick", "GraffitiCode.ui.postPiece(this)")
+        $("#graff-view").attr("onclick", "GraffitiCode.ui.postPiece(this)")
         var width = $("#graff-view svg").width()
         var height = $("#edit-view svg").height()
 //        $(".edit-panel").width(width+40)
@@ -225,7 +225,7 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel #"+id+" .thumbnail svg").css("width", "220")
         $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124")
 //        $(".gallery-panel div#"+id+" svg").css("border: 1")
-        $(".gallery-panel #"+id).attr("ondblclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
+        $(".gallery-panel #"+id).attr("onclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
 //        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
 
@@ -241,9 +241,9 @@ GraffitiCode.ui = (function () {
         $.get("http://"+location.host+"/graffiti/183", function (newButton) {
         $.get("http://"+location.host+"/graffiti/181", function (shareButton) {
         $.get("http://"+location.host+"/graffiti/182", function (saveButton) {
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' alt='New' title='New Piece'>"+newButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' alt='Save' title='Save to Archive'>"+saveButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' alt='Share' title='Share on GitHub'>"+shareButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New'>"+newButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Save'>"+saveButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' title='Share'>"+shareButton+"</a>")
         })
         })
         })
