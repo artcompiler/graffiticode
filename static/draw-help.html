@@ -1,10 +1,48 @@
 
+<div class="help-heading"><span><b>Getting started</b></span></div>
+
+<div class="help-item" id="button-commands-help">
+  <ul>
+    <li class="item-title"><b>Starting, saving and sharing</b></li>
+    <li class="item-body">The buttons above the editor allow you to start a new program, fork an archived program,
+        save a program to the archive, and share a program on Github.
+    </li>
+  </ul>
+</div>
+
+<div class="help-item" id="writing-code-help">
+  <ul>
+    <li class="item-title"><b>Writing code</b></li>
+    <li class="item-body">
+        A Graffiti Code program is composed of expressions. There are several
+        kinds of expressions in Graffiti Code. Most expressions have the form of a function name followed
+        by a fixed number of arguments. Functions that create values, such as <b>rectangle</b>, are called
+        constructor functions. Functions that modify property values, such as <b>color</b>, are called
+        modifier functions. Modifier functions return the value they modify, allowing for nesting of
+        modifiers in a single expression.
+        <br><br>
+	Expressions that are not nested within other expresssions are terminated with a period. A
+	list of expressions is terminated by another period. You will notice that there are two periods
+	at the end of a program and other expression lists such as the body of a <b>let</b> expression.
+	<br><br>
+	New function names are defined by <b>let</b> expressions. Let expressions capture the lexical scope
+	with a map of parameter names followed by its outer scopes. The body of a let expression is a list
+	of expressions separated by periods and terminated by two periods.
+	<br><br>
+	In addition to call and let expressions, Graffiti Code includes binary expressions and prefix and
+	postfix unary expressions.
+	<br><br>
+	Also, Graffiti Code provides syntax for integer, string, boolean, tuple, list and map values.
+    </li>
+  </ul>
+</div>
+
 <div class="help-heading"><span><b>Canvas properties</b></span></div>
 
 <div class="help-item" id="background">
   <ul>
     <li class="item-title"><b>background</b> rgb</li>
-    <li>Set the canvas color with the RGB value <i>rgb</i>.</li>
+    <li class="item-body">Set the canvas color with the RGB value <i>rgb</i>.</li>
   </ul>
 </div>
 
@@ -21,7 +59,7 @@
 <div class="help-item" id="bezier">
   <ul>
     <li class="item-title"><b>bezier</b> x1 y1 x2 y2 x3 y3 x4 y4</li>
-    <li>A bezier curve that starts at point <i>x1, y1</i> and ends at <i>x4, y4</i>
+    <li class="item-body">A bezier curve that starts at point <i>x1, y1</i> and ends at <i>x4, y4</i>
         with intermediate control points <i>x2, y2</i> and <i>x3, y3</i>.</li>
   </ul>
 </div>
@@ -29,14 +67,14 @@
 <div class="help-item" id="ellipse">
   <ul>
     <li class="item-title"><b>ellipse</b> rx ry</li>
-    <li>An ellipse with horizontal and vertical diameters dx and dy with center at the origin.</li>
+    <li class="item-body">An ellipse with horizontal and vertical diameters dx and dy with center at the origin.</li>
   </ul>
 </div>
 
 <div class="help-item" id="grid">
   <ul>
     <li class="item-title"><b>grid</b> dx dy w h</li>
-    <li>A grid with x and y mesh size <i>dx</i> and <i>dy</i> and covering the rectangle <i>w</i> and <i>h</i>
+    <li class="item-body">A grid with x and y mesh size <i>dx</i> and <i>dy</i> and covering the rectangle <i>w</i> and <i>h</i>
         with top left corner at the origin.</li>
   </ul>
 </div>
@@ -44,28 +82,28 @@
 <div class="help-item" id="rectangle">
   <ul>
     <li class="item-title"><b>rectangle</b> w h</li>
-    <li>A rectangle with width <i>w</i> and height <i>h</i> and top left corner at the origin.</li>
+    <li class="item-body">A rectangle with width <i>w</i> and height <i>h</i> and top left corner at the origin.</li>
   </ul>
 </div>
 
 <div class="help-item" id="text">
   <ul>
     <li class="item-title"><b>text</b> str</li>
-    <li>A text of string <i>str</i> positioned with its bottom left corner at the origin.</li>
+    <li class="item-body">A text of string <i>str</i> positioned with its bottom left corner at the origin.</li>
   </ul>
 </div>
 
 <div class="help-item" id="triangle">
   <ul>
     <li class="item-title"><b>triangle</b> x1 y1 x2 y2 x3 y3</li>
-    <li>A triangle with points (x1, y1), (x2, y2),<br>(x3, y3).</li>
+    <li class="item-body">A triangle with points (x1, y1), (x2, y2),<br>(x3, y3).</li>
   </ul>
 </div>
 
 <div class="help-item" id="triside">
   <ul>
     <li class="item-title"><b>triside</b> l1 l2 l3</li>
-    <li>A triangle with sides of length l1, l2 and l3 positioned at the origin.</li>
+    <li class="item-body">A triangle with sides of length l1, l2 and l3 positioned at the origin.</li>
   </ul>
 </div>
 
@@ -74,7 +112,7 @@
 
 <div class="help-item" id="modifier-functions">
   <ul>
-    <li>Modifier functions update and return the value of the last argument. Returning
+    <li class="item-body">Modifier functions update and return the value of the last argument. Returning
       the modified value allows modifier functions to be chained.</li>
   </ul>
 </div>
@@ -82,14 +120,14 @@
 <div class="help-item" id="font-size">
   <ul>
     <li class="item-title"><b>font-size</b> size text</li>
-    <li>Change the font size of <i>text</i>.</li>
+    <li class="item-body">Change the font size of <i>text</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="translate">
   <ul>
     <li class="item-title"><b>translate</b> dx dy val</li>
-    <li>Update the position of <i>val</i> by adding <i>dx</i> and <i>dy</i> to its current
+    <li class="item-body">Update the position of <i>val</i> by adding <i>dx</i> and <i>dy</i> to its current
       <i>x</i> and <i>y</i> values, respectively. Return the modified value of <i>val</i>.</li>
   </ul>
 </div>
@@ -97,70 +135,70 @@
 <div class="help-item" id="scale">
   <ul>
     <li class="item-title"><b>scale</b> n val</li>
-    <li>Change the size of <i>val</i> by scaling it by factor <i>n</i>.</li>
+    <li class="item-body">Change the size of <i>val</i> by scaling it by factor <i>n</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="rotate">
   <ul>
     <li class="item-title"><b>rotate</b> a val</li>
-    <li>Change the....</li>
+    <li class="item-body">Change the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="skewx">
   <ul>
     <li class="item-title"><b>skewx</b> a val</li>
-    <li>Change the....</li>
+    <li class="item-body">Change the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="skewy">
   <ul>
     <li class="item-title"><b>skewy</b> a val</li>
-    <li>Change the....</li>
+    <li class="item-body">Change the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="fill">
   <ul>
     <li class="item-title"><b>fill</b> rgb val</li>
-    <li>Change the....</li>
+    <li class="item-body">Change the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="stroke">
   <ul>
     <li class="item-title"><b>stroke</b> rgb val</li>
-    <li>Change the....</li>
+    <li class="item-body">Change the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="color">
   <ul>
     <li class="item-title"><b>color</b> rgb val</li>
-    <li>Change the....</li>
+    <li class="item-body">Change the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="rgb">
   <ul>
     <li class="item-title"><b>rgb</b> r g b</li>
-    <li>Return the....</li>
+    <li class="item-body">Return the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="rgb">
   <ul>
     <li class="item-title"><b>rgba</b> r g b a</li>
-    <li>Return the....</li>
+    <li class="item-body">Return the....</li>
   </ul>
 </div>
 
 <div class="help-item" id="random">
   <ul>
     <li class="item-title"><b>random</b> min max</li>
-    <li>Return the....</li>
+    <li class="item-body">Return the....</li>
   </ul>
 </div>
 <br>
@@ -169,28 +207,28 @@
 <div class="help-item" id="add">
   <ul>
     <li class="item-title">val1 <b>add</b> val2</li>
-    <li>Return the result of adding <i>val1</i> and <i>val2</i>.</li>
+    <li class="item-body">Return the result of adding <i>val1</i> and <i>val2</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="div">
   <ul>
     <li class="item-title">val1 <b>div</b> val2</li>
-    <li>Return the result of dividing <i>val1</i> by <i>val2</i>.</li>
+    <li class="item-body">Return the result of dividing <i>val1</i> by <i>val2</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="mul">
   <ul>
     <li class="item-title">val1 <b>mul</b> val2</li>
-    <li>Return the result of multiplying <i>val1</i> by <i>val2</i>.</li>
+    <li class="item-body">Return the result of multiplying <i>val1</i> by <i>val2</i>.</li>
   </ul>
 </div>
 
 <div class="help-item" id="sub">
   <ul>
     <li class="item-title">val1 <b>sub</b> val2</li>
-    <li>Return the result of subtracting <i>val2</i> from <i>val1</i>.</li>
+    <li class="item-body">Return the result of subtracting <i>val2</i> from <i>val1</i>.</li>
   </ul>
 </div>
 

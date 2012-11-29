@@ -246,6 +246,11 @@ body .main .edit-panel {
     color: #444;
 }
 
+#help-view .help-item ul li.item-body {
+    padding: 5;
+    color: #444;
+}
+
 #editor {
 //  position: relative;
   width:660;

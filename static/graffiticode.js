@@ -308,7 +308,7 @@ GraffitiCode.ui = (function () {
     }
 
     function newCode() {
-        editor.setValue("size 200 200.\n.")
+        editor.setValue("size 100 100.\n.")
     }
 
 
