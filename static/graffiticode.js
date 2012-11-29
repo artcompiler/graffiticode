@@ -238,12 +238,15 @@ GraffitiCode.ui = (function () {
         $.get("draw-help.html", function (data) {
             $("#help-view").append(data)
         })
-        $.get("http://"+location.host+"/graffiti/183", function (newButton) {
-        $.get("http://"+location.host+"/graffiti/181", function (shareButton) {
-        $.get("http://"+location.host+"/graffiti/182", function (saveButton) {
+        $.get("http://"+location.host+"/graffiti/208", function (newButton) {
+        $.get("http://"+location.host+"/graffiti/209", function (openButton) {
+        $.get("http://"+location.host+"/graffiti/210", function (saveButton) {
+        $.get("http://"+location.host+"/graffiti/211", function (shareButton) {
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New'>"+newButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New'>"+openButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Save'>"+saveButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' title='Share'>"+shareButton+"</a>")
+        })
         })
         })
         })
