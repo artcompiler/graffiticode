@@ -105,7 +105,8 @@ body {
 -----------------------------------------------------------------------------*/
 h1 {
   color: #666;
-  font: 4em 'Lucida Grande';
+  font: 'Arvo';
+  font-size: 18;
   line-height: 0.9em;
   margin-bottom: 0.9em;
 }

@@ -1,5 +1,6 @@
 body {
-  font-family: Droid Sans, Arial, sans-serif;
+  font-family: 'Arvo', serif;
+//  font-family: Droid Sans, Arial, sans-serif;
   line-height: 1.5;
   max-width: 100%;
   margin: 3em auto;
@@ -8,9 +9,9 @@ body {
 }
 
 h1 {
-  letter-spacing: -3px;
+//  letter-spacing: -1px;
   font-size: 3.23em;
-  font-weight: bold;
+  font-weight: 700;
   margin: 0;
 }
 

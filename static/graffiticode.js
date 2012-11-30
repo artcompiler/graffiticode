@@ -257,11 +257,11 @@ GraffitiCode.ui = (function () {
 
     }
 
-    function showWhatItIs() {
+    function showAbout() {
         $(".gallery-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
-        $.get("what-it-is.html", function(data) {
+        $.get("about.html", function(data) {
             $(".essay-panel").html(data)
         })
 
@@ -325,7 +325,7 @@ GraffitiCode.ui = (function () {
         clickThumbnail: clickThumbnail,
         loadMoreThumbnails: loadMoreThumbnails,
         start: start,
-        showWhatItIs: showWhatItIs,
+        showAbout: showAbout,
         showGallery: showGallery,
         showWorkspace: showWorkspace,
         newCode: newCode,
