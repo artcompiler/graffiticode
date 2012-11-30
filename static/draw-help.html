@@ -3,9 +3,29 @@
 
 <div class="help-item" id="button-commands-help">
   <ul>
+    <li class="item-title"><b>/draw</b></li>
+    <li class="item-body">
+
+Graffiti Code is a programming language and environment optimized for creative coding of various kinds.
+Within that broad category are lots of littler, more specialized kinds of creativity.
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Drawing with code
+is one such specialized kind of creativity. For this, and other creative coding tasks we want
+to narrow the environment and language to maximize productivity and minimize complexity. The language
+should be as small as possible but not too small. <b>/draw</b> is optimized for drawing with code.
+    </li>
+  </ul>
+</div>
+
+<div class="help-item" id="button-commands-help">
+  <ul>
     <li class="item-title"><b>Finding, saving and sharing code</b></li>
-    <li class="item-body">The buttons above the code editor start a new program, find an archived program,
-        save a program to the archive, and share a program on Github. You need to be sign-in to save and share code.
+    <li class="item-body">
+
+The buttons above the code editor are used to begin a new program, find an archived program, save a
+program to the archive, and share a program on Github. You need to sign-in to be able to save and
+share code.
+
     </li>
   </ul>
 </div>
@@ -14,23 +34,29 @@
   <ul>
     <li class="item-title"><b>Writing code</b></li>
     <li class="item-body">
-        A Graffiti Code program is composed of expressions. There are several
-        kinds of expressions in Graffiti Code. Most expressions have the form of a function name followed
-        by a fixed number of arguments. Functions that create values, such as <b>rectangle</b>, are called
-        constructor functions. Functions that modify property values, such as <b>color</b>, are called
-        modifier functions. Modifier functions return the value they modify, allowing for nesting of
-        modifiers in a single expression.
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	Expressions that are not nested within other expresssions are terminated with a period. A
-	list of expressions is terminated by another period. You will notice that there are two periods
-	at the end of a program and other expression lists such as the body of a <b>let</b> expression.
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	New function names are defined by <b>let</b> expressions. Let expressions capture the lexical scope
-	with a map of parameter names followed by its outer scopes. The body of a let expression is a list
-	of expressions separated by periods and terminated by two periods.
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	In addition to call and let expressions, Graffiti Code includes binary expressions and prefix and
-	postfix unary expressions, and syntax for integer, string, boolean, tuple, list and map values.
+
+Graffiti Code programs consist of a sequence of expressions, and definitions that associate names
+with new functions. The most common kind of expression consists of a function name followed by a
+list of expressions whose values to which the corresponding function is applied. Other expressions
+include binary and unary operations (think arithmetic), names and literals. Definitions bind names
+to functions with a local environment that maps the names of parameter and nested definitions to
+their values.
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Built-in functions that create values, such as
+<b>rectangle</b>, are called constructor functions. Functions that modify property values, such as
+<b>color</b>, are called modifier functions. Modifier functions modify the dynamic context of its
+arguments and thus affect all relevant values computed by its arguments.
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Expressions that are not nested within other expresssions
+are terminated with a period. Expressions that are nested may be terminated with a comma. Where the
+end of an expression is ambiguous, a comma must be used to terminate a sub-expression. A list of
+expressions is terminated by a period. For example, there are two periods at the end of a program
+and other expression lists such as the body of a <b>let</b> expression.
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Function closures capture the lexical scope with a map of
+parameter names followed by its outer scopes. The body of a let expression is a list of expressions
+separated by periods and terminated by two periods.
+
     </li>
   </ul>
 </div>
