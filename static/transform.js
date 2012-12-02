@@ -103,6 +103,12 @@ exports.transformer = GraffitiCode.transformer = function() {
         "RECT" : rectangle,
         "ELLIPSE" : ellipse,
         "BEZIER" : bezier,
+
+        "PATH" : path,
+        "CLOSEPATH" : closepath,
+        "MOVETO" : moveto,
+        "LINETO" : lineto,
+
         "TEXT" : text,
         "FSIZE" : fsize,
         "ROTATE" : rotate,
@@ -325,6 +331,37 @@ exports.transformer = GraffitiCode.transformer = function() {
             "tag": "path",
             "d": d
         }
+    }
+
+    function path(node) {
+        print("path")
+        var elts = []
+        var d = visit(node.elts[0])
+        return {
+            "tag": "path",
+            "d": d
+        }
+    }
+
+    function moveto(node) {
+        print("moveto")
+        var x = visit(node.elts[2])
+        var y = visit(node.elts[1])
+        var d = visit(node.elts[0])
+        return "M "+x+" "+y+" "+d
+    }
+
+    function lineto(node) {
+        print("lineto")
+        var x = visit(node.elts[2])
+        var y = visit(node.elts[1])
+        var d = visit(node.elts[0])
+        return "L "+x+" "+y+" "+d
+    }
+
+    function closepath(node) {
+        print("closepath")
+        return "Z"
     }
 
     function text(node) {

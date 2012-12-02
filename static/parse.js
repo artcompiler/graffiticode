@@ -1377,6 +1377,12 @@ GraffitiCode.folder = function() {
         "RECT" : rectangle,
         "ELLIPSE" : ellipse,
         "BEZIER" : bezier,
+
+        "PATH" : path,
+        "CLOSEPATH" : closepath,
+        "MOVETO" : moveto,
+        "LINETO" : lineto,
+
         "RAND" : random,
         "GRID" : grid,
         "TRANSLATE" : translate,
@@ -1526,6 +1532,39 @@ GraffitiCode.folder = function() {
 
     function bezier(node) {
         ast.name(ctx, "bezier")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+
+    function path(node) {
+        ast.name(ctx, "path")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function closepath(node) {
+        ast.name(ctx, "closepath")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function moveto(node) {
+        ast.name(ctx, "moveto")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function lineto(node) {
+        ast.name(ctx, "lineto")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
