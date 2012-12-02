@@ -64,11 +64,14 @@ GraffitiCode.globalLexicon = {
     "rectangle" : { "tk": 0x01, "name": "RECT", "cls": "method", "length": 2 },
     "ellipse" : { "tk": 0x01, "name": "ELLIPSE", "cls": "method", "length": 2 },
     "bezier" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
+    "curve" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
     "grid" : { "tk": 0x01, "name": "GRID", "cls": "method", "length": 4 },
+
     "path" : { "tk": 0x01, "name": "PATH", "cls": "method", "length": 1 },
     "closepath" : { "tk": 0x01, "name": "CLOSEPATH", "cls": "method", "length": 0 },
     "moveto" : { "tk": 0x01, "name": "MOVETO", "cls": "method", "length": 3 },
     "lineto" : { "tk": 0x01, "name": "LINETO", "cls": "method", "length": 3 },
+    "curveto" : { "tk": 0x01, "name":  "CURVETO", "cls": "method", "length": 7 },
 
 
     "translate" : { "tk": 0x01, "name": "TRANSLATE", "cls": "method", "length": 3 },

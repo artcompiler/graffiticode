@@ -1382,6 +1382,7 @@ GraffitiCode.folder = function() {
         "CLOSEPATH" : closepath,
         "MOVETO" : moveto,
         "LINETO" : lineto,
+        "CURVETO" : curveto,
 
         "RAND" : random,
         "GRID" : grid,
@@ -1565,6 +1566,14 @@ GraffitiCode.folder = function() {
 
     function lineto(node) {
         ast.name(ctx, "lineto")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function curveto(node) {
+        ast.name(ctx, "curveto")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }

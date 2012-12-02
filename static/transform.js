@@ -108,6 +108,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "CLOSEPATH" : closepath,
         "MOVETO" : moveto,
         "LINETO" : lineto,
+        "CURVETO" : curveto,
 
         "TEXT" : text,
         "FSIZE" : fsize,
@@ -358,6 +359,19 @@ exports.transformer = GraffitiCode.transformer = function() {
         var y = visit(node.elts[1])
         var d = visit(node.elts[0])
         return "L "+x+" "+y+" "+d
+    }
+
+    function curveto(node) {
+        print("curveto")
+        var x1 = visit(node.elts[6])
+        var y1 = visit(node.elts[5])
+        var x2 = visit(node.elts[4])
+        var y2 = visit(node.elts[3])
+        var x = visit(node.elts[2])
+        var y = visit(node.elts[1])
+        var d = visit(node.elts[0])
+        console.log("C "+x1+" "+y1+" "+x2+" "+y2+" "+x+" "+y+" "+d)
+        return "C "+x1+" "+y1+" "+x2+" "+y2+" "+x+" "+y+" "+d
     }
 
     function closepath(node) {
