@@ -506,6 +506,8 @@ function log(str) {
     var TK_DOT          = 0xA9
     var TK_COLON        = 0xAA
     var TK_PLUS         = 0xAB
+    var TK_BACKQUOTE    = 0xAC
+    var TK_COMMENT      = 0xAD
 
     GraffitiCode.env = { }
 
@@ -1194,6 +1196,7 @@ function log(str) {
             var c;
             lexeme = "";
             while (stream.peek() !== void 0) {
+//                console.log("peek()="+stream.peek())
                 switch ((c = stream.next().charCodeAt(0))) {
                 case 32:  // space
                 case 9:   // tab
@@ -1240,6 +1243,11 @@ function log(str) {
                 case 34:  // double quote
                 case 39:  // single quote
                     return string(c)
+
+                case 96:  // backquote
+                    comment(c)
+                    c = ' '
+                    continue
 
                 case 94:  // caret
                 case 44:  // comma
@@ -1300,6 +1308,28 @@ function log(str) {
                 return 0
             }
         }
+
+        function comment(c) {
+            var quoteChar = c
+//            lexeme += String.fromCharCode(c)
+            c = (s = stream.next()) ? s.charCodeAt(0) : 0
+
+            while (c !== quoteChar && c != 10 && c!= 13 && c !== 0) {
+//                console.log("c="+c)
+//                lexeme += String.fromCharCode(c);
+                var s;
+                c = (s = stream.next()) ? s.charCodeAt(0) : 0
+            }
+
+            return TK_COMMENT
+//            if (c) {
+//                lexeme += String.fromCharCode(c)
+//
+//            }
+//            else {
+//                return 0
+//            }
+        }
         
         function ident(c) {
             while ((c >= 'A'.charCodeAt(0) && c <= 'Z'.charCodeAt(0)) ||
@@ -1313,7 +1343,8 @@ function log(str) {
                    (c === '~'.charCodeAt(0)) || 
                    (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0))) 
             {
-                lexeme += String.fromCharCode(c);                
+                lexeme += String.fromCharCode(c);                 
+                //console.log("ident() c="+c+" lexeme="+lexeme)
                 c = stream.peek() ? stream.next().charCodeAt(0) : 0
             }
         
