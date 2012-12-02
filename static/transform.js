@@ -203,6 +203,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     function program(node) {
         print("program() nodePool="+JSON.stringify(nodePool))
         canvasSize(640, 360) // default size
+        canvasColor = "255" // default color
         var elts = [ ]
         elts.push(visit(node.elts[0]))
         return {

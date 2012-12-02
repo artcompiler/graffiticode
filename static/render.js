@@ -42,7 +42,7 @@ exports.renderer = GraffitiCode.renderer = function() {
 //               , 'style="overflow: hidden; clip: rect(50,50,50,50);"'
                , 'overflow="hidden"'
                , 'clip="rect(50,50,50,50)"'
-                 , 'style="background:'+transformer.canvasColor()+'"'
+               , 'style="background:'+transformer.canvasColor()+'"'
                , '>'
                ].join("\n")
     }
