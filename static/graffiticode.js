@@ -265,8 +265,8 @@ GraffitiCode.ui = (function () {
             $(".essay-panel").html(data)
         })
 
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("background-color", "#ddd")
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("font-weight", "400")
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
 
         $("#start-link").css("background-color", "#bbb")
         $("#start-link").css("font-weight", "700")
@@ -280,8 +280,8 @@ GraffitiCode.ui = (function () {
             $(".essay-panel").html(data)
         })
 
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("background-color", "#ddd")
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("font-weight", "400")
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
 
         $("#demos-link").css("background-color", "#bbb")
         $("#demos-link").css("font-weight", "700")
@@ -295,26 +295,26 @@ GraffitiCode.ui = (function () {
             $(".essay-panel").html(data)
         })
 
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("background-color", "#ddd")
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("font-weight", "400")
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
 
         $("#tutorials-link").css("background-color", "#bbb")
         $("#tutorials-link").css("font-weight", "700")
     }
 
-    function showDocs() {
+    function showNotes() {
         $(".gallery-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
-        $.get("docs.html", function(data) {
+        $.get("notes.html", function(data) {
             $(".essay-panel").html(data)
         })
 
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("background-color", "#ddd")
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("font-weight", "400")
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
 
-        $("#docs-link").css("background-color", "#bbb")
-        $("#docs-link").css("font-weight", "700")
+        $("#notes-link").css("background-color", "#bbb")
+        $("#notes-link").css("font-weight", "700")
     }
 
     function showArchive() {
@@ -322,8 +322,8 @@ GraffitiCode.ui = (function () {
         $(".essay-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
 
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("background-color", "#ddd")
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("font-weight", "400")
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
 
         $("#archive-link").css("background-color", "#bbb")
         $("#archive-link").css("font-weight", "700")
@@ -338,11 +338,41 @@ GraffitiCode.ui = (function () {
             $(".essay-panel").html(data)
         })
 
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("background-color", "#ddd")
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("font-weight", "400")
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
 
         $("#donate-link").css("background-color", "#bbb")
         $("#donate-link").css("font-weight", "700")
+    }
+
+    function showAbout() {
+        $(".gallery-panel").css("display", "none")
+        $(".edit-panel").css("display", "none")
+        $(".essay-panel").css("display", "block")
+        $.get("about.html", function(data) {
+            $(".essay-panel").html(data)
+        })
+
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
+
+        $("#about-link").css("background-color", "#bbb")
+        $("#about-link").css("font-weight", "700")
+    }
+
+    function showFeedback() {
+        $(".gallery-panel").css("display", "none")
+        $(".edit-panel").css("display", "none")
+        $(".essay-panel").css("display", "block")
+        $.get("feedback.html", function(data) {
+            $(".essay-panel").html(data)
+        })
+
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
+
+        $("#feedback-link").css("background-color", "#bbb")
+        $("#feddback-link").css("font-weight", "700")
     }
 
     function showWorkspace() {
@@ -350,8 +380,8 @@ GraffitiCode.ui = (function () {
         $(".essay-panel").css("display", "none")
         $(".edit-panel").css("display", "block")
 
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("background-color", "#ddd")
-        $("#start-link, #workspace-link, #archive-link, #demos-link, #tutorials-link, #docs-link, #donate-link").css("font-weight", "400")
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
 
         $("#workspace-link").css("background-color", "#bbb")
         $("#workspace-link").css("font-weight", "700")
@@ -376,13 +406,15 @@ GraffitiCode.ui = (function () {
         clickThumbnail: clickThumbnail,
         loadMoreThumbnails: loadMoreThumbnails,
         start: start,
-        showAbout: showStart,
+        showStart: showStart,
         showArchive: showArchive,
         showWorkspace: showWorkspace,
         showDemos: showDemos,
         showTutorials: showTutorials,
-        showDocs: showDocs,
+        showNotes: showNotes,
         showDonate: showDonate,
+        showAbout: showAbout,
+        showFeedback: showFeedback,
         newCode: newCode,
     }
 })()

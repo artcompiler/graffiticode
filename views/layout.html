@@ -12,25 +12,25 @@
     <logo>
       <ul><li>
 	  Graffiti Code
-	  <br>
-	  <br>
+	  <br><br>
 	  /<%=vocabulary%>
-	  <span style="float: right; color: rgb(200, 120, 0)">PREVIEW</span>
       </li></ul>
     </logo>
     <nav>
       <ul style="float: left; width: 100; text-align: left;">
-	<li><a id="start-link" onclick="GraffitiCode.ui.showAbout()">Start</a></li>
-	<li><a id="workspace-link" onclick="GraffitiCode.ui.showWorkspace()">Workspace</a></li>
-	<li><a id="archive-link" onclick="GraffitiCode.ui.showArchive()">Archive</a></li>
+	<li><a id="start-link" class="nav-link" onclick="GraffitiCode.ui.showStart()">Start</a></li>
+	<li><a id="workspace-link" class="nav-link" onclick="GraffitiCode.ui.showWorkspace()">Workspace</a></li>
+	<li><a id="archive-link" class="nav-link" onclick="GraffitiCode.ui.showArchive()">Archive</a></li>
       </ul>
       <ul style="float: left; width: 100; text-align: left">
-	<li><a id="demos-link" onclick="GraffitiCode.ui.showDemos()">Demos</a></li>
-	<li><a id="tutorials-link" onclick="GraffitiCode.ui.showTutorials()">Tutorials</a></li>
-	<li><a id="docs-link" onclick="GraffitiCode.ui.showDocs()">Documents</a></li>
+	<li><a id="demos-link" class="nav-link" onclick="GraffitiCode.ui.showDemos()">Demos</a></li>
+	<li><a id="tutorials-link" class="nav-link" onclick="GraffitiCode.ui.showTutorials()">Tutorials</a></li>
+	<li><a id="notes-link" class="nav-link" onclick="GraffitiCode.ui.showNotes()">Notes</a></li>
       </ul>
       <ul style="float: left; width: 100; text-align: left">
-	<li><a id="donate-link" onclick="GraffitiCode.ui.showDonate()">Donate</a></li>
+	<li><a id="about-link" class="nav-link" onclick="GraffitiCode.ui.showAbout()">About</a></li>
+	<li><a id="feedback-link" class="nav-link" onclick="GraffitiCode.ui.showFeedback()">Feedback</a></li>
+	<li><a id="donate-link" class="nav-link" onclick="GraffitiCode.ui.showDonate()">Donate</a></li>
       </ul>
       <ul style="float: right; width: 100; text-align: left;">
 	<li style="background-color: #bbb; display: inline-block; padding: 2px 10px;"><div id="username" style="background-color: #bbb;"><b>Guest</b></div></li>
