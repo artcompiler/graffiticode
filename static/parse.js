@@ -383,7 +383,7 @@ function log(str) {
                 elts.push(elt)
             }
         }
-        push(ctx, {tag: "EXPRS", elts: elts})
+        push(ctx, {tag: "EXPRS", elts: elts.reverse()})
     }
 
     function letDefn(ctx) {
@@ -1521,13 +1521,8 @@ GraffitiCode.folder = function() {
     }
 
     function callExpr(node) {
-        throw "not used"
         print("callExpr")
-        visit(node.elts[node.elts.length-1])
-        for (var i = node.elts.length-1; i >= 0; i--) {
-            visit(node.elts[i])
-        }
-        ast.callExpr(ctx, node.elts.length)
+        throw "not used"
     }
 
     function triangle(node) {
