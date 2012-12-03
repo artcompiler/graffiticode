@@ -42,12 +42,13 @@ $(document).ready(function () {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.",
+        value: "size 100 100.\nbackground 127.\n.",
         readOnly: true,
     })
 
-        $.get("http://www.graffiticode.org/graffiti/252", function (data) {
-            $("#surface-example-graffito").append("<a>"+data+"</a>")
+    $.get("http://www.graffiticode.org/graffiti/252", function (data) {
+        $("#surface-example-graffito").append("<a>"+data+"</a>")
+    })
 
 
 })
