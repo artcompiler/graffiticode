@@ -155,11 +155,11 @@ $(document).ready(function () {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.\nellipse 50 50. rectangle 60 60.",
+        value: "size 100 100.\nbackground 127.\ntranslate 50 50. ellipse 80 80.",
         readOnly: true,
     })
 
-    $.get("http://www.graffiticode.org/graffiti/254", function (data) {
+    $.get("http://www.graffiticode.org/graffiti/255", function (data) {
         $("#shape2-example-graffito").append("<a>"+data+"</a>")
     })
 
