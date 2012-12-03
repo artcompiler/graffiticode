@@ -568,6 +568,14 @@ exports.transformer = GraffitiCode.transformer = function() {
     function background(node) {
         var elts = []
         var rgb = visit(node.elts[0])
+
+        // if it is a scalar, compute grey value
+        if (rgb.r === void 0) {
+            var val = rgb
+            rgb = {}
+            rgb.r = rgb.g = rgb.b = val;
+        }
+
         var r = rgb.r
         var g = rgb.g
         var b = rgb.b
