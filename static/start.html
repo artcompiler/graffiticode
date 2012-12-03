@@ -122,7 +122,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/254", function (data) {
-        $("#surface-example-graffito").append("<a>"+data+"</a>")
+        $("#shape1-example-graffito").append("<a>"+data+"</a>")
     })
 
 
@@ -151,7 +151,7 @@ with its center at the position with x of 50 pixels and y of 50 pixels, at the c
 
 <script>
 $(document).ready(function () {
-    var e = CodeMirror(document.querySelector("#shape1-example-editor"), {
+    var e = CodeMirror(document.querySelector("#shape2-example-editor"), {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
@@ -160,7 +160,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/254", function (data) {
-        $("#surface-example-graffito").append("<a>"+data+"</a>")
+        $("#shape2-example-graffito").append("<a>"+data+"</a>")
     })
 
 
