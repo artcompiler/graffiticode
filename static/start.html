@@ -179,7 +179,7 @@ values using the <b>rgb</b> and <b>rgba</b> functions. The <b>rgb</b> function i
 numeric values between <i>0</i> and <i>255</i> representing the red, green and blue components of a
 color. <b>rgba</b> is applied to four values, the first three being the same as those for <i>rgb</i>
 and the last one being a numeric value between 0 and 100 representing the transparency of the
-computed color, where 0 represents complete transparency and 100 represents complete opacity.
+computed color where 0 represents complete transparency and 100 represents complete opacity.
 </p>
 
 <p>
@@ -219,6 +219,7 @@ $(document).ready(function () {
 <h2>Coloring shapes with transparency</h2>
 
 <p>
+We can use transparency to allow shapes to show through shapes positioned in front of them.
 </p>
 
 <p>
@@ -226,8 +227,9 @@ $(document).ready(function () {
 </p>
 
 <p>
-This code colors our previosly created and positioned circle bright green using the RGB value represented by
-0 255 0.
+Here we modify the previous piece by setting the background to light grey, and creating three
+smaller circles with no stroke and each with one of three different colors all with a transparency
+of 30.
 </p>
 
 <p>
@@ -241,7 +243,7 @@ $(document).ready(function () {
 	lineWrapping: "true",
 	lineNumbers: "true",
         value: "size 100 100.\n" +
-               "background 255.\n" +
+               "background 240.\n" +
                "translate 40 40 stroke rgba 0 0 0 0 fill rgba 255 0 0 30 ellipse 50 50.\n" +
                "translate 60 40 stroke rgba 0 0 0 0 fill rgba 0 255 0 30 ellipse 50 50.\n" +
                "translate 50 60 stroke rgba 0 0 0 0 fill rgba 0 0 255 30 ellipse 50 50.\n" +
@@ -249,8 +251,8 @@ $(document).ready(function () {
         readOnly: true,
     })
 
-    $.get("http://www.graffiticode.org/graffiti/261", function (data) {
-        $("#coloring2-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(261)'>"+data+"<br/>View in workspace</a>")
+    $.get("http://www.graffiticode.org/graffiti/263", function (data) {
+        $("#coloring2-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(263)'>"+data+"<br/>View in workspace</a>")
     })
 
 
