@@ -111,7 +111,9 @@ h1 {
   margin-bottom: 0.9em;
 }
 h2 {
-  font-size: 1.8em;
+  color: #555;
+  font: 'Arvo';
+  font-size: 14;
   line-height: 1em;
   margin-bottom: 1em;
 }
