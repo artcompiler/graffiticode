@@ -23,28 +23,39 @@ The five skill you will learn here are:<br>
 <h1>Preparing the drawing surface</h1>
 <br>
 <p>
-<i><b>Basic knowledge</b>: Graffiti Code programs consist of sequences of expressions. The
+<b>NOTE</b>: Graffiti Code programs consist of sequences of expressions. The
 expressions we will be using in this section are called function applications. You may remember from
 high school math class that a function is an equation (or procedure) that maps a set of values to
 one or more other values. Graffiti Code functions that interest us most are the ones that return
-values representing marks on a surface or somehow affect the surface visually.</i>
+values representing marks on a surface or somehow affect the surface visually.
 </p>
 <p>
 Graffiti Code provides two functions that affect the drawing surface. They are <b>size</b> and
-<b>background</b>: <b>size</b> set the size of the drawing surface; <b>background</b> sets the
-background color of the drawing surface.
+<b>background</b>. The <b>size</b> function takes two number values that represent the width and height
+of the drawing surface in pixels. The <b>background</b> function takes a single value that represents the color of
+the background. In this case we are giving it the integer value <i>127</i>, which represents a 50% gray value.
+</p>
+<p> <b>NOTE</b>: Color values can be represented by integer values between <i>0</i> and <i>255</i>,
+inclusive, where <i>0</i> represents black and <i>255</i> represents white. Non-grey color values can be computed using one of the functions: <b>rgb</b> or <b>rgba</b>,
+to be discussed later.
+</p>
 
 <p>
 <div id="surface-example-editor"/>
 </p>
 
 <p>
-As seen below, this code configures the drawing surface 100 pixels wide by 100 pixels high, and colors it at roughly
-50% gray.
+As seen below, this code sets the drawing surface size to <i>100</i> pixels wide by <i>100</i> pixels high, and sets
+its color to roughly 50% gray.
 
 <p>
 <div id="surface-example-graffito"></div>
 </p>
+
+<h1>Making shapes</h1>
+<br>
+<p>
+
 
 <script>
 $(document).ready(function () {
