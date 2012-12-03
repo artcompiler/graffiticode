@@ -63,7 +63,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/252", function (data) {
-        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)'>"+data+"<p>View in workspace</p></a>")
+        $("#surface-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)'>"+data+"<br/><br/>View in workspace</a>")
     })
 
 
@@ -117,14 +117,14 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/254", function (data) {
-        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<p>View in workspace</p></a>")
+        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<br/><br/>View in workspace</a>")
     })
 
 
 })
 </script>
 
-<h2>Translating the positions of shapes</h2>
+<h2>Translating a shape's position</h2>
 
 <p>
 <div id="shape2-example-editor" name="code"/>
@@ -155,7 +155,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/258", function (data) {
-        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)'>"+data+"<p>View in workspace</p></a>")
+        $("#shape2-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)'>"+data+"<br/><br/>View in workspace</a>")
     })
 
 })
