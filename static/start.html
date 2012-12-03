@@ -34,18 +34,25 @@ Graffiti Code provides two functions that affect the drawing surface. The are <b
 <b>background</b>: <b>size</b> set the size of the drawing surface; <b>background</b> sets the
 background color of the drawing surface.
 
-<div id="editor-surface-example"/>
-<div id="graff-view"></div>
+<div id="surface-example-editor"/>
+<div id="surface-example-graffito"></div>
 <script>
 $(document).ready(function () {
-    editor = CodeMirror(document.querySelector("#editor-surface-example"), {
+    editor = CodeMirror(document.querySelector("#surface-example-editor"), {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
         value: "size 100 100.\nbackground 127.",
         readOnly: true,
     })
+
+        $.get("http://www.graffiticode.org/graffiti/252", function (data) {
+            $("#surface-example-graffito").append("<a>"+data+"</a>")
+
+
 })
+
+
 </script>
 
 
