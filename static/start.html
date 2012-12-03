@@ -162,7 +162,7 @@ $(document).ready(function () {
 <b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
 
 <ul style="position: relative; left: 15">
-<li>rgb>/li>
+<li>rgb></li>
 <li>rgba</li>
 <li>fill</li>
 <li>stroke</li>
@@ -187,8 +187,10 @@ computed color, where 0 represents complete transparency and 100 represents comp
 </p>
 
 <p>
-This code colors our previosly created and positioned circle bright green using the RGB value represented by
-0 255 0.
+This code colors our previuosly created and positioned circle with a transparent black stroke color
+and an opaque bright green fill. Using the stroke transparency of 0 is an idiom for representing
+that we want no stroke color. We use 0 0 0 (black) for simplicity; all completely transparent colors
+appear the same.
 </p>
 
 <p>
@@ -201,12 +203,12 @@ $(document).ready(function () {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.\ntranslate 50 50 fill rgb 0 255 0 ellipse 80 80.",
+        value: "size 100 100.\nbackground 127.\ntranslate 50 50 stroke rgba 0 0 0 0 fill rgb 0 255 0 ellipse 80 80.",
         readOnly: true,
     })
 
-    $.get("http://www.graffiticode.org/graffiti/260", function (data) {
-        $("#coloring1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(260)'>"+data+"<br/>View in workspace</a>")
+    $.get("http://www.graffiticode.org/graffiti/262", function (data) {
+        $("#coloring1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(262)'>"+data+"<br/>View in workspace</a>")
     })
 
 
