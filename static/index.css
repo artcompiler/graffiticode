@@ -308,14 +308,15 @@ body .main .edit-panel {
 
 body .main .essay-panel {
   position: relative;
+  left: 260;
   font-family: 'Arvo', serif;
   font-size: 11;
-  float: left;
+//  float: left;
   position: relative;
 //  top: 100;
   margin-left: 20;
   padding: 20;
-  width: 500;
+  width: 600;
 //  height:1000;
   border-width: 1;
   border-style: solid;

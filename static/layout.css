@@ -272,8 +272,8 @@ header logo ul li a:hover {
 }
 
 header nav {
-  position: relative;
-  left: 20;
+//  position: relative;
+//  left: 20;
   width: 600;
   height: 60;
   float: left;
@@ -284,10 +284,10 @@ header nav {
 }
 
 header nav ul {
-  float: right;
+//  float: right;
   height:60;
-  width: 120;
-  margin-left: 0;
+  width: 100;
+  margin-left: 20;
   margin-top: 10;
   border-left-width: 1;
   border-left-style: solid;
@@ -297,7 +297,7 @@ header nav ul {
 header nav ul li {
   display: inline-block;
   float: left;
-  width: 120;
+  width: 90;
   background-color: #ddd;
 }
 
