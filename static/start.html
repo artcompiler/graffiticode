@@ -12,8 +12,8 @@ The five skills you will learn here are:<br>
 
 <ul style="position: relative; left: 15">
 <li>Preparing the drawing surface</li>
-<li>Making shapes</li>
-<li>Inking shapes</li>
+<li>Creating and positioning shapes</li>
+<li>Coloring shapes</li>
 <li>Archiving code</li>
 <li>Sharing code</li>
 </ul>
@@ -73,7 +73,7 @@ $(document).ready(function () {
 
 
 
-<h1>Creating and transforming shapes</h1>
+<h1>Creating and positioning shapes</h1>
 <br>
 <p>
 <b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
@@ -87,7 +87,7 @@ $(document).ready(function () {
 </ul>
 </p>
 
-<h2>Creating a shape</h2>
+<h2>Creating shapes</h2>
 
 <p>
 Here, we add to our small grey surface the shape of a circular ellipse.
@@ -123,7 +123,7 @@ $(document).ready(function () {
 })
 </script>
 
-<h2>Positioning a shape</h2>
+<h2>Positioning shapes</h2>
 
 <p>
 <div id="shape2-example-editor" name="code"/>
@@ -156,7 +156,69 @@ $(document).ready(function () {
 })
 </script>
 
+<h1>Creating and positioning shapes</h1>
+<br>
+<p>
+<b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
+
+<ul style="position: relative; left: 15">
+<li>rectangle</li>
+<li>triangle</li>
+<li>ellipse</li>
+<li>text</li>
+<li>curve</li>
+</ul>
+</p>
+
+<h2>Coloring shapes</h2>
+
+<p>
+As with the <b>translate</b> funciton, we apply the coloring functions to a color and a shape to
+color that shape. In addition to the 256 gray values described in the section on <i>background</i>,
+we can compute colors using RGB values using the <b>rgb</a> and <b>rgba</b> functions. The <b>rgb</b>
+function is applied to three numeric values between <i>0</i> and <i>255</i> representing the red,
+green and blue components of the color computed. <b>rgba</b> is applied to four values, the first three
+being the same as those of <i>rgb</i> and the last one being a numeric value between 0 and 100 representing
+the transparency of the computed color, where 0 represents complete transparency and 100 represents complete
+opacity.
+</p>
+
+<p>
+<div id="coloring1-example-editor" name="code"/>
+</p>
+
+<p>
+This code colors our previosly created and positioned circle bright green using the RGB value represented by
+0 255 0.
+</p>
+
+<p>
+<div id="coloring1-example-graffito"></div>
+</p>
+
+<script>
+$(document).ready(function () {
+    var e = CodeMirror(document.querySelector("#coloring1-example-editor"), {
+	mode:  "graffiti",
+	lineWrapping: "true",
+	lineNumbers: "true",
+        value: "size 100 100.\nbackground 127.\ntranslate 50 50 fill rgb 0 255 0 ellipse 80 80.",
+        readOnly: true,
+    })
+
+    $.get("http://www.graffiticode.org/graffiti/259", function (data) {
+        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(259)'>"+data+"<br/>View in workspace</a>")
+    })
+
+
+})
+</script>
+
+
+
+
 
 <link rel="stylesheet" href="codemirror.css">
 <script src="codemirror.js"></script>
 <script src="mode-graffiti.js"></script>
+
