@@ -52,10 +52,6 @@ its color to roughly 50% gray.
 <div id="surface-example-graffito"></div>
 </p>
 
-<p>
-<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)">View in editor</a>.
-</p>
-
 <script>
 $(document).ready(function () {
     var e = CodeMirror(document.querySelector("#surface-example-editor"), {
@@ -67,7 +63,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/252", function (data) {
-        $("#surface-example-graffito").append("<a>"+data+"</a>")
+        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)'>"+data+"<p>View in workspace</p></a>")
     })
 
 
@@ -121,7 +117,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/254", function (data) {
-        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<br/>View in workspace</a>")
+        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<p>View in workspace</p></a>")
     })
 
 
@@ -159,9 +155,8 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/258", function (data) {
-        $("#shape2-example-graffito").append("<a>"+data+"</a>")
+        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)'>"+data+"<p>View in workspace</p></a>")
     })
-
 
 })
 </script>
