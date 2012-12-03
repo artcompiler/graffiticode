@@ -20,7 +20,7 @@ The five skill you will learn here are:<br>
 
 </p>
 
-<h1>Preparing a drawing surface</h1>
+<h1>Preparing the drawing surface</h1>
 <br>
 <p>
 <i><b>Background fact</b>: Graffiti Code programs consist in part of sequences of expressions. The
@@ -30,12 +30,22 @@ one or more other values. Graffiti Code functions that interest us most are the 
 values representing marks on a surface or somehow affect the surface visually.</i>
 </p>
 <p>
-Graffiti Code provides two functions that affect the drawing surface. The are <b>size</b> and
+Graffiti Code provides two functions that affect the drawing surface. They are <b>size</b> and
 <b>background</b>: <b>size</b> set the size of the drawing surface; <b>background</b> sets the
 background color of the drawing surface.
 
+<p>
 <div id="surface-example-editor"/>
+</p>
+
+<p>
+As seen below, this code configures the drawing surface 100 pixels wide by 100 pixels high, and colors it at roughly
+50% gray.
+
+<p>
 <div id="surface-example-graffito"></div>
+</p>
+
 <script>
 $(document).ready(function () {
     editor = CodeMirror(document.querySelector("#surface-example-editor"), {
