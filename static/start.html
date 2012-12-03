@@ -78,7 +78,7 @@ $(document).ready(function () {
 
 
 
-<h1>Making and transforming shapes</h1>
+<h1>Creating and transforming shapes</h1>
 <br>
 <p>
 <b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
@@ -92,7 +92,7 @@ $(document).ready(function () {
 </ul>
 </p>
 
-<h2>Making shapes</h2>
+<h2>Creating a shape</h2>
 
 <p>
 Here, we add to our small grey surface the shape of a circular ellipse.
@@ -110,11 +110,6 @@ As seen below, this code creates an ellipse with the width of <i>80</i> pixels a
 <div id="shape1-example-graffito"></div>
 </p>
 
-<p>
-<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)">View in editor</a>.
-</p>
-
-
 <script>
 $(document).ready(function () {
     var e = CodeMirror(document.querySelector("#shape1-example-editor"), {
@@ -126,7 +121,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/254", function (data) {
-        $("#shape1-example-graffito").append("<a>"+data+"</a>")
+        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<br/>View in workspace</a>")
     })
 
 
