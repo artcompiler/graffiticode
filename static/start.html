@@ -8,7 +8,7 @@ But even so, the syntax and editing environment will be different and there are 
 differences, so you will benefit from working through this tutorial.
 </p>
 <p>
-The five skill you will learn here are:<br>
+The five skills you will learn here are:<br>
 
 <ul style="position: relative; left: 15">
 <li>Preparing the drawing surface</li>
@@ -53,13 +53,8 @@ its color to roughly 50% gray.
 </p>
 
 <p>
-<a onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)">View in editor</a>.
+<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)">View in editor</a>.
 </p>
-
-<h1>Making shapes</h1>
-<br>
-<p>
-
 
 <script>
 $(document).ready(function () {
@@ -79,6 +74,97 @@ $(document).ready(function () {
 })
 
 
+</script>
+
+
+
+<h1>Making and transforming shapes</h1>
+<br>
+<p>
+<b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
+
+<ul style="position: relative; left: 15">
+<li>rectangle</li>
+<li>triangle</li>
+<li>ellipse</li>
+<li>text</li>
+<li>curve</li>
+</ul>
+
+</p>
+
+<p>
+<div id="shape1-example-editor" name="code"/>
+</p>
+
+<p>
+As seen below, this code creates an ellipse with the width of <i>80</i> pixels and height of
+<i>80</i> pixels, and its center at the origin.
+</p>
+
+<p>
+<div id="shape1-example-graffito"></div>
+</p>
+
+<p>
+<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)">View in editor</a>.
+</p>
+
+
+<script>
+$(document).ready(function () {
+    var e = CodeMirror(document.querySelector("#shape1-example-editor"), {
+	mode:  "graffiti",
+	lineWrapping: "true",
+	lineNumbers: "true",
+        value: "size 100 100.\nbackground 127.\nellipse 80 80.",
+        readOnly: true,
+    })
+
+    $.get("http://www.graffiticode.org/graffiti/254", function (data) {
+        $("#surface-example-graffito").append("<a>"+data+"</a>")
+    })
+
+
+})
+</script>
+
+
+<p>
+<div id="shape2-example-editor" name="code"/>
+</p>
+
+<p>
+As seen below, this code moves the ellipse from its default position with center at the origin to the position
+with its center at the position with x of 50 pixels and y of 50 pixels, at the center of our 100 by
+100 pixel surface.
+</p>
+
+<p>
+<div id="shape2-example-graffito"></div>
+</p>
+
+<p>
+<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(255)">View in editor</a>.
+</p>
+
+
+<script>
+$(document).ready(function () {
+    var e = CodeMirror(document.querySelector("#shape1-example-editor"), {
+	mode:  "graffiti",
+	lineWrapping: "true",
+	lineNumbers: "true",
+        value: "size 100 100.\nbackground 127.\nellipse 50 50. rectangle 60 60.",
+        readOnly: true,
+    })
+
+    $.get("http://www.graffiticode.org/graffiti/254", function (data) {
+        $("#surface-example-graffito").append("<a>"+data+"</a>")
+    })
+
+
+})
 </script>
 
 
