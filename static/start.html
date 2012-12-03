@@ -41,7 +41,7 @@ to be discussed later.
 </p>
 
 <p>
-<div id="surface-example-editor"/>
+<div id="surface-example-editor" name="code"/>
 </p>
 
 <p>
@@ -53,8 +53,7 @@ its color to roughly 50% gray.
 </p>
 
 <p>
-<a onclick="GraffitiCode.ui.showWorkspace();
-	    GraffitiCode.ui.updateSrc(252)">View in editor</a>.
+<a onclick="GraffitiCode.ui.updateSrc(252); GraffitiCode.ui.showWorkspace()">View in editor</a>.
 </p>
 
 <h1>Making shapes</h1>
@@ -64,7 +63,7 @@ its color to roughly 50% gray.
 
 <script>
 $(document).ready(function () {
-    editor = CodeMirror(document.querySelector("#surface-example-editor"), {
+    var e = CodeMirror(document.querySelector("#surface-example-editor"), {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
