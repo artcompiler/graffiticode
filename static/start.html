@@ -173,9 +173,9 @@ $(document).ready(function () {
 <h2>Coloring shapes</h2>
 
 <p>
-As with the <b>translate</b> funciton, we apply the coloring functions to a color and a shape to
+As with the <b>translate</b> function, we apply the coloring functions to a color and a shape to
 color that shape. In addition to the 256 gray values described in the section on <i>background</i>,
-we can compute colors using RGB values using the <b>rgb</a> and <b>rgba</b> functions. The <b>rgb</b>
+we can compute colors using RGB values using the <b>rgb</b> and <b>rgba</b> functions. The <b>rgb</b>
 function is applied to three numeric values between <i>0</i> and <i>255</i> representing the red,
 green and blue components of the color computed. <b>rgba</b> is applied to four values, the first three
 being the same as those of <i>rgb</i> and the last one being a numeric value between 0 and 100 representing
@@ -206,8 +206,8 @@ $(document).ready(function () {
         readOnly: true,
     })
 
-    $.get("http://www.graffiticode.org/graffiti/259", function (data) {
-        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(259)'>"+data+"<br/>View in workspace</a>")
+    $.get("http://www.graffiticode.org/graffiti/260", function (data) {
+        $("#coloring1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(260)'>"+data+"<br/>View in workspace</a>")
     })
 
 
