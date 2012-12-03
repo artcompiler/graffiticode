@@ -45,7 +45,7 @@ to be discussed later.
 </p>
 
 <p>
-As seen below, this code sets the drawing surface size to <i>100</i> pixels wide by <i>100</i> pixels high, and sets
+This code sets the drawing surface size to <i>100</i> pixels wide by <i>100</i> pixels high, and sets
 its color to roughly 50% gray.
 
 <p>
@@ -63,12 +63,11 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/252", function (data) {
-        $("#surface-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)'>"+data+"<br/><br/>View in workspace</a>")
+        $("#surface-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)'>"+data+"<br/>View in workspace</a>")
     })
 
 
 })
-
 
 </script>
 
@@ -98,7 +97,7 @@ Here, we add to our small grey surface the shape of a circular ellipse.
 </p>
 
 <p>
-As seen below, this code creates an ellipse with the width of <i>80</i> pixels and height of
+This code creates an ellipse with the width of <i>80</i> pixels and height of
 <i>80</i> pixels, and its center at the origin.
 </p>
 
@@ -117,31 +116,27 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/254", function (data) {
-        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<br/><br/>View in workspace</a>")
+        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<br/>View in workspace</a>")
     })
 
 
 })
 </script>
 
-<h2>Translating a shape's position</h2>
+<h2>Positioning a shape</h2>
 
 <p>
 <div id="shape2-example-editor" name="code"/>
 </p>
 
 <p>
-As seen below, this code moves the ellipse from its default position with center at the origin to the position
+This code moves the ellipse from its default position with center at the origin to the position
 with its center at the position with x of 50 pixels and y of 50 pixels, at the center of our 100 by
 100 pixel surface.
 </p>
 
 <p>
 <div id="shape2-example-graffito"></div>
-</p>
-
-<p>
-<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)">View in editor</a>.
 </p>
 
 <script>
@@ -155,7 +150,7 @@ $(document).ready(function () {
     })
 
     $.get("http://www.graffiticode.org/graffiti/258", function (data) {
-        $("#shape2-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)'>"+data+"<br/><br/>View in workspace</a>")
+        $("#shape2-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)'>"+data+"<br/>View in workspace</a>")
     })
 
 })
