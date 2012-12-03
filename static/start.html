@@ -145,7 +145,7 @@ with its center at the position with x of 50 pixels and y of 50 pixels, at the c
 </p>
 
 <p>
-<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(255)">View in editor</a>.
+<a href="#" onclick="GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)">View in editor</a>.
 </p>
 
 
@@ -155,11 +155,11 @@ $(document).ready(function () {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.\ntranslate 50 50. ellipse 80 80.",
+        value: "size 100 100.\nbackground 127.\ntranslate 50 50 ellipse 80 80.",
         readOnly: true,
     })
 
-    $.get("http://www.graffiticode.org/graffiti/255", function (data) {
+    $.get("http://www.graffiticode.org/graffiti/258", function (data) {
         $("#shape2-example-graffito").append("<a>"+data+"</a>")
     })
 
