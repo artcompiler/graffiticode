@@ -8,7 +8,8 @@ $(document).ready(function () {
         success: function(data) {
 	    for (var i = 0; i < data.length; i++) {
 		var id = +data[i].id
-		var srcEncoded = data[i].src.replace(new RegExp("\n", "g"), "\\n")
+		var src = data[i].src
+		var srcEncoded = src.replace(new RegExp("\n", "g"), "\\n")
 		switch (id) {
 		case 263:
 		    $("#example-graffito-"+id).append(
