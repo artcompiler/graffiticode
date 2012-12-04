@@ -245,9 +245,17 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
-        $.get("start.html", function(data) {
-            $(".essay-panel").html(data)
-        })
+
+        if (GraffitiCode.essayName !== "tutorial-starting") {            
+            $.get("start.html", function(data) {
+                $(".essay-panel").html(data)
+                GraffitiCode.essayData = data
+                GraffitiCode.essayName = "tutorial-starting"
+            })
+        }
+        else {
+            $(".essay-panel").html(essayData)
+        }
 
         $(".nav-link").css("background-color", "#ddd")
         $(".nav-link").css("font-weight", "400")
