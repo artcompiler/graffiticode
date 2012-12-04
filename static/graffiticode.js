@@ -241,7 +241,7 @@ GraffitiCode.ui = (function () {
 
     }
 
-    function showStart() {
+    function showTutorial(name) {
         GraffitiCode.ui.doRecompile = false
 
         $(".gallery-panel").css("display", "none")
@@ -253,11 +253,11 @@ GraffitiCode.ui = (function () {
         $("#start-link").css("background-color", "#bbb")
         $("#start-link").css("font-weight", "700")
 
-        if (GraffitiCode.essayName !== "tutorial-starting") {            
-            $.get("start.html", function(data) {
+        if (GraffitiCode.essayName !== name) {            
+            $.get(name+".html", function(data) {
                 $(".essay-panel").html(data)
                 GraffitiCode.essayData = data
-                GraffitiCode.essayName = "tutorial-starting"
+                GraffitiCode.essayName = name
             })
         }
         else {
