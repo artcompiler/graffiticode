@@ -1131,7 +1131,7 @@ function log(str) {
             }
 
 //            GraffitiCode.ui.updateAST(ast.dumpAll(ctx))
-            if (cc === null) {
+            if (cc === null && GraffitiCode.ui.doRecompile) {
                 var thisAST = ast.poolToJSON(ctx)
                 var lastAST = GraffitiCode.lastAST
                 if (!_.isEqual(lastAST, thisAST)) {

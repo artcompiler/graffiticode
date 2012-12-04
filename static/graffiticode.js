@@ -242,6 +242,8 @@ GraffitiCode.ui = (function () {
     }
 
     function showStart() {
+        GraffitiCode.ui.doRecompile = false
+
         $(".gallery-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
@@ -367,6 +369,7 @@ GraffitiCode.ui = (function () {
     }
 
     function showWorkspace() {
+        GraffitiCode.ui.doRecompile = true
         $(".gallery-panel").css("display", "none")
         $(".essay-panel").css("display", "none")
         $(".edit-panel").css("display", "block")
