@@ -1,5 +1,15 @@
 $(document).ready(function () {
     var list = [263]
+
+    $.map(list, function (val, index) {
+	GraffitiCode["example-editor-"+val] = CodeMirror(document.querySelector("#example-editor-"+val), {
+	    mode:  "graffiti",
+	    lineWrapping: "true",
+	    lineNumbers: "true",
+            readOnly: true,
+	})
+    }
+
     $.ajax({
         type: "GET",
         url: "/code",
