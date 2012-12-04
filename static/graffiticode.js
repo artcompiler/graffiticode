@@ -246,6 +246,11 @@ GraffitiCode.ui = (function () {
         $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
 
+        $(".nav-link").css("background-color", "#ddd")
+        $(".nav-link").css("font-weight", "400")
+        $("#start-link").css("background-color", "#bbb")
+        $("#start-link").css("font-weight", "700")
+
         if (GraffitiCode.essayName !== "tutorial-starting") {            
             $.get("start.html", function(data) {
                 $(".essay-panel").html(data)
@@ -254,14 +259,8 @@ GraffitiCode.ui = (function () {
             })
         }
         else {
-            $(".essay-panel").html(essayData)
+            $(".essay-panel").html(GraffitiCode.essayData)
         }
-
-        $(".nav-link").css("background-color", "#ddd")
-        $(".nav-link").css("font-weight", "400")
-
-        $("#start-link").css("background-color", "#bbb")
-        $("#start-link").css("font-weight", "700")
     }
 
     function showDemos() {
