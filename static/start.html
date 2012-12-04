@@ -1,4 +1,4 @@
-<h1>Getting started</h1>
+<h1>Starting Graffiti Code</h1>
 <br>
 <p>
 
@@ -14,13 +14,14 @@ The five skills you will learn here are:<br>
 <li>Preparing the drawing surface</li>
 <li>Creating and positioning shapes</li>
 <li>Coloring shapes</li>
+<li>Signing in</li>
 <li>Archiving code</li>
 <li>Sharing code</li>
 </ul>
 
 </p>
 
-<h1>Preparing the drawing surface</h1>
+<h1>Preparing a drawing surface</h1>
 <br>
 <p>
 <b>NOTE</b>: Graffiti Code programs consist of sequences of expressions. The
@@ -79,9 +80,9 @@ $(document).ready(function () {
 <b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
 
 <ul style="position: relative; left: 15">
+<li>ellipse</li>
 <li>rectangle</li>
 <li>triangle</li>
-<li>ellipse</li>
 <li>text</li>
 <li>curve</li>
 </ul>
@@ -162,11 +163,10 @@ $(document).ready(function () {
 <b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
 
 <ul style="position: relative; left: 15">
-<li>rgb></li>
+<li>rgb</li>
 <li>rgba</li>
 <li>fill</li>
 <li>stroke</li>
-<li>color</li>
 </ul>
 </p>
 
@@ -260,6 +260,16 @@ $(document).ready(function () {
 </script>
 
 
+<p>
+<b>NOTE</b>: At this point you're probably thinking to yourself, <i>"Wow! There is a lot of
+redundancy in this code. Why can't I just say 'stroke rgba 0 0 0 0' and 'ellipse 50 50' once?"</i>
+and <i>"These so called expressions are pretty long and gangly. This isn't going to be fun."</i>
+Not to worry. We will see how both of these problems are solved in a later tutorial. The solution
+involves defining new words that wrap all that redundancy into a neat little functional package that
+is configured just the way you want. In addition to providing tidier abstractions for the things you
+want to represent, these functions avoid the pitfalls that come with using global state to manage
+shared properties.
+</p>
 
 
 
