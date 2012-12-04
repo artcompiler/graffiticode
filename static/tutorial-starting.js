@@ -6,14 +6,20 @@ $(document).ready(function () {
         data : {list: String(list)},
         dataType: "json",
         success: function(data) {
-            $("#coloring2-example-graffito").append(
-                "<a href='#' onclick='GraffitiCode.ui.showWorkspace(); " +
-                "GraffitiCode.ui.updateSrc(263, " + d.src + ")'>" + 
-                d.obj +
-                "<br/>View in workspace</a>")
+	    for (var i = 0; i < data.length; i++) {
+		switch (+data[i].id) {
+		case 263:
+		    $("#coloring2-example-graffito").append(
+			"<a href='#' onclick='GraffitiCode.ui.showWorkspace(); " +
+			    "GraffitiCode.ui.updateSrc(263, " + d.src + ")'>" + 
+			    data[i].obj +
+			    "<br/>View in workspace</a>")
+		    break
+		}
+	    }
         },
         error: function(xhr, msg, err) {
-            console.log(msg+" "+err)
+	    console.log(msg+" "+err)
         }
     })
 })
