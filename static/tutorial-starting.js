@@ -8,14 +8,15 @@ $(document).ready(function () {
         success: function(data) {
 	    for (var i = 0; i < data.length; i++) {
 		var id = +data[i].id
+		var src = data[i].src.replace(new RegExp("\n", "g"), "\\n")
 		switch (id) {
 		case 263:
 		    $("#example-graffito-"+id).append(
 			"<a href='#' onclick='GraffitiCode.ui.showWorkspace(); " +
-			    "GraffitiCode.ui.updateSrc("+id+", \"" + data[i].src.replace(new RegExp("\n", "g"), "\\n") + "\")'>" + 
+			    "GraffitiCode.ui.updateSrc("+id+", \"" + src + "\")'>" + 
 			    data[i].obj +
 			    "<br/>View in workspace</a>")
-		    GraffitiCode["example-editor-"+id].setValue("foo bar")
+		    GraffitiCode["example-editor-"+id].setValue(src)
 		    break
 		}
 	    }
