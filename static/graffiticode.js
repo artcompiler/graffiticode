@@ -148,31 +148,15 @@ GraffitiCode.ui = (function () {
     }
 
     // The source should always be associated with an id
-    function updateSrc(id) {
+    function updateSrc(id, src) {
         GraffitiCode.firstCompile = true
         GraffitiCode.id = id
         GraffitiCode.parent = GraffitiCode.id
-        var data = $(".gallery-panel #"+id).data("piece")
-	    editor.setValue(data.src.split("\\n").join("\n"))
-/*
-	    $.ajax({
-	        type: "GET",
-            url: "/code/"+id,
-            dataType: "json",
-            success: function(data) {
-		        data = data[0]
-	            editor.setValue(data.src.split("\\n").join("\n"))
-                // move piece to top of gallery
-                var data = $(".gallery-panel div#"+id).data("piece")
-                $(".gallery-panel div#"+id).remove()
-                $(".gallery-panel div#text"+id).remove()
-                addPiece(data, data.src, data.obj, false)
-            },
-            error: function(xhr, msg, err) {
-		        alert(msg+" "+err)
-            }
-	    })
-*/
+        if (!src) {
+            var data = $(".gallery-panel #"+id).data("piece")
+            var src = data.src
+        }
+	    editor.setValue(src.split("\\n").join("\n"))
     }
 
     function updateCode(obj) {
