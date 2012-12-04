@@ -7,13 +7,15 @@ $(document).ready(function () {
         dataType: "json",
         success: function(data) {
 	    for (var i = 0; i < data.length; i++) {
-		switch (+data[i].id) {
+		var id = +data[i].id
+		switch (id) {
 		case 263:
-		    $("#coloring2-example-graffito").append(
+		    $("#example-graffito-"+id).append(
 			"<a href='#' onclick='GraffitiCode.ui.showWorkspace(); " +
-			    "GraffitiCode.ui.updateSrc(263, \"" + data[i].src.replace(new RegExp("\n", "g"), "\\n") + "\")'>" + 
+			    "GraffitiCode.ui.updateSrc("+id+", \"" + data[i].src.replace(new RegExp("\n", "g"), "\\n") + "\")'>" + 
 			    data[i].obj +
 			    "<br/>View in workspace</a>")
+		    $("#example-editor-"+id).setValue("foo bar")
 		    break
 		}
 	    }
