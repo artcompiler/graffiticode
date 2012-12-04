@@ -15,7 +15,7 @@ $(document).ready(function () {
 			    "GraffitiCode.ui.updateSrc("+id+", \"" + data[i].src.replace(new RegExp("\n", "g"), "\\n") + "\")'>" + 
 			    data[i].obj +
 			    "<br/>View in workspace</a>")
-		    $("#example-editor-"+id).setValue("foo bar")
+		    GraffitiCode["example-editor-"+id].setValue("foo bar")
 		    break
 		}
 	    }
