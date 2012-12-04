@@ -265,7 +265,7 @@ GraffitiCode.ui = (function () {
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#'>"+newButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showArchive()' title='Find' href='#'>"+openButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Save' href='#'>"+saveButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' title='Share'>"+shareButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postGist()' title='Share'>"+shareButton+"</a>")
         })
         })
         })
@@ -427,6 +427,7 @@ GraffitiCode.ui = (function () {
 
     return {
 	    postPiece: postPiece,
+	    postGist: postGist,
 	    compileCode: compileCode,
 	    updateAST: updateAST,
 	    updateSrc: updateSrc,
