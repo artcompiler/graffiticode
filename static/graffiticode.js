@@ -400,7 +400,7 @@ GraffitiCode.ui = (function () {
         clickThumbnail: clickThumbnail,
         loadMoreThumbnails: loadMoreThumbnails,
         start: start,
-        showStart: showStart,
+        showTutorial: showTutorial,
         showArchive: showArchive,
         showWorkspace: showWorkspace,
         showDemos: showDemos,
