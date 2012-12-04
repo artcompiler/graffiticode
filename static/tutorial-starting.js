@@ -11,7 +11,7 @@ $(document).ready(function () {
 		case 263:
 		    $("#coloring2-example-graffito").append(
 			"<a href='#' onclick='GraffitiCode.ui.showWorkspace(); " +
-			    "GraffitiCode.ui.updateSrc(263, \"" + data[i].src.replace("/\n/g", "\\n") + "\")'>" + 
+			    "GraffitiCode.ui.updateSrc(263, \"" + data[i].src.replace(new RegExpr("\n", "g"), "\\n") + "\")'>" + 
 			    data[i].obj +
 			    "<br/>View in workspace</a>")
 		    break
