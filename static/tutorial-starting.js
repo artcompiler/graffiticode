@@ -8,7 +8,7 @@ $(document).ready(function () {
 	    lineNumbers: "true",
             readOnly: true,
 	})
-    }
+    })
 
     $.ajax({
         type: "GET",
