@@ -160,13 +160,14 @@ $(document).ready(function () {
 <h1>Coloring shapes</h1>
 <br>
 <p>
-<b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
+<b>Graffiti Code /draw</b> provides primitive functions for computing colors and applying those colors to shape values. These functions include: <br>
 
 <ul style="position: relative; left: 15">
-<li>rgb</li>
-<li>rgba</li>
-<li>fill</li>
-<li>stroke</li>
+<li><b>rgb</b> <i>red green blue</i> - computes an opaque color value</li>
+<li><b>rgba</b> <i>red green blue alpha</i> - computes a transparent color value</li>
+<li><b>fill</b> <i>color shape</i> - sets fill color</li>
+<li><b>stroke</b> <i>color shape</i> - sets stroke color</li>
+<li><b>color</b> <i>color shape</i> - sets stroke and fill color</li>
 </ul>
 </p>
 
@@ -261,7 +262,7 @@ $(document).ready(function () {
 
 
 <p>
-<b>NOTE</b>: At this point you're probably thinking to yourself, <i>"Wow! There is a lot of
+<b>NOTE</b>: At this point you're probably thinking to yourself, <i>"Wow! There's a lot of
 redundancy in this code. Why can't I just say 'stroke rgba 0 0 0 0' and 'ellipse 50 50' once?"</i>
 and <i>"These so called expressions are pretty long and gangly. This isn't going to be fun."</i>
 Not to worry. We will see how both of these problems are solved in a later tutorial. The solution
@@ -271,7 +272,50 @@ want to represent, these functions avoid the pitfalls that come with using globa
 shared properties.
 </p>
 
+<h1>Signing in</h1>
 
+<br>
+<p>
+Signing in to Graffiti Code allows you to save your work to the archive and to share your work as
+Github Gists.
+</p>
+
+<p>
+<i>Here is were we will describe how to sign in.</i> (You can probably figure it out by clicking the linke
+named "Sign In" in the page header.
+</p>
+
+<h1>Archiving code</h1>
+
+<br>
+<p>
+Once you've signed into Graffiti Code you can save your work in the archive. All pieces are publically
+viewable and sharable.
+</p>
+
+<p>
+In the Workspace panel, click the Archive button to save the current code. Code that has not been
+significantly modified will not be saved. Significant changes involve changing the compiled meaning of the
+code. For example, whitespace changes do not constitute significant modifications.
+</p>
+
+<h1>Sharing code</h1>
+<br>
+<p>
+<b>NOTE</b>: This feature has not be implemented yet.
+</p>
+
+<p>
+Once you've signed into Graffiti Code you can share your code as a Github Gist.
+</p>
+
+<p>
+In the Workspace panel, click the Share button to save the current source and object code as a Gist.
+Code that has not been significantly modified since the last time it was shared, will not be saved.
+Significant changes involve changing the compiled meaning of the code. For example, whitespace changes
+do not constitute significant modifications. Once your code has been share on Github, the URL to its
+Gist will be displayed as a comment in the code.
+</p>
 
 <link rel="stylesheet" href="codemirror.css">
 <script src="codemirror.js"></script>
