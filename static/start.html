@@ -60,7 +60,7 @@ to be discussed later.
 </p>
 
 <p>
-<div id="surface-example-editor" name="code"/>
+<div id="example-editor-252" name="code"/>
 </p>
 
 <p>
@@ -68,29 +68,8 @@ This code sets the drawing surface size to <i>100</i> pixels wide by <i>100</i> 
 its color to roughly 50% gray.
 
 <p>
-<div id="surface-example-graffito"></div>
+<div id="example-graffito-252"></div>
 </p>
-
-<script>
-$(document).ready(function () {
-    var e = CodeMirror(document.querySelector("#surface-example-editor"), {
-	mode:  "graffiti",
-	lineWrapping: "true",
-	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.\n.",
-        readOnly: true,
-    })
-
-    $.get("http://www.graffiticode.org/graffiti/252", function (data) {
-        $("#surface-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(252)'>"+data+"<br/>View in workspace</a>")
-    })
-
-
-})
-
-</script>
-
-
 
 <h1>Creating and positioning shapes</h1>
 <br>
@@ -112,7 +91,7 @@ $(document).ready(function () {
 Here, we add to our small grey surface the shape of a circular ellipse.
 
 <p>
-<div id="shape1-example-editor" name="code"/>
+<div id="example-editor-254" name="code"/>
 </p>
 
 <p>
@@ -121,31 +100,13 @@ This code creates an ellipse with the width of <i>80</i> pixels and height of
 </p>
 
 <p>
-<div id="shape1-example-graffito"></div>
+<div id="example-graffito-254"></div>
 </p>
-
-<script>
-$(document).ready(function () {
-    var e = CodeMirror(document.querySelector("#shape1-example-editor"), {
-	mode:  "graffiti",
-	lineWrapping: "true",
-	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.\nellipse 80 80.",
-        readOnly: true,
-    })
-
-    $.get("http://www.graffiticode.org/graffiti/254", function (data) {
-        $("#shape1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(254)'>"+data+"<br/>View in workspace</a>")
-    })
-
-
-})
-</script>
 
 <h2>Positioning shapes</h2>
 
 <p>
-<div id="shape2-example-editor" name="code"/>
+<div id="example-editor-258" name="code"/>
 </p>
 
 <p>
@@ -155,25 +116,8 @@ with its center at the position with x of 50 pixels and y of 50 pixels, at the c
 </p>
 
 <p>
-<div id="shape2-example-graffito"></div>
+<div id="example-graffito-258"></div>
 </p>
-
-<script>
-$(document).ready(function () {
-    var e = CodeMirror(document.querySelector("#shape2-example-editor"), {
-	mode:  "graffiti",
-	lineWrapping: "true",
-	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.\ntranslate 50 50 ellipse 80 80.",
-        readOnly: true,
-    })
-
-    $.get("http://www.graffiticode.org/graffiti/258", function (data) {
-        $("#shape2-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(258)'>"+data+"<br/>View in workspace</a>")
-    })
-
-})
-</script>
 
 <h1>Coloring shapes</h1>
 <br>
@@ -202,7 +146,7 @@ computed color where 0 represents complete transparency and 100 represents compl
 </p>
 
 <p>
-<div id="coloring1-example-editor" name="code"/>
+<div id="example-editor-262" name="code"/>
 </p>
 
 <p>
@@ -213,27 +157,8 @@ appear the same.
 </p>
 
 <p>
-<div id="coloring1-example-graffito"></div>
+<div id="example-graffito-262"></div>
 </p>
-
-<script>
-$(document).ready(function () {
-    var e = CodeMirror(document.querySelector("#coloring1-example-editor"), {
-	mode:  "graffiti",
-	lineWrapping: "true",
-	lineNumbers: "true",
-        value: "size 100 100.\nbackground 127.\ntranslate 50 50 stroke rgba 0 0 0 0 fill rgb 0 255 0 ellipse 80 80.",
-        readOnly: true,
-    })
-
-    $.get("http://www.graffiticode.org/graffiti/262", function (data) {
-        $("#coloring1-example-graffito").append("<a href='#' onclick='GraffitiCode.ui.showWorkspace(); GraffitiCode.ui.updateSrc(262)'>"+data+"<br/>View in workspace</a>")
-    })
-
-
-})
-</script>
-
 
 <h2>Coloring shapes with transparency</h2>
 
