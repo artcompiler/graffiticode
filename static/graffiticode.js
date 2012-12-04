@@ -69,6 +69,40 @@ GraffitiCode.ui = (function () {
 	    })
     }
     
+    // {src, obj} -> {id}
+    function postGist() {
+
+        // if there are no changes then don't post
+//        if (GraffitiCode.parent === GraffitiCode.id) {
+//            return
+//        }
+
+        var user = $("#username").data("user")
+
+	    var src = GraffitiCode.src
+	    var pool = GraffitiCode.pool
+	    var obj = GraffitiCode.obj
+        var parent = GraffitiCode.parent;
+	    $.ajax({
+	        type: "POST",
+            url: "/gist",
+	        data: {
+                src: src,
+                ast: pool,
+                obj: obj,
+                user: user.id,
+                parent: parent,
+            },
+            dataType: "json",
+            success: function(data) {
+                console.log("postGist() data="+JSON.stringify(data))
+            },
+            error: function(xhr, msg, err) {
+                console.log("postGist() msg="+msg+" err="+err)
+            }
+	    })
+    }
+    
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function queryPieces() {

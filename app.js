@@ -339,8 +339,7 @@ app.post('/code', function(req, res){
 
 })
 
-/*
-app.post('/code', function(req, resPost){
+app.post('/gist', function(req, resPost) {
     var src = req.body.src
     var obj = req.body.obj
     commit()
@@ -390,7 +389,6 @@ app.post('/code', function(req, resPost){
 	})
     }
 })
-*/
 
 // deletes the notes for that label
 app.del('/code/:id', ensureAuthenticated, function(req, res){
