@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    var list = [252, 254, 258, 262, 263]
+    var list = [252, 254, 258, 262, 263, 277]
 
     $.map(list, function (val, index) {
 	GraffitiCode["example-editor-"+val] = CodeMirror(document.querySelector("#example-editor-"+val), {
