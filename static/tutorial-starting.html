@@ -1,29 +1,23 @@
-<h1>Starting Graffiti Code /draw</h1>
+<h1>How To Graffiti Code</h1>
 <br>
 <h2>Why Code?</h2>
 <p>
 When we draw with code, we calculate shapes and colors rather than copy them from what we see. We
-draw with code because we want to create using processes and values that exist in a machine rather
-than in the physical world. Using a machine in this way allows us to articulate form in ways that
-best suit our needs. The properties that are important to us can be made explicit. We have language
-for controlling shape, size and position. We can directly re-size, re-position, re-shape, and
-re-color by re-phrasing their description. We can repeat with variation any and all forms our code
-describes.
-</p>
-
-<p>
-Code is abstract and exists outside of space and time. It affords opportunities to remix and reuse
-like no other medium. Whether for practical or aesthetic purposes, drawing with code gives us
-control over our work like no other medium provides. Graffiti Code's mission is to make reading,
-writing and remixing code accessible, fun and productive for people of all interests and backgrounds.
+draw with code because we want to create using processes and values that can be manipulated by a
+machine rather than by hand. Using a machine in this way allows us to articulate form using language
+that fits how we think. The properties that are important to us can be made explicit. We have
+language for controlling shape, size and position. We can directly re-size, re-position, re-shape,
+and re-color by re-phrasing their description. We can repeat with variation any and all forms our
+code describes.
 </p>
 
 <h2>In This Tutorial</h2>
 <p>
-In this tutorial you will learn basic skills for using Graffiti Code. If you are familiar with
-other drawing languages such as PostScript or Processing, then this will mostly be review for you.
-But even so, the syntax and environment will be different and there are other more subtle
-differences, so you will benefit from working through this tutorial.
+In this tutorial you will learn basic skills for using Graffiti Code. If you have experience with
+other drawing languages such as PostScript, ActionScript or Processing, then some of what is
+described here will be familiar to you. But even so, the syntax and environment are different and
+there are other more subtle differences between Graffiti Code and other similar tools, so you will
+benefit from working through this tutorial.
 </p>
 <p>
 Some of the skills you will learn here are:<br>
@@ -32,7 +26,8 @@ Some of the skills you will learn here are:<br>
 <li>Preparing a drawing surface</li>
 <li>Creating and positioning shapes</li>
 <li>Coloring shapes</li>
-<li>Signing in</li>
+<li>Defining new words</li>
+<li>Signing in to Graffiti Code</li>
 <li>Archiving code</li>
 <li>Sharing code</li>
 </ul>
@@ -42,17 +37,17 @@ Some of the skills you will learn here are:<br>
 <h1>Preparing a drawing surface</h1>
 <br>
 <p>
-<b>NOTE</b>: Graffiti Code programs consist of sequences of expressions. The
-expressions we will be using in this section are called function applications. You may remember from
-high school math class that a function is an equation (or procedure) that maps a set of values to
-one or more other values. Graffiti Code functions that interest us most are the ones that return
-values representing marks on a surface or somehow affect the surface visually.
+<b>NOTE</b>: Graffiti Code programs consist of sequences of expressions. The expressions we will be
+using in this section are called function applications. You may remember from high school math class
+that a function maps a set of values to another set of values. The Graffiti Code functions that
+interest us most in this tutorial are ones that return values representing shapes that get drawn on
+the digital surface that we configure with other functions.
 </p>
 <p>
 Graffiti Code provides two functions that affect the drawing surface. They are <b>size</b> and
 <b>background</b>. The <b>size</b> function takes two number values that represent the width and height
 of the drawing surface in pixels. The <b>background</b> function takes a single value that represents the color of
-the background. In this case we are giving it the integer value <i>127</i>, which represents a 50% gray value.
+the background.
 </p>
 <p> <b>NOTE</b>: Color values can be represented by integer values between <i>0</i> and <i>255</i>,
 inclusive, where <i>0</i> represents black and <i>255</i> represents white. Non-grey color values can be computed using one of the functions: <b>rgb</b> or <b>rgba</b>,
@@ -74,21 +69,47 @@ its color to roughly 50% gray.
 <h1>Creating and positioning shapes</h1>
 <br>
 <p>
-<b>Graffiti Code /draw</b> provides functions for constructing and manipulating shape values. These shapes include: <br>
+<b>Graffiti Code</b> provides functions for constructing and manipulating shape values. Shape constructors include: <br>
 
 <ul style="position: relative; left: 15">
-<li>ellipse</li>
-<li>rectangle</li>
-<li>triangle</li>
-<li>text</li>
 <li>curve</li>
+<li>ellipse</li>
+<li>line</li>
+<li>path</li>
+<li>point</li>
+<li>rectangle</li>
+<li>text</li>
+<li>triangle</li>
 </ul>
 </p>
+
+<p>
+Shape modifiers include: <br>
+<ul style="position: relative; left: 15">
+<li>translate</li>
+<li>color</li>
+<li>fill</li>
+<li>stroke</li>
+<li>rotate</li>
+<li>skewx</li>
+<li>skewy</li>
+<li>scale</li>
+<li>font-size</li>
+</ul>
+</p>
+<p>
+In this section we will be focusing on the <i>ellipse</i> constructor to demonstrate creating shapes
+and the <i>translate</i> modifier to demonstrate positioning shapes.
+</p>
+
 
 <h2>Creating shapes</h2>
 
 <p>
-Here, we add to our small grey surface the shape of a circular ellipse.
+Shapes are created by applying one of the shape constructors to a set of values that are used to
+initialize the constructed shape. Below, we use the <i>ellipse</i> constructor applied to numeric
+values representing the width and height of the ellipse to create a circular ellipse.
+</p>
 
 <p>
 <div id="example-editor-254" name="code"/>
@@ -101,6 +122,12 @@ This code creates an ellipse with the width of <i>80</i> pixels and height of
 
 <p>
 <div id="example-graffito-254"></div>
+</p>
+
+<p><b>NOTE</b>: Unlike in Processing, the shape contructors of Graffiti Code do not take position
+arguments and are instead given a default position of (0, 0). This pattern encourages the reuse of
+shape values and reduces the number of constructor arguments to the bare minimum. The resulting
+shapes are repositioned using the translate function described in the next section.
 </p>
 
 <h2>Positioning shapes</h2>
@@ -122,7 +149,7 @@ with its center at the position with x of 50 pixels and y of 50 pixels, at the c
 <h1>Coloring shapes</h1>
 <br>
 <p>
-<b>Graffiti Code /draw</b> provides primitive functions for computing colors and applying those colors to shape values. These functions include: <br>
+<b>Graffiti Code</b> provides primitive functions for computing colors and applying those colors to shape values. These functions include: <br>
 
 <ul style="position: relative; left: 15">
 <li><b>rgb</b> <i>red green blue</i> - computes an opaque color value</li>
@@ -137,12 +164,13 @@ with its center at the position with x of 50 pixels and y of 50 pixels, at the c
 
 <p>
 We apply the coloring functions to a color and a shape whose color is to be updated. In addition to
-the 256 gray values described in the section on <i>background</i>, we can compute colors using RGB
-values using the <b>rgb</b> and <b>rgba</b> functions. The <b>rgb</b> function is applied to three
-numeric values between <i>0</i> and <i>255</i> representing the red, green and blue components of a
-color. <b>rgba</b> is applied to four values, the first three being the same as those for <i>rgb</i>
-and the last one being a numeric value between 0 and 100 representing the transparency of the
-computed color where 0 represents complete transparency and 100 represents complete opacity.
+the 256 gray values described in the discussion of the <i>background</i> function, we can compute
+colors using RGB values using the <b>rgb</b> and <b>rgba</b> functions. The <i>rgb</i> function is
+applied to three numeric values between <i>0</i> and <i>255</i> representing the red, green and blue
+components of a color. <i>rgba</i> is applied to four values, the first three being the same as
+those for <i>rgb</i> and the last one being a numeric value between 0 and 100 representing the
+transparency of the computed color where 0 represents complete transparency and 100 represents
+complete opacity.
 </p>
 
 <p>
@@ -181,12 +209,12 @@ of 30.
 </p>
 
 <p>
-<b>NOTE</b>: At this point you're probably thinking to yourself, <i>"Wow! There's a lot of
-redundancy in this code. Why can't I just say 'stroke rgba 0 0 0 0' and 'ellipse 50 50' once?"</i>
-and <i>"These so called expressions are pretty long and gangly. This isn't going to be fun."</i>
-Not to worry. We will see how both of these problems are solved in a later tutorial. The solution
-involves defining new words that wrap all that redundancy into a neat little functional package that
-is configured just the way you want. In addition to providing tidier abstractions for the things you
+At this point you're probably thinking to yourself, <i>"Wow! There's a lot of redundancy in this
+code. Why can't I just say 'stroke rgba 0 0 0 0' and 'ellipse 50 50' once?"</i> and <i>"These so
+called expressions are pretty long and gangly. This isn't going to be fun."</i> Not to worry. We
+will get of glimpse of how both of these problems are solved in the next section. The solution
+involves defining new words that wrap all that redundancy into neat little functional packages that
+are configured just the way we want. In addition to providing tidier abstractions for the things you
 want to represent, these functions avoid the pitfalls that come with using global state to manage
 shared properties.
 </p>
@@ -194,6 +222,23 @@ shared properties.
 <h2>Defining new words</h2>
 
 <p>
+Perhaps one of the most interesting features of Graffiti Code is it's use of what computer
+scientists call functional programming to describe the computation of form. In Graffiti Code, we can
+define new words that map to functions that compute form however we want.
+</p>
+
+<p>
+Defining functions is simple for simple functions, but can become quite elaborate and hence
+powerful. In this section we will just touch on a simple use by rewriting the code in the previous
+example to be clearer and more flexible. Other tutorials will reveal the full power of functional
+programming for computing form.
+</p>
+
+<p>
+Each definition betweens with the keyword <b>let</b> and is followed by the word to be defined and
+the list of parameters that go with that word. We call this combination of name and parameters the
+function's signature. Following the function signature is a delineating '=' punctuation followed by
+a list of expressions terminated by a period. See what this looks like below.
 </p>
 
 <p>
@@ -201,6 +246,8 @@ shared properties.
 </p>
 
 <p>
+Here we have moved the redundant code into the function body and defined parameters that capture
+the values that vary within that redundant code.
 </p>
 
 <p>
