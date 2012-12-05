@@ -327,9 +327,9 @@ body .main .essay-panel {
   padding: 20;
   width: 640;
 //  height:1000;
-  border-width: 1;
-  border-style: solid;
-  border-color: #aaa;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
   background: #fff;
 }
 
@@ -342,9 +342,9 @@ body .main .gallery-panel {
   padding-top:20;
 //  width: 240;
   width: 95%;
-  border-width: 1;
-  border-style: solid;
-  border-color: #aaa;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
   background: #eee;
 }
 
