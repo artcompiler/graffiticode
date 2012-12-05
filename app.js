@@ -376,7 +376,7 @@ app.post('/gist', function(req, resPost) {
 		var id = JSON.parse(data).id
 //		console.log("/code chunk.id="+id)
 		pg.connect(conString, function(err, client) {
-		    client.query("INSERT INTO pieces (commit) VALUES ("+id+");")
+		    client.query("INSERT INTO pieces (gist_id) VALUES ("+id+");")
 		    resPost.send({id: id})
 		})
 	    })
