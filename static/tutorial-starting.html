@@ -153,7 +153,7 @@ This code creates an ellipse with the width of <i>80</i> pixels and height of
 <p><b>NOTE</b>: Unlike in Processing, the shape contructors of Graffiti Code do not take position
 arguments and are instead given a default position of (0, 0). This pattern encourages the reuse of
 shape values and reduces the number of constructor arguments to the bare minimum. The resulting
-shapes are repositioned using the translate function described in the next section.
+shapes are repositioned using the <i>translate</i> function described in the next section.
 </p>
 
 <h2>Positioning shapes</h2>
@@ -175,7 +175,8 @@ with its center at the position with x of 50 pixels and y of 50 pixels, at the c
 <h1>Coloring shapes</h1>
 <br>
 <p>
-<b>Graffiti Code</b> provides primitive functions for computing colors and applying those colors to shape values. These functions include: <br>
+Graffiti Code provides primitive functions for computing colors and applying those colors to shape
+values. These functions include: <br>
 
 <ul style="position: relative; left: 15">
 <li><b>rgb</b> <i>red green blue</i> - computes an opaque color value</li>
@@ -204,10 +205,10 @@ complete opacity.
 </p>
 
 <p>
-This code colors our previuosly created and positioned circle with a transparent black stroke color
+This code colors our previously created and positioned circle with a transparent black stroke
 and an opaque bright green fill. Using the stroke transparency of 0 is an idiom for representing
 that we want no stroke color. We use 0 0 0 (black) for simplicity; all completely transparent colors
-appear the same.
+have make the thing colored invisible.
 </p>
 
 <p>
@@ -237,20 +238,20 @@ of 30.
 <p>
 At this point you're probably thinking to yourself, <i>"Wow! There's a lot of redundancy in this
 code. Why can't I just say 'stroke rgba 0 0 0 0' and 'ellipse 50 50' once?"</i> and <i>"These so
-called expressions are pretty long and gangly. This isn't going to be fun."</i> Not to worry. We
-will get of glimpse of how both of these problems are solved in the next section. The solution
-involves defining new words that wrap all that redundancy into neat little functional packages that
-are configured just the way we want. In addition to providing tidier abstractions for the things you
-want to represent, these functions avoid the pitfalls that come with using global state to manage
-shared properties.
+called chained expressions are pretty long and gangly. This isn't going to be fun."</i> Not to
+worry. We will get of glimpse of how both of these problems are solved in the next section. The
+solution involves defining new words that wrap all that redundancy into neat little functional
+packages that are configured just the way we want. In addition to providing tidier abstractions for
+the things you want to represent, these functions avoid the pitfalls that come with using global
+state to manage shared properties.
 </p>
 
 <h2>Defining new words</h2>
 
 <p>
 Perhaps one of the most interesting features of Graffiti Code is it's use of what computer
-scientists call functional programming to describe the computation of form. In Graffiti Code, we can
-define new words that map to functions that compute form however we want.
+scientists call functional programming to describe computation. In Graffiti Code, we can define new
+words that map to functions that compute values however we want.
 </p>
 
 <p>
@@ -263,7 +264,7 @@ programming for creative coding.
 <p>
 Each definition begins with the keyword <b>let</b> and is followed by the word to be defined and
 the list of parameters that go with that word. We call this combination of name and parameters the
-function's signature. Following the function's signature is a delineating <b>=</b> punctuation
+function's signature. Following the function's signature is a delineating <b>=</b> punctuator
 followed by a list of expressions terminated by a period. See what this looks like below.
 </p>
 
@@ -292,8 +293,8 @@ new words can be used in infinitely many other circle drawing ways.
 </p>
 
 <p>
-Here you can see that we define a word for <i>colored-circle-row</i> and another word for 
-<i>colored-circle-grid</i> that uses <i>colored-circle-row</i> and then finally our program boils
+Here you can see that we define the word for <i>colored-circle-row</i> and another word for 
+<i>colored-circle-grid</i> that uses <i>colored-circle-row</i>, and then finally our program boils
 down the one application of <i>colored-circle-grid</i>.
 </p>
 
@@ -302,9 +303,9 @@ down the one application of <i>colored-circle-grid</i>.
 </p>
 
 <p>
-Okay, enough, for now, about creating, positioning and reusing shapes. There is much more to learn
-about such things, but for now we turn to some basic housekeeping items--how to sign in to Graffiti
-Code, save code to the archive, and share code with the outside world.
+Okay, enough about creating, positioning shapes, and defining and reusing words. There is much more
+to learn about such things, but for now we turn to some basic housekeeping items--how to sign in to
+Graffiti Code, save code to the archive, and share code with the outside world.
 </p>
 
 
@@ -313,7 +314,7 @@ Code, save code to the archive, and share code with the outside world.
 <br>
 <p>
 Signing in to Graffiti Code allows you to save your work to the archive and to share your work as
-Github Gists.
+Github Gist.
 </p>
 
 <p>
@@ -327,7 +328,7 @@ named "Sign In" in the Graffiti Code header.
 <p>
 Once you've signed into Graffiti Code you can save your work to the archive. All archived pieces are
 publically viewable and sharable. But most importantly they are stored for you and others to use as
-the starting point for new pieces.
+the starting point for new creative activities.
 </p>
 
 <p>
