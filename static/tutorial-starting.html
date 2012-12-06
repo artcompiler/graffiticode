@@ -318,8 +318,48 @@ Github Gist.
 </p>
 
 <p>
-<i>Here is were we will describe how to sign in.</i> (You can probably figure it out by clicking the link
-named "Sign In" in the Graffiti Code header.
+Graffiti Code uses Mozilla Persona for identity management. This means we don't store your password,
+Mozilla does, and you sign in to Graffiti Code using an email address, which we will only use to
+send you important notices about your account, and never display in public or share with third
+parties. We use the user name part only of your email address to identify your account in public
+visible content such as the archive.
+</p>
+
+<p>
+To sign in to Graffiti Code, click the <b>Sign In</b> link on the right side of the Graffiti Code header.
+</p>
+
+<p>
+<img style="margin-left:10" width="580" src="tutorial-how-to-persona-sign-in.png"/>
+</p>
+
+<p>
+If you do not already have a Persona account, you will be greeted with the following dialog:
+</p>
+
+<img width="600" src="tutorial-how-to-persona-start.png"/>
+
+<p>
+This begins the three step process of creating an account and signing you into Graffiti Code.
+Persona does a good job guiding you through this simple process. The final step of the process is
+for you to confirm your email address by clicking the confirmation link on an email sent to you by
+Persona at the point that it displays the following dialog:
+</p>
+
+<img style="margin-left:10" width="580" src="tutorial-how-to-persona-confirm.png"/>
+
+<p>
+Once you have confirmed your email, Persona will redirect you to Graffiti Code and you will be
+automatically signed in.
+</p>
+
+<p>
+<img style="margin-left:10" width="580" src="tutorial-how-to-persona-sign-out.png"/>
+</p>
+
+<p>
+To sign out of Graffiti Code, simply click the <b>Sign Out</b> link below your user name on the
+right side of the Graffit Code header.
 </p>
 
 <h1>Archiving code</h1>
@@ -328,31 +368,39 @@ named "Sign In" in the Graffiti Code header.
 <p>
 Once you've signed into Graffiti Code you can save your work to the archive. All archived pieces are
 publically viewable and sharable. But most importantly they are stored for you and others to use as
-the starting point for new creative activities.
+the starting point for new creative codings.
+<br>
+In the Workspace view, click the Archive button
+<img style="position: relative; top: 10; margin:5" src="tutorial-how-to-archive-button.png"></img> 
+to save the current code. Code that has not been significantly modified will not be saved.
+Significant changes involve changing the compiled meaning of the code. For example, whitespace
+changes do not constitute significant modifications.
+</p>
+<p>
+Once your code has been archived, it will appear at the top of the Archive view until that page is
+refreshed, at which point it will be sorted into the list of the archived pieces.
 </p>
 
-<p>
-In the Workspace view, click the Archive button to save the current code. Code that has not been
-significantly modified will not be saved. Significant changes involve changing the compiled meaning of the
-code. For example, whitespace changes do not constitute significant modifications.
-</p>
 
 <h1>Sharing code with Github</h1>
 <br>
-<p>
-<b>NOTE: This feature has not yet been implemented.</b>
-</p>
 
 <p>
-Once you've signed into Graffiti Code you can share your code as a Github Gist.
+Once you've signed into Graffiti Code you can share your code as a Github Gist. A Gist is a light
+weight Github repository that makes code available through the Git distributed version control
+system. Even if you don't use a DVCS, this is a convenient way to make your Graffiti Code available
+to others.
+<br>
+In the Workspace panel, click the Share button
+<img style="position: relative; top: 10; margin:5" src="tutorial-how-to-share-button.png"></img> 
+to save the current source and object code as a Gist. Code that has not been significantly modified
+since the last time it was shared, will not be saved. Significant changes involve changing the
+compiled meaning of the code. For example, whitespace changes do not constitute significant
+modifications.
 </p>
-
 <p>
-In the Workspace panel, click the Share button to save the current source and object code as a Gist.
-Code that has not been significantly modified since the last time it was shared, will not be saved.
-Significant changes involve changing the compiled meaning of the code. For example, whitespace changes
-do not constitute significant modifications. Once your code has been shared on Github, the URL to its
-Gist will be recorded as a comment in the code.
+Once your code has been shared on Github, a link to its Gist will appear below the piece's thumbnail
+in the Archive view.
 </p>
 
 
