@@ -142,6 +142,17 @@ app.engine('html', function (templateFile, options, callback) {
 })
 
 // Routes
+
+// http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
+app.all('*', function(req, res, next) {
+    if (req.headers.host.match(/^www/) === null && req.headers.host.match(/^localhost/) === null) {
+	res.redirect('http://www.'+ req.headers.host + req.url);
+    } else {
+	next();     
+    }
+})
+
+
 /*
 app.get('/', function(req, res) {
     fs.readFile('views/draw.html', function(err, body) {
