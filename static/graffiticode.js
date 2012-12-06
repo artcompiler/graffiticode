@@ -108,7 +108,13 @@ GraffitiCode.ui = (function () {
             },
             dataType: "json",
             success: function(data) {
-                GraffitiCode.gist_id = data.gist_id
+                var pieceData = $(".gallery-panel #"+id).data("piece")
+                var gist_id = GraffitiCode.gist_id = data.gist_id
+                $(".gallery-panel #"+id+" .label").html(pieceData.views+" Views, "+pieceData.forks+" Forks, " + 
+                          new Date(pieceData.created).toDateString().substring(4) + ", " +
+                          pieceData.name + 
+                          ("<br><a href='http://"+location.host+"/graffiti/"+id+"' target='_blank'>Graffiti/"+id+"</a>")+
+                          (gist_id?", <a href='https://gist.github.com/"+gist_id+"' target='_blank'>Gist/"+gist_id+"</a>":""))
             },
             error: function(xhr, msg, err) {
                 console.log("postGist() msg="+msg+" err="+err)
@@ -199,8 +205,9 @@ GraffitiCode.ui = (function () {
         GraffitiCode.firstCompile = true
         GraffitiCode.id = id
         GraffitiCode.parent = GraffitiCode.id
+        var data = $(".gallery-panel #"+id).data("piece")
+        GraffitiCode.gist_id = data.gist_id
         if (!src) {
-            var data = $(".gallery-panel #"+id).data("piece")
             var src = data.src
         }
 	    editor.setValue(src.split("\\n").join("\n"))

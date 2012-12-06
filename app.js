@@ -390,7 +390,7 @@ app.post('/gist', function(req, resPost) {
 	    })
 	    res.on('end', function () {
 		var gist_id = JSON.parse(data).id
-		console.log("POST /gist id="+req.body.id+" gist_id="+id)
+//		console.log("POST /gist id="+req.body.id+" gist_id="+gist_id)
 		pg.connect(conString, function(err, client) {
 		    client.query("UPDATE pieces SET gist_id = '"+gist_id+"' WHERE id = '"+id+"'")
 		    resPost.send({id: id, gist_id: gist_id})
