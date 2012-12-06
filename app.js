@@ -322,13 +322,13 @@ app.post('/code', function(req, res){
     var obj = req.body.obj
     var user = req.body.user
     var parent = req.body.parent
-    var views = 0
-    var forks = 0
 
     parent = parent?parent:1
     user = user?user:1
     commit()
     function commit() {
+	var views = 0
+	var forks = 0
 	pg.connect(conString, function(err, client) {
 	    src = src.replace(new RegExp("\n","g"), "\\n")
 	    obj = obj.replace(new RegExp("\n","g"), " ")
@@ -347,12 +347,17 @@ app.post('/code', function(req, res){
 	    })
 	})
     }
-
 })
 
+// 
 app.post('/gist', function(req, resPost) {
+    var id = req.body.id
     var src = req.body.src
     var obj = req.body.obj
+    if (id === 0) {
+	// need to archive code to archive
+    }
+
     commit()
     function commit() {
 	var gistData = {
@@ -384,11 +389,11 @@ app.post('/gist', function(req, resPost) {
 		data += chunk
 	    })
 	    res.on('end', function () {
-		var id = JSON.parse(data).id
-//		console.log("/code chunk.id="+id)
+		var gist_id = JSON.parse(data).id
+		console.log("POST /gist id="+req.body.id+" gist_id="+id)
 		pg.connect(conString, function(err, client) {
-		    client.query("INSERT INTO pieces (gist_id) VALUES ("+id+");")
-		    resPost.send({id: id})
+		    client.query("UPDATE pieces SET gist_id = '"+gist_id+"' WHERE id = '"+id+"'")
+		    resPost.send({id: id, gist_id: gist_id})
 		})
 	    })
 	})

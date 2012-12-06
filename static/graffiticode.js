@@ -36,7 +36,7 @@ GraffitiCode.ui = (function () {
     }
 
     // {src, obj} -> {id}
-    function postPiece() {
+    function postPiece(next) {
 
         // if there are no changes then don't post
         if (GraffitiCode.parent === GraffitiCode.id) {
@@ -61,7 +61,12 @@ GraffitiCode.ui = (function () {
             },
             dataType: "json",
             success: function(data) {
+                GraffitiCode.id = data.id
+                GraffitiCode.gist_id = data.gist_id
 		        addPiece(data, src, obj, false)
+                if (next) {
+                    next()
+                }
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -72,21 +77,29 @@ GraffitiCode.ui = (function () {
     // {src, obj} -> {id}
     function postGist() {
 
-        // if there are no changes then don't post
-//        if (GraffitiCode.parent === GraffitiCode.id) {
-//            return
-//        }
+        // if we already have a gist_id, then don't post
+        if (GraffitiCode.gist_id) {
+            return
+        }
+
+        // make sure piece is committed before gisting
+        if (GraffitiCode.id === 0) {
+            postPiece(postGist)
+            return
+        }
 
         var user = $("#username").data("user")
 
+        var id = GraffitiCode.id
 	    var src = GraffitiCode.src
 	    var pool = GraffitiCode.pool
 	    var obj = GraffitiCode.obj
-        var parent = GraffitiCode.parent;
+        var parent = GraffitiCode.parent
 	    $.ajax({
 	        type: "POST",
             url: "/gist",
 	        data: {
+                id: id,
                 src: src,
                 ast: pool,
                 obj: obj,
@@ -95,7 +108,7 @@ GraffitiCode.ui = (function () {
             },
             dataType: "json",
             success: function(data) {
-                console.log("postGist() data="+JSON.stringify(data))
+                GraffitiCode.gist_id = data.gist_id
             },
             error: function(xhr, msg, err) {
                 console.log("postGist() msg="+msg+" err="+err)
@@ -225,6 +238,7 @@ GraffitiCode.ui = (function () {
 
     function addPiece(data, src, obj, append) {
         var id = data.id
+        var gist_id = data.gist_id
         if (append) {
 	        $(".gallery-panel").append("<div class='piece' id='"+id+"'></div>")
             $(".gallery-panel #"+id).append("<div class='thumbnail'></div>")
@@ -247,7 +261,11 @@ GraffitiCode.ui = (function () {
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
 //        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
 
-        $(".gallery-panel #"+id+" .label").text(data.views+" Views, "+ new Date(data.created).toDateString() + ", " + data.name +", "+id)
+        $(".gallery-panel #"+id+" .label").html(data.views+" Views, "+data.forks+" Forks, " + 
+                          new Date(data.created).toDateString().substring(4) + ", " +
+                          data.name + 
+                          ("<br><a href='http://"+location.host+"/graffiti/"+id+"'>Graffiti/"+id+"</a>")+
+                          (gist_id?", <a href='https://gist.github.com/"+gist_id+"'>Gist/"+gist_id+"</a>":""))
     }
 
     function start() {
@@ -258,10 +276,21 @@ GraffitiCode.ui = (function () {
         $.get("draw-help.html", function (data) {
             $("#help-view").append(data)
         })
-        $.get("http://"+location.host+"/graffiti/208", function (newButton) {
-        $.get("http://"+location.host+"/graffiti/240", function (openButton) {
-        $.get("http://"+location.host+"/graffiti/242", function (saveButton) {
-        $.get("http://"+location.host+"/graffiti/211", function (shareButton) {
+        var newId = 208
+        var findId = 240
+        var archiveId = 242
+        var shareId = 211
+        if (location.host.match(/^localhost/) !== null) {
+            newId = 151
+            findId = 151
+            archiveId = 151
+            shareId = 151
+        }
+            
+        $.get("http://"+location.host+"/graffiti/"+newId, function (newButton) {
+        $.get("http://"+location.host+"/graffiti/"+findId, function (openButton) {
+        $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
+        $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#'>"+newButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showArchive()' title='Find' href='#'>"+openButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
