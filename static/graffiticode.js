@@ -257,15 +257,15 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel #"+id+" .thumbnail svg").css("width", "220")
         $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124")
 //        $(".gallery-panel div#"+id+" svg").css("border: 1")
-        $(".gallery-panel #"+id).attr("onclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
+        $(".gallery-panel #"+id+" .thumbnail").attr("onclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
 //        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
 
         $(".gallery-panel #"+id+" .label").html(data.views+" Views, "+data.forks+" Forks, " + 
                           new Date(data.created).toDateString().substring(4) + ", " +
                           data.name + 
-                          ("<br><a href='http://"+location.host+"/graffiti/"+id+"'>Graffiti/"+id+"</a>")+
-                          (gist_id?", <a href='https://gist.github.com/"+gist_id+"'>Gist/"+gist_id+"</a>":""))
+                          ("<br><a href='http://"+location.host+"/graffiti/"+id+"' target='_blank'>Graffiti/"+id+"</a>")+
+                          (gist_id?", <a href='https://gist.github.com/"+gist_id+"' target='_blank'>Gist/"+gist_id+"</a>":""))
     }
 
     function start() {
@@ -294,7 +294,7 @@ GraffitiCode.ui = (function () {
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#'>"+newButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showArchive()' title='Find' href='#'>"+openButton+"</a>")
             $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postGist()' title='Share'>"+shareButton+"</a>")
+            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postGist()' title='Share' href='#'>"+shareButton+"</a>")
         })
         })
         })
