@@ -209,7 +209,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         elts.push(visit(node.elts[0]))
         return {
             "tag": "g",
-            "class": "program",
+//            "class": "program",
             "elts": elts
         }
     }
@@ -222,7 +222,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
         return {
             tag: "g",
-            class: "exprs",
+//            class: "exprs",
             elts: elts
         }
     }

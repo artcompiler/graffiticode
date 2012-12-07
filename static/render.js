@@ -29,26 +29,24 @@ exports.renderer = GraffitiCode.renderer = function() {
                , '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
                , '"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
                , '<svg'
-               , 'viewBox="0 0 ' + transformer.canvasWidth() + ' ' + transformer.canvasHeight()+'"'
-               , 'width="' + transformer.canvasWidth() + '" height="' + transformer.canvasHeight() + '"'
-               , 'xmlns:xlink="http://www.w3.org/1999/xlink"'
-               , 'xmlns="http://www.w3.org/2000/svg"'
-               , 'font-family="Verdana"' 
-               , 'font-size="12"'
-               , 'fill="#fff"'
-               , 'stroke="#000"'
-               , 'version="1.1"'
-               , 'preserveAspectRatio="xMidYMid meet"'
-//               , 'style="overflow: hidden; clip: rect(50,50,50,50);"'
-               , 'overflow="hidden"'
-               , 'clip="rect(50,50,50,50)"'
-               , 'style="background:'+transformer.canvasColor()+'"'
-               , '>'
+               , '  viewBox="0 0 ' + transformer.canvasWidth() + ' ' + transformer.canvasHeight()+'"'
+               , '  width="' + transformer.canvasWidth() + '" height="' + transformer.canvasHeight() + '"'
+               , '  xmlns:xlink="http://www.w3.org/1999/xlink"'
+               , '  xmlns="http://www.w3.org/2000/svg"'
+               , '  font-family="Verdana"' 
+               , '  font-size="12"'
+               , '  fill="#fff"'
+               , '  stroke="#000"'
+               , '  version="1.1"'
+               , '  preserveAspectRatio="xMidYMid meet"'
+               , '  overflow="hidden"'
+               , '  clip="rect(50,50,50,50)"'
+               , '  style="background:'+transformer.canvasColor()+'"' + '>'
                ].join("\n")
     }
 
     function suffix() {
-        return [ '\n'
+        return [ ''
                , '</svg>'
                ].join("\n")
     }
@@ -57,19 +55,19 @@ exports.renderer = GraffitiCode.renderer = function() {
 //        nodePool = pool
         var str = ""
         str += prefix()
-        str += visit(node)
+        str += visit(node, "  ")
         str += suffix()
         return str
     }
 
-    function visit(node) {
+
+    function visit(node, padding) {
 
 //        var node = nodePool[nid]
 
         if (typeof node === "string") {
             return node
         }
-
 
         var tagName = node.tag
         var attrs = ""
@@ -84,15 +82,27 @@ exports.renderer = GraffitiCode.renderer = function() {
             attrs += " " + name + "='" + node[name] + "'"
         }
 
+        if (attrs.length === 0) {
+            var indent = ""
+        }
+        else {
+            var indent = "   "
+        }
+
         var elts = ""
         if (node.elts) {
             for (var i = 0; i < node.elts.length; i++) {
                 if (node.elts[i]) {  // skip empty elts
-                    elts += visit(node.elts[i])
+                    elts += visit(node.elts[i], padding+indent)
                 }
             }
         }
-        var tag = "\n<" + tagName + " " + attrs + ">" + elts + "</" + tagName + ">"
+        if (attrs.length === 0) {
+            var tag = elts
+        }
+        else {
+            var tag = "\n"+padding+"<" + tagName + attrs + ">" + elts + "\n"+padding+"</" + tagName + ">"
+        }
         return tag
     }
 

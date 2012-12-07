@@ -100,7 +100,7 @@ GraffitiCode.ui = (function () {
             url: "/gist",
 	        data: {
                 id: id,
-                src: src,
+                src: src.replace(/\t/g,"    "),
                 ast: pool,
                 obj: obj,
                 user: user.id,
