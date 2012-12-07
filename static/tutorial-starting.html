@@ -1,5 +1,8 @@
 <h1>How To Graffiti Code</h1>
-<br>
+<p style="font-size: 12">
+Jeff Dyer, Last update: 07 DEC 2012
+</p>
+
 <h2>In This Tutorial</h2>
 <p>
 In this tutorial you will learn basic skills for using Graffiti Code. If you have experience with
@@ -57,8 +60,8 @@ different about them.
 </p>
 
 <p>
-My hope is that by the end of this tutorial you will begin to appreciate how code can be
-<i>a machine that makes the art.</i>
+Our hope is that with Graffiti Code you will make machines that make your art.
+</p>
 
 <h1>Preparing a drawing surface</h1>
 <br>
@@ -92,13 +95,25 @@ its color to roughly 50% gray.
 <div id="example-graffito-252"></div>
 </p>
 
+<p>
+<b>NOTE</b>: The syntax of Graffiti Code is very straightforward. Function applications consist of a
+function name followed by its arguments. Top level expressions are terminated with a period, and
+expression lists are terminated with another period. Hence, in the example above, each of the
+function application expressions for <i>size</i> and <i>background</i> end with a period and the
+list of expressions that these two expresions make up is also terminated with a period. A program is
+just a list of expressions.
+</p>
+
+
+
 <h1>Creating and positioning shapes</h1>
 <br>
+<!--
 <p>
 <b>Graffiti Code</b> provides functions for constructing and manipulating shape values. Shape constructors include: <br>
 
 <ul style="position: relative; left: 15">
-<li>curve</li>
+<li><b>curve</b> <i>x0 y0 cx0 cy0 cx1 cy1 x1 y1</i></li>
 <li>ellipse</li>
 <li>line</li>
 <li>path</li>
@@ -123,6 +138,8 @@ Shape modifiers include: <br>
 <li>font-size</li>
 </ul>
 </p>
+-->
+
 <p>
 In this section we will be focusing on the <i>ellipse</i> constructor to demonstrate creating shapes
 and the <i>translate</i> modifier to demonstrate positioning shapes.
@@ -214,6 +231,13 @@ have make the thing colored invisible.
 <p>
 <div id="example-graffito-262"></div>
 </p>
+
+<p>
+<b>NOTE</b>: Modifier function are designed to take as their last argument the value they modify and
+return the modified value. This pattern allows for chaining of modifiers as we see in the example
+above.
+</p>
+
 
 <h2>Coloring shapes with transparency</h2>
 
@@ -340,10 +364,10 @@ If you do not already have a Persona account, you will be greeted with the follo
 <img width="600" src="tutorial-how-to-persona-start.png"/>
 
 <p>
-This begins the three step process of creating an account and signing you into Graffiti Code.
+This begins a three step process of creating an account and signing you into Graffiti Code.
 Persona does a good job guiding you through this simple process. The final step is for you to
 confirm your email address by clicking the confirmation link on an email sent to you by Persona.
-You know the email has been sent because a dialog such as the one below will be displayed:
+You know the email has been sent when a dialog such as the one below will be displayed:
 </p>
 
 <img style="margin-left:10" width="580" src="tutorial-how-to-persona-confirm.png"/>
@@ -377,12 +401,12 @@ Significant changes involve changing the compiled meaning of the code. For examp
 changes do <b>not</b> constitute significant modifications.
 </p>
 <p>
-Once your code has been archived, it will appear at the top of the Archive view until that page is
-refreshed, at which point it will be sorted along with all of the other archived pieces.
+Once the piece has been archived, it will appear at the top of the Archive view until that page is
+refreshed, at this point the piece will be sorted along with all of the other archived pieces.
 </p>
 
 <p>
-Archived code can be linked to using the HTML object tag as follows:
+Archived pieces can be embedded into HTML using the &lt;object&gt; tag as follows:
 </p>
 
 <p style="font-family: Cousine; font-size: 12; font-weight: 700">
@@ -396,39 +420,35 @@ This example displays piece 120 from the Graffiti Code archive:
 <object width="200" height="200" data="http://www.graffiticode.org/graffiti/120" type="image/svg+xml"/>
 </p>
 
-<h1>Sharing code with Github</h1>
+<h1>Sharing code as a Github Gist</h1>
 <br>
 
 <p>
-Once you've signed into Graffiti Code you can share your code as a Github Gist. A Gist is a light
-weight Github repository that makes code available through the Git distributed version control
-system. Even if you don't normally use Git, this is a convenient way to make your Graffiti Code
-available to others, including by viewing in a browser.
+<b>NOTE:</b> Github is a web service for managing code. Github provides lightweight repositories
+call Gists for informal code sharing. This is just what we need to share Graffiti Code.
+</p>
+
+<p>
+Once you've signed into Graffiti Code you can share your code as a Github Gist. Even if you don't
+normally use Github, this is a convenient way to make your Graffiti Code available to others,
+including for viewing in a browser.
 <br>
 In the Workspace panel, click the Share button
 <img style="position: relative; top: 10; margin:5" src="tutorial-how-to-share-button.png"></img> 
 to save the current source and generated object code as a Gist. A link to the Gist will appear below
-the piece's thumbnail in the Archive view. When you follow that link you will see two files, one
-for the Graffiti Code source, and one for the object code (e.g. SVG). The Gist view will provide
-links for accessing that code with Git. Perhaps the simplest workflow from here is to click the 
-link to the <b>raw</b> code of the <b>obj</b> file, select all, and copy the code verbatim into
+the piece's thumbnail in the Archive view. When you follow that link you will see two files in the
+Gist, one for the Graffiti Code source, and one for the object code (e.g. SVG). The Gist view will
+provide links for accessing that code with Git. Perhaps the simplest workflow from here is to click
+the link to the <b>raw</b> code of the <b>obj</b> file, select all, and copy the code verbatim into
 the HTML of a web page or blog.
 </p>
 
 <p>
-<b>NOTE</b>: Currently, the generated SVG object code is far from optimal or pretty. This will be
-fixed ASAP. In the mean time, don't stare too hard at it or you might get a head ache, or suffer
-some other ill effect.
-</p>
-
-<p>
-<b>NOTE</b>: Ignore the Gist <b>show embed</b> link. It makes the bold assumption that the code is
-JavaScript. Since Graffiti Code is not generating JavaScript, nothing good will come from you trying
-to use the offered markup. If you want to link, as opposed to inline, the generated code, use an
+<b>NOTE</b>: Ignore the Gist <i>show embed</i> link. It makes the bold assumption that the code is
+JavaScript. Since Graffiti Code is not generating JavaScript, nothing good will come from you using
+the offered markup. If you want to link, as opposed to inline, the generated code, use an
  &lt;object&gt; tag as described in the previous section.
 </p>
-
-
 
 <p>
 There is one Gist per archived piece, so if the current code has already been archived and saved as
