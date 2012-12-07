@@ -279,7 +279,7 @@ GraffitiCode.ui = (function () {
         queryPieces()
 //        showArchive()
         newCode()
-        showWorkspace()
+        showTutorial("tutorial-starting")
         $.get("draw-help.html", function (data) {
             $("#help-view").append(data)
         })
