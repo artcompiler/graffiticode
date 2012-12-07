@@ -313,7 +313,7 @@ Graffiti Code, save code to the archive, and share code with the outside world.
 
 <br>
 <p>
-Signing in to Graffiti Code allows you to save your work to the archive and to share your work as
+Signing in to Graffiti Code allows you to save your work to the archive and to share your work as a
 Github Gist.
 </p>
 
@@ -321,7 +321,7 @@ Github Gist.
 Graffiti Code uses Mozilla Persona for identity management. This means we don't store your password,
 Mozilla does, and you sign in to Graffiti Code using an email address, which we will only use to
 send you important notices about your account, and never display in public or share with third
-parties. We use the user name part only of your email address to identify your account in public
+parties. We use the user name part only of your email address to identify your account in publically
 visible content such as the archive.
 </p>
 
@@ -341,16 +341,17 @@ If you do not already have a Persona account, you will be greeted with the follo
 
 <p>
 This begins the three step process of creating an account and signing you into Graffiti Code.
-Persona does a good job guiding you through this simple process. The final step of the process is
-for you to confirm your email address by clicking the confirmation link on an email sent to you by
-Persona at the point that it displays the following dialog:
+Persona does a good job guiding you through this simple process. The final step is for you to
+confirm your email address by clicking the confirmation link on an email sent to you by Persona.
+You know the email has been sent because a dialog such as the one below will be displayed:
 </p>
 
 <img style="margin-left:10" width="580" src="tutorial-how-to-persona-confirm.png"/>
 
 <p>
 Once you have confirmed your email, Persona will redirect you to Graffiti Code and you will be
-automatically signed in.
+automatically signed in. You should see your user name and a <b>Sign Out</b> link displayed in the
+Graffiti Code header, which will look something like this:
 </p>
 
 <p>
@@ -358,8 +359,7 @@ automatically signed in.
 </p>
 
 <p>
-To sign out of Graffiti Code, simply click the <b>Sign Out</b> link below your user name on the
-right side of the Graffit Code header.
+To sign out of Graffiti Code, simply click the <i>Sign Out</i> link.
 </p>
 
 <h1>Archiving code</h1>
@@ -368,19 +368,33 @@ right side of the Graffit Code header.
 <p>
 Once you've signed into Graffiti Code you can save your work to the archive. All archived pieces are
 publically viewable and sharable. But most importantly they are stored for you and others to use as
-the starting point for new creative codings.
+the starting point for new works of creative coding.
 <br>
 In the Workspace view, click the Archive button
 <img style="position: relative; top: 10; margin:5" src="tutorial-how-to-archive-button.png"></img> 
 to save the current code. Code that has not been significantly modified will not be saved.
 Significant changes involve changing the compiled meaning of the code. For example, whitespace
-changes do not constitute significant modifications.
+changes do <b>not</b> constitute significant modifications.
 </p>
 <p>
 Once your code has been archived, it will appear at the top of the Archive view until that page is
-refreshed, at which point it will be sorted into the list of the archived pieces.
+refreshed, at which point it will be sorted along with all of the other archived pieces.
 </p>
 
+<p>
+Archived code can be linked to using the HTML object tag as follows:
+</p>
+
+<p style="font-family: Cousine; font-size: 12; font-weight: 700">
+&lt;object data="http://www.graffiticode.org/graffiti/120" type="image/svg+xml"/&gt;
+</p>
+
+<p>
+This example displays piece 120 from the Graffiti Code archive:
+</p>
+<p>
+<object width="200" height="200" data="http://www.graffiticode.org/graffiti/120" type="image/svg+xml"/>
+</p>
 
 <h1>Sharing code with Github</h1>
 <br>
@@ -388,19 +402,37 @@ refreshed, at which point it will be sorted into the list of the archived pieces
 <p>
 Once you've signed into Graffiti Code you can share your code as a Github Gist. A Gist is a light
 weight Github repository that makes code available through the Git distributed version control
-system. Even if you don't use a DVCS, this is a convenient way to make your Graffiti Code available
-to others.
+system. Even if you don't normally use Git, this is a convenient way to make your Graffiti Code
+available to others, including by viewing in a browser.
 <br>
 In the Workspace panel, click the Share button
 <img style="position: relative; top: 10; margin:5" src="tutorial-how-to-share-button.png"></img> 
-to save the current source and object code as a Gist. Code that has not been significantly modified
-since the last time it was shared, will not be saved. Significant changes involve changing the
-compiled meaning of the code. For example, whitespace changes do not constitute significant
-modifications.
+to save the current source and generated object code as a Gist. A link to the Gist will appear below
+the piece's thumbnail in the Archive view. When you follow that link you will see two files, one
+for the Graffiti Code source, and one for the object code (e.g. SVG). The Gist view will provide
+links for accessing that code with Git. Perhaps the simplest workflow from here is to click the 
+link to the <b>raw</b> code of the <b>obj</b> file, select all, and copy the code verbatim into
+the HTML of a web page or blog.
 </p>
+
 <p>
-Once your code has been shared on Github, a link to its Gist will appear below the piece's thumbnail
-in the Archive view.
+<b>NOTE</b>: Currently, the generated SVG object code is far from optimal or pretty. This will be
+fixed ASAP. In the mean time, don't stare too hard at it or you might get a head ache, or suffer
+some other ill effect.
+</p>
+
+<p>
+<b>NOTE</b>: Ignore the Gist <b>show embed</b> link. It makes the bold assumption that the code is
+JavaScript. Since Graffiti Code is not generating JavaScript, nothing good will come from you trying
+to use the offered markup. If you want to link, as opposed to inline, the generated code, use an
+ &lt;object&gt; tag as described in the previous section.
+</p>
+
+
+
+<p>
+There is one Gist per archived piece, so if the current code has already been archived and saved as
+a Gist, the Share button will have no effect.
 </p>
 
 
