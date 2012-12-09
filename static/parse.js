@@ -245,6 +245,7 @@ function log(str) {
     }
 
     function number(ctx, str) {
+        console.log("ast.number() str="+str)
         push(ctx, {tag: "NUM", elts: [str]})
     }
 
@@ -330,15 +331,15 @@ function log(str) {
 
     function div(ctx) {
         log("ast.div()")
-        var v2 = node(ctx, pop(ctx)).elts[0]
-        var v1 = node(ctx, pop(ctx)).elts[0]
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, v1/v2)
     }
 
     function mul(ctx) {
         log("ast.mul()")
-        var v2 = node(ctx, pop(ctx)).elts[0]
-        var v1 = node(ctx, pop(ctx)).elts[0]
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, v1*v2)
     }
 
@@ -346,6 +347,7 @@ function log(str) {
         log("ast.add()")
         var v2 = +node(ctx, pop(ctx)).elts[0]
         var v1 = +node(ctx, pop(ctx)).elts[0]
+        console.log("v1="+v1+" v2="+v2+" v1+v2="+v1+v2)
         number(ctx, v1+v2)
     }
 
@@ -591,7 +593,7 @@ function log(str) {
         log("number()")
         eat(ctx, TK_STR)
         cc.cls = "string"
-        ast.string(ctx, lexeme)
+        ast.string(ctx, lexeme.substring(1,str.length-1)) // strip quotes
         return cc
     }
 

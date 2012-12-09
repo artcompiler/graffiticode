@@ -382,8 +382,9 @@ exports.transformer = GraffitiCode.transformer = function() {
     function text(node) {
         print("text")
         var elts = []
-        var str = visit(node.elts[0])
-        elts.push(str.substring(1,str.length-1))  // strip of quotes
+        var str = ""+visit(node.elts[0])
+        console.log("text() str="+str)
+        elts.push(str)
         return {
             "tag": "text",
             "elts": elts,
