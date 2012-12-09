@@ -593,7 +593,7 @@ function log(str) {
         log("number()")
         eat(ctx, TK_STR)
         cc.cls = "string"
-        ast.string(ctx, lexeme.substring(1,str.length-1)) // strip quotes
+        ast.string(ctx, lexeme.substring(1,lexeme.length-1)) // strip quotes
         return cc
     }
 
