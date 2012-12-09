@@ -97,7 +97,8 @@ exports.renderer = GraffitiCode.renderer = function() {
                 }
             }
         }
-        if (attrs.length === 0) {
+
+        if (tagName === "g" && attrs.length === 0) {   // skip g elements without attrs
             var tag = elts
         }
         else {

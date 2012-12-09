@@ -279,6 +279,15 @@ body .main .edit-panel {
   border-color: #aaa;
 }
 
+#obj-view {
+  float: left;
+  margin-left: 20;
+  margin-bottom: 20;
+  border-width: 1;
+  border-style: solid;
+  border-color: #aaa;
+}
+
 #button-bar {
 //  position: relative;
   float: left;

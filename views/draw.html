@@ -37,6 +37,7 @@
 -->
 	</div>
 	<div id="edit-view" name="code"></div>
+	<div id="obj-view" name="code"></div>
       </div>
       <div id="graff-view"></div>
     </div>
@@ -65,14 +66,12 @@ $(document).ready(function () {
         $("#graff-view").offset(offset)
     }
 
-/*
-    textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
+    objCodeMirror = CodeMirror(document.querySelector("#obj-view"), {
         value: "",
         mode: {name: "xml", alignCDATA: true},
         lineWrapping: "true",
         lineNumbers: "true",
     })
-*/
 
     $(document).scroll(function (data) {
        if ($(".gallery-panel").css('display') === 'none') {

@@ -27,7 +27,7 @@ GraffitiCode.ui = (function () {
             success: function(data) {
                 //		updateText(data)
 		        updateGraffito(data, src, ast)
-//		        updateCode(data)
+		        updateObj(data)
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -213,8 +213,8 @@ GraffitiCode.ui = (function () {
 	    editor.setValue(src.split("\\n").join("\n"))
     }
 
-    function updateCode(obj) {
-//	    textCodeMirror.setValue(obj)
+    function updateObj(obj) {
+	    objCodeMirror.setValue(obj)
     }
 
     function updateGraffito(obj, src, pool) {
