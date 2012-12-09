@@ -370,7 +370,6 @@ exports.transformer = GraffitiCode.transformer = function() {
         var x = visit(node.elts[2])
         var y = visit(node.elts[1])
         var d = visit(node.elts[0])
-        console.log("C "+x1+" "+y1+" "+x2+" "+y2+" "+x+" "+y+" "+d)
         return "C "+x1+" "+y1+" "+x2+" "+y2+" "+x+" "+y+" "+d
     }
 
@@ -383,7 +382,6 @@ exports.transformer = GraffitiCode.transformer = function() {
         print("text")
         var elts = []
         var str = ""+visit(node.elts[0])
-        console.log("text() str="+str)
         elts.push(str)
         return {
             "tag": "text",

@@ -245,7 +245,6 @@ function log(str) {
     }
 
     function number(ctx, str) {
-        console.log("ast.number() str="+str)
         push(ctx, {tag: "NUM", elts: [str]})
     }
 
@@ -266,6 +265,7 @@ function log(str) {
         var lexicon = def.env.lexicon
         // setup inner environment record (lexicon)
         for (var id in lexicon) {
+            if (!id) continue
             var word = lexicon[id]
             word.val = args[args.length-1-word.offset]  // offsets are from end of args
             env.addWord(ctx, id, word)
@@ -347,7 +347,6 @@ function log(str) {
         log("ast.add()")
         var v2 = +node(ctx, pop(ctx)).elts[0]
         var v1 = +node(ctx, pop(ctx)).elts[0]
-        console.log("v1="+v1+" v2="+v2+" v1+v2="+v1+v2)
         number(ctx, v1+v2)
     }
 
@@ -1176,8 +1175,6 @@ function log(str) {
 
     GraffitiCode.parse = parse
 
-//    console.log("parse="+GraffitiCode.parse)
-
     var lexeme = ""
 
     function scanner(stream) {
@@ -1198,7 +1195,6 @@ function log(str) {
             var c;
             lexeme = "";
             while (stream.peek() !== void 0) {
-//                console.log("peek()="+stream.peek())
                 switch ((c = stream.next().charCodeAt(0))) {
                 case 32:  // space
                 case 9:   // tab
@@ -1317,7 +1313,6 @@ function log(str) {
             c = (s = stream.next()) ? s.charCodeAt(0) : 0
 
             while (c !== quoteChar && c != 10 && c!= 13 && c !== 0) {
-//                console.log("c="+c)
 //                lexeme += String.fromCharCode(c);
                 var s;
                 c = (s = stream.next()) ? s.charCodeAt(0) : 0
@@ -1346,7 +1341,6 @@ function log(str) {
                    (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0))) 
             {
                 lexeme += String.fromCharCode(c);                 
-                //console.log("ident() c="+c+" lexeme="+lexeme)
                 c = stream.peek() ? stream.next().charCodeAt(0) : 0
             }
         
@@ -1492,7 +1486,6 @@ GraffitiCode.folder = function() {
     }
 
     function isString(v) {
-//        console.log("isString() _="+_)
         return _.isString(v)
     }
 
