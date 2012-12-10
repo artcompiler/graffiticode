@@ -207,7 +207,7 @@ body .main .edit-panel {
 #help-view .help-heading {
     width: 100%;
     height: 18;
-    background-color: rgb(150, 200, 255);
+    background-color: rgba(150, 200, 255, .65);
 //    background-color: #ddd;
     position: relative;
     padding-bottom: 5;
