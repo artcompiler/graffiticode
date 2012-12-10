@@ -266,7 +266,9 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel #"+id+" .thumbnail svg").css("width", "220")
         $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124")
 //        $(".gallery-panel div#"+id+" svg").css("border: 1")
-        $(".gallery-panel #"+id+" .thumbnail").attr("onclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
+        $(".gallery-panel #"+id+" .thumbnail")
+            .attr("onclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
+            .attr("title", "Click to view in the workspace.")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
 //        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
 
