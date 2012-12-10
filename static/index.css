@@ -290,7 +290,7 @@ body .main .edit-panel {
 //  border-color: #aaa;
 }
 
-#button-bar {
+.button-bar {
 //  position: relative;
   float: top left;
 //  margin-top: 20;
@@ -341,9 +341,8 @@ body .main .essay-panel {
   font-family: 'Arvo', serif;
   font-size: 11;
 //  float: left;
-  position: relative;
 //  top: 100;
-  margin-left: 20;
+//  margin-left: 20;
   padding: 20;
   width: 640;
 //  height:1000;
@@ -356,12 +355,13 @@ body .main .essay-panel {
 body .main .gallery-panel {
 //  display: none;
   float: left;
-  position: relative;
+//  position: relative;
 //  top: 100;
-  margin-left: 20;
-  padding-top:20;
+//  margin-left: 20;
+//  margin-top:10;
 //  width: 240;
   width: 95%;
+  min-width: 1000;
 //  border-width: 1;
 //  border-style: solid;
 //  border-color: #aaa;
@@ -372,12 +372,12 @@ body .main .gallery-panel {
   float: left;
   width: 220;
   height: 144;
-  margin-left:10;
+//  margin-left:10;
+  margin-right:10;
   margin-bottom: 20;
 }
 
 .thumbnail {
-  margin-right:10;
   float: left;
   width: 220;
   height: 124;

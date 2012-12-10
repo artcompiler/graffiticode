@@ -281,16 +281,11 @@ GraffitiCode.ui = (function () {
         queryPieces()
 //        showArchive()
 //        newCode()
-        showWorkspace()
         $.get("draw-help.html", function (data) {
             $("#help-view").append(data)
         })
 
         var srcId = 101
-        $.get("http://"+location.host+"/code/"+srcId, function (data) {
-            updateSrc(data[0].id, data[0].src)
-        })
-
         var newId = 208
         var findId = 240
         var archiveId = 242
@@ -306,10 +301,14 @@ GraffitiCode.ui = (function () {
         $.get("http://"+location.host+"/graffiti/"+findId, function (openButton) {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
         $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#'>"+newButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showArchive()' title='Find' href='#'>"+openButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
-            $("#button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postGist()' title='Share' href='#'>"+shareButton+"</a>")
+            showWorkspace()
+            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#'>"+newButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showArchive()' title='Find' href='#'>"+openButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postGist()' title='Share' href='#'>"+shareButton+"</a>")
+            $.get("http://"+location.host+"/code/"+srcId, function (data) {
+                updateSrc(data[0].id, data[0].src)
+            })
         })
         })
         })
@@ -318,9 +317,10 @@ GraffitiCode.ui = (function () {
 
     }
 
-    function showTutorial(name) {
+    function showEssay(name) {
         GraffitiCode.ui.doRecompile = false
 
+        $(".button-bar").css("display", "none")
         $(".gallery-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
         $(".essay-panel").css("display", "block")
@@ -388,6 +388,7 @@ GraffitiCode.ui = (function () {
     }
 
     function showArchive() {
+        $(".button-bar").css("display", "block")
         $(".gallery-panel").css("display", "block")
         $(".essay-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
@@ -449,6 +450,8 @@ GraffitiCode.ui = (function () {
         GraffitiCode.ui.doRecompile = true
         $(".gallery-panel").css("display", "none")
         $(".essay-panel").css("display", "none")
+
+        $(".button-bar").css("display", "block")
         $(".edit-panel").css("display", "block")
 
         $(".nav-link").css("background-color", "#ddd")
@@ -482,7 +485,7 @@ GraffitiCode.ui = (function () {
         clickThumbnail: clickThumbnail,
         loadMoreThumbnails: loadMoreThumbnails,
         start: start,
-        showTutorial: showTutorial,
+        showEssay: showEssay,
         showArchive: showArchive,
         showWorkspace: showWorkspace,
         showDemos: showDemos,
