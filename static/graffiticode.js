@@ -300,7 +300,7 @@ GraffitiCode.ui = (function () {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
         $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
             showWorkspace()
-            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#'>"+newButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#' style='margin-left: 260'>"+newButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showArchive()' title='Find' href='#'>"+openButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postGist()' title='Share' href='#'>"+shareButton+"</a>")
