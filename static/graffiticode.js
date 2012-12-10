@@ -283,7 +283,7 @@ GraffitiCode.ui = (function () {
             $("#help-view").append(data)
         })
 
-        var srcId = 101
+        var srcId = 308
         var newId = 208
         var findId = 240
         var archiveId = 242
