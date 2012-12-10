@@ -327,8 +327,9 @@ GraffitiCode.ui = (function () {
 
         $(".nav-link").css("background-color", "#ddd")
         $(".nav-link").css("font-weight", "400")
-        $("#start-link").css("background-color", "#bbb")
-        $("#start-link").css("font-weight", "700")
+
+        $("#"+name+"-link").css("background-color", "#bbb")
+        $("#"+name+"-link").css("font-weight", "700")
 
         if (GraffitiCode.essayName !== name) {            
             $.get(name+".html", function(data) {
