@@ -273,35 +273,41 @@ body .main .edit-panel {
   float: left;
 //  margin-top: 20;
   margin-left: 20;
-  margin-bottom: 20;
-  border-width: 1;
-  border-style: solid;
-  border-color: #aaa;
+  margin-bottom: 10;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
 }
 
 #obj-view {
   float: left;
   margin-left: 20;
   margin-bottom: 20;
-  border-width: 1;
-  border-style: solid;
-  border-color: #aaa;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
 }
 
 #button-bar {
 //  position: relative;
   float: left;
 //  margin-top: 20;
-  height: 20;
+  height: 30;
   width: 100%;
   margin-left: 20;
   margin-bottom: 10;
+  background-color: #ccc;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
 }
 
 .button-bar-button {
 //  position: relative;
   float: left;
-  margin-right: 5;
+  margin: 5 0 5 5;
+  width: 20;
+  height: 20;
 //  margin: 5;
 }
 
@@ -319,9 +325,9 @@ body .main .edit-panel {
 //  margin-top: 20;
   margin-left: 20;
   background: #fff;
-  border-width: 1;
-  border-style: solid;
-  border-color: #aaa;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
 }
 
 body .main .essay-panel {
