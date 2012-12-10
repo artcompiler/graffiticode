@@ -448,8 +448,8 @@ exports.transformer = GraffitiCode.transformer = function() {
     function translate(node) {
         print("translate")
         var elts = []
-        var x = visit(node.elts[2])
-        var y = visit(node.elts[1])
+        var x = +visit(node.elts[2])
+        var y = +visit(node.elts[1])
         var shape = visit(node.elts[0])
         return {
             "tag": "g",

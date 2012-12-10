@@ -206,9 +206,11 @@ GraffitiCode.ui = (function () {
         GraffitiCode.id = id
         GraffitiCode.parent = GraffitiCode.id
         var data = $(".gallery-panel #"+id).data("piece")
-        GraffitiCode.gist_id = data.gist_id
-        if (!src) {
-            var src = data.src
+        if (data) {
+            GraffitiCode.gist_id = data.gist_id
+            if (!src) {
+                var src = data.src
+            }
         }
 	    editor.setValue(src.split("\\n").join("\n"))
     }
@@ -278,11 +280,17 @@ GraffitiCode.ui = (function () {
     function start() {
         queryPieces()
 //        showArchive()
-        newCode()
-        showTutorial("tutorial-starting")
+//        newCode()
+        showWorkspace()
         $.get("draw-help.html", function (data) {
             $("#help-view").append(data)
         })
+
+        var srcId = 101
+        $.get("http://"+location.host+"/code/"+srcId, function (data) {
+            updateSrc(data[0].id, data[0].src)
+        })
+
         var newId = 208
         var findId = 240
         var archiveId = 242
@@ -306,7 +314,6 @@ GraffitiCode.ui = (function () {
         })
         })
         })
-
 
 
     }
@@ -438,7 +445,7 @@ GraffitiCode.ui = (function () {
         $("#feddback-link").css("font-weight", "700")
     }
 
-    function showWorkspace() {
+    function showWorkspace(id) {
         GraffitiCode.ui.doRecompile = true
         $(".gallery-panel").css("display", "none")
         $(".essay-panel").css("display", "none")
@@ -454,6 +461,10 @@ GraffitiCode.ui = (function () {
 
     function newCode() {
         editor.setValue("size 100 100.\n.")
+        var srcId = 302
+        $.get("http://"+location.host+"/code/"+srcId, function (data) {
+            updateSrc(data[0].id, data[0].src)
+        })
     }
 
 
