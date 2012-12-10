@@ -279,8 +279,6 @@ GraffitiCode.ui = (function () {
 
     function start() {
         queryPieces()
-//        showArchive()
-//        newCode()
         $.get("draw-help.html", function (data) {
             $("#help-view").append(data)
         })
@@ -389,6 +387,7 @@ GraffitiCode.ui = (function () {
 
     function showArchive() {
         $(".button-bar").css("display", "block")
+        $(".button-bar-button").hide()
         $(".gallery-panel").css("display", "block")
         $(".essay-panel").css("display", "none")
         $(".edit-panel").css("display", "none")
@@ -451,7 +450,8 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel").css("display", "none")
         $(".essay-panel").css("display", "none")
 
-        $(".button-bar").css("display", "block")
+        $(".button-bar").show()
+        $(".button-bar-button").show()
         $(".edit-panel").css("display", "block")
 
         $(".nav-link").css("background-color", "#ddd")

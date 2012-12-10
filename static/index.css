@@ -353,7 +353,7 @@ body .main .essay-panel {
 }
 
 body .main .gallery-panel {
-//  display: none;
+  display: none;
   float: left;
 //  position: relative;
 //  top: 100;
