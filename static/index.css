@@ -167,11 +167,11 @@ a.download:hover {
 /* close commented backslash hack */
 
 body .main {
-  float: left;
-//  position: absolute;
-//  top: 100;
+//  float: left;
+  position: absolute;
+  top: 90;
   margin-left: 20;
-  margin-top:70;
+//  margin-top:70;
   width: 100%;
   background: #eee;
 }
@@ -179,6 +179,7 @@ body .main {
 body .main .edit-panel {
   float: left;
   width: 100%;
+  min-width: 980;
 //  height: 100%;
 //  position: absolute;
 //  top: 100;
@@ -195,11 +196,11 @@ body .main .edit-panel {
   float: left;
   width: 240;
 //  margin-top: 20;
-  margin-left: 20;
+//  margin-left: 20;
   margin-bottom: 20;
-  border-width: 1;
-  border-style: solid;
-  border-color: #aaa;
+//  border-width: 1;
+//  border-style: solid;
+//  border-color: #aaa;
   background: #fff;
 }
 
@@ -210,8 +211,8 @@ body .main .edit-panel {
 //    background-color: #ddd;
     position: relative;
     padding-bottom: 5;
-    margin-top: 10;
-    margin-bottom: 5;
+//    margin-top: 10;
+    margin-bottom: 10;
 }
 
 #help-view .help-heading span {
@@ -231,6 +232,7 @@ body .main .edit-panel {
     font-size: 10;
 //    height: 60;
     padding-top: 2;
+    margin-bottom: 5;
 }
 
 #help-view .help-item ul {
@@ -241,7 +243,7 @@ body .main .edit-panel {
 }
 
 #help-view .help-item ul li {
-    width: 229;
+//    width: 230;
 }
 
 #help-view .help-item ul li.item-title {
@@ -249,8 +251,8 @@ body .main .edit-panel {
     font-size: 12;
     background-color: #ddd;
     padding-top: 2;
-    padding-left: 3;
-    margin-left: 4;
+    padding-left: 5;
+//    margin-left: 4;
     color: #444;
 }
 
@@ -290,11 +292,14 @@ body .main .edit-panel {
 
 #button-bar {
 //  position: relative;
-  float: left;
+  float: top left;
 //  margin-top: 20;
   height: 30;
-  width: 100%;
-  margin-left: 20;
+  width: 900;
+//  min-width: 980;
+//  width: 100%;
+//  margin-left: 20;
+//  padding-left: 20;
   margin-bottom: 10;
   background-color: #ccc;
 //  border-width: 1;
@@ -393,7 +398,7 @@ body .main .gallery-panel {
   color: #555;
 }
 
-body .main {
-  margin-left: auto;
-  margin-right: auto;
-}
+//body .main {
+//  margin-left: auto;
+//  margin-right: auto;
+//}
