@@ -1120,10 +1120,13 @@ function log(str) {
         var ctx = {scan: scanner(stream), state: state}
         var cls
         try {
-            peek(ctx)   // eat whitespace til next token
-            if (stream.eol()) {
-                return "comment"
-            }
+//            var c;
+//            while ((c = stream.peek()) && (c===9 || c===32)) {
+//                stream.next()
+//            }
+//            if (stream.eol()) {
+//                return "comment"
+//            }
 
             // call the continuation and store the next continuation
             //log(">>parse() cc="+state.cc+"\n")
@@ -1147,6 +1150,10 @@ function log(str) {
             }
 
 //            peek(ctx)   // eat whitespace til next token
+//            var c;
+//            while ((c = stream.peek()) && (c===9 || c===32)) {
+//                stream.next()
+//            }
 
 //            if (cc && emptyInput(ctx)) {
 //                while((cc=cc(ctx, null))) ;
