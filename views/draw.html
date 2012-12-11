@@ -3,6 +3,7 @@
   <link href='http://fonts.googleapis.com/css?family=Arvo:400,700,400italic,700italic' rel='stylesheet' type='text/css'>  <link rel="stylesheet" href="index.css">
   <link rel="stylesheet" href="codemirror.css">
   <link rel="stylesheet" href="simple-hint.css">
+  <link rel="stylesheet" href="codemirror-theme.css">
   <script src="draw-lexicon.js"></script>
   <script src="underscore.js"></script>
   <script src="jquery.js"></script>
@@ -16,10 +17,10 @@
   <script src="mode-javascript.js"></script>
   <style>
 //    .CodeMirror {border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;}
-    span.cm-meta {color: #a0b !important;}
-    span.cm-error { background-color: black; opacity: 0.4;}
-    span.cm-error.cm-string { background-color: red; }
-    span.cm-error.cm-tag { background-color: #2b2; }
+//    span.cm-meta {color: #a0b !important;}
+//    span.cm-error { background-color: black; opacity: 0.4;}
+//    span.cm-error.cm-string { background-color: red; }
+//    span.cm-error.cm-tag { background-color: #2b2; }
   </style>
   <title><%=title%></title>
 </head>
@@ -41,12 +42,15 @@
   </div>
   <script>
 
+
 $(document).ready(function () {
+    var theme = "default"
     editor = CodeMirror(document.querySelector("#edit-view"), {
 	mode:  "graffiti",
 	lineWrapping: "true",
 	lineNumbers: "true",
         indentWithTabs: "true",
+        theme: theme,
 //	onCursorActivity: function (editor) {
 //            CodeMirror.handleCursorEvent(editor)
 //	},
@@ -68,7 +72,8 @@ $(document).ready(function () {
         mode: {name: "xml", alignCDATA: true},
         lineWrapping: "true",
         lineNumbers: "true",
-        readOnly: "true"
+        readOnly: "true",
+        theme: theme,
     })
 
     $(document).scroll(function (data) {

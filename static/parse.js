@@ -12,7 +12,7 @@ function alert(str) {
 }
 
 function print(str) {
-//    console.log(str)
+    console.log(str)
 }
 
 function log(str) {
@@ -571,7 +571,7 @@ function log(str) {
 
     function peek(ctx) {
         var tk = ctx.scan.start()
-        //log("peek() tk="+tk+" lexeme="+lexeme)
+        print("peek() tk="+tk+" lexeme="+lexeme+" length="+length)
         if (tk) {
             ctx.scan.stream.backUp(lexeme.length)
         }
@@ -1120,6 +1120,11 @@ function log(str) {
         var ctx = {scan: scanner(stream), state: state}
         var cls
         try {
+            peek(ctx)   // eat whitespace til next token
+            if (stream.eol()) {
+                return "comment"
+            }
+
             // call the continuation and store the next continuation
             //log(">>parse() cc="+state.cc+"\n")
             if (state.cc === null) {
@@ -1140,7 +1145,9 @@ function log(str) {
                 }
                 GraffitiCode.lastAST = thisAST
             }
-            
+
+//            peek(ctx)   // eat whitespace til next token
+
 //            if (cc && emptyInput(ctx)) {
 //                while((cc=cc(ctx, null))) ;
 //            }
@@ -1158,8 +1165,15 @@ function log(str) {
             log("---------")
             log("exception caught!!!=")
             if (x === "syntax error") {
-                cls = "comment"
+                cls = "error"
                 state.cc = null
+            }
+            else
+            if (x === "comment") {
+//                print("comment found")
+                cls = x
+//                next(ctx)
+                //state.cc = null
             }
             else {
                 alert(x)
@@ -1211,9 +1225,6 @@ function log(str) {
                 case 61:  // equal
                     lexeme += String.fromCharCode(c);
                     return TK_EQUAL
-                case 92:  // backslash
-                    lexeme += String.fromCharCode(c);
-                    return latex();
                 case 40:  // left paren
                     lexeme += String.fromCharCode(c);
                     return TK_LEFTPAREN
@@ -1243,13 +1254,16 @@ function log(str) {
                     return string(c)
 
                 case 96:  // backquote
+                case 47:  // slash
+                case 92:  // backslash
+                case 95:  // underscore
+                case 33:  // !
+                case 124: // |
                     comment(c)
-                    c = ' '
-                    continue
+                    throw "comment"
 
                 case 94:  // caret
                 case 44:  // comma
-                case 47:  // slash
                 case 42:  // asterisk
                     lexeme += String.fromCharCode(c);
                     return c; // char code is the token id
