@@ -30,7 +30,6 @@ h3 {
 
 pre {
   background-color: #eee;
-  -moz-border-radius: 6px;
   -webkit-border-radius: 6px;
   border-radius: 6px;
   padding: 1em;
@@ -180,15 +179,6 @@ body .main .edit-panel {
   float: left;
   width: 100%;
   min-width: 980;
-//  height: 100%;
-//  position: absolute;
-//  top: 100;
-//  margin-left: 20;
-//  padding-top:20;
-//  border-width: 1;
-//  border-style: solid;
-//  border-color: #aaa;
-//  background: #fff;
 }
 
 #help-view {
@@ -223,7 +213,6 @@ body .main .edit-panel {
     top: 0;
     padding-left: 5;
     color: #333;
-    text-align: bottom;
 }
 
 #help-view .help-item {
@@ -291,20 +280,12 @@ body .main .edit-panel {
 }
 
 .button-bar {
-//  position: relative;
-  float: top left;
-//  margin-top: 20;
+  float: left;
   height: 30;
-//  width: 900;
   min-width: 900;
   width: 95%;
-//  margin-left: 20;
-//  padding-left: 20;
   margin-bottom: 10;
   background-color: #ccc;
-//  border-width: 1;
-//  border-style: solid;
-//  border-color: #aaa;
 }
 
 .button-bar-button {
@@ -397,8 +378,3 @@ body .main .gallery-panel {
   font-size: 10;
   color: #555;
 }
-
-//body .main {
-//  margin-left: auto;
-//  margin-right: auto;
-//}
