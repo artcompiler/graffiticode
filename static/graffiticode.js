@@ -245,6 +245,9 @@ GraffitiCode.ui = (function () {
     }
 
     function addPiece(data, src, obj, append) {
+        if (!data || !data.id) {
+            return
+        }
         var id = data.id
         var gist_id = data.gist_id
         if (append) {
