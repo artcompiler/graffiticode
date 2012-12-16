@@ -12,7 +12,7 @@ function alert(str) {
 }
 
 function print(str) {
-    console.log(str)
+//    console.log(str)
 }
 
 function log(str) {

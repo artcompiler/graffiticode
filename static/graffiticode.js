@@ -168,7 +168,7 @@ GraffitiCode.ui = (function () {
         var start = GraffitiCode.nextThumbnail
         var end = GraffitiCode.nextThumbnail = start + loadIncrement
         var len = GraffitiCode.pieces.length
-        if (GraffitiCode.currentThumbnail >= len) {
+        if (start >= len || GraffitiCode.currentThumbnail >= len) {
             return
         }
         if (end > len) {
@@ -186,9 +186,6 @@ GraffitiCode.ui = (function () {
                     GraffitiCode.currentThumbnail = start + i      // keep track of the current thumbnail in case of async
 		            addPiece(d, d.src, d.obj, true)
 		        }
-//                if (doUpdateSrc) {
-//                    updateSrc(data[0].id)
-//                }
             },
             error: function(xhr, msg, err) {
 		        alert(msg+" "+err)
@@ -212,7 +209,9 @@ GraffitiCode.ui = (function () {
                 var src = data.src
             }
         }
-	    editor.setValue(src.split("\\n").join("\n"))
+        if (src) {
+	        editor.setValue(src.split("\\n").join("\n"))
+        }
     }
 
     function updateObj(obj) {
