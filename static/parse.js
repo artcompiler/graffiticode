@@ -586,10 +586,6 @@ function log(str) {
         else {
             tk = nextToken
         }
-        print("peek() tk="+tk+" lexeme="+lexeme+" length="+length)
-//        if (tk) {
-//            ctx.scan.stream.backUp(lexeme.length)
-//        }
         return tk
     }
 
@@ -1132,13 +1128,14 @@ function log(str) {
         var ctx = {scan: scanner(stream), state: state}
         var cls
         try {
-//            var c;
-//            while ((c = stream.peek()) && (c===9 || c===32)) {
-//                stream.next()
-//            }
-//            if (stream.eol()) {
-//                return "comment"
-//            }
+            var c;
+            while ((c = stream.peek()) && (c===' ' || c==='\t')) {
+                stream.next()
+            }
+            // if this is a blank line, treat it as a comment
+            if (stream.peek()===void 0) {
+                throw "comment"
+            }
 
             // call the continuation and store the next continuation
             //log(">>parse() cc="+state.cc+"\n")
@@ -1161,11 +1158,11 @@ function log(str) {
                 GraffitiCode.lastAST = thisAST
             }
 
-//            peek(ctx)   // eat whitespace til next token
-//            var c;
-//            while ((c = stream.peek()) && (c===9 || c===32)) {
-//                stream.next()
-//            }
+            var c;
+            while ((c = stream.peek()) &&
+                   (c===' ' || c==='\t')) {
+                stream.next()
+            }
 
             print("---------")
             print("parse() pos="+stream.pos)
@@ -1338,23 +1335,14 @@ function log(str) {
 
         function comment(c) {
             var quoteChar = c
-//            lexeme += String.fromCharCode(c)
             c = (s = stream.next()) ? s.charCodeAt(0) : 0
 
             while (c !== quoteChar && c != 10 && c!= 13 && c !== 0) {
-//                lexeme += String.fromCharCode(c);
                 var s;
                 c = (s = stream.next()) ? s.charCodeAt(0) : 0
             }
 
             return TK_COMMENT
-//            if (c) {
-//                lexeme += String.fromCharCode(c)
-//
-//            }
-//            else {
-//                return 0
-//            }
         }
         
         function ident(c) {
