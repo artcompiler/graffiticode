@@ -28,6 +28,7 @@ CodeMirror.defineMode("graffiti", function() {
 		nodeStack: [],
 		nodePool: ["unused"],
 		nodeMap: {},
+                nextToken: -1,
             }
         },
 
