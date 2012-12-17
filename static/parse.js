@@ -732,7 +732,7 @@ function log(str) {
 
     function callExpr(ctx, cc) {
         log("callExpr()")
-        var ret = primaryExpr(ctx, function (ctx) {
+        return primaryExpr(ctx, function (ctx) {
             log("found primaryExpr topNode="+ast.node(ctx, ast.topNode(ctx)).elts[0])
             var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
             var tk = findWord(ctx, name)
@@ -742,8 +742,6 @@ function log(str) {
             }
             return cc(ctx)
         })
-        log("primaryExpr() ret="+ret)
-        return ret
     }
 
     function startArgs(ctx, len) {
@@ -783,8 +781,9 @@ function log(str) {
                 eat(ctx, TK_POSTOP)
                 cc.cls = "operator"
                 ast.postfixExpr(ctx, lexeme)
+                return cc
             }
-            return cc
+            return cc(ctx)
         })
     }
     
@@ -818,7 +817,7 @@ function log(str) {
                 ret.cls = "operator"
                 return ret
             }
-            return cc
+            return cc(ctx)
         })
         log("prefixExpr() ret="+ret)
         return ret
@@ -842,8 +841,9 @@ function log(str) {
                         })
                     })
                 }
+                return cc
             }
-            return cc
+            return cc(ctx)
         })
         log("binaryExpr() ret="+ret)
         return ret
