@@ -12,7 +12,7 @@ function alert(str) {
 }
 
 function print(str) {
-//    console.log(str)
+    console.log(str)
 }
 
 function log(str) {
@@ -563,18 +563,33 @@ function log(str) {
         }
     }
 
+//    function next(ctx) {
+//        var tk = ctx.scan.start()
+//        log("next() tk="+tk+" lexeme="+lexeme)
+//        return tk
+//    }
+
     function next(ctx) {
-        var tk = ctx.scan.start()
-        log("next() tk="+tk+" lexeme="+lexeme)
+        var tk = peek(ctx)
+        ctx.state.nextToken = -1
+        print("next() tk="+tk+" lexeme="+lexeme)
         return tk
     }
 
     function peek(ctx) {
-        var tk = ctx.scan.start()
-        print("peek() tk="+tk+" lexeme="+lexeme+" length="+length)
-        if (tk) {
-            ctx.scan.stream.backUp(lexeme.length)
+        var tk
+        var nextToken = ctx.state.nextToken
+        if (nextToken < 0) {
+            tk = ctx.scan.start()
+            ctx.state.nextToken = tk
         }
+        else {
+            tk = nextToken
+        }
+        print("peek() tk="+tk+" lexeme="+lexeme+" length="+length)
+//        if (tk) {
+//            ctx.scan.stream.backUp(lexeme.length)
+//        }
         return tk
     }
 
@@ -725,7 +740,7 @@ function log(str) {
                 startArgs(ctx, tk.length)
                 return args(ctx, cc)
             }
-            return cc
+            return cc(ctx)
         })
         log("primaryExpr() ret="+ret)
         return ret
@@ -993,14 +1008,11 @@ function log(str) {
         log("exprsFinish()")
         ast.exprs(ctx, ctx.state.exprc)
         stopCounter(ctx)
-        return cc
+        return cc(ctx)   // call continuation when there is not new input expected
     }
 
     function exprs(ctx, cc) {
         log("exprs()")
-//        if (emptyInput(ctx)) {
-//            return exprsFinish(ctx, cc)
-//        }
         if (match(ctx, TK_DOT)) {   // second dot
             eat(ctx, TK_DOT)
             var ret = function(ctx) {
@@ -1010,7 +1022,8 @@ function log(str) {
             return ret
         }
 
-        var ret = expr(ctx, function (ctx) {
+//        var ret = expr(ctx, function (ctx) {
+        return expr(ctx, function (ctx) {
             countCounter(ctx)
             if (match(ctx, TK_DOT)) {
                 eat(ctx, TK_DOT)
@@ -1025,8 +1038,7 @@ function log(str) {
             }
             return exprsFinish(ctx, cc)
         })
-        log("expr() ret="+ret)
-        return ret
+//        return ret
     }
 
     function program(ctx, cc) {
@@ -1153,10 +1165,6 @@ function log(str) {
 //            var c;
 //            while ((c = stream.peek()) && (c===9 || c===32)) {
 //                stream.next()
-//            }
-
-//            if (cc && emptyInput(ctx)) {
-//                while((cc=cc(ctx, null))) ;
 //            }
 
             print("---------")
@@ -1396,6 +1404,7 @@ function log(str) {
                 nodeStack: [],
                 nodePool: ["unused"],
                 nodeMap: {},
+                nextToken: -1,
             }
         },
 
