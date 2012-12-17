@@ -11,7 +11,7 @@ exports.transformer = GraffitiCode.transformer = function() {
 
 
     function print(str) {
-        console.log(str)
+//        console.log(str)
     }
 
     var table = {
