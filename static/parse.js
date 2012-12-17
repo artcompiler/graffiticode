@@ -1132,10 +1132,10 @@ function log(str) {
         var ctx = {scan: scanner(stream), state: state}
         var cls
         try {
-//            var c;
-//            while ((c = stream.peek()) && (c===9 || c===32)) {
-//                stream.next()
-//            }
+            var c;
+            while ((c = stream.peek()) && (c===9 || c===32)) {
+                stream.next()
+            }
 //            if (stream.eol()) {
 //                return "comment"
 //            }
