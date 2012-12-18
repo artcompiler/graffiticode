@@ -1440,6 +1440,7 @@ GraffitiCode.folder = function() {
         "RGBA" : rgba,
         "FILL" : fill,
         "STROKE" : stroke,
+        "STROKEWIDTH" : strokeWidth,
         "COLOR" : color,
         "TEXT" : text,
         "FSIZE" : fsize,
@@ -1779,6 +1780,14 @@ GraffitiCode.folder = function() {
 
     function stroke(node) {
         ast.name(ctx, "stroke")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function strokeWidth(node) {
+        ast.name(ctx, "stroke-width")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }

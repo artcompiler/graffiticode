@@ -11,7 +11,7 @@ exports.transformer = GraffitiCode.transformer = function() {
 
 
     function print(str) {
-//        console.log(str)
+        console.log(str)
     }
 
     var table = {
@@ -123,6 +123,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "RGBA" : rgba,
         "FILL" : fill,
         "STROKE" : stroke,
+        "STROKEWIDTH" : strokeWidth,
         "COLOR" : color,
         "SIZE" : size,
         "BACKGROUND" : background,
@@ -613,7 +614,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
 
     function stroke(node) {
-        print("color")
+        print("stroke")
         var elts = []
         var rgb = visit(node.elts[1])
         var shape = visit(node.elts[0])
@@ -639,6 +640,19 @@ exports.transformer = GraffitiCode.transformer = function() {
         return {
             "tag": "g",
             "stroke": "rgb("+r+", "+g+", "+b+")",
+            "elts": [shape],
+        }
+    }
+
+    function strokeWidth(node) {
+        print("strokeWidth")
+        var elts = []
+        var width = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+
+        return {
+            "tag": "g",
+            "stroke-width": width,
             "elts": [shape],
         }
     }

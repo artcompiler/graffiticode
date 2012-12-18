@@ -85,6 +85,7 @@ GraffitiCode.globalLexicon = {
     "rgba" : { "tk": 0x01, "name": "RGBA", "cls": "method", "length": 4 },
     "fill" : { "tk": 0x01, "name": "FILL", "cls": "method", "length": 2 },
     "stroke" : { "tk": 0x01, "name": "STROKE", "cls": "method", "length": 2 },
+    "stroke-width" : { "tk": 0x01, "name": "STROKEWIDTH", "cls": "method", "length": 2 },
     "color" : { "tk": 0x01, "name": "COLOR", "cls": "method", "length": 2 },
     "font-size" : { "tk": 0x01, "name": "FSIZE", "cls": "method", "length": 2 },
     "random" : { "tk": 0x01, "name": "RAND", "cls": "method", "length": 2 },
