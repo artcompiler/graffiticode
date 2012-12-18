@@ -66,6 +66,8 @@ GraffitiCode.globalLexicon = {
     "bezier" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
     "curve" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
     "grid" : { "tk": 0x01, "name": "GRID", "cls": "method", "length": 4 },
+    "line" : { "tk": 0x01, "name": "LINE", "cls": "method", "length": 2 },
+    "point" : { "tk": 0x01, "name": "POINT", "cls": "method", "length": 0 },
 
     "path" : { "tk": 0x01, "name": "PATH", "cls": "method", "length": 1 },
     "closepath" : { "tk": 0x01, "name": "CLOSEPATH", "cls": "method", "length": 0 },

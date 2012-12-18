@@ -103,6 +103,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         "RECT" : rectangle,
         "ELLIPSE" : ellipse,
         "BEZIER" : bezier,
+        "LINE" : line,
+        "POINT" : point,
 
         "PATH" : path,
         "CLOSEPATH" : closepath,
@@ -332,6 +334,28 @@ exports.transformer = GraffitiCode.transformer = function() {
         return {
             "tag": "path",
             "d": d
+        }
+    }
+
+    function line(node) {
+        print("line")
+        var x = visit(node.elts[1])
+        var y = visit(node.elts[0])
+        return {
+            "tag": "line",
+            "x1": 0,
+            "y1": 0,
+            "x2": x,
+            "y2": y,
+        }
+    }
+
+    function point(node) {
+        print("point")
+        return {
+            "tag": "ellipse",
+            "rx": 1/2,
+            "ry": 1/2,
         }
     }
 
