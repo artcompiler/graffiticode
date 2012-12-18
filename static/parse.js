@@ -1422,6 +1422,8 @@ GraffitiCode.folder = function() {
         "RECT" : rectangle,
         "ELLIPSE" : ellipse,
         "BEZIER" : bezier,
+        "LINE" : line,
+        "POINT" : point,
 
         "PATH" : path,
         "CLOSEPATH" : closepath,
@@ -1578,6 +1580,22 @@ GraffitiCode.folder = function() {
         ast.callExpr(ctx, node.elts.length)
     }
 
+
+    function line(node) {
+        ast.name(ctx, "line")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function point(node) {
+        ast.name(ctx, "point")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
 
     function path(node) {
         ast.name(ctx, "path")
