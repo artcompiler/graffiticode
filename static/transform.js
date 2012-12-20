@@ -102,6 +102,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "TRISIDE" : triside,
         "RECT" : rectangle,
         "ELLIPSE" : ellipse,
+        "ARC" : arc,
         "BEZIER" : bezier,
         "LINE" : line,
         "POINT" : point,
@@ -111,6 +112,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "MOVETO" : moveto,
         "LINETO" : lineto,
         "CURVETO" : curveto,
+        "ARCTO" : arcto,
 
         "TEXT" : text,
         "FSIZE" : fsize,
@@ -317,6 +319,35 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
     }
 
+    function polarToCartesian(centerX, centerY, radiusX, radiusY, angleInDegrees) {
+        var angleInRadians = angleInDegrees * Math.PI / 180.0;
+        var x = centerX + radiusX * Math.cos(angleInRadians);
+        var y = centerY + radiusY * Math.sin(angleInRadians);
+        return [x,y];
+    }
+
+    function arc(node) {
+        print("arc")
+        var elts = []
+        var rx = visit(node.elts[3]) / 2
+        var ry = visit(node.elts[2]) / 2
+        var start = visit(node.elts[1])
+        var stop = visit(node.elts[0])
+        var p0 = polarToCartesian(0, 0, rx, ry, start)
+        var p1 = polarToCartesian(0, 0, rx, ry, stop)
+        var x0 = p0[0]
+        var y0 = p0[1]
+        var x1 = p1[0]
+        var y1 = p1[1]
+        var large = stop - start > 180 ? 1 : 0
+
+        return {
+            "tag": "path",
+            "d": "M "+x0+" "+y0+" A "+rx+" "+ry+" 0 "+large+" 1 "+x1+" "+y1,
+        }
+
+    }
+
     function bezier(node) {
         print("bezier")
         var elts = []
@@ -396,6 +427,25 @@ exports.transformer = GraffitiCode.transformer = function() {
         var y = visit(node.elts[1])
         var d = visit(node.elts[0])
         return "C "+x1+" "+y1+" "+x2+" "+y2+" "+x+" "+y+" "+d
+    }
+
+    function arcto(node) {
+        print("arcto")
+        var elts = []
+        var rx = visit(node.elts[4]) / 2
+        var ry = visit(node.elts[3]) / 2
+        var start = visit(node.elts[2])
+        var stop = visit(node.elts[1])
+        var d = visit(node.elts[0])
+        var p0 = polarToCartesian(0, 0, rx, ry, start)
+        var p1 = polarToCartesian(0, 0, rx, ry, stop)
+        var x0 = p0[0]
+        var y0 = p0[1]
+        var x1 = start //p1[0] - p0[0]
+        var y1 = stop  //p1[1] - p0[1]
+        var large = stop - start > 180 ? 1 : 0
+
+        return "A "+rx+" "+ry+" 0 "+large+" 1 "+x1+" "+y1+" "+d
     }
 
     function closepath(node) {

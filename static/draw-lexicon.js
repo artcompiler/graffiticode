@@ -63,6 +63,7 @@ GraffitiCode.globalLexicon = {
     "triside" : { "tk": 0x01, "name": "TRISIDE", "cls": "method", "length": 3 },
     "rectangle" : { "tk": 0x01, "name": "RECT", "cls": "method", "length": 2 },
     "ellipse" : { "tk": 0x01, "name": "ELLIPSE", "cls": "method", "length": 2 },
+    "arc" : { "tk": 0x01, "name": "ARC", "cls": "method", "length": 4 },
     "bezier" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
     "curve" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
     "grid" : { "tk": 0x01, "name": "GRID", "cls": "method", "length": 4 },
@@ -74,6 +75,7 @@ GraffitiCode.globalLexicon = {
     "moveto" : { "tk": 0x01, "name": "MOVETO", "cls": "method", "length": 3 },
     "lineto" : { "tk": 0x01, "name": "LINETO", "cls": "method", "length": 3 },
     "curveto" : { "tk": 0x01, "name":  "CURVETO", "cls": "method", "length": 7 },
+    "arcto" : { "tk": 0x01, "name": "ARCTO", "cls": "method", "length": 5 },
 
 
     "translate" : { "tk": 0x01, "name": "TRANSLATE", "cls": "method", "length": 3 },
