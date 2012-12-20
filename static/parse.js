@@ -1421,6 +1421,7 @@ GraffitiCode.folder = function() {
         "TRISIDE" : triside,
         "RECT" : rectangle,
         "ELLIPSE" : ellipse,
+        "ARC" : arc,
         "BEZIER" : bezier,
         "LINE" : line,
         "POINT" : point,
@@ -1430,6 +1431,7 @@ GraffitiCode.folder = function() {
         "MOVETO" : moveto,
         "LINETO" : lineto,
         "CURVETO" : curveto,
+        "ARCTO" : arcto,
 
         "RAND" : random,
         "GRID" : grid,
@@ -1573,6 +1575,14 @@ GraffitiCode.folder = function() {
         ast.callExpr(ctx, node.elts.length)
     }
 
+    function arc(node) {
+        ast.name(ctx, "arc")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
     function bezier(node) {
         ast.name(ctx, "bezier")
         for (var i = node.elts.length-1; i >= 0; i--) {
@@ -1632,6 +1642,14 @@ GraffitiCode.folder = function() {
 
     function curveto(node) {
         ast.name(ctx, "curveto")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function arcto(node) {
+        ast.name(ctx, "arcto")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
