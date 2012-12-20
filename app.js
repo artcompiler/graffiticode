@@ -337,6 +337,7 @@ app.post('/code', function(req, res){
 		           " VALUES ('"+user+"', '"+parent+"', '"+views+"', '"+forks+"', now(), '"+src+"', '"+obj+"');"
 //	    console.log("queryStr="+queryStr)
 	    client.query(queryStr, function(err, result) {
+		console.log("POST /code err="+err)
 		var queryStr = "SELECT pieces.*, users.name FROM pieces, users WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1"
 //		console.log("POST /code queryStr="+queryStr)
 		client.query(queryStr, function (err, result) {
