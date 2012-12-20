@@ -1262,7 +1262,7 @@ function log(str) {
                     lexeme += String.fromCharCode(c);
                     return TK_RIGHTBRACE
                 case 34:  // double quote
-                case 39:  // single quote
+                //case 39:  // single quote
                     return string(c)
 
                 case 96:  // backquote
