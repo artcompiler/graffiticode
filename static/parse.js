@@ -1165,12 +1165,12 @@ function log(str) {
             }
 
             print("---------")
-            print("parse() pos="+stream.pos)
+            console.log("parse() pos="+stream.pos)
             print("parse() lexeme="+lexeme)
             print("parse() cls="+cls)
             print("parse() cc="+cc+"\n")
             print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
-            print("parse() nodeStack="+ctx.state.nodeStack+"\n")
+            console.log("parse() nodeStack="+ctx.state.nodeStack+"\n")
 
         }
         catch (x) {
