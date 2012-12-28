@@ -4,17 +4,6 @@
   <link rel="stylesheet" href="codemirror.css">
   <link rel="stylesheet" href="simple-hint.css">
   <link rel="stylesheet" href="codemirror-theme.css">
-  <script src="draw-lexicon.js"></script>
-  <script src="underscore.js"></script>
-  <script src="jquery.js"></script>
-  <script src="d3.v2.js"></script>
-  <script src="graffiticode.js"></script>
-  <script src="parse.js"></script>
-  <script src="codemirror.js"></script>
-  <script src="simple-hint.js"></script>
-  <script src="mode-graffiti.js"></script>
-  <script src="mode-xml.js"></script>
-  <script src="mode-javascript.js"></script>
   <style>
 //    .CodeMirror {border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;}
 //    span.cm-meta {color: #a0b !important;}
@@ -40,59 +29,20 @@
       </div>
     </div>
   </div>
-  <script>
-
-
-$(document).ready(function () {
-    var theme = "default"
-    editor = CodeMirror(document.querySelector("#edit-view"), {
-	mode:  "graffiti",
-	lineWrapping: "true",
-	lineNumbers: "true",
-        indentWithTabs: "true",
-        theme: theme,
-//	onCursorActivity: function (editor) {
-//            CodeMirror.handleCursorEvent(editor)
-//	},
-        onUpdate: function() {
-//            updateDisplay()
-        },
-    })
-
-    // position divs vertically
-    function updateDisplay() {
-        var h = $("#edit-view").height()
-        var offset = $("#edit-view").offset()
-        offset.top += h + 20
-        $("#graff-view").offset(offset)
-    }
-
-    objCodeMirror = CodeMirror(document.querySelector("#obj-view"), {
-        value: "",
-        mode: {name: "xml", alignCDATA: true},
-        lineWrapping: "true",
-        lineNumbers: "true",
-        readOnly: "true",
-        theme: theme,
-    })
-
-    $(document).scroll(function (data) {
-       if ($(".gallery-panel").css('display') === 'none') {
-          return
-       }
-       var pos = window.innerHeight + document.body.scrollTop
-       var bottom = document.body.height
-       var height = $(".gallery-panel").height()
-//       console.log("scroll() pos="+pos+" heigth="+height)
-       if (pos > height) {
-           GraffitiCode.ui.loadMoreThumbnails(false)
-       }
-    })
-
-//    updateDisplay()
-    GraffitiCode.ui.start()
-})
-
-  </script>
+  <script>exports = { }</script>
+<!--
+  <script src="require.js" data-main="setup.js"></script>
+-->
+  <script src="underscore.js"></script>
+  <script src="jquery.js"></script>
+  <script src="setup.js"></script>
+  <script src="draw-lexicon.js"></script>
+  <script src="graffiticode.js"></script>
+  <script src="parse.js"></script>
+  <script src="codemirror.js"></script>
+  <script src="simple-hint.js"></script>
+  <script src="mode-graffiti.js"></script>
+  <script src="mode-xml.js"></script>
+  <script src="mode-javascript.js"></script>
 </body>
 </html>

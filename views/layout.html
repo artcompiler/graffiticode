@@ -4,8 +4,46 @@
   <link href='http://fonts.googleapis.com/css?family=Cousine:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
   <link rel='stylesheet', href='/layout.css'/>
   <link href='http://fonts.googleapis.com/css?family=Jura:400,600' rel='stylesheet' type='text/css'>
-  <script src="https://login.persona.org/include.js"></script>
   <title><%=title%></title>
+</head>
+<body>
+  <header>
+    <logo>
+      <ul><li>
+	  Graffiti Code
+	  <br><br>
+	  <span style="color: rgb(255, 51, 51); font-size: 16; font-weight: 400">[Preview Release]</span>
+      </li></ul>
+    </logo>
+    <nav>
+      <ul style="float: left; width: 100; text-align: left;">
+	<li><a id="workspace-link" class="nav-link" onclick="exports.gc.showWorkspace()">Workspace</a></li>
+	<li><a id="archive-link" class="nav-link" onclick="exports.gc.showArchive()">Archive</a></li> 
+<!--
+	<li><a id="start-link" class="nav-link" onclick="exports.gc.showTutorial('tutorial-starting')"
+	       style="word-spacing:-2">How To</a></li>
+-->
+      </ul>
+      <ul style="float: left; width: 100; text-align: left">
+	<li><a id="tutorials-link" class="nav-link" onclick="exports.gc.showEssay('tutorials')">Learn</a></li>
+	<li><a id="notes-link" class="nav-link" onclick="exports.gc.showEssay('notes')">Notes</a></li>
+      </ul>
+      <ul style="float: left; width: 100; text-align: left">
+	<li><a id="about-link" class="nav-link" onclick="exports.gc.showEssay('about')">About</a></li>
+	<li><a id="feedback-link" class="nav-link" onclick="exports.gc.showEssay('feedback')">Feedback</a></li>
+<!--
+	<li><a id="donate-link" class="nav-link" onclick="exports.gc.showDonate()">Donate</a></li>
+-->
+      </ul>
+      <ul style="float: right; width: 100; text-align: left;">
+	<li style="background-color: #bbb; display: inline-block; padding: 2px 10px;"><div id="username" style="background-color: #bbb;"><b>Guest</b></div></li>
+	<li><a id="signin" style="">Sign In</a></li>
+	<li><a id="signout" style="display: none;">Sign Out</a></li>
+      </ul>
+    </nav>
+  </header>
+  <%=body%>
+  <script src="https://login.persona.org/include.js"></script>
   <script type="text/javascript">
 
 var _gaq = _gaq || [];
@@ -20,44 +58,6 @@ _gaq.push(['_trackPageview']);
 })();
 
   </script>
-</head>
-<body>
-  <header>
-    <logo>
-      <ul><li>
-	  Graffiti Code
-	  <br><br>
-	  <span style="color: rgb(255, 51, 51); font-size: 16; font-weight: 400">[Preview Release]</span>
-      </li></ul>
-    </logo>
-    <nav>
-      <ul style="float: left; width: 100; text-align: left;">
-	<li><a id="workspace-link" class="nav-link" onclick="GraffitiCode.ui.showWorkspace()">Workspace</a></li>
-	<li><a id="archive-link" class="nav-link" onclick="GraffitiCode.ui.showArchive()">Archive</a></li> 
-<!--
-	<li><a id="start-link" class="nav-link" onclick="GraffitiCode.ui.showTutorial('tutorial-starting')"
-	       style="word-spacing:-2">How To</a></li>
--->
-      </ul>
-      <ul style="float: left; width: 100; text-align: left">
-	<li><a id="tutorials-link" class="nav-link" onclick="GraffitiCode.ui.showEssay('tutorials')">Learn</a></li>
-	<li><a id="notes-link" class="nav-link" onclick="GraffitiCode.ui.showEssay('notes')">Notes</a></li>
-      </ul>
-      <ul style="float: left; width: 100; text-align: left">
-	<li><a id="about-link" class="nav-link" onclick="GraffitiCode.ui.showEssay('about')">About</a></li>
-	<li><a id="feedback-link" class="nav-link" onclick="GraffitiCode.ui.showEssay('feedback')">Feedback</a></li>
-<!--
-	<li><a id="donate-link" class="nav-link" onclick="GraffitiCode.ui.showDonate()">Donate</a></li>
--->
-      </ul>
-      <ul style="float: right; width: 100; text-align: left;">
-	<li style="background-color: #bbb; display: inline-block; padding: 2px 10px;"><div id="username" style="background-color: #bbb;"><b>Guest</b></div></li>
-	<li><a id="signin" style="">Sign In</a></li>
-	<li><a id="signout" style="display: none;">Sign Out</a></li>
-      </ul>
-    </nav>
-  </header>
-  <%=body%>
   <script>
 
 var signinLink = document.getElementById('signin');

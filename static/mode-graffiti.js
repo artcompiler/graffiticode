@@ -1,5 +1,7 @@
 CodeMirror.defineMode("graffiti", function() {
 
+    var parser = exports.parser
+
     function assert(b, str) {
         if (!b) {
             alert(str)
@@ -12,17 +14,17 @@ CodeMirror.defineMode("graffiti", function() {
 
     return {
         token: function(stream, state) {
-            return GraffitiCode.parse(stream, state)
+            return parser.parse(stream, state)
         },
 
         startState: function() {
             return {
-                cc: GraffitiCode.program,   // top level parsing function
+                cc: parser.program,   // top level parsing function
 		argc: 0,
 		argcStack: [0],
                 paramc: 0,
                 paramcStack: [0],
-		env: [ {name: "global", lexicon: GraffitiCode.globalLexicon } ],
+		env: [ {name: "global", lexicon: exports.globalLexicon } ],
 		exprc: 0,
 		exprcStack: [0],
 		nodeStack: [],
@@ -76,7 +78,7 @@ CodeMirror.defineMode("graffiti", function() {
 	}
     }
 
-})
+});
 
 CodeMirror.defineMIME("text", "graffiti")
 

@@ -1,13 +1,14 @@
 /* -*- mode: javascript; tab-width: 4; indent-tabs-mode: nil -*- */
 /* Copyright (c) 2012, Jeff Dyer */
 
-if (GraffitiCode===void 0) {
-    var GraffitiCode = {}
+if (!this.GraffitiCode) {
+    this.GraffitiCode = GraffitiCode = {}
+    console.log("render making GraffitiCode")
 }
 
 var transformer = require('./transform.js')
 
-exports.renderer = GraffitiCode.renderer = function() {
+exports.renderer = function() {
 
     exports.render = render
 
@@ -16,6 +17,7 @@ exports.renderer = GraffitiCode.renderer = function() {
     }
 
     // CONTROL FLOW ENDS HERE
+
 
     function print(str) {
 //        console.log(str)

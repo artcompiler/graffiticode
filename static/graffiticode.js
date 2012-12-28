@@ -3,19 +3,15 @@
 
 /* copyright (c) 2012, Jeff Dyer */
 
-if (!GraffitiCode) {
-    var GraffitiCode = {}
-}
-
-GraffitiCode.ui = (function () {
+exports.gc = (function () {
 
     // {src, ast} -> {id, obj}
     function compileCode(ast) {
-        if (GraffitiCode.firstCompile) {
-            GraffitiCode.firstCompile = false
+        if (exports.firstCompile) {
+            exports.firstCompile = false
         }
         else {
-            GraffitiCode.id = 0
+            exports.id = 0
         }
 
 	    var src = editor.getValue()
@@ -39,16 +35,16 @@ GraffitiCode.ui = (function () {
     function postPiece(next) {
 
         // if there are no changes then don't post
-        if (GraffitiCode.parent === GraffitiCode.id) {
+        if (exports.parent === exports.id) {
             return
         }
 
         var user = $("#username").data("user")
 
-	    var src = GraffitiCode.src
-	    var pool = GraffitiCode.pool
-	    var obj = GraffitiCode.obj
-        var parent = GraffitiCode.parent;
+	    var src = exports.src
+	    var pool = exports.pool
+	    var obj = exports.obj
+        var parent = exports.parent;
 	    $.ajax({
 	        type: "POST",
             url: "/code",
@@ -61,8 +57,8 @@ GraffitiCode.ui = (function () {
             },
             dataType: "json",
             success: function(data) {
-                GraffitiCode.id = data.id
-                GraffitiCode.gist_id = data.gist_id
+                exports.id = data.id
+                exports.gist_id = data.gist_id
 		        addPiece(data, src, obj, false)
                 if (next) {
                     next()
@@ -78,23 +74,23 @@ GraffitiCode.ui = (function () {
     function postGist() {
 
         // if we already have a gist_id, then don't post
-        if (GraffitiCode.gist_id) {
+        if (exports.gist_id) {
             return
         }
 
         // make sure piece is committed before gisting
-        if (GraffitiCode.id === 0) {
+        if (exports.id === 0) {
             postPiece(postGist)
             return
         }
 
         var user = $("#username").data("user")
 
-        var id = GraffitiCode.id
-	    var src = GraffitiCode.src
-	    var pool = GraffitiCode.pool
-	    var obj = GraffitiCode.obj
-        var parent = GraffitiCode.parent
+        var id = exports.id
+	    var src = exports.src
+	    var pool = exports.pool
+	    var obj = exports.obj
+        var parent = exports.parent
 	    $.ajax({
 	        type: "POST",
             url: "/gist",
@@ -109,7 +105,7 @@ GraffitiCode.ui = (function () {
             dataType: "json",
             success: function(data) {
                 var pieceData = $(".gallery-panel #"+id).data("piece")
-                var gist_id = GraffitiCode.gist_id = data.gist_id
+                var gist_id = exports.gist_id = data.gist_id
                 $(".gallery-panel #"+id+" .label").html(pieceData.views+" Views, "+pieceData.forks+" Forks, " + 
                           new Date(pieceData.created).toDateString().substring(4) + ", " +
                           pieceData.name + 
@@ -135,8 +131,8 @@ GraffitiCode.ui = (function () {
 		        for (var i = 0; i < data.length; i++) {
 		            pieces[i] = data[i].id
 		        }
-                GraffitiCode.pieces = pieces
-                GraffitiCode.nextThumbnail = 0
+                exports.pieces = pieces
+                exports.nextThumbnail = 0
                 loadMoreThumbnails(true)
             },
             error: function(xhr, msg, err) {
@@ -165,16 +161,16 @@ GraffitiCode.ui = (function () {
 
     // {} -> [{id, src, obj}]
     function loadMoreThumbnails(doUpdateSrc) {
-        var start = GraffitiCode.nextThumbnail
-        var end = GraffitiCode.nextThumbnail = start + loadIncrement
-        var len = GraffitiCode.pieces.length
-        if (start >= len || GraffitiCode.currentThumbnail >= len) {
+        var start = exports.nextThumbnail
+        var end = exports.nextThumbnail = start + loadIncrement
+        var len = exports.pieces.length
+        if (start >= len || exports.currentThumbnail >= len) {
             return
         }
         if (end > len) {
             end = len
         }
-        var list = GraffitiCode.pieces.slice(start, end)
+        var list = exports.pieces.slice(start, end)
 	    $.ajax({
 	        type: "GET",
             url: "/code",
@@ -183,7 +179,7 @@ GraffitiCode.ui = (function () {
             success: function(data) {
 		        for (var i = 0; i < data.length; i++) {
 		            var d = data[i]
-                    GraffitiCode.currentThumbnail = start + i      // keep track of the current thumbnail in case of async
+                    exports.currentThumbnail = start + i      // keep track of the current thumbnail in case of async
 		            addPiece(d, d.src, d.obj, true)
 		        }
             },
@@ -199,12 +195,12 @@ GraffitiCode.ui = (function () {
 
     // The source should always be associated with an id
     function updateSrc(id, src) {
-        GraffitiCode.firstCompile = true
-        GraffitiCode.id = id
-        GraffitiCode.parent = GraffitiCode.id
+        exports.firstCompile = true
+        exports.id = id
+        exports.parent = exports.id
         var data = $(".gallery-panel #"+id).data("piece")
         if (data) {
-            GraffitiCode.gist_id = data.gist_id
+            exports.gist_id = data.gist_id
             if (!src) {
                 var src = data.src
             }
@@ -220,16 +216,16 @@ GraffitiCode.ui = (function () {
 
     function updateGraffito(obj, src, pool) {
 	    $("#graff-view").html(obj)
-        $("#graff-view").attr("onclick", "GraffitiCode.ui.postPiece(this)")
+        $("#graff-view").attr("onclick", "exports.postPiece(this)")
         var width = $("#graff-view svg").width()
         var height = $("#edit-view svg").height()
 //        $(".edit-panel").width(width+40)
 //        $(".edit-panel").height($("#graff-view").height()+height+40)
         $("#graff-view").width(width)
 //        $("#graff-view").offset({"top": height+120})
-        GraffitiCode.src = src
-        GraffitiCode.pool = pool
-        GraffitiCode.obj = obj
+        exports.src = src
+        exports.pool = pool
+        exports.obj = obj
     }
 
     function clickThumbnail(e, id) {
@@ -269,7 +265,7 @@ GraffitiCode.ui = (function () {
         $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124")
 //        $(".gallery-panel div#"+id+" svg").css("border: 1")
         $(".gallery-panel #"+id+" .thumbnail")
-            .attr("onclick", "GraffitiCode.ui.clickThumbnail(event, '"+id+"')")
+            .attr("onclick", "exports.gc.clickThumbnail(event, '"+id+"')")
             .attr("title", "Click to view in the workspace.")
 //        $(".gallery-panel div#text"+id).text(data.views+" views, "+data.forks+" forks, "+new Date(data.created))
 //        $(".gallery-panel div#text"+id).text(data.views+" Views, "+data.forks+" Forks, " + new Date(data.created).toDateString() + " by " + data.name)
@@ -304,10 +300,10 @@ GraffitiCode.ui = (function () {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
         $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
             showWorkspace()
-            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.newCode()' title='New' href='#' style='margin-left: 260'>"+newButton+"</a>")
-            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.showArchive()' title='Find' href='#'>"+openButton+"</a>")
-            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
-            $(".button-bar").append("<a class='button-bar-button' onclick='GraffitiCode.ui.postGist()' title='Share' href='#'>"+shareButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.newCode()' title='New' href='#' style='margin-left: 260'>"+newButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.showArchive()' title='Find' href='#'>"+openButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postGist()' title='Share' href='#'>"+shareButton+"</a>")
             $.get("http://"+location.host+"/code/"+srcId, function (data) {
                 updateSrc(data[0].id, data[0].src)
             })
@@ -320,7 +316,7 @@ GraffitiCode.ui = (function () {
     }
 
     function showEssay(name) {
-        GraffitiCode.ui.doRecompile = false
+        exports.doRecompile = false
 
         $(".button-bar").css("display", "none")
         $(".gallery-panel").css("display", "none")
@@ -333,15 +329,15 @@ GraffitiCode.ui = (function () {
         $("#"+name+"-link").css("background-color", "#bbb")
         $("#"+name+"-link").css("font-weight", "700")
 
-        if (GraffitiCode.essayName !== name) {            
+        if (exports.essayName !== name) {            
             $.get(name+".html", function(data) {
                 $(".essay-panel").html(data)
-                GraffitiCode.essayData = data
-                GraffitiCode.essayName = name
+                exports.essayData = data
+                exports.essayName = name
             })
         }
         else {
-            $(".essay-panel").html(GraffitiCode.essayData)
+            $(".essay-panel").html(exports.essayData)
         }
     }
 
@@ -451,7 +447,7 @@ GraffitiCode.ui = (function () {
     }
 
     function showWorkspace(id) {
-        GraffitiCode.ui.doRecompile = true
+        exports.doRecompile = true
         $(".gallery-panel").css("display", "none")
         $(".essay-panel").css("display", "none")
 
@@ -502,4 +498,3 @@ GraffitiCode.ui = (function () {
         newCode: newCode,
     }
 })()
-

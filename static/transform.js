@@ -3,15 +3,16 @@
 
 var _ = require("underscore")
 
-if (GraffitiCode===void 0) {
-    var GraffitiCode = {}
+if (!this.GraffitiCode) {
+    this.GraffitiCode = GraffitiCode = {}
+    console.log("transform making GraffitiCode")
 }
 
 exports.transformer = GraffitiCode.transformer = function() {
 
 
     function print(str) {
-//        console.log(str)
+        console.log(str)
     }
 
     var table = {
@@ -102,7 +103,6 @@ exports.transformer = GraffitiCode.transformer = function() {
         "TRISIDE" : triside,
         "RECT" : rectangle,
         "ELLIPSE" : ellipse,
-        "ARC" : arc,
         "BEZIER" : bezier,
         "LINE" : line,
         "POINT" : point,
@@ -113,6 +113,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "LINETO" : lineto,
         "CURVETO" : curveto,
         "ARCTO" : arcto,
+        "ARC" : arc,
 
         "TEXT" : text,
         "FSIZE" : fsize,
@@ -159,7 +160,7 @@ exports.transformer = GraffitiCode.transformer = function() {
 
         var node = nodePool[nid]
         
-        print("visit() nid="+nid)
+        print("visit() nid="+nid+" node="+JSON.stringify(node))
 
         if (node == null) {
             return null
@@ -224,6 +225,9 @@ exports.transformer = GraffitiCode.transformer = function() {
         var elts = []
         for (var i = 0; i < node.elts.length; i++) {
             elts.push(visit(node.elts[i]))
+        }
+        if (elts.length===1) {
+            return elts[0]
         }
         return {
             tag: "g",
@@ -347,6 +351,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
 
     }
+
 
     function bezier(node) {
         print("bezier")
