@@ -12,7 +12,7 @@ exports.transformer = GraffitiCode.transformer = function() {
 
 
     function print(str) {
-        console.log(str)
+        //console.log(str)
     }
 
     var table = {
@@ -125,6 +125,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "RGB" : rgb,
         "RGBA" : rgba,
         "FILL" : fill,
+        "CLIP" : clip,
         "STROKE" : stroke,
         "STROKEWIDTH" : strokeWidth,
         "COLOR" : color,
@@ -713,7 +714,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
 
     function fill(node) {
-        print("color")
+        print("fill")
         var elts = []
         var rgb = visit(node.elts[1])
         var shape = visit(node.elts[0])
@@ -740,6 +741,34 @@ exports.transformer = GraffitiCode.transformer = function() {
             "tag": "g",
             "fill": "rgb("+r+", "+g+", "+b+")",
             "elts": [shape],
+        }
+    }
+
+    var ticket = 1
+    function genSym(str) {
+        return str+"-"+ticket++
+    }
+
+    function clip(node) {
+        print("clip")
+        var elts = []
+        var path = visit(node.elts[1])
+        var shape = visit(node.elts[0])
+        var id = genSym("clip-path")
+        elts.push({
+            "tag": "clipPath",
+            "id": id,
+            "elts": [path],
+        })
+
+        shape["clip-path"] = "url(#"+id+")"
+
+        elts.push(shape)
+
+        return {
+            "tag": "g",
+            "clip-rule": "nonzero",
+            "elts": elts,
         }
     }
 

@@ -1441,6 +1441,7 @@ var folder = function() {
         "RGB" : rgb,
         "RGBA" : rgba,
         "FILL" : fill,
+        "CLIP" : clip,
         "STROKE" : stroke,
         "STROKEWIDTH" : strokeWidth,
         "COLOR" : color,
@@ -1810,6 +1811,14 @@ var folder = function() {
 
     function fill(node) {
         ast.name(ctx, "fill")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.callExpr(ctx, node.elts.length)
+    }
+
+    function clip(node) {
+        ast.name(ctx, "clip")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
