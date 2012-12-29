@@ -139,6 +139,8 @@ exports.transformer = GraffitiCode.transformer = function() {
     var canvasHeight = 0
     var canvasColor = ""
 
+    var ticket = 1000
+
     exports.transform = transform
     exports.canvasWidth = function() {return canvasWidth}
     exports.canvasHeight =  function() {return canvasHeight}
@@ -224,8 +226,10 @@ exports.transformer = GraffitiCode.transformer = function() {
     function exprs(node) {
         print("exprs() node="+JSON.stringify(node))
         var elts = []
-        for (var i = 0; i < node.elts.length; i++) {
-            elts.push(visit(node.elts[i]))
+        if (node.elts) {
+            for (var i = 0; i < node.elts.length; i++) {
+                elts.push(visit(node.elts[i]))
+            }
         }
         if (elts.length===1) {
             return elts[0]
@@ -744,9 +748,9 @@ exports.transformer = GraffitiCode.transformer = function() {
         }
     }
 
-    var ticket = 1
     function genSym(str) {
-        return str+"-"+ticket++
+        ticket += 1
+        return str+"-"+ticket
     }
 
     function clip(node) {
