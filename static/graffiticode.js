@@ -279,9 +279,9 @@ exports.gc = (function () {
 
     function start() {
         queryPieces()
-        $.get("draw-help.html", function (data) {
-            $("#help-view").append(data)
-        })
+//        $.get("draw-help.html", function (data) {
+//            $("#help-view").append(data)
+//        })
 
         var srcId = 304
         var newId = 208
@@ -300,7 +300,7 @@ exports.gc = (function () {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
         $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
             showWorkspace()
-            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.newCode()' title='New' href='#' style='margin-left: 260'>"+newButton+"</a>")
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.newCode()' title='New' href='#'>"+newButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.showArchive()' title='Find' href='#'>"+openButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postPiece()' title='Archive' href='#'>"+saveButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postGist()' title='Share' href='#'>"+shareButton+"</a>")

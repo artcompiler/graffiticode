@@ -830,7 +830,7 @@ exports.parser = (function () {
         return prefixExpr(ctx, function (ctx) {
             if (match(ctx, TK_BINOP)) {
                 eat(ctx, TK_BINOP)
-                var op = findWord(ctx, lexeme).name
+                var op = env.findWord(ctx, lexeme).name
                 var ret = function (ctx) {
                     var ret = binaryExpr(ctx, cc)
                     ast.binaryExpr(ctx, op)
