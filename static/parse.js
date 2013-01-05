@@ -475,7 +475,7 @@ var env = (function () {
 
     function findWord(ctx, lexeme) {
         var env = ctx.state.env
-        print("findWord() lexeme=" + JSON.stringify(lexeme))
+        //print("findWord() lexeme=" + JSON.stringify(lexeme))
         for (var i = env.length-1; i >= 0; i--) {
             var word = env[i].lexicon[lexeme]
             if (word) {
@@ -486,7 +486,7 @@ var env = (function () {
     }
 
     function addWord(ctx, lexeme, entry) {
-        print("addWord() lexeme=" + lexeme)
+        //print("addWord() lexeme=" + lexeme)
         exports.topEnv(ctx).lexicon[lexeme] = entry
         return null
     }
@@ -587,7 +587,7 @@ exports.parser = (function () {
     function next(ctx) {
         var tk = peek(ctx)
         ctx.state.nextToken = -1
-        print("next() tk="+tk+" lexeme="+lexeme)
+        //print("next() tk="+tk+" lexeme="+lexeme)
         scanCount++
         return tk
     }
@@ -1151,13 +1151,13 @@ exports.parser = (function () {
                 stream.next()
             }
 
-            print("---------")
-            print("parse() pos="+stream.pos)
-            print("parse() lexeme="+lexeme)
-            print("parse() cls="+cls)
-            print("parse() cc="+cc+"\n")
-            print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
-            print("parse() nodeStack="+ctx.state.nodeStack+"\n")
+            //print("---------")
+            //print("parse() pos="+stream.pos)
+            //print("parse() lexeme="+lexeme)
+            //print("parse() cls="+cls)
+            //print("parse() cc="+cc+"\n")
+            //print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
+            //print("parse() nodeStack="+ctx.state.nodeStack+"\n")
 
         }
         catch (x) {
@@ -1169,7 +1169,7 @@ exports.parser = (function () {
             }
             else
             if (x === "comment") {
-                print("comment found")
+                //print("comment found")
                 cls = x
             }
             else {
@@ -1481,7 +1481,7 @@ var folder = function() {
 
         var node = nodePool[nid]
         
-        print("visit() nid="+nid)
+        //print("visit() nid="+nid)
 
         if (node == null) {
             return null
@@ -1492,7 +1492,7 @@ var folder = function() {
         }
         else if (isFunction(table[node.tag])) {
             var ret = table[node.tag](node)
-            print("ret="+ret)
+            //print("ret="+ret)
             return ret
         }
         else {
@@ -1527,13 +1527,13 @@ var folder = function() {
     var edgesNode
 
     function program(node) {
-        print("program()")
+        //print("program()")
         visit(node.elts[0])
         ast.program(ctx)
     }
 
     function exprs(node) {
-        print("exprs()")
+        //print("exprs()")
         for (var i = 0; i < node.elts.length; i++) {
             visit(node.elts[i])
         }
@@ -1826,7 +1826,7 @@ var folder = function() {
     }
 
     function ident(node) {
-        print("ident()")
+        //print("ident()")
         var name = node.elts[0]
         var word = env.findWord(ctx, name)
         if (word) {
@@ -1844,7 +1844,7 @@ var folder = function() {
 
 
      function stub(node) {
-        print("stub: " + node.tag)
+        //print("stub: " + node.tag)
         return ""
      }
 }()
