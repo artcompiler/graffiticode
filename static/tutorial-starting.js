@@ -21,8 +21,8 @@ $(document).ready(function () {
 		var src = data[i].src
 		var srcEncoded = src.replace(new RegExp("\n", "g"), "\\n")
 		$("#example-graffito-"+id).append(
-		    "<a href='#' onclick='GraffitiCode.ui.showWorkspace(); " +
-			"GraffitiCode.ui.updateSrc("+id+", \"" + srcEncoded + "\")'>" + 
+		    "<a href='#' onclick='exports.gc.showWorkspace(); " +
+			"exports.gc.updateSrc("+id+", \"" + srcEncoded + "\")'>" + 
 			data[i].obj +
 			"<br/>View in workspace</a>")
 		GraffitiCode["example-editor-"+id].setValue(src)
