@@ -2,7 +2,7 @@ $(document).ready(function () {
     var list = [252, 254, 258, 262, 263, 280, 281]
 
     $.map(list, function (val, index) {
-	GraffitiCode["example-editor-"+val] = CodeMirror(document.querySelector("#example-editor-"+val), {
+	exports["example-editor-"+val] = CodeMirror(document.querySelector("#example-editor-"+val), {
 	    mode:  "graffiti",
 	    lineWrapping: "true",
 	    lineNumbers: "true",
@@ -25,7 +25,7 @@ $(document).ready(function () {
 			"exports.gc.updateSrc("+id+", \"" + srcEncoded + "\")'>" + 
 			data[i].obj +
 			"<br/>View in workspace</a>")
-		GraffitiCode["example-editor-"+id].setValue(src)
+		exports["example-editor-"+id].setValue(src)
 	    }
         },
         error: function(xhr, msg, err) {
