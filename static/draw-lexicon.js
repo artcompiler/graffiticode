@@ -12,8 +12,8 @@ exports.globalLexicon = {
     "if" : { "tk": 0x05, "cls": "keyword" },
     "then" : { "tk": 0x06, "cls": "keyword" },
     "else" : { "tk": 0x07, "cls": "keyword" },
-    "match" : { "tk": 0x0F, "cls": "keyword" },
-    "with" : { "tk": 0x10, "cls": "keyword", "length": 0 },
+    "case" : { "tk": 0x0F, "cls": "keyword" },
+    "of" : { "tk": 0x10, "cls": "keyword" },
     "end" : { "tk": 0x11, "cls": "keyword", "length": 0 },
     "or" : { "tk": 0x13, "cls": "keyword", "length": 0 },
     "is" : { "tk": 0x09, "cls": "operator", "length": 1 },
@@ -58,6 +58,7 @@ exports.globalLexicon = {
     "triangle" : { "tk": 0x01, "name": "TRI", "cls": "method", "length": 6 },
     "triside" : { "tk": 0x01, "name": "TRISIDE", "cls": "method", "length": 3 },
     "rectangle" : { "tk": 0x01, "name": "RECT", "cls": "method", "length": 2 },
+    "map" : { "tk": 0x01, "name": "MAP", "cls": "method", "length": 2 },
     "ellipse" : { "tk": 0x01, "name": "ELLIPSE", "cls": "method", "length": 2 },
     "bezier" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
     "curve" : { "tk": 0x01, "name": "BEZIER", "cls": "method", "length": 8 },
@@ -99,4 +100,5 @@ exports.globalLexicon = {
     "add" : { "tk": 0x0E, "name": "ADD", "cls": "operator", "length": 0 },
 
     "deg" : { "tk": 0x0A, "cls": "operator", "length": 0 }
+
 }

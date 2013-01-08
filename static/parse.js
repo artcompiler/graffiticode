@@ -12,8 +12,13 @@ function print(str) {
 }
 
 function log(str) {
-    //console.log(str)
+//    console.log(str)
 }
+
+/* if nodejs
+var _ = require('./underscore')
+var parser = require("./parse")
+endif */
 
 // ast module
 
@@ -46,12 +51,12 @@ var ast = (function () {
         number: number,
         string: string,
         name: name,
-        callExpr: callExpr,
+        funcApp: funcApp,
         binaryExpr: binaryExpr,
         prefixExpr: prefixExpr,
         letDefn: letDefn,
-        matchExpr: matchExpr,
-        matchClause: matchClause,
+        caseExpr: caseExpr,
+        ofClause: ofClause,
         exprs: exprs,
         program: program,
         pop: pop,
@@ -65,6 +70,7 @@ var ast = (function () {
         sub: sub,
         random: random,
         neg: neg,
+        list: list,
     }
 
     return new Ast
@@ -78,7 +84,7 @@ var ast = (function () {
     }
 
     function push(ctx, node) {
-        if (_.isNumber(node)) {
+        if (_.isNumber(node)) {   // if already interned
             ctx.state.nodeStack.push(node)
         }
         else {
@@ -98,7 +104,7 @@ var ast = (function () {
 
     function peek(ctx) {
         var nodeStack = ctx.state.nodeStack
-        log("nodeStack="+nodeStack)
+        //log("nodeStack="+nodeStack)
         return nodeStack[nodeStack.length-1]
     }
 
@@ -266,34 +272,57 @@ var ast = (function () {
         env.exitEnv(ctx)
     }
 
-    function callExpr(ctx, argc) {
-        log("ast.callExpr() argc="+argc)
+    function funcApp(ctx, argc) {
+        //log("ast.funcApp() argc="+argc+" nodeStack="+ctx.state.nodeStack)
         var elts = []
         while (argc > 0) {
             elts.push(pop(ctx))
             argc--
         }
-        var e = node(ctx, pop(ctx)).elts
+        var nameId = pop(ctx)
+        //print("funcApp() nameId="+nameId)
+        var e = node(ctx, nameId).elts
+        //log("e="+JSON.stringify(e))
         if (!e) {
             return
         }
-        var name = e[0]   // assumes node is a primitive
+        var name = e[0]
         var def = env.findWord(ctx, name)
         if (!def) {
-            assert(false)
-            return
+            throw "def not found for " + JSON.stringify(name)
         }
+
+        // If recursive call, then this callee does not have a nid yet.
         if (def.nid) {
+            // recursion guard
+            if (ctx.state.nodeStack.length > 900) {
+                throw "runaway recursion"
+            }
             // we have a user def, so fold it.
+            //log("funcApp() name="+name+" nid="+def.nid)
             return fold(ctx, def, elts)
         }
+        else
+        if (def.nid === 0) {  // defer folding
+            //log("funcApp() name="+name)
+            elts.push(nameId)
+            push(ctx, {tag: "RECURSE", name: def.name, elts: elts})
+        }
         else {
+            //log("funcApp() name="+name+" def.name="+def.name)
             push(ctx, {tag: def.name, elts: elts})
         }
     }
 
+    function list(ctx) {
+        //log("ast.list()")
+        var elts = [ pop(ctx) ]
+        push(ctx, {tag: "LIST", elts: elts })
+    }
+
+
     function binaryExpr(ctx, name) {
-        log("ast.binaryExpr() name="+name)
+        //log("ast.binaryExpr() name="+name)
         var elts = []
         elts.push(pop(ctx))
         elts.push(pop(ctx))
@@ -301,7 +330,7 @@ var ast = (function () {
     }
 
     function prefixExpr(ctx, name) {
-        log("ast.prefixExpr() name="+name)
+        //log("ast.prefixExpr() name="+name)
         var elts = []
         elts.push(pop(ctx))
         push(ctx, {tag: name, elts: elts})
@@ -316,59 +345,59 @@ var ast = (function () {
     }
 
     function neg(ctx) {
-        log("ast.neg()")
+        //log("ast.neg()")
         var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, -1*v1)
     }
 
     function div(ctx) {
-        log("ast.div()")
+        //log("ast.div()")
         var v2 = +node(ctx, pop(ctx)).elts[0]
         var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, v1/v2)
     }
 
     function mul(ctx) {
-        log("ast.mul()")
+        //log("ast.mul()")
         var v2 = +node(ctx, pop(ctx)).elts[0]
         var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, v1*v2)
     }
 
     function add(ctx) {
-        log("ast.add()")
+        //log("ast.add()")
         var v2 = +node(ctx, pop(ctx)).elts[0]
         var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, v1+v2)
     }
 
     function sub(ctx) {
-        log("ast.sub()")
+        //log("ast.sub()")
         var v2 = +node(ctx, pop(ctx)).elts[0]
         var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, v1-v2)
     }
 
-    function matchExpr(ctx, n) {
-        log("ast.matchExpr() n="+n)
+    function caseExpr(ctx, n) {
+        //log("ast.caseExpr() n="+n)
         var elts = []
         for (var i = n; i > 0; i--) {
-            elts.push(pop(ctx))
+            elts.push(pop(ctx))  // of
         }
-        elts.push(pop(ctx))   // expr
-        push(ctx, {tag: "MATCH", elts: elts})
+        elts.push(pop(ctx))  // exprs
+        push(ctx, {tag: "CASE", elts: elts})
     }
 
-    function matchClause(ctx) {
-        log("ast.matchClause()")
+    function ofClause(ctx) {
+        //log("ast.ofClause()")
         var elts = []
         elts.push(pop(ctx))
         elts.push(pop(ctx))
-        push(ctx, {tag: "RULE", elts: elts})
+        push(ctx, {tag: "OF", elts: elts})
     }
 
     function exprs(ctx, n) {
-        log("ast.exprs() n="+n)
+        //log("ast.exprs() n="+n)
         var elts = []
         for (var i = n; i > 0; i--) {
             var elt = pop(ctx)
@@ -380,7 +409,7 @@ var ast = (function () {
     }
 
     function letDefn(ctx) {
-        log("ast.letDefn()")
+        //log("ast.letDefn()")
         pop(ctx)  // name
         pop(ctx)  // body
         for (var i = 0; i < ctx.state.paramc; i++) {
@@ -398,7 +427,7 @@ var ast = (function () {
 
 // The following code for StreamString was copied from CodeMirror.
 
-var StringStream = (function () {
+exports.StringStream = (function () {
 
     // The character stream used by a mode's parser.
     function StringStream(string, tabSize) {
@@ -475,7 +504,7 @@ var env = (function () {
 
     function findWord(ctx, lexeme) {
         var env = ctx.state.env
-        //print("findWord() lexeme=" + JSON.stringify(lexeme))
+        ////print("findWord() lexeme=" + JSON.stringify(lexeme))
         for (var i = env.length-1; i >= 0; i--) {
             var word = env[i].lexicon[lexeme]
             if (word) {
@@ -487,6 +516,7 @@ var env = (function () {
 
     function addWord(ctx, lexeme, entry) {
         //print("addWord() lexeme=" + lexeme)
+//        parser.topEnv(ctx).lexicon[lexeme] = entry
         exports.topEnv(ctx).lexicon[lexeme] = entry
         return null
     }
@@ -510,6 +540,7 @@ exports.scanCount = function () {
     return scanCount
 };
 
+
 var parseTime = 0
 
 exports.parseTime = function () {
@@ -525,9 +556,15 @@ exports.parseCount = function () {
 // parser
 exports.parser = (function () {
 
+/* if nodejs
+    var lexicon = require('./draw-lexicon')
+    var globalLexicon = lexicon.globalLexicon
+endif */
+///* if !nodejs
     var globalLexicon = exports.globalLexicon
+//endif */
     var _ = exports._
-
+    
     function assert(b, str) {
         if (!b) {
             alert(str)
@@ -548,8 +585,8 @@ exports.parser = (function () {
     var TK_FUN    = 0x0C
     var TK_VAL    = 0x0D
     var TK_BINOP  = 0x0E
-    var TK_MATCH  = 0x0F
-    var TK_WITH   = 0x10
+    var TK_CASE   = 0x0F
+    var TK_OF     = 0x10
     var TK_END    = 0x11
     var TK_LET    = 0x12
     var TK_OR     = 0x13
@@ -569,9 +606,10 @@ exports.parser = (function () {
     var TK_COMMENT      = 0xAD
 
     function eat(ctx, tk) {
-        log("eat() tk="+tk)
-        if (next(ctx) !== tk) {
-            throw "syntax error"
+        //log("eat() tk="+tk)
+        var nextToken = next(ctx)
+        if (nextToken !== tk) {
+            throw "syntax error: expecting "+tk+" found "+nextToken
         }
     }
     
@@ -611,7 +649,7 @@ exports.parser = (function () {
     // Parsing functions
 
     function number(ctx, cc) {
-        log("number()")
+        //log("number()")
         eat(ctx, TK_NUM)
         cc.cls = "number"
         ast.number(ctx, lexeme)
@@ -619,7 +657,7 @@ exports.parser = (function () {
     }
 
     function string(ctx, cc) {
-        log("string()")
+        //log("string()")
         eat(ctx, TK_STR)
         cc.cls = "string"
         ast.string(ctx, lexeme.substring(1,lexeme.length-1)) // strip quotes
@@ -627,7 +665,7 @@ exports.parser = (function () {
     }
 
     function ident(ctx, cc) {
-        log("ident()")
+        //log("ident()")
         eat(ctx, TK_IDENT)
         ast.name(ctx, lexeme)
         cc.cls = "ident"
@@ -635,7 +673,7 @@ exports.parser = (function () {
     }
 
     function name(ctx, cc) {
-        log("name()")
+        //log("name()")
         eat(ctx, TK_IDENT)
         ast.name(ctx, lexeme)
         var word = env.findWord(ctx, lexeme)
@@ -649,10 +687,10 @@ exports.parser = (function () {
         return cc
     }
 
-    function map(ctx, cc) {
-        log("map()")
+    function record(ctx, cc) {
+        //log("record()")
         eat(ctx, TK_LEFTBRACE)
-        log("found left brace")
+        //log("found left brace")
         var ret = function(ctx) {
             return bindings(ctx, function (ctx) {
                 eat(ctx, TK_RIGHTBRACE)
@@ -665,7 +703,7 @@ exports.parser = (function () {
     }
 
     function binding(ctx, cc) {
-        log("binding()")
+        //log("binding()")
         return ident(ctx, function(ctx) {
             eat(ctx, TK_EQUAL)
             var ret = function(ctx) {
@@ -677,7 +715,7 @@ exports.parser = (function () {
     }
 
     function bindings(ctx, cc) {
-        log("bindings()")
+        //log("bindings()")
         if (match(ctx, TK_RIGHTBRACE)) {
             return cc
         }
@@ -695,9 +733,9 @@ exports.parser = (function () {
     }
 
     function tuple(ctx, cc) {
-        log("tuple()")
+        //log("tuple()")
         eat(ctx, TK_LEFTPAREN)
-        log("found left paren")
+        //log("found left paren")
         var ret = function(ctx) {
             return exprsStart(ctx, function (ctx) {
                 eat(ctx, TK_RIGHTPAREN)
@@ -710,11 +748,12 @@ exports.parser = (function () {
     }
 
     function list(ctx, cc) {
-        log("list()")
+        //log("list()")
         eat(ctx, TK_LEFTBRACKET)
         var ret = function(ctx) {
             return exprsStart(ctx, function (ctx) {
                 eat(ctx, TK_RIGHTBRACKET)
+                ast.list(ctx)
                 cc.cls = "punc"
                 return cc
             })
@@ -724,7 +763,7 @@ exports.parser = (function () {
     }
 
     function primaryExpr(ctx, cc) {
-        log("primaryExpr()")
+        //log("primaryExpr()")
         if (match(ctx, TK_NUM)) {
             return number(ctx, cc)
         }
@@ -732,7 +771,7 @@ exports.parser = (function () {
             return string(ctx, cc)
         }
         else if (match(ctx, TK_LEFTBRACE)) {
-            return map(ctx, cc)
+            return record(ctx, cc)
         }
         else if (match(ctx, TK_LEFTPAREN)) {
             return tuple(ctx, cc)
@@ -743,22 +782,22 @@ exports.parser = (function () {
         return name(ctx, cc)
     }
 
-    function callExpr(ctx, cc) {
-        log("callExpr()")
+    function funcApp(ctx, cc) {
+        //log("funcApp()")
         return primaryExpr(ctx, function (ctx) {
             var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
             var tk = env.findWord(ctx, name)
-            log("found primaryExpr tk="+tk+" topNode="+ast.node(ctx, ast.topNode(ctx)).elts[0])
+            //log("found primaryExpr tk="+JSON.stringify(tk)+" topNode="+ast.node(ctx, ast.topNode(ctx)).elts[0])
             if (tk && tk.cls === "method") {
                 startArgs(ctx, tk.length)
                 return args(ctx, cc)
             }
-            return cc(ctx)
+            return cc
         })
     }
 
     function startArgs(ctx, len) {
-        log("startArgs() len="+len)
+        //log("startArgs() len="+len)
         ctx.state.argcStack.push(ctx.state.argc)
         ctx.state.paramcStack.push(ctx.state.paramc)
         ctx.state.paramc = ctx.state.argc = len
@@ -770,23 +809,23 @@ exports.parser = (function () {
     }
  
     function arg(ctx, cc) {
-        log("arg()")
+        //log("arg()")
         ctx.state.argc--
         return expr(ctx, cc)
     }
 
     function args(ctx, cc) {
-        log("args()")
+        //log("args()")
         if (match(ctx, TK_COMMA)) {
             eat(ctx, TK_COMMA)
-            ast.callExpr(ctx, ctx.state.paramc)
+            ast.funcApp(ctx, ctx.state.paramc - ctx.state.argc)
             finishArgs(ctx)
             cc.cls = "punc"
             return cc
         }
         else
         if (ctx.state.argc === 0) {
-            ast.callExpr(ctx, ctx.state.paramc)
+            ast.funcApp(ctx, ctx.state.paramc)
             finishArgs(ctx)
             return cc(ctx)
         }
@@ -796,9 +835,9 @@ exports.parser = (function () {
     }
 
     function postfixExpr(ctx, cc) {
-        log("postfixExpr()")
-        return callExpr(ctx, function (ctx) {
-            log("found callExpr")
+        //log("postfixExpr()")
+        return funcApp(ctx, function (ctx) {
+            //log("found funcApp")
             if (match(ctx, TK_POSTOP)) {
                 eat(ctx, TK_POSTOP)
                 cc.cls = "operator"
@@ -810,7 +849,7 @@ exports.parser = (function () {
     }
     
     function prefixExpr(ctx, cc) {
-        log("prefixExpr()")
+        //log("prefixExpr()")
         if (match(ctx, TK_MINUS)) {
             eat(ctx, TK_MINUS)
             var ret = function(ctx) {
@@ -824,9 +863,9 @@ exports.parser = (function () {
         }
         return postfixExpr(ctx, cc)
     }
-    
+
     function binaryExpr(ctx, cc) {
-        log("binaryExpr()")
+        //log("binaryExpr()")
         return prefixExpr(ctx, function (ctx) {
             if (match(ctx, TK_BINOP)) {
                 eat(ctx, TK_BINOP)
@@ -844,7 +883,7 @@ exports.parser = (function () {
     }
     
     function relationalExpr(ctx, cc) {
-        log("relationalExpr()")
+        //log("relationalExpr()")
         return binaryExpr(ctx, function (ctx) {
             // FIXME implement relational expressions
             return cc(ctx)
@@ -852,83 +891,73 @@ exports.parser = (function () {
     }
 
     function condExpr(ctx, cc) {
-        log("condExpr()")
-        if (match(ctx, TK_IF)) {
-            return ifExpr(ctx, cc)
-        }
-        else if (match(ctx, TK_MATCH)) {
-            return matchExpr(ctx, cc)
+        //log("condExpr()")
+        if (match(ctx, TK_CASE)) {
+            return caseExpr(ctx, cc)
         }
         return relationalExpr(ctx, cc)
     }
 
-    function ifExpr(ctx, cc) {
-        eat(ctx, TK_IF)
-        var ret = function (ctx) {
-            return exprsStart(ctx, function (ctx) {
-                return thenClause(ctx, cc)
-            })
-        }
-        ret.cls = "keyword"
-        return ret
-    }
-
-    function matchExpr(ctx, cc) {
-        eat(ctx, TK_MATCH)
+    function caseExpr(ctx, cc) {
+        //log("caseExpr()")
+        eat(ctx, TK_CASE)
         var ret = function (ctx) {
             return expr(ctx, function (ctx) {
-                eat(ctx, TK_WITH)
-                var ret = function (ctx) {        
-                    startCounter(ctx)
-                    return matchesClause(ctx, function (ctx) {
-                        ast.matchExpr(ctx, ctx.state.exprc)
-                        stopCounter(ctx)
-                        return cc
-                    })
-                }
-                ret.cls = "keyword"
-                return ret
+                startCounter(ctx)
+                return ofClauses(ctx, function (ctx) {
+                    ast.caseExpr(ctx, ctx.state.exprc)
+                    stopCounter(ctx)
+                    eat(ctx, TK_END)
+                    cc.cls = "keyword"
+                    return cc
+                })
             })
         }
         ret.cls = "keyword"
         return ret
     }
 
-    function matchesClause(ctx, cc) {
-        log("matchesClause()")
-        return matchClause(ctx, function (ctx) {
-            countCounter(ctx)
-            if (match(ctx, TK_OR)) {
-                eat(ctx, TK_OR)
-                var ret = function (ctx) {
-                    return matchesClause(ctx, cc)
+    function ofClauses(ctx, cc) {
+        //log("ofClauses()")
+        if (match(ctx, TK_OF)) {
+            return ofClause(ctx, function (ctx) {
+                countCounter(ctx)
+                if (match(ctx, TK_OF)) {
+                    return ofClauses(ctx, cc)
                 }
-                ret.cls = "keyword"
-                return ret
-            }
-            return cc
-        })
+                return cc(ctx)
+            })
+        }
+        return cc
     }
 
-    function matchClause (ctx, cc) {
-        return pattern(ctx, function (ctx) {
-            eat(ctx, TK_EQUAL)
-            var ret = exprsStart(ctx, function(ctx) {
-                ast.matchClause(ctx)
-                return cc
+    function ofClause (ctx, cc) {
+        //log("ofClause()")
+        eat(ctx, TK_OF)
+        var ret = function (ctx) {
+            return pattern(ctx, function (ctx) {
+                eat(ctx, TK_EQUAL)
+                var ret = function(ctx) {
+                    return exprsStart(ctx, function(ctx) {
+                        ast.ofClause(ctx)
+                        return cc(ctx)
+                    })
+                }
+                ret.cls = "punc"
+                return ret
             })
-            ret.cls = "keyword"
-            return ret
-        })
+        }
+        ret.cls = "keyword"
+        return ret
     }
 
     function pattern(ctx, cc) {
         // FIXME only matches number literals for now
-        return number(ctx, cc)
+        return primaryExpr(ctx, cc)
     }
 
     function thenClause(ctx, cc) {
-        log("thenClause()")
+        //log("thenClause()")
         eat(ctx, TK_THEN)
         var ret = function (ctx) {
             return exprsStart(ctx, function (ctx) {
@@ -945,7 +974,7 @@ exports.parser = (function () {
     }
 
     function elseClause(ctx, cc) {
-        log("elseClause()")
+        //log("elseClause()")
         eat(ctx, TK_ELSE)
         var ret = function (ctx) {
             return exprsStart(ctx, cc)
@@ -955,14 +984,14 @@ exports.parser = (function () {
     }
 
     function expr(ctx, cc) {
-        log("expr()")
+        //log("expr()")
         if (match(ctx, TK_LET)) {
             var ret = def(ctx, cc)
-            log("def() ret="+ret)
+            //log("def() ret="+ret)
             return ret
         }
         var ret = condExpr(ctx, cc)
-        log("condExpr() ret="+ret)
+        //log("condExpr() ret="+ret)
         return ret
     }
 
@@ -975,6 +1004,7 @@ exports.parser = (function () {
             || match(ctx, TK_THEN) 
             || match(ctx, TK_ELSE)
             || match(ctx, TK_OR)
+            || match(ctx, TK_END)
             || match(ctx, TK_DOT)
     }
 
@@ -992,20 +1022,20 @@ exports.parser = (function () {
     }
 
     function exprsStart(ctx, cc) {
-        log("exprsStart()")
+        //log("exprsStart()")
         startCounter(ctx)
         return exprs(ctx, cc)
     }
 
     function exprsFinish(ctx, cc) {
-        log("exprsFinish()")
+        //log("exprsFinish()")
         ast.exprs(ctx, ctx.state.exprc)
         stopCounter(ctx)
         return cc(ctx)
     }
 
     function exprs(ctx, cc) {
-        log("exprs()")
+        //log("exprs()")
         if (match(ctx, TK_DOT)) {   // second dot
             eat(ctx, TK_DOT)
             var ret = function(ctx) {
@@ -1033,7 +1063,7 @@ exports.parser = (function () {
     }
 
     function program(ctx, cc) {
-        log("program()")
+        //log("program()")
         return exprsStart(ctx, function (ctx) {
             folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
             ast.program(ctx)
@@ -1042,13 +1072,14 @@ exports.parser = (function () {
     }
 
     function def(ctx, cc) {
-        log("def()")
+        //log("def()")
         if (match(ctx, TK_LET)) {
             eat(ctx, TK_LET)
             var ret = function (ctx) {
                 var ret = name(ctx, function (ctx) {
                     var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
-                    env.addWord(ctx, name, { tk: TK_IDENT, cls: "method", length: 0 })
+                    // nid=0 means def not finished yet
+                    env.addWord(ctx, name, { tk: TK_IDENT, cls: "method", length: 0, nid: 0, name: name })
                     ctx.state.paramc = 0
                     env.enterEnv(ctx, name)  // FIXME need to link to outer env
                     return params(ctx, function (ctx) {
@@ -1079,7 +1110,7 @@ exports.parser = (function () {
     }
 
     function params(ctx, cc) {
-        log("params()")
+        //log("params()")
         if (match(ctx, TK_EQUAL)) {
             return cc
         }
@@ -1095,7 +1126,7 @@ exports.parser = (function () {
     }
 
     function param(ctx, cc) {
-        log("param()")
+        //log("param()")
         return primaryExpr(ctx, function (ctx) {
             return cc
         })
@@ -1106,9 +1137,9 @@ exports.parser = (function () {
     function topEnv(ctx) {
         return ctx.state.env[ctx.state.env.length-1]
     }
-
-    exports.topEnv = topEnv
     
+    exports.topEnv = topEnv
+
     var lastAST
     function parse(stream, state) {
         var ctx = {scan: scanner(stream), state: state}
@@ -1140,6 +1171,7 @@ exports.parser = (function () {
                 var thisAST = ast.poolToJSON(ctx)
                 var lastAST = lastAST
                 if (!_.isEqual(lastAST, thisAST)) {
+//                    compileCode(thisAST)
                     exports.gc.compileCode(thisAST)
                 }
                 lastAST = thisAST
@@ -1157,13 +1189,13 @@ exports.parser = (function () {
             //print("parse() cls="+cls)
             //print("parse() cc="+cc+"\n")
             //print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
-            //print("parse() nodeStack="+ctx.state.nodeStack+"\n")
+            //print("parse() nodeStack"+ctx.state.nodeStack+"\n")
 
         }
         catch (x) {
-            console.log("---------")
-            console.log("exception caught!!!="+x)
             if (x === "syntax error") {
+                console.log("---------")
+                console.log("exception caught!!!=")
                 cls = "error"
                 state.cc = null
             }
@@ -1173,12 +1205,12 @@ exports.parser = (function () {
                 cls = x
             }
             else {
-                alert(x)
                 throw x
                 next(ctx)
                 cls = "comment"
                 
             }
+            console.log(x)
         }
         var t1 = new Date;
         parseCount++
@@ -1194,7 +1226,6 @@ exports.parser = (function () {
     }
 
     var lexeme = ""
-    
 
     function scanner(stream) {
 
@@ -1358,7 +1389,7 @@ exports.parser = (function () {
                 stream.backUp(1);
             }  // otherwise, we are at the end of stream
 
-            log("ident() lexeme="+lexeme)
+            //log("ident() lexeme="+lexeme)
             var tk = TK_IDENT
             if (globalLexicon[lexeme]) {
                 tk = globalLexicon[lexeme].tk
@@ -1390,27 +1421,28 @@ exports.parser = (function () {
         },
 
         parse: parse,
-        program: program
+        program: program,
     }
 
-    return parser
+    exports.startState = parser.startState
+    exports.parse = parser.parse
 
+    return parser
 })(); // end parser
 
 var foldTime = 0
 
-this.foldTime = function () {
+exports.foldTime = function () {
     return foldTime
 }
 
 var folder = function() {
-
     var _ = exports._
 
     var table = {
         "PROG" : program,
         "EXPRS" : exprs,
-        "CALL" : null,  // not used
+        "RECURSE" : recurse,
         "IDENT" : ident,
         "NUM" : num,
         "STR" : str,
@@ -1419,6 +1451,7 @@ var folder = function() {
         "SCALE" : scale,
         "TRISIDE" : triside,
         "RECT" : rectangle,
+        "MAP": map,
         "ELLIPSE" : ellipse,
         "BEZIER" : bezier,
         "LINE" : line,
@@ -1454,6 +1487,10 @@ var folder = function() {
         "SUB": sub,
         "ADD": add,
         "NEG": neg,
+
+        "LIST": list,
+        "CASE": caseExpr,
+        "OF": ofClause,
     }
 
     var canvasWidth = 0
@@ -1532,6 +1569,38 @@ var folder = function() {
         ast.program(ctx)
     }
 
+    function caseExpr(node) {
+        visit(node.elts[node.elts.length-1])
+        var expr = ast.pop(ctx)
+        //log("nodePool="+ast.dumpAll(ctx))
+        //log("caseExpr() expr="+expr+" node="+JSON.stringify(node))
+        for (var i = node.elts.length-2; i >= 0; i--) {
+            var ofNode = ctx.state.nodePool[node.elts[i]]
+            var patternNode = ofNode.elts[1]
+            visit(patternNode)
+            var pattern = ast.pop(ctx)
+            //log("caseExpr() expr="+expr+" pattern="+pattern)
+            if (expr === pattern) {
+                visit(ofNode.elts[0])
+                return
+            }
+        }
+    }
+
+    function ofClause(node) {
+        //print("ofClause()")
+        for (var i = 0; i < node.elts.length; i++) {
+            visit(node.elts[i])
+        }
+        ast.ofClause(ctx)
+    }
+
+    function list(node) {
+        //print("list()")
+        visit(node.elts[0])
+        ast.list(ctx)
+    }
+
     function exprs(node) {
         //print("exprs()")
         for (var i = 0; i < node.elts.length; i++) {
@@ -1540,12 +1609,20 @@ var folder = function() {
         ast.exprs(ctx, node.elts.length)
     }
 
+    function recurse(node) {
+        //print("recurse() node="+JSON.stringify(node))
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.funcApp(ctx, node.elts.length-1) // func name is the +1
+    }
+
     function triangle(node) {
         ast.name(ctx, "triangle")
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function triside(node) {
@@ -1553,7 +1630,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function rectangle(node) {
@@ -1561,7 +1638,16 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
+    }
+
+    function map(node) {
+        //log("map() length="+node.elts.length)
+        ast.name(ctx, "map")
+        for (var i = node.elts.length-1; i >= 0; i--) {
+            visit(node.elts[i])
+        }
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function ellipse(node) {
@@ -1569,7 +1655,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function arc(node) {
@@ -1577,7 +1663,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function arcto(node) {
@@ -1585,7 +1671,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function bezier(node) {
@@ -1593,7 +1679,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
 
@@ -1602,7 +1688,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function point(node) {
@@ -1610,7 +1696,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function path(node) {
@@ -1618,7 +1704,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function closepath(node) {
@@ -1626,7 +1712,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function moveto(node) {
@@ -1634,7 +1720,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function lineto(node) {
@@ -1642,7 +1728,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function curveto(node) {
@@ -1650,7 +1736,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function random(node) {
@@ -1665,7 +1751,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function rotate(node) {
@@ -1673,7 +1759,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function translate(node) {
@@ -1681,7 +1767,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function scale(node) {
@@ -1689,7 +1775,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function skewX(node) {
@@ -1697,7 +1783,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function skewY(node) {
@@ -1705,7 +1791,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function rgb(node) {
@@ -1713,7 +1799,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function rgba(node) {
@@ -1721,7 +1807,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function color(node) {
@@ -1729,7 +1815,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function text(node) {
@@ -1737,7 +1823,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function fsize(node) {
@@ -1745,7 +1831,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function size(node) {
@@ -1753,7 +1839,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function background(node) {
@@ -1761,7 +1847,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function neg(node) {
@@ -1798,7 +1884,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function strokeWidth(node) {
@@ -1806,7 +1892,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function fill(node) {
@@ -1814,7 +1900,7 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
 
     function clip(node) {
@@ -1822,15 +1908,17 @@ var folder = function() {
         for (var i = node.elts.length-1; i >= 0; i--) {
             visit(node.elts[i])
         }
-        ast.callExpr(ctx, node.elts.length)
+        ast.funcApp(ctx, node.elts.length)
     }
-
+ 
     function ident(node) {
-        //print("ident()")
         var name = node.elts[0]
         var word = env.findWord(ctx, name)
-        if (word) {
+        if (word && word.val) {
             ast.push(ctx, word.val)
+        }
+        else {
+            ast.push(ctx, node)
         }
     }
 
@@ -1848,5 +1936,3 @@ var folder = function() {
         return ""
      }
 }()
-
-
