@@ -3,8 +3,8 @@
 
 /* copyright (c) 2012, Jeff Dyer */
 
-function alert(str) {
-//    throw str
+function assert(b, str) {
+    if (!b) throw str
 }
 
 function print(str) {
@@ -71,6 +71,10 @@ var ast = (function () {
         random: random,
         neg: neg,
         list: list,
+        cos: cos,
+        sin: sin,
+        atan: atan,
+        pi: pi,
     }
 
     return new Ast
@@ -276,7 +280,8 @@ var ast = (function () {
         //log("ast.funcApp() argc="+argc+" nodeStack="+ctx.state.nodeStack)
         var elts = []
         while (argc > 0) {
-            elts.push(pop(ctx))
+            var elt = pop(ctx) //folder.fold(ctx, pop(ctx))
+            elts.push(elt)
             argc--
         }
         var nameId = pop(ctx)
@@ -288,6 +293,7 @@ var ast = (function () {
         }
         var name = e[0]
         var def = env.findWord(ctx, name)
+        // FIXME need to allow forward references
         if (!def) {
             throw "def not found for " + JSON.stringify(name)
         }
@@ -306,11 +312,16 @@ var ast = (function () {
         if (def.nid === 0) {  // defer folding
             //log("funcApp() name="+name)
             elts.push(nameId)
-            push(ctx, {tag: "RECURSE", name: def.name, elts: elts})
+            push(ctx, {tag: "RECURSE", elts: elts})
         }
         else {
             //log("funcApp() name="+name+" def.name="+def.name)
-            push(ctx, {tag: def.name, elts: elts})
+            if (def.val) {
+                push(ctx, def.val)
+            }
+            else {
+                push(ctx, {tag: def.name, elts: elts})
+            }
         }
     }
 
@@ -342,6 +353,28 @@ var ast = (function () {
         var rand = Math.random()
         var num = Math.floor(min + (max-min)*rand)
         number(ctx, num)
+    }
+
+    function cos(ctx) {
+        var v1 = node(ctx, pop(ctx)).elts[0]
+        number(ctx, Math.cos(v1))
+    }
+
+    function sin(ctx) {
+        //log("ast.sin()")
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        number(ctx, Math.sin(v1))
+    }
+
+    function atan(ctx) {
+        //log("ast.atan()")
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        number(ctx, Math.atan(v1))
+    }
+
+    function pi(ctx) {
+        //log("ast.pi()")
+        number(ctx, +Math.PI)
     }
 
     function neg(ctx) {
@@ -785,14 +818,17 @@ endif */
     function funcApp(ctx, cc) {
         //log("funcApp()")
         return primaryExpr(ctx, function (ctx) {
-            var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
-            var tk = env.findWord(ctx, name)
-            //log("found primaryExpr tk="+JSON.stringify(tk)+" topNode="+ast.node(ctx, ast.topNode(ctx)).elts[0])
-            if (tk && tk.cls === "method") {
-                startArgs(ctx, tk.length)
-                return args(ctx, cc)
+            var node = ast.node(ctx, ast.topNode(ctx))
+            if (node.tag==="IDENT") {
+                var name = node.elts[0]
+                var word = env.findWord(ctx, name)
+                if (word && word.cls === "function") {
+                    //print("funcApp() tk="+JSON.stringify(word))
+                    startArgs(ctx, word.length)
+                    return args(ctx, cc)
+                }
             }
-            return cc
+            return cc(ctx)
         })
     }
 
@@ -871,9 +907,10 @@ endif */
                 eat(ctx, TK_BINOP)
                 var op = env.findWord(ctx, lexeme).name
                 var ret = function (ctx) {
-                    var ret = binaryExpr(ctx, cc)
-                    ast.binaryExpr(ctx, op)
-                    return ret
+                    return binaryExpr(ctx, function(ctx) {
+                        ast.binaryExpr(ctx, op)
+                        return cc(ctx)
+                    })
                 }
                 ret.cls = "operator"
                 return ret
@@ -928,7 +965,7 @@ endif */
                 return cc(ctx)
             })
         }
-        return cc
+        return cc(ctx)
     }
 
     function ofClause (ctx, cc) {
@@ -965,7 +1002,7 @@ endif */
                     return elseClause(ctx, cc)
                 }
                 else {
-                    return cc
+                    return cc(ctx)
                 }
             })
         }
@@ -1067,6 +1104,7 @@ endif */
         return exprsStart(ctx, function (ctx) {
             folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
             ast.program(ctx)
+            assert(cc===null, "internal error, expecting null continuation")
             return cc
         })
     }
@@ -1079,7 +1117,7 @@ endif */
                 var ret = name(ctx, function (ctx) {
                     var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
                     // nid=0 means def not finished yet
-                    env.addWord(ctx, name, { tk: TK_IDENT, cls: "method", length: 0, nid: 0, name: name })
+                    env.addWord(ctx, name, { tk: TK_IDENT, cls: "function", length: 0, nid: 0, name: name })
                     ctx.state.paramc = 0
                     env.enterEnv(ctx, name)  // FIXME need to link to outer env
                     return params(ctx, function (ctx) {
@@ -1205,10 +1243,10 @@ endif */
                 cls = x
             }
             else {
-                throw x
+                //throw x
                 next(ctx)
-                cls = "comment"
-                
+                cls = "error"
+                console.log("unknown exception: " + x)
             }
             console.log(x)
         }
@@ -1487,6 +1525,10 @@ var folder = function() {
         "SUB": sub,
         "ADD": add,
         "NEG": neg,
+        "COS": cos,
+        "SIN": sin,
+        "ATAN": atan,
+        "PI": pi,
 
         "LIST": list,
         "CASE": caseExpr,
@@ -1850,6 +1892,25 @@ var folder = function() {
         ast.funcApp(ctx, node.elts.length)
     }
 
+    function cos(node) {
+        visit(node.elts[0])
+        ast.cos(ctx)
+    }
+
+    function sin(node) {
+        visit(node.elts[0])
+        ast.sin(ctx)
+    }
+
+    function atan(node) {
+        visit(node.elts[0])
+        ast.atan(ctx)
+    }
+
+    function pi(node) {
+        ast.pi(ctx)
+    }
+
     function neg(node) {
         visit(node.elts[0])
         ast.neg(ctx)
@@ -1910,15 +1971,31 @@ var folder = function() {
         }
         ast.funcApp(ctx, node.elts.length)
     }
+
+    // when folding identifiers we encounter three cases:
+    // -- the identifier is a function name, so we create a funcApp node
+    // -- the identifier has a value, so we replace it with the value
+    // -- the identifier is a reference to a local without a value, so we keep the identifier
+    // -- the identifier is unbound, so we raise an error
  
     function ident(node) {
         var name = node.elts[0]
         var word = env.findWord(ctx, name)
-        if (word && word.val) {
-            ast.push(ctx, word.val)
+        if (word) {
+            if (word.cls==="val") {
+                ast.push(ctx, word.val)
+                visit(ast.pop(ctx))          // reduce the val expr
+            }
+            else
+            if (word.cls==="function") {
+                assert(false, "implement forward references to functions")
+            }
+            else {
+                ast.push(ctx, node)
+            }
         }
         else {
-            ast.push(ctx, node)
+            assert(false, "unresolved ident "+name)
         }
     }
 

@@ -394,8 +394,12 @@ exports.transformer = GraffitiCode.transformer = function() {
 
     function point(node) {
         //print("point")
+        var x = visit(node.elts[1])
+        var y = visit(node.elts[0])
         return {
             "tag": "ellipse",
+            "cx": x,
+            "cy": y,
             "rx": 1/2,
             "ry": 1/2,
         }
