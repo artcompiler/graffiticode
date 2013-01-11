@@ -1986,10 +1986,11 @@ var folder = function() {
                 ast.push(ctx, word.val)
                 visit(ast.pop(ctx))          // reduce the val expr
             }
-            else
-            if (word.cls==="function") {
-                assert(false, "implement forward references to functions")
-            }
+// FIXME need to implement this
+//            else
+//            if (word.cls==="function") {
+//                assert(false, "implement forward references to functions")
+//            }
             else {
                 ast.push(ctx, node)
             }
