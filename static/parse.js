@@ -8,7 +8,7 @@ function assert(b, str) {
 }
 
 function print(str) {
-//    console.log(str)
+    console.log(str)
 }
 
 function log(str) {
@@ -900,17 +900,48 @@ endif */
         return postfixExpr(ctx, cc)
     }
 
-    function binaryExpr(ctx, cc) {
-        //log("binaryExpr()")
+    function getPrecedence(op) {
+        //print("getPrecedence() op="+op)
+        return {
+            "": 0
+          , "ADD": 3
+          , "SUB": 3
+          , "MUL": 4
+          , "DIV": 4
+        }[op]
+    }
+
+    function binaryExpr(ctx, prevOp, cc) {
+        //print("binaryExpr() prevOp="+prevOp)
         return prefixExpr(ctx, function (ctx) {
             if (match(ctx, TK_BINOP)) {
                 eat(ctx, TK_BINOP)
-                var op = env.findWord(ctx, lexeme).name
                 var ret = function (ctx) {
-                    return binaryExpr(ctx, function(ctx) {
-                        ast.binaryExpr(ctx, op)
-                        return cc(ctx)
-                    })
+                    var op = env.findWord(ctx, lexeme).name
+                    if (getPrecedence(prevOp) < getPrecedence(op)) {
+                        return binaryExpr(ctx, op, function(ctx, prevOp) {
+                            // This continuation's purpose is to construct a right recursive
+                            // binary expression node. If the previous node is a binary node
+                            // with equal or higher precedence, then we get here from the left
+                            // recursive branch below and there is no way to know the current
+                            // operator unless it gets passed as an argument, which is what
+                            // prevOp is for.
+                            if (prevOp !== void 0) {
+                                op = prevOp
+                            }
+                            ast.binaryExpr(ctx, op)
+                            return cc(ctx)
+                        })
+                    }
+                    else {
+                        ast.binaryExpr(ctx, prevOp)
+                        return binaryExpr(ctx, op, function(ctx, prevOp) {
+                            if (prevOp !== void 0) {
+                                op = prevOp
+                            }
+                            return cc(ctx, op)
+                        })
+                    }
                 }
                 ret.cls = "operator"
                 return ret
@@ -921,7 +952,7 @@ endif */
     
     function relationalExpr(ctx, cc) {
         //log("relationalExpr()")
-        return binaryExpr(ctx, function (ctx) {
+        return binaryExpr(ctx, "", function (ctx) {
             // FIXME implement relational expressions
             return cc(ctx)
         })
@@ -1227,7 +1258,7 @@ endif */
             //print("parse() cls="+cls)
             //print("parse() cc="+cc+"\n")
             //print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
-            //print("parse() nodeStack"+ctx.state.nodeStack+"\n")
+            //print("parse() nodeStack="+ctx.state.nodeStack+"\n")
 
         }
         catch (x) {
