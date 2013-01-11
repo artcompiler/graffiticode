@@ -451,8 +451,8 @@ var ast = (function () {
     }
 
     function eq(ctx) {
-        var v2 = +node(ctx, pop(ctx)).elts[0]
-        var v1 = +node(ctx, pop(ctx)).elts[0]
+        var v2 = node(ctx, pop(ctx)).elts[0]
+        var v1 = node(ctx, pop(ctx)).elts[0]
         bool(ctx, v1==v2)
     }
 
