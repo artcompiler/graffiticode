@@ -8,7 +8,7 @@ function assert(b, str) {
 }
 
 function print(str) {
-    console.log(str)
+//    console.log(str)
 }
 
 function log(str) {
@@ -65,9 +65,18 @@ var ast = (function () {
         peek: peek,
         push: push,
         div: div,
+        mod: mod,
         mul: mul,
         add: add,
         sub: sub,
+        orelse: orelse,
+        andalso: andalso,
+        eq: eq,
+        ne: ne,
+        lt: lt,
+        gt: gt,
+        le: le,
+        ge: ge,
         random: random,
         neg: neg,
         list: list,
@@ -75,6 +84,7 @@ var ast = (function () {
         sin: sin,
         atan: atan,
         pi: pi,
+        bool: bool,
     }
 
     return new Ast
@@ -246,6 +256,16 @@ var ast = (function () {
         return s;
     }
 
+    function bool(ctx, val) {
+        if (val) {
+            var b = true
+        }
+        else {
+            var b = false
+        }
+        push(ctx, {tag: "BOOL", elts: [b]})
+    }
+
     function number(ctx, str) {
         push(ctx, {tag: "NUM", elts: [str]})
     }
@@ -390,6 +410,13 @@ var ast = (function () {
         number(ctx, v1/v2)
     }
 
+    function mod(ctx) {
+        //log("ast.mod()")
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        number(ctx, v1%v2)
+    }
+
     function mul(ctx) {
         //log("ast.mul()")
         var v2 = +node(ctx, pop(ctx)).elts[0]
@@ -409,6 +436,54 @@ var ast = (function () {
         var v2 = +node(ctx, pop(ctx)).elts[0]
         var v1 = +node(ctx, pop(ctx)).elts[0]
         number(ctx, v1-v2)
+    }
+
+    function orelse(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        throw "not implemented"
+    }
+
+    function andalso(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        throw "not implemented"
+    }
+
+    function eq(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        bool(ctx, v1==v2)
+    }
+
+    function ne(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        bool(ctx, v1!=v2)
+    }
+
+    function lt(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        bool(ctx, v1<v2)
+    }
+
+    function gt(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        bool(ctx, v1>v2)
+    }
+
+    function le(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        bool(ctx, v1<=v2)
+    }
+
+    function ge(ctx) {
+        var v2 = +node(ctx, pop(ctx)).elts[0]
+        var v1 = +node(ctx, pop(ctx)).elts[0]
+        bool(ctx, v1>=v2)
     }
 
     function caseExpr(ctx, n) {
@@ -623,6 +698,7 @@ endif */
     var TK_END    = 0x11
     var TK_LET    = 0x12
     var TK_OR     = 0x13
+    var TK_BOOL   = 0x14
 
     var TK_LEFTPAREN    = 0xA1
     var TK_RIGHTPAREN   = 0xA2
@@ -680,6 +756,14 @@ endif */
     }
 
     // Parsing functions
+
+    function bool(ctx, cc) {
+        //log("number()")
+        eat(ctx, TK_BOOL)
+        cc.cls = "number"
+        ast.bool(ctx, lexeme==="true")
+        return cc
+    }
 
     function number(ctx, cc) {
         //log("number()")
@@ -803,6 +887,9 @@ endif */
         else if (match(ctx, TK_STR)) {
             return string(ctx, cc)
         }
+        else if (match(ctx, TK_BOOL)) {
+            return bool(ctx, cc)
+        }
         else if (match(ctx, TK_LEFTBRACE)) {
             return record(ctx, cc)
         }
@@ -904,10 +991,19 @@ endif */
         //print("getPrecedence() op="+op)
         return {
             "": 0
-          , "ADD": 3
-          , "SUB": 3
-          , "MUL": 4
-          , "DIV": 4
+          , "OR": 1
+          , "AND": 2
+          , "EQ": 3
+          , "NE": 3
+          , "LT": 4
+          , "GT": 4
+          , "LE": 4
+          , "GE": 4
+          , "ADD": 5
+          , "SUB": 5
+          , "MUL": 6
+          , "DIV": 6
+          , "MOD": 6
         }[op]
     }
 
@@ -1277,7 +1373,6 @@ endif */
                 //throw x
                 next(ctx)
                 cls = "error"
-                console.log("unknown exception: " + x)
             }
             console.log(x)
         }
@@ -1513,6 +1608,7 @@ var folder = function() {
         "EXPRS" : exprs,
         "RECURSE" : recurse,
         "IDENT" : ident,
+        "BOOL" : bool,
         "NUM" : num,
         "STR" : str,
         "TRI" : triangle,
@@ -1552,9 +1648,21 @@ var folder = function() {
         "SIZE" : size,
         "BACKGROUND": background,
         "DIV": div,
+        "MOD": mod,
         "MUL": mul,
         "SUB": sub,
         "ADD": add,
+
+        "OR": orelse,
+        "AND": andalso,
+        "NE": ne,
+        "EQ": eq,
+        "LT": lt,
+        "GT": gt,
+        "LE": le,
+        "GE": ge,
+
+
         "NEG": neg,
         "COS": cos,
         "SIN": sin,
@@ -1574,7 +1682,7 @@ var folder = function() {
     }
 
     // CONTROL FLOW ENDS HERE
-    
+// 1 eq 2..    
     var nodePool
     var ctx
 
@@ -1971,6 +2079,60 @@ var folder = function() {
         ast.sub(ctx)
     }
 
+    function mod(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.mod(ctx)
+    }
+
+    function orelse(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.orelse(ctx)
+    }
+
+    function andalso(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.andalso(ctx)
+    }
+
+    function eq(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.eq(ctx)
+    }
+
+    function ne(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.ne(ctx)
+    }
+
+    function lt(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.lt(ctx)
+    }
+
+    function gt(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.gt(ctx)
+    }
+
+    function le(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.le(ctx)
+    }
+
+    function ge(node) {
+        visit(node.elts[1])
+        visit(node.elts[0])
+        ast.ge(ctx)
+    }
+
     function stroke(node) {
         ast.name(ctx, "stroke")
         for (var i = node.elts.length-1; i >= 0; i--) {
@@ -2037,6 +2199,10 @@ var folder = function() {
 
     function str(node) {
         ast.string(ctx, node.elts[0])
+    }
+
+    function bool(node) {
+        ast.bool(ctx, node.elts[0])
     }
 
 

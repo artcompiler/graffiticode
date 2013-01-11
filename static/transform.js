@@ -96,6 +96,7 @@ exports.transformer = GraffitiCode.transformer = function() {
         "EXPRS" : exprs,
         "CALL" : callExpr,
         "IDENT" : ident,
+        "BOOL" : bool,
         "NUM" : num,
         "STR" : str,
         "GRID" : grid,
@@ -782,6 +783,11 @@ exports.transformer = GraffitiCode.transformer = function() {
 
     function ident(node) {
         //print("identifier()")
+        return node.elts[0]
+    }
+
+    function bool(node) {
+        //print("bool()")
         return node.elts[0]
     }
 

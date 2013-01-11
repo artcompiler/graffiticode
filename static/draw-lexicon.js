@@ -15,9 +15,6 @@ exports.globalLexicon = {
     "case" : { "tk": 0x0F, "cls": "keyword" },
     "of" : { "tk": 0x10, "cls": "keyword" },
     "end" : { "tk": 0x11, "cls": "keyword", "length": 0 },
-    "or" : { "tk": 0x13, "cls": "keyword", "length": 0 },
-    "is" : { "tk": 0x09, "cls": "operator", "length": 1 },
-    "equal" : { "tk": 0x01, "cls": "operator", "length": 0 },
 
     "zero" : { "tk": 0x02, "cls": "number", "length": 0 },
     "one" : { "tk": 0x02, "cls": "number", "length": 0 },
@@ -93,9 +90,15 @@ exports.globalLexicon = {
     "cos" : { "tk": 0x01, "name": "COS", "cls": "function", "length": 1 },
     "sin" : { "tk": 0x01, "name": "SIN", "cls": "function", "length": 1 },
     "atan" : { "tk": 0x01, "name": "ATAN", "cls": "function", "length": 1 },
+
+
     "pi" : { "tk": 0x01, "name": "PI", "cls": "val", "length": 0,
 	     "val": { "tag": "NUM", "elts": [Math.PI] } },
 
+    "true" : { "tk": 0x14, "cls": "val", "length": 0 },
+    "false" : { "tk": 0x14, "cls": "val", "length": 0 },
+
+    // TK_BINOP = 0x0E
     "divide" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
     "div" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
     "mul" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
@@ -104,6 +107,16 @@ exports.globalLexicon = {
     "sub" : { "tk": 0x0E, "name": "SUB", "cls": "operator", "length": 0 },
     "plus" : { "tk": 0x0E, "name": "ADD", "cls": "operator", "length": 0 },
     "add" : { "tk": 0x0E, "name": "ADD", "cls": "operator", "length": 0 },
+    "mod" : { "tk": 0x0E, "name": "MOD", "cls": "operator", "length": 0 },
+    "or" : { "tk": 0x0E, "name": "OR", "cls": "operator", "length": 0 },
+    "and" : { "tk": 0x0E, "name": "AND", "cls": "operator", "length": 0 },
+    "eq" : { "tk": 0x0E, "name": "EQ", "cls": "operator", "length": 0 },
+    "ne" : { "tk": 0x0E, "name": "NE", "cls": "operator", "length": 0 },
+    "lt" : { "tk": 0x0E, "name": "LT", "cls": "operator", "length": 0 },
+    "gt" : { "tk": 0x0E, "name": "GT", "cls": "operator", "length": 0 },
+    "le" : { "tk": 0x0E, "name": "LE", "cls": "operator", "length": 0 },
+    "ge" : { "tk": 0x0E, "name": "GE", "cls": "operator", "length": 0 },
+
 
     "deg" : { "tk": 0x0A, "cls": "operator", "length": 0 }
 
