@@ -849,12 +849,12 @@ endif */
         })
     }
 
-    function tuple(ctx, cc) {
-        //log("tuple()")
+    function parenExpr(ctx, cc) {
+        //log("parenExpr()")
         eat(ctx, TK_LEFTPAREN)
         //log("found left paren")
         var ret = function(ctx) {
-            return exprsStart(ctx, function (ctx) {
+            return condExpr(ctx, function (ctx) {
                 eat(ctx, TK_RIGHTPAREN)
                 cc.cls = "punc"
                 return cc
@@ -894,7 +894,7 @@ endif */
             return record(ctx, cc)
         }
         else if (match(ctx, TK_LEFTPAREN)) {
-            return tuple(ctx, cc)
+            return parenExpr(ctx, cc)
         }
         else if (match(ctx, TK_LEFTBRACKET)) {
             return list(ctx, cc)
