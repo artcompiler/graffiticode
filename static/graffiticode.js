@@ -288,13 +288,6 @@ exports.gc = (function () {
         var findId = 240
         var archiveId = 242
         var shareId = 211
-        if (location.host.match(/^localhost/) !== null) {
-            newId = 151
-            findId = 151
-            archiveId = 151
-            shareId = 151
-        }
-            
         $.get("http://"+location.host+"/graffiti/"+newId, function (newButton) {
         $.get("http://"+location.host+"/graffiti/"+findId, function (openButton) {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
