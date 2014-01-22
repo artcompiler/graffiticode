@@ -23,7 +23,6 @@ var app = module.exports = express();
 
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
-//console.log("conString="+conString)
 
 //error handling omitted
 pg.connect(conString, function(err, client) {
@@ -70,7 +69,6 @@ app.all('*', function (req, res, next) {
     next();     
   }
 });
-
 
 app.get('/', function(req, res) {
   res.redirect("/draw");
