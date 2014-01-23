@@ -18,12 +18,11 @@ exports.gc = (function () {
 	    data: {ast: ast},
       dataType: "text",
       success: function(data) {
-        //		updateText(data)
-		    updateGraffito(data, src, ast)
-		    updateObj(data)
+		    updateGraffito(data, src, ast);
+		    updateObj(data);
       },
       error: function(xhr, msg, err) {
-		    alert(msg+" "+err)
+		    alert(msg+" "+err);
       }
 	  });
   }
@@ -353,33 +352,15 @@ exports.gc = (function () {
   }
 
   function showArchive() {
-    $(".button-bar").css("display", "block")
-    $(".button-bar-button").hide()
-    $(".gallery-panel").css("display", "block")
-    $(".essay-panel").css("display", "none")
-    $(".edit-panel").css("display", "none")
-
-    $(".nav-link").css("background-color", "#ddd")
-    $(".nav-link").css("font-weight", "400")
-
-    $("#archive-link").css("background-color", "#bbb")
-    $("#archive-link").css("font-weight", "700")
-
-  }
-
-  function showDonate() {
-    $(".gallery-panel").css("display", "none")
-    $(".edit-panel").css("display", "none")
-    $(".essay-panel").css("display", "block")
-    $.get("donate.html", function(data) {
-      $(".essay-panel").html(data)
-    })
-
-    $(".nav-link").css("background-color", "#ddd")
-    $(".nav-link").css("font-weight", "400")
-
-    $("#donate-link").css("background-color", "#bbb")
-    $("#donate-link").css("font-weight", "700")
+    $(".button-bar").css("display", "block");
+    $(".button-bar-button").hide();
+    $(".gallery-panel").css("display", "block");
+    $(".essay-panel").css("display", "none");
+    $(".edit-panel").css("display", "none");
+    $(".nav-link").css("background-color", "#ddd");
+    $(".nav-link").css("font-weight", "400");
+    $("#archive-link").css("background-color", "#bbb");
+    $("#archive-link").css("font-weight", "700");
   }
 
   function showAbout() {
@@ -457,7 +438,6 @@ exports.gc = (function () {
     showDemos: showDemos,
     showTutorials: showTutorials,
     showNotes: showNotes,
-    showDonate: showDonate,
     showAbout: showAbout,
     showFeedback: showFeedback,
     newCode: newCode,

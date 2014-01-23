@@ -902,7 +902,7 @@ endif */
 
   function funcApp(ctx, cc) {
     //log("funcApp()")
-    return primaryExpr(ctx, function (ctx) {
+    return primaryExpr(ctx, function funcApp2(ctx) {
       var node = ast.node(ctx, ast.topNode(ctx))
       if (node.tag==="IDENT") {
         var name = node.elts[0]
@@ -1354,6 +1354,7 @@ endif */
 
     }
     catch (x) {
+      console.log(x.stack);
       if (x === "syntax error") {
         console.log("---------")
         console.log("exception caught!!!=")
@@ -2165,7 +2166,7 @@ var folder = function() {
     var name = node.elts[0];
     var word = env.findWord(ctx, name);
     if (word) {
-      if (word.cls==="val") {
+      if (word.cls==="val" && word.val) {
         ast.push(ctx, word.val);
         visit(ast.pop(ctx));      // reduce the val expr
       } else {
