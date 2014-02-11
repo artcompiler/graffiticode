@@ -5,7 +5,7 @@
  */
 
 function print(str) {
-  //    console.log(str)
+  console.log(str)
 }
 
 var express = require('express');
@@ -18,6 +18,8 @@ var http = require('http');
 var https = require('https');
 var transformer = require('./static/transform.js');
 var renderer = require('./static/render.js');
+var math_transformer = require('./static/transform-math.js');
+var math_renderer = require('./static/render-math.js');
 var qs = require("qs");
 var app = module.exports = express();
 
@@ -79,6 +81,24 @@ app.get('/draw', function (req, res) {
     res.render('layout.html', { 
       title: 'Graffiti Code',
       vocabulary: 'draw',
+      target: 'SVG',
+      login: 'Login',
+      body: body,
+    }, function (error, html) {
+      if (error) {
+        res.send(400, error);
+      } else {
+        res.send(html);
+      }
+    });
+  });
+});
+
+app.get('/math', function (req, res) {
+  fs.readFile('views/math.html', function (err, body) {
+    res.render('layout.html', { 
+      title: 'Graffiti Code',
+      vocabulary: 'math',
       target: 'SVG',
       login: 'Login',
       body: body,
@@ -183,9 +203,19 @@ app.get('/code', function (req, res) {
 // Compile code (idempotent)
 app.put('/code', function (req, res) {
   var srcAst = req.body.ast;
-  var objAst = transformer.transform(srcAst);
-  var obj = renderer.render(objAst);
-  res.send(obj);
+  var type = req.body.type;
+  print("type=" + req.body.type);
+  print(JSON.stringify(srcAst, null, 2));
+  if (type === "math") {
+    var objAst = math_transformer.transform(srcAst);
+    var obj = math_renderer.render(objAst);
+    print("obj=" + obj);
+    res.send(obj);
+  } else {
+    var objAst = transformer.transform(srcAst);
+    var obj = renderer.render(objAst);
+    res.send(obj);
+  }
 });
 
 // Commit and return commit id

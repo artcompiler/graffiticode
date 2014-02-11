@@ -1,5 +1,6 @@
 var _ = require('./underscore'),
     lexicon = require('./draw-lexicon'),
+//    lexicon = require('./math-lexicon'),
     parser = require('./parse'),
     transformer = require('./transform'),
     renderer = require('./render')

@@ -15,7 +15,7 @@ exports.gc = (function () {
 	  $.ajax({
 	    type: "PUT",
       url: "/code",
-	    data: {ast: ast},
+	    data: {ast: ast, type: exports.lexiconType},
       dataType: "text",
       success: function(data) {
 		    updateGraffito(data, src, ast);
@@ -205,6 +205,8 @@ exports.gc = (function () {
   }
 
   function updateGraffito(obj, src, pool) {
+//    obj = "When \$a \\ne 0\$, there are two solutions to \\(ax^2 + bx + c = 0\\) and they are" +
+//      " \$\$x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}.\$\$";
 	  $("#graff-view").html(obj);
     $("#graff-view").attr("onclick", "exports.postPiece(this)");
     var width = $("#graff-view svg").width();
@@ -213,6 +215,7 @@ exports.gc = (function () {
     exports.src = src;
     exports.pool = pool;
     exports.obj = obj;
+//    MathJax.Hub.Queue(["Typeset", MathJax.Hub, "graff-view"]);
   }
 
   function clickThumbnail(e, id) {
