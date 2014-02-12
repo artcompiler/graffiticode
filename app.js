@@ -168,7 +168,7 @@ app.get('/graffiti/:id', function (req, res) {
 // get list of piece ids
 app.get('/pieces', function (req, res) {
   pg.connect(conString, function (err, client) {
-    client.query("SELECT id FROM pieces ORDER BY views DESC, forks DESC, created DESC", function (err, result) {
+    client.query("SELECT id FROM pieces ORDER BY id DESC", function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
@@ -204,12 +204,9 @@ app.get('/code', function (req, res) {
 app.put('/code', function (req, res) {
   var srcAst = req.body.ast;
   var type = req.body.type;
-  print("type=" + req.body.type);
-  print(JSON.stringify(srcAst, null, 2));
   if (type === "math") {
     var objAst = math_transformer.transform(srcAst);
     var obj = math_renderer.render(objAst);
-    print("obj=" + obj);
     res.send(obj);
   } else {
     var objAst = transformer.transform(srcAst);

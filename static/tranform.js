@@ -149,7 +149,6 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
 
     function isString(v) {
-        console.log("isString() _="+_)
         return _.isString(v)
     }
 
