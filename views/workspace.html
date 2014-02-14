@@ -43,10 +43,9 @@ $(document).ready(function () {
             CodeMirror.handleCursorEvent(editor)
 	},
         onUpdate: function() {
-//            updateDisplay()
         },
     })
-    editor.setValue("size 100 100.\n.")
+    editor.setValue("size 100 100 .\n.")
 
     // position divs vertically
     function updateDisplay() {
@@ -56,26 +55,15 @@ $(document).ready(function () {
         $("#graff-view").offset(offset)
     }
 
-/*
-    textCodeMirror = CodeMirror(document.querySelector("#text-view"), {
-        value: "",
-        mode: {name: "xml", alignCDATA: true},
-        lineWrapping: "true",
-        lineNumbers: "true",
-    })
-*/
-
     $(document).scroll(function (data) {
        var pos = window.innerHeight + document.body.scrollTop
        var bottom = document.body.height
        var height = $(".gallery-panel").height()
-//       console.log("scroll() pos="+pos+" heigth="+height)
        if (pos > height) {
            GraffitiCode.ui.loadMoreThumbnails(false)
        }
     })
 
-//    updateDisplay()
     GraffitiCode.ui.start()
 })
 

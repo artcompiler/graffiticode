@@ -240,7 +240,7 @@ var Ast = (function () {
       n = n.args[0];
       break;
     default:
-      for (var i=0; i < n.args.length; i++) {
+      for (var i=0; n.args && i < n.args.length; i++) {
         n.args[i] = node(n.args[i]);
       }
       break;
@@ -438,7 +438,7 @@ var Model = (function () {
   var OpStr = {
     ADD: "+",
     SUB: "-",
-    MUL: "times",
+    MUL: "MUL",
     DIV: "div",
     FRAC: "frac",
     EQL: "=",
@@ -496,7 +496,7 @@ var Model = (function () {
     } else if (typeof n === "object") {
       // render sub-expressions
       var args = [];
-      for (var i = 0; i < n.args.length; i++) {
+      for (var i = 0; n.args && i < n.args.length; i++) {
         args[i] = render(n.args[i]);
       }
       // render operator

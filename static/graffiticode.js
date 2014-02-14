@@ -215,7 +215,10 @@ exports.gc = (function () {
     exports.src = src;
     exports.pool = pool;
     exports.obj = obj;
-//    MathJax.Hub.Queue(["Typeset", MathJax.Hub, "graff-view"]);
+    if (exports.lexiconType === "math") {
+      exports.obj = "\$\$" + obj + "\$\$"
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub, "graff-view"]);
+    }
   }
 
   function clickThumbnail(e, id) {

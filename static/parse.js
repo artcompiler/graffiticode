@@ -21,11 +21,11 @@ function assert(b, str) {
 }
 
 function print(str) {
-//  console.log(str)
+  console.log(str)
 }
 
 function log(str) {
-//  console.log(str)
+  console.log(str)
 }
 
 /* if nodejs
@@ -141,21 +141,29 @@ var ast = (function () {
     var nodePool = ctx.state.nodePool
 
     var tag = n.tag;
-    var count = n.elts.length;
     var elts = "";
     var elts_nids = [ ];
-    for (var i=0; i < count; i++) {
+    var count = n.elts.length;
+    for (var i = 0; i < count; i++) {
       if (typeof n.elts[i] === "object") {
         n.elts[i] = intern(ctx, n.elts[i])
       }
       elts += n.elts[i]
     }
-    var key = tag+count+elts;
+    var path = "";
+    var count = n.path ? n.path.length : 0;
+    for (var i = 0; i < count; i++) {
+      if (typeof n.path[i] === "object") {
+        n.path[i] = intern(ctx, n.path[i])
+      }
+      path += n.path[i]
+    }
+    var key = tag+count+elts+path;
     var nid = nodeMap[key];
     if (nid === void 0) {
-      nodePool.push({tag: tag, elts: n.elts})
-      nid = nodePool.length - 1
-      nodeMap[key] = nid
+      nodePool.push({tag: tag, elts: n.elts, path: n.path});
+      nid = nodePool.length - 1;
+      nodeMap[key] = nid;
     }
     return nid
   }
@@ -274,7 +282,7 @@ var ast = (function () {
   }
 
   function number(ctx, str) {
-    push(ctx, {tag: "NUM", elts: [str]})
+    push(ctx, {tag: "NUM", elts: [str], path: ctx.path.slice(0)})
   }
 
   function string(ctx, str) {
@@ -304,49 +312,52 @@ var ast = (function () {
   }
 
   function funcApp(ctx, argc) {
+    var prevPath = ctx.path;
+    ctx.path = prevPath.slice(0);
     var elts = []
     while (argc > 0) {
-      var elt = pop(ctx) //folder.fold(ctx, pop(ctx))
-      elts.push(elt)
-      argc--
+      var elt = pop(ctx); //folder.fold(ctx, pop(ctx))
+      elts.push(elt);
+      argc--;
     }
-    var nameId = pop(ctx)
-    var e = node(ctx, nameId).elts
+    var nameId = pop(ctx);
+    ctx.path.push(nameId);
+    var e = node(ctx, nameId).elts;
     if (!e) {
-      return
+      return;
     }
-    var name = e[0]
-    var def = env.findWord(ctx, name)
+    var name = e[0];
+    var def = env.findWord(ctx, name);
     // FIXME need to allow forward references
     if (!def) {
-      throw "def not found for " + JSON.stringify(name)
+      throw "def not found for " + JSON.stringify(name);
     }
 
     // If recursive call, then this callee does not have a nid yet.
     if (def.nid) {
       // recursion guard
       if (ctx.state.nodeStack.length > 900) {
-        throw "runaway recursion"
+        throw "runaway recursion";
       }
       // we have a user def, so fold it.
-      return fold(ctx, def, elts)
-    }
-    else
-    if (def.nid === 0) {  // defer folding
-      elts.push(nameId)
-      push(ctx, {tag: "RECURSE", elts: elts})
+      //ctx.path.push(def.nid);
+      fold(ctx, def, elts);
+    } else if (def.nid === 0) {  // defer folding
+      elts.push(nameId);
+      push(ctx, {tag: "RECURSE", elts: elts});
     } else {
       if (def.val) {
-        push(ctx, def.val)
+        push(ctx, def.val);
       } else {
-        push(ctx, {tag: def.name, elts: elts})
+        push(ctx, {tag: def.name, elts: elts});
       }
     }
+    ctx.path = prevPath;
   }
 
   function list(ctx) {
-    var elts = [ pop(ctx) ]
-    push(ctx, {tag: "LIST", elts: elts })
+    var elts = [pop(ctx)];
+    push(ctx, {tag: "LIST", elts: elts});
   }
 
 
@@ -1204,6 +1215,7 @@ endif */
       folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
       ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
+      //print("POOL\n" + JSON.stringify(ctx.state.nodePool, null, 2));
       return cc
     })
   }
@@ -1279,7 +1291,7 @@ endif */
 
   var lastAST
   function parse(stream, state) {
-    var ctx = {scan: scanner(stream), state: state}
+    var ctx = {scan: scanner(stream), state: state, path: []}
     var cls
     try {
       var c;
@@ -1678,8 +1690,12 @@ var folder = function() {
     if (node.tag === void 0) {
       return [ ]  // clean up stubs
     } else if (isFunction(table[node.tag])) {
+      var prevPath = ctx.path;
+      ctx.path = prevPath.slice(0);
+//      ctx.path.push(nid);
       var ret = table[node.tag](node)
       //print("ret="+ret)
+      ctx.path = prevPath;
       return ret
     } else {
       throw "missing visitor method for " + node.tag        
@@ -2030,9 +2046,16 @@ var folder = function() {
   }
 
   function mul(node) {
+/*
     visit(node.elts[1])
     visit(node.elts[0])
     ast.mul(ctx)
+*/
+    ast.name(ctx, "mul")
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i])
+    }
+    ast.funcApp(ctx, node.elts.length)
   }
 
   function add(node) {

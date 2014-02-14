@@ -9,12 +9,9 @@
 		lineWrapping: "true",
 		lineNumbers: "true",
 		indentWithTabs: "true",
+		readOnly: "true",
 		theme: theme,
-		//	onCursorActivity: function (editor) {
-		//            CodeMirror.handleCursorEvent(editor)
-		//	},
 		onUpdate: function() {
-		    //            updateDisplay()
 		},
 	    })
 	    
