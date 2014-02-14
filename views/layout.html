@@ -79,7 +79,7 @@ navigator.id.watch({
           $("#signin").css("display", "none");
           $("#signout").css("display", "inline-block");
           $("#username").data("user", res);
-          editor.setOption("readOnly", true);
+console.log("editor=" + editor);
       },
       error: function(xhr, status, err) { 
           alert("Login failure: " + err);
