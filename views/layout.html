@@ -79,7 +79,8 @@ navigator.id.watch({
           $("#signin").css("display", "none");
           $("#signout").css("display", "inline-block");
           $("#username").data("user", res);
-console.log("editor=" + editor);
+          editor.setOption("readOnly", false);
+console.log("editor=" + editor + " readOnly=" + editor.getOption("readOnly");
       },
       error: function(xhr, status, err) { 
           alert("Login failure: " + err);
@@ -99,7 +100,7 @@ console.log("editor=" + editor);
           $("#signin").css("display", "inline-block")
           $("#signout").css("display", "none")
           $("#username").data("user", {id:1, email: "guest@graffiticode.org", name: "Guest"})
-          editor.setOption("readOnly", false);          
+          editor.setOption("readOnly", true);          
       },
       error: function(xhr, status, err) {
           alert("Logout failure: " + err);
