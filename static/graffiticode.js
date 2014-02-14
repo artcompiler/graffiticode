@@ -269,7 +269,7 @@ exports.gc = (function () {
   function start() {
     queryPieces();
     var srcId = 304;
-    var newId = 208;
+    var newId = 627;
     var findId = 240;
     var archiveId = 242;
     var shareId = 211;
