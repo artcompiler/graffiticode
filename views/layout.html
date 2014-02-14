@@ -79,7 +79,7 @@ navigator.id.watch({
           $("#signin").css("display", "none");
           $("#signout").css("display", "inline-block");
           $("#username").data("user", res);
-          editor.readOnly = true;          
+          editor.setOption("readOnly", true);
       },
       error: function(xhr, status, err) { 
           alert("Login failure: " + err);
@@ -99,7 +99,7 @@ navigator.id.watch({
           $("#signin").css("display", "inline-block")
           $("#signout").css("display", "none")
           $("#username").data("user", {id:1, email: "guest@graffiticode.org", name: "Guest"})
-          editor.readOnly = false;          
+          editor.setOption("readOnly", false);          
       },
       error: function(xhr, status, err) {
           alert("Logout failure: " + err);
