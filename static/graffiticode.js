@@ -417,7 +417,7 @@ exports.gc = (function () {
   }
 
   function newCode() {
-    editor.setValue("size 100 100.\n.")
+    editor.setValue("size 100 100 .\n.")
     var srcId = 302
     $.get("http://"+location.host+"/code/"+srcId, function (data) {
       updateSrc(data[0].id, data[0].src)
