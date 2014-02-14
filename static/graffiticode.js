@@ -269,7 +269,7 @@ exports.gc = (function () {
   function start() {
     queryPieces();
     var srcId = 304;
-    var newId = 627;
+    var newId = 208;
     var findId = 240;
     var archiveId = 242;
     var shareId = 211;
@@ -417,11 +417,10 @@ exports.gc = (function () {
   }
 
   function newCode() {
-    editor.setValue("size 100 100 .\n.")
-    var srcId = 302
+    var srcId = 627;
     $.get("http://"+location.host+"/code/"+srcId, function (data) {
       updateSrc(data[0].id, data[0].src)
-    })
+    });
   }
 
   function showHelp() {
