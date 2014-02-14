@@ -2,18 +2,17 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* Copyright (c) 2012, Jeff Dyer */
 
-var _ = require("underscore")
+var _ = require("underscore");
 
 if (!this.GraffitiCode) {
-  this.GraffitiCode = GraffitiCode = {}
-  console.log("transform making GraffitiCode")
+  this.GraffitiCode = GraffitiCode = {};
+  console.log("transform making GraffitiCode");
 }
 
 exports.transformer = GraffitiCode.transformer = function() {
 
-
   function print(str) {
-    //console.log(str)
+    //console.log(str);
   }
 
   var table = {
@@ -120,6 +119,8 @@ exports.transformer = GraffitiCode.transformer = function() {
     "RAND" : random,
 
     "TEXT" : text,
+    "MATH-TEXT" : math_text,
+
     "FSIZE" : fsize,
     "ROTATE" : rotate,
     "SCALE" : scale,
@@ -480,6 +481,19 @@ exports.transformer = GraffitiCode.transformer = function() {
       "tag": "text",
       "elts": elts,
     }
+  }
+
+  function math_text(node) {
+    //print("math_text");
+    var elts = [];
+//    var str = toLaTeX(node.elts[0]);
+    var str = ""+visit(node.elts[0]);
+    return {
+      "tag": "foreignObject",
+      "width": canvasWidth,
+      "height": canvasHeight,
+      "elts": ["\$" + str + "\$"],
+    };
   }
 
   function fsize(node) {
@@ -2529,14 +2543,14 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function binaryExpr(node) {
-    //print("binaryExpr")
-    var startCol = col
-    var startLn = ln
-    var elts = [ ]
-    var tempCol = col
-    elts.push(visit(node.e1))
+    //print("binaryExpr");
+    var startCol = col;
+    var startLn = ln;
+    var elts = [ ];
+    var tempCol = col;
+    elts.push(visit(node.e1));
     if (node.op != Ast.commaOp) {
-      col += 1
+      col += 1;
     }
     elts.push({
       "tag": "tspan",
@@ -2546,15 +2560,15 @@ exports.transformer = GraffitiCode.transformer = function() {
       "stopCol": col,
       "stopLn": ln,
       "elts": [binaryOpText(node.op)]
-    })
+    });
     if (node.op == Ast.logicalAndOp ||
         node.op == Ast.logicalOrOp ||
         node.op == Ast.commaOp) {
-      ln += 1
-      col = tempCol
+      ln += 1;
+      col = tempCol;
     }
     else {
-      col += binaryOpText(node.op).length + 1   // space after operator
+      col += binaryOpText(node.op).length + 1;   // space after operator
     }
     elts.push(visit(node.e2))
     return {

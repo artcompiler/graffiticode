@@ -217,8 +217,8 @@ exports.gc = (function () {
     exports.obj = obj;
     if (exports.lexiconType === "math") {
       exports.obj = "\$\$" + obj + "\$\$"
-      MathJax.Hub.Queue(["Typeset", MathJax.Hub, "graff-view"]);
     }
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, "graff-view"]);
   }
 
   function clickThumbnail(e, id) {

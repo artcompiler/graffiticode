@@ -55,6 +55,7 @@ exports.globalLexicon = {
     "background" : { "tk": 0x01, "name": "BACKGROUND", "cls": "function", "length": 1 },
 
     "text" : { "tk": 0x01, "name": "TEXT", "cls": "function", "length": 1 },
+    "math-text" : { "tk": 0x01, "name": "math-text", "cls": "function", "length": 1 },
 
     "true" : { "tk": 0x14, "cls": "val", "length": 0 },
     "false" : { "tk": 0x14, "cls": "val", "length": 0 },
@@ -65,9 +66,6 @@ exports.globalLexicon = {
     "div" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
     "mul" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
     "times" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
-//    "mul" : { "tk": 0x01, "name": "MUL", "cls": "function", "length": 2 },
-//    "times" : { "tk": 0x01, "name": "MUL", "cls": "function", "length": 2 },
-
     "minus" : { "tk": 0x0E, "name": "SUB", "cls": "operator", "length": 0 },
     "sub" : { "tk": 0x0E, "name": "SUB", "cls": "operator", "length": 0 },
     "plus" : { "tk": 0x0E, "name": "ADD", "cls": "operator", "length": 0 },

@@ -65,8 +65,6 @@ exports.renderer = function() {
 
   function visit(node, padding) {
 
-    //        var node = nodePool[nid]
-
     if (typeof node === "string") {
       return node
     }

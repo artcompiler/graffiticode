@@ -150,18 +150,10 @@ var ast = (function () {
       }
       elts += n.elts[i]
     }
-    var path = "";
-    var count = n.path ? n.path.length : 0;
-    for (var i = 0; i < count; i++) {
-      if (typeof n.path[i] === "object") {
-        n.path[i] = intern(ctx, n.path[i])
-      }
-      path += n.path[i]
-    }
-    var key = tag+count+elts+path;
+    var key = tag+count+elts;
     var nid = nodeMap[key];
     if (nid === void 0) {
-      nodePool.push({tag: tag, elts: n.elts, path: n.path});
+      nodePool.push({tag: tag, elts: n.elts});
       nid = nodePool.length - 1;
       nodeMap[key] = nid;
     }
@@ -282,7 +274,7 @@ var ast = (function () {
   }
 
   function number(ctx, str) {
-    push(ctx, {tag: "NUM", elts: [str], path: ctx.path.slice(0)})
+    push(ctx, {tag: "NUM", elts: [str]})
   }
 
   function string(ctx, str) {
@@ -312,8 +304,6 @@ var ast = (function () {
   }
 
   function funcApp(ctx, argc) {
-    var prevPath = ctx.path;
-    ctx.path = prevPath.slice(0);
     var elts = []
     while (argc > 0) {
       var elt = pop(ctx); //folder.fold(ctx, pop(ctx))
@@ -321,7 +311,6 @@ var ast = (function () {
       argc--;
     }
     var nameId = pop(ctx);
-    ctx.path.push(nameId);
     var e = node(ctx, nameId).elts;
     if (!e) {
       return;
@@ -340,7 +329,6 @@ var ast = (function () {
         throw "runaway recursion";
       }
       // we have a user def, so fold it.
-      //ctx.path.push(def.nid);
       fold(ctx, def, elts);
     } else if (def.nid === 0) {  // defer folding
       elts.push(nameId);
@@ -352,7 +340,6 @@ var ast = (function () {
         push(ctx, {tag: def.name, elts: elts});
       }
     }
-    ctx.path = prevPath;
   }
 
   function list(ctx) {
@@ -1291,7 +1278,7 @@ endif */
 
   var lastAST
   function parse(stream, state) {
-    var ctx = {scan: scanner(stream), state: state, path: []}
+    var ctx = {scan: scanner(stream), state: state}
     var cls
     try {
       var c;
@@ -1625,6 +1612,7 @@ var folder = function() {
     "STROKEWIDTH" : strokeWidth,
     "COLOR" : color,
     "TEXT" : text,
+    "MATH-TEXT" : math_text,
     "FSIZE" : fsize,
     "SIZE" : size,
     "BACKGROUND": background,
@@ -1690,12 +1678,8 @@ var folder = function() {
     if (node.tag === void 0) {
       return [ ]  // clean up stubs
     } else if (isFunction(table[node.tag])) {
-      var prevPath = ctx.path;
-      ctx.path = prevPath.slice(0);
-//      ctx.path.push(nid);
       var ret = table[node.tag](node)
       //print("ret="+ret)
-      ctx.path = prevPath;
       return ret
     } else {
       throw "missing visitor method for " + node.tag        
@@ -1985,6 +1969,14 @@ var folder = function() {
 
   function text(node) {
     ast.name(ctx, "text")
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i])
+    }
+    ast.funcApp(ctx, node.elts.length)
+  }
+
+  function math_text(node) {
+    ast.name(ctx, "math-text")
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i])
     }

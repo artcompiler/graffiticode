@@ -52,6 +52,8 @@ exports.globalLexicon = {
     "background" : { "tk": 0x01, "name": "BACKGROUND", "cls": "function", "length": 1 },
 
     "text" : { "tk": 0x01, "name": "TEXT", "cls": "function", "length": 1 },
+    "math-text" : { "tk": 0x01, "name": "MATH-TEXT", "cls": "function", "length": 1 },
+
     "tri" :      { "tk": 0x01, "name": "TRI", "cls": "function", "length": 6 },
     "triangle" : { "tk": 0x01, "name": "TRI", "cls": "function", "length": 6 },
     "triside" : { "tk": 0x01, "name": "TRISIDE", "cls": "function", "length": 3 },
@@ -71,7 +73,6 @@ exports.globalLexicon = {
     "curveto" : { "tk": 0x01, "name":  "CURVETO", "cls": "function", "length": 7 },
     "arcto" : { "tk": 0x01, "name": "ARCTO", "cls": "function", "length": 5 },
     "arc" : { "tk": 0x01, "name": "ARC", "cls": "function", "length": 4 },
-
 
     "translate" : { "tk": 0x01, "name": "TRANSLATE", "cls": "function", "length": 3 },
     "scale" : { "tk": 0x01, "name": "SCALE", "cls": "function", "length": 2 },
