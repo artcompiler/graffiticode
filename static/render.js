@@ -18,10 +18,8 @@ exports.renderer = function() {
   }
 
   // CONTROL FLOW ENDS HERE
-
-
   function print(str) {
-    //        console.log(str)
+    console.log(str)
   }
   
   var nodePool
@@ -59,6 +57,7 @@ exports.renderer = function() {
     str += prefix()
     str += visit(node, "  ")
     str += suffix()
+    print("render() str=" + str);
     return str
   }
 
@@ -106,85 +105,6 @@ exports.renderer = function() {
     }
     return tag
   }
-
-  /*
-    function sanitize(s) {
-    var r = "";
-    var i = 0;
-    var l = s.length;
-    outer:
-    while (i < l) {
-    var start = i;
-    while (i < l) {
-    var c = s.charCodeAt(i);
-    if (c < 32 ||
-    c == Char::BackSlash || 
-    //                    c == Char::SingleQuote || 
-    //                    c == Char::DoubleQuote ||
-    c == Char::UnicodePS ||
-    c == Char::UnicodeLS) {
-    r += s.substring(start, i);
-    r += uescape(c);
-    i++;
-    continue outer;
-    }
-    if (c == Char::Ampersand) {
-    r += s.substring(start, i);
-    r += "&amp;"
-    i++;
-    continue outer;
-    }
-    if (c == Char::LeftAngle) {
-    r += s.substring(start, i);
-    r += "&lt;"
-    i++;
-    continue outer;
-    }
-    i++;
-    }
-    r += s.substring(start, i);
-    }
-    return r
-    }
-  */
-  /*
-    function path(list) {
-    var p = [ ]
-    for (var i = 0; i < list.length; i++) {
-    if (list[i] === "M" || list[i] === "L") {
-    p.push(list[i])
-    //print("path() list[i+1]="+list[i+1])
-    col = list[++i]
-    ln = list[++i]
-    var [x0, y0] = getOffsetPos(col, ln)
-    p.push(x0)
-    p.push(y0-yFactor*0.5)
-    }
-    else
-    if (list[i] is String && list[i].charAt(0) === "N") {
-    var [col, ln] = getStartCoords(list[i])
-    var [x1, y1] = getOffsetPos(col, ln)
-    p.push("C")
-    var [cx0, cy0, cx1, cy1] = cubicControlPoints(x0, y0, x1, y1)
-    p.push(cx0)
-    p.push(cy0)
-    p.push(cx1)
-    p.push(cy1)
-    p.push(x1)
-    p.push(y1)
-    }
-    else {
-    throw "unhandled path command: " + list[i]
-    }
-    }
-    return p.join(" ")
-    }
-
-    function uescape(c) {
-    return "\\u" + (c+0x10000).toString(16).substring(1);
-    }
-
-  */
 
 }()
 

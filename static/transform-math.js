@@ -587,16 +587,15 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function strokeWidth(node) {
-    //print("strokeWidth")
-    var elts = []
-    var width = visit(node.elts[1])
-    var shape = visit(node.elts[0])
-
+    //print("strokeWidth");
+    var elts = [];
+    var width = visit(node.elts[1]);
+    var shape = visit(node.elts[0]);
     return {
       "tag": "g",
       "stroke-width": width,
       "elts": [shape],
-    }
+    };
   }
 
   function fill(node) {

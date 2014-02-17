@@ -93,22 +93,24 @@ exports.globalLexicon = {
     "sin" : { "tk": 0x01, "name": "SIN", "cls": "function", "length": 1 },
     "atan" : { "tk": 0x01, "name": "ATAN", "cls": "function", "length": 1 },
 
-
-    "pi" : { "tk": 0x01, "name": "PI", "cls": "val", "length": 0,
-	     "val": { "tag": "NUM", "elts": [Math.PI] } },
-
+    "pi" : { "tk": 0x01, "name": "PI", "cls": "val", "length": 0},
+    "_" : { "tk": 0x01, "name": "VOID", "cls": "val", "length": 0, "val": 0},
     "true" : { "tk": 0x14, "cls": "val", "length": 0 },
     "false" : { "tk": 0x14, "cls": "val", "length": 0 },
 
+    "plus" : { "tk": 0x01, "name": "PLUS", "cls": "function", "length": 2 },
+    "minus" : { "tk": 0x01, "name": "MINUS", "cls": "function", "length": 2 },
+    "times" : { "tk": 0x01, "name": "TIMES", "cls": "function", "length": 2 },
+    "frac" : { "tk": 0x01, "name": "FRAC", "cls": "function", "length": 2 },
+    "pow" : { "tk": 0x01, "name": "POW", "cls": "function", "length": 2 },
+    "parens" : { "tk": 0x01, "name": "PARENS", "cls": "function", "length": 1 },
+
     // TK_BINOP = 0x0E
-    "divide" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
-    "div" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
-    "mul" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
-    "times" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
-    "minus" : { "tk": 0x0E, "name": "SUB", "cls": "operator", "length": 0 },
-    "sub" : { "tk": 0x0E, "name": "SUB", "cls": "operator", "length": 0 },
-    "plus" : { "tk": 0x0E, "name": "ADD", "cls": "operator", "length": 0 },
     "add" : { "tk": 0x0E, "name": "ADD", "cls": "operator", "length": 0 },
+    "sub" : { "tk": 0x0E, "name": "SUB", "cls": "operator", "length": 0 },
+    "mul" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
+    "div" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
+    "divide" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
     "mod" : { "tk": 0x0E, "name": "MOD", "cls": "operator", "length": 0 },
     "or" : { "tk": 0x0E, "name": "OR", "cls": "operator", "length": 0 },
     "and" : { "tk": 0x0E, "name": "AND", "cls": "operator", "length": 0 },

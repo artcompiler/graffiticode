@@ -28,19 +28,11 @@ function log(str) {
   console.log(str)
 }
 
-/* if nodejs
-var _ = require('./underscore')
-var parser = require("./parse")
-endif */
-
 // ast module
 
 var ast = (function () {
-
   var _ = exports._;
-
   var ASSERT = true;
-
   var assert = function (val, str) {
     if ( !this.ASSERT ) {
       return;
@@ -52,7 +44,7 @@ var ast = (function () {
       alert("assert: " + str);
     }
   }
-  
+
   var Ast = function() { }
 
   Ast.prototype = {
@@ -66,6 +58,7 @@ var ast = (function () {
     name: name,
     funcApp: funcApp,
     binaryExpr: binaryExpr,
+    unaryExpr: unaryExpr,
     prefixExpr: prefixExpr,
     letDefn: letDefn,
     caseExpr: caseExpr,
@@ -77,12 +70,11 @@ var ast = (function () {
     topNode: topNode,
     peek: peek,
     push: push,
-    div: div,
     mod: mod,
-    pow: pow,
-    mul: mul,
     add: add,
     sub: sub,
+    mul: mul,
+    div: div,
     orelse: orelse,
     andalso: andalso,
     eq: eq,
@@ -97,48 +89,48 @@ var ast = (function () {
     cos: cos,
     sin: sin,
     atan: atan,
-    pi: pi,
     bool: bool,
-  }
+    pi: pi,
+  };
 
-  return new Ast
+  return new Ast;
 
   // private implementation
 
   function reset(ctx) {
-    ctx.state.nodePool = ["unused"]
-    ctx.state.nodeStack = []
-    ctx.state.nodeMap = {}
+    ctx.state.nodePool = ["unused"];
+    ctx.state.nodeStack = [];
+    ctx.state.nodeMap = {};
   }
 
   function push(ctx, node) {
     if (_.isNumber(node)) {   // if already interned
-      ctx.state.nodeStack.push(node)
+      ctx.state.nodeStack.push(node);
     } else {
-      ctx.state.nodeStack.push(intern(ctx, node))
+      ctx.state.nodeStack.push(intern(ctx, node));
     }
   }
 
   function topNode(ctx) {
-    var nodeStack = ctx.state.nodeStack
-    return nodeStack[nodeStack.length-1]
+    var nodeStack = ctx.state.nodeStack;
+    return nodeStack[nodeStack.length-1];
   }
 
   function pop(ctx) {
-    var nodeStack = ctx.state.nodeStack
-    return nodeStack.pop()
+    var nodeStack = ctx.state.nodeStack;
+    return nodeStack.pop();
   }
 
   function peek(ctx) {
-    var nodeStack = ctx.state.nodeStack
-    //log("nodeStack="+nodeStack)
-    return nodeStack[nodeStack.length-1]
+    var nodeStack = ctx.state.nodeStack;
+    //log("nodeStack="+nodeStack);
+    return nodeStack[nodeStack.length-1];
   }
 
   // deep
   function intern(ctx, n) {
-    var nodeMap = ctx.state.nodeMap
-    var nodePool = ctx.state.nodePool
+    var nodeMap = ctx.state.nodeMap;
+    var nodePool = ctx.state.nodePool;
 
     var tag = n.tag;
     var elts = "";
@@ -146,9 +138,9 @@ var ast = (function () {
     var count = n.elts.length;
     for (var i = 0; i < count; i++) {
       if (typeof n.elts[i] === "object") {
-        n.elts[i] = intern(ctx, n.elts[i])
+        n.elts[i] = intern(ctx, n.elts[i]);
       }
-      elts += n.elts[i]
+      elts += n.elts[i];
     }
     var key = tag+count+elts;
     var nid = nodeMap[key];
@@ -157,55 +149,54 @@ var ast = (function () {
       nid = nodePool.length - 1;
       nodeMap[key] = nid;
     }
-    return nid
+    return nid;
   }
 
   function node(ctx, nid) {
-    var ret = { elts: [] }
-    var n = ctx.state.nodePool[nid]
+    var ret = { elts: [] };
+    var n = ctx.state.nodePool[nid];
     if (!n) {
-      return {}
+      return {};
     }
     switch (n.tag) {
     case "NUM":
     case "STR":
     case "IDENT":
       //do nothing
-      ret = n
+      ret = n;
       break
     default:
       for (var i=0; i < n.elts.length; i++) {
         ret.elts[i] = node(ctx, n.elts[i]);
       }
-      break
+      break;
     }
-    return ret
+    return ret;
   }
 
   function dumpAll(ctx) {
-    var nodePool = ctx.state.nodePool
+    var nodePool = ctx.state.nodePool;
     var s = "\n{"
     for (var i=1; i < nodePool.length; i++) {
       var n = nodePool[i];
-      s = s + "\n  " + i+": "+dump(n) + ","
+      s = s + "\n  " + i+": "+dump(n) + ",";
     }
-    s += "\n  root: " + (nodePool.length-1)
-    s += "\n}\n"    
-    return s
+    s += "\n  root: " + (nodePool.length-1);
+    s += "\n}\n";
+    return s;
   }
-  
-  
+
   function poolToJSON(ctx) {
-    var nodePool = ctx.state.nodePool
-    var obj = { }
+    var nodePool = ctx.state.nodePool;
+    var obj = { };
     for (var i=1; i < nodePool.length; i++) {
       var n = nodePool[i];
-      obj[i] = nodeToJSON(n)
+      obj[i] = nodeToJSON(n);
     }
-    obj.root = (nodePool.length-1)
-    return obj
+    obj.root = (nodePool.length-1);
+    return obj;
   }
-  
+
   function nodeToJSON(n) {
     if (typeof n === "object") {
       switch (n.tag) {
@@ -216,9 +207,9 @@ var ast = (function () {
         var obj = n.elts[0];
         break;
       default:
-        var obj = {}
-        obj["tag"] = n.tag
-        obj["elts"] = []
+        var obj = {};
+        obj["tag"] = n.tag;
+        obj["elts"] = [];
         for (var i=0; i < n.elts.length; i++) {
           obj["elts"][i] = nodeToJSON(n.elts[i]);
         }
@@ -229,7 +220,7 @@ var ast = (function () {
     } else {
       var obj = n;
     }
-    return obj
+    return obj;
   }
 
   function dump(n) {
@@ -243,7 +234,7 @@ var ast = (function () {
         break;
       default:
         if (!n.elts) {
-          s += "<invalid>"
+          s += "<invalid>";
         } else {
           var s = "{ tag: \"" + n.tag + "\", elts: [ ";
           for (var i=0; i < n.elts.length; i++) {
@@ -266,48 +257,54 @@ var ast = (function () {
 
   function bool(ctx, val) {
     if (val) {
-      var b = true
+      var b = true;
     } else {
-      var b = false
+      var b = false;
     }
-    push(ctx, {tag: "BOOL", elts: [b]})
+    push(ctx, {tag: "BOOL", elts: [b]});
   }
 
   function number(ctx, str) {
-    push(ctx, {tag: "NUM", elts: [str]})
+    push(ctx, {tag: "NUM", elts: [str]});
   }
 
   function string(ctx, str) {
-    push(ctx, {tag: "STR", elts: [str]})
+    push(ctx, {tag: "STR", elts: [str]});
   }
 
   function name(ctx, str) {
-    push(ctx, {tag: "IDENT", elts: [str]})
+    push(ctx, {tag: "IDENT", elts: [str]});
   }
 
   // interpret a nid in the current environment
-  
+
 
   function fold(ctx, def, args) {
-    env.enterEnv(ctx, def.name)
-    var lexicon = def.env.lexicon
+    env.enterEnv(ctx, def.name);
+    var lexicon = def.env.lexicon;
     // setup inner environment record (lexicon)
     for (var id in lexicon) {
-      if (!id) continue
-      var word = lexicon[id]
+      if (!id) continue;
+      var word = lexicon[id];
       word.val = args[args.length-1-word.offset]  // offsets are from end of args
-      env.addWord(ctx, id, word)
+      print("fold() id=" + id + " val=" + word.val);
+      env.addWord(ctx, id, word);
     }
     // in line function body at call site
-    folder.fold(ctx, def.nid)
-    env.exitEnv(ctx)
+    folder.fold(ctx, def.nid);
+    env.exitEnv(ctx);
   }
 
   function funcApp(ctx, argc) {
-    var elts = []
+    var underscore = ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
+    var elts = [];
     while (argc > 0) {
-      var elt = pop(ctx); //folder.fold(ctx, pop(ctx))
-      elts.push(elt);
+      var elt = pop(ctx);
+      if (elt === underscore) {
+        elts.push(0);
+      } else {
+        elts.push(elt);
+      }
       argc--;
     }
     var nameId = pop(ctx);
@@ -347,176 +344,174 @@ var ast = (function () {
     push(ctx, {tag: "LIST", elts: elts});
   }
 
-
   function binaryExpr(ctx, name) {
-    //log("ast.binaryExpr() name="+name)
-    var elts = []
-    elts.push(pop(ctx))
-    elts.push(pop(ctx))
-    push(ctx, {tag: name, elts: elts.reverse()})
+    //log("ast.binaryExpr() name="+name);
+    var elts = [];
+    elts.push(pop(ctx));
+    elts.push(pop(ctx));
+    push(ctx, {tag: name, elts: elts.reverse()});
+  }
+
+  function unaryExpr(ctx, name) {
+    //log("ast.unaryExpr() name="+name);
+    var elts = [];
+    elts.push(pop(ctx));
+    push(ctx, {tag: name, elts: elts});
   }
 
   function prefixExpr(ctx, name) {
-    //log("ast.prefixExpr() name="+name)
-    var elts = []
-    elts.push(pop(ctx))
-    push(ctx, {tag: name, elts: elts})
+    //log("ast.prefixExpr() name="+name);
+    var elts = [];
+    elts.push(pop(ctx));
+    push(ctx, {tag: name, elts: elts});
   }
 
   function random(ctx) {
-/*
-    var max = +node(ctx, pop(ctx)).elts[0]
-    var min = +node(ctx, pop(ctx)).elts[0]
-    var rand = Math.random()
-    var num = Math.floor(min + (max-min)*rand)
-    number(ctx, num)
-*/
-    var elts = []
-    elts.push(pop(ctx))
-    elts.push(pop(ctx))
-    push(ctx, {tag: "RAND", elts: elts.reverse()})
-  }
-
-  function cos(ctx) {
-    var v1 = node(ctx, pop(ctx)).elts[0]
-    number(ctx, Math.cos(v1))
-  }
-
-  function sin(ctx) {
-    //log("ast.sin()")
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, Math.sin(v1))
-  }
-
-  function atan(ctx) {
-    //log("ast.atan()")
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, Math.atan(v1))
+    var elts = [];
+    elts.push(pop(ctx));
+    elts.push(pop(ctx));
+    push(ctx, {tag: "RAND", elts: elts.reverse()});
   }
 
   function pi(ctx) {
-    //log("ast.pi()")
-    number(ctx, +Math.PI)
+    push(ctx, {tag: "PI", elts: []});
+  }
+
+  function cos(ctx) {
+    var v1 = node(ctx, pop(ctx)).elts[0];
+    number(ctx, Math.cos(v1));
+  }
+
+  function sin(ctx) {
+    //log("ast.sin()");
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, Math.sin(v1));
+  }
+
+  function atan(ctx) {
+    //log("ast.atan()");
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, Math.atan(v1));
   }
 
   function neg(ctx) {
-    //log("ast.neg()")
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, -1*v1)
-  }
-
-  function div(ctx) {
-    //log("ast.div()")
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, v1/v2)
+    //log("ast.neg()");
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, -1*v1);
   }
 
   function mod(ctx) {
-    //log("ast.mod()")
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, v1%v2)
-  }
-
-  function mul(ctx) {
-    //log("ast.mul()")
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, v1*v2)
+    //log("ast.mod()");
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, v1%v2);
   }
 
   function add(ctx) {
-    //log("ast.add()")
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, v1+v2)
+    //log("ast.add()");
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, v1+v2);
   }
 
   function sub(ctx) {
-    //log("ast.sub()")
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, v1-v2)
+    //log("ast.sub()");
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, v1-v2);
+  }
+
+  function mul(ctx) {
+    //log("ast.mul()");
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, v1*v2);
+  }
+
+  function div(ctx) {
+    //log("ast.div()");
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, v1/v2);
   }
 
   function pow(ctx) {
-    //log("ast.pow()")
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    number(ctx, Math.pow(v1, v2));
+    //log("ast.pow()");
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    number(ctx, Math.pow(v1, v2));;
   }
 
   function orelse(ctx) {
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    throw "not implemented"
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    throw "not implemented";
   }
 
   function andalso(ctx) {
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    throw "not implemented"
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    throw "not implemented";
   }
 
   function eq(ctx) {
-    var v2 = node(ctx, pop(ctx)).elts[0]
-    var v1 = node(ctx, pop(ctx)).elts[0]
-    bool(ctx, v1==v2)
+    var v2 = node(ctx, pop(ctx)).elts[0];
+    var v1 = node(ctx, pop(ctx)).elts[0];
+    bool(ctx, v1==v2);
   }
 
   function ne(ctx) {
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    bool(ctx, v1!=v2)
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    bool(ctx, v1!=v2);
   }
 
   function lt(ctx) {
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    bool(ctx, v1<v2)
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    bool(ctx, v1<v2);
   }
 
   function gt(ctx) {
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    bool(ctx, v1>v2)
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    bool(ctx, v1>v2);
   }
 
   function le(ctx) {
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    bool(ctx, v1<=v2)
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    bool(ctx, v1<=v2);
   }
 
   function ge(ctx) {
-    var v2 = +node(ctx, pop(ctx)).elts[0]
-    var v1 = +node(ctx, pop(ctx)).elts[0]
-    bool(ctx, v1>=v2)
+    var v2 = +node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    bool(ctx, v1>=v2);
   }
   function caseExpr(ctx, n) {
-    var elts = []
+    var elts = [];
     for (var i = n; i > 0; i--) {
       elts.push(pop(ctx))  // of
     }
     elts.push(pop(ctx))  // exprs
-    push(ctx, {tag: "CASE", elts: elts})
+    push(ctx, {tag: "CASE", elts: elts});
   }
   function ofClause(ctx) {
-    var elts = []
-    elts.push(pop(ctx))
-    elts.push(pop(ctx))
-    push(ctx, {tag: "OF", elts: elts})
+    var elts = [];
+    elts.push(pop(ctx));
+    elts.push(pop(ctx));
+    push(ctx, {tag: "OF", elts: elts});
   }
   function exprs(ctx, n) {
-    var elts = []
+    var elts = [];
     for (var i = n; i > 0; i--) {
-      var elt = pop(ctx)
+      var elt = pop(ctx);
       if (elt !== void 0) {
-        elts.push(elt)
+        elts.push(elt);
       }
     }
-    push(ctx, {tag: "EXPRS", elts: elts.reverse()})
+    push(ctx, {tag: "EXPRS", elts: elts.reverse()});
   }
   function letDefn(ctx) {
     pop(ctx)  // name
@@ -526,9 +521,9 @@ var ast = (function () {
     }
   }
   function program(ctx) {
-    var elts = []
-    elts.push(pop(ctx))
-    push(ctx, {tag: "PROG", elts: elts})
+    var elts = [];
+    elts.push(pop(ctx));
+    push(ctx, {tag: "PROG", elts: elts});
   }
 })();
 
@@ -595,7 +590,7 @@ exports.StringStream = (function () {
     current: function(){return this.string.slice(this.start, this.pos);}
   }
 
-  return StringStream
+  return StringStream;
 
 })();
 
@@ -613,7 +608,7 @@ var env = (function () {
 
   function findWord(ctx, lexeme) {
     var env = ctx.state.env;
-    ////print("findWord() lexeme=" + JSON.stringify(lexeme))
+    ////print("findWord() lexeme=" + JSON.stringify(lexeme));
     for (var i = env.length-1; i >= 0; i--) {
       var word = env[i].lexicon[lexeme];
       if (word) {
@@ -640,149 +635,141 @@ var env = (function () {
 
 })();
 
-var scanTime = 0
-var scanCount = 0
+var scanTime = 0;
+var scanCount = 0;
 exports.scanTime = function () {
-  return scanTime
+  return scanTime;
 };
 exports.scanCount = function () {
-  return scanCount
+  return scanCount;
 };
 
 
-var parseTime = 0
+var parseTime = 0;
 
 exports.parseTime = function () {
-  return parseTime
+  return parseTime;
 };
 
-var parseCount = 0
+var parseCount = 0;
 exports.parseCount = function () {
-  return parseCount
+  return parseCount;
 };
 
 
 // parser
 exports.parser = (function () {
-
-/* if nodejs
-  var lexicon = require('./draw-lexicon')
-  var globalLexicon = lexicon.globalLexicon
-endif */
-///* if !nodejs
-  var globalLexicon = exports.globalLexicon
-//endif */
-  var _ = exports._
-  
+  var globalLexicon = exports.globalLexicon;
+  var _ = exports._;
   function assert(b, str) {
     if (!b) {
-      alert(str)
+      alert(str);
     }
   }
 
-  var TK_IDENT  = 0x01
-  var TK_NUM  = 0x02
-  var TK_STR  = 0x03
-  var TK_EQUAL  = 0x04
-  var TK_IF   = 0x05
-  var TK_THEN   = 0x06
-  var TK_ELSE   = 0x07
-  var TK_RETURN = 0x08
-  var TK_IS   = 0x09
-  var TK_POSTOP = 0x0A
-  var TK_PREOP  = 0x0B
-  var TK_FUN  = 0x0C
-  var TK_VAL  = 0x0D
-  var TK_BINOP  = 0x0E
-  var TK_CASE   = 0x0F
-  var TK_OF   = 0x10
-  var TK_END  = 0x11
-  var TK_LET  = 0x12
-  var TK_OR   = 0x13
-  var TK_BOOL   = 0x14
+  var TK_IDENT  = 0x01;
+  var TK_NUM  = 0x02;
+  var TK_STR  = 0x03;
+  var TK_EQUAL  = 0x04;
+  var TK_IF   = 0x05;
+  var TK_THEN   = 0x06;
+  var TK_ELSE   = 0x07;
+  var TK_RETURN = 0x08;
+  var TK_IS   = 0x09;
+  var TK_POSTOP = 0x0A;
+  var TK_PREOP  = 0x0B;
+  var TK_FUN  = 0x0C;
+  var TK_VAL  = 0x0D;
+  var TK_BINOP  = 0x0E;
+  var TK_CASE   = 0x0F;
+  var TK_OF   = 0x10;
+  var TK_END  = 0x11;
+  var TK_LET  = 0x12;
+  var TK_OR   = 0x13;
+  var TK_BOOL   = 0x14;
 
-  var TK_LEFTPAREN  = 0xA1
-  var TK_RIGHTPAREN   = 0xA2
-  var TK_LEFTBRACKET  = 0xA3
-  var TK_RIGHTBRACKET = 0xA4
-  var TK_LEFTBRACE  = 0xA5
-  var TK_RIGHTBRACE   = 0xA6
-  var TK_PLUS     = 0xA7
-  var TK_MINUS    = 0xA8
-  var TK_DOT      = 0xA9
-  var TK_COLON    = 0xAA
-  var TK_COMMA    = 0xAB
-  var TK_BACKQUOTE  = 0xAC
-  var TK_COMMENT    = 0xAD
+  var TK_LEFTPAREN  = 0xA1;
+  var TK_RIGHTPAREN   = 0xA2;
+  var TK_LEFTBRACKET  = 0xA3;
+  var TK_RIGHTBRACKET = 0xA4;
+  var TK_LEFTBRACE  = 0xA5;
+  var TK_RIGHTBRACE   = 0xA6;
+  var TK_PLUS     = 0xA7;
+  var TK_MINUS    = 0xA8;
+  var TK_DOT      = 0xA9;
+  var TK_COLON    = 0xAA;
+  var TK_COMMA    = 0xAB;
+  var TK_BACKQUOTE  = 0xAC;
+  var TK_COMMENT    = 0xAD;
 
   function eat(ctx, tk) {
-    //log("eat() tk="+tk)
-    var nextToken = next(ctx)
+    //log("eat() tk="+tk);
+    var nextToken = next(ctx);
     if (nextToken !== tk) {
-      throw "syntax error: expecting "+tk+" found "+nextToken
+      throw "syntax error: expecting "+tk+" found "+nextToken;
     }
   }
-  
+
   function match(ctx, tk) {
     if (peek(ctx) === tk) {
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
   }
 
   function next(ctx) {
-    var tk = peek(ctx)
-    ctx.state.nextToken = -1
-    //print("next() tk="+tk+" lexeme="+lexeme)
-    scanCount++
-    return tk
+    var tk = peek(ctx);
+    ctx.state.nextToken = -1;
+    //print("next() tk="+tk+" lexeme="+lexeme);
+    scanCount++;
+    return tk;
   }
 
   function peek(ctx) {
-    var tk
-    var nextToken = ctx.state.nextToken
+    var tk;
+    var nextToken = ctx.state.nextToken;
     if (nextToken < 0) {
-      var t0 = new Date()
-      tk = ctx.scan.start()
-      var t1 = new Date()
-      scanTime += (t1-t0)
-      ctx.state.nextToken = tk
+      var t0 = new Date();
+      tk = ctx.scan.start();
+      var t1 = new Date();
+      scanTime += (t1-t0);
+      ctx.state.nextToken = tk;
     } else {
-      tk = nextToken
+      tk = nextToken;
     }
-    return tk
+    return tk;
   }
 
   // Parsing functions -- each parsing function consumes a single token and
   // returns a continuation function for parsing the rest of the string.
 
   function bool(ctx, cc) {
-    eat(ctx, TK_BOOL)
-    cc.cls = "number"
-    ast.bool(ctx, lexeme==="true")
-    return cc
+    eat(ctx, TK_BOOL);
+    cc.cls = "number";
+    ast.bool(ctx, lexeme==="true");
+    return cc;
   }
 
   function number(ctx, cc) {
-    eat(ctx, TK_NUM)
-    cc.cls = "number"
-    ast.number(ctx, lexeme)
-    return cc
+    eat(ctx, TK_NUM);
+    cc.cls = "number";
+    ast.number(ctx, lexeme);
+    return cc;
   }
 
   function string(ctx, cc) {
-    eat(ctx, TK_STR)
-    cc.cls = "string"
-    ast.string(ctx, lexeme.substring(1,lexeme.length-1)) // strip quotes
-    return cc
+    eat(ctx, TK_STR);
+    cc.cls = "string";
+    ast.string(ctx, lexeme.substring(1,lexeme.length-1)) // strip quotes;
+    return cc;
   }
 
   function ident(ctx, cc) {
-    eat(ctx, TK_IDENT)
-    ast.name(ctx, lexeme)
-    cc.cls = "ident"
-    return cc
+    eat(ctx, TK_IDENT);
+    ast.name(ctx, lexeme);
+    cc.cls = "ident";
+    return cc;
   }
 
   function name(ctx, cc) {
@@ -813,7 +800,7 @@ endif */
 
   function bindings(ctx, cc) {
     if (match(ctx, TK_RIGHTBRACE)) {
-      return cc
+      return cc;
     }
     return binding(ctx, function (ctx) {
       if (match(ctx, TK_DOT)) {
@@ -853,17 +840,17 @@ endif */
   }
 
   function list(ctx, cc) {
-    eat(ctx, TK_LEFTBRACKET)
+    eat(ctx, TK_LEFTBRACKET);
     var ret = function(ctx) {
       return exprsStart(ctx, function (ctx) {
-        eat(ctx, TK_RIGHTBRACKET)
-        ast.list(ctx)
-        cc.cls = "punc"
-        return cc
+        eat(ctx, TK_RIGHTBRACKET);
+        ast.list(ctx);
+        cc.cls = "punc";
+        return cc;
       })
     }
-    ret.cls = "punc"
-    return ret
+    ret.cls = "punc";
+    return ret;
   }
 
   function primaryExpr(ctx, cc) {
@@ -896,69 +883,69 @@ endif */
       }
       return cc(ctx);
       function startArgs(len) {
-        ctx.state.argcStack.push(ctx.state.argc)
-        ctx.state.paramcStack.push(ctx.state.paramc)
-        ctx.state.paramc = ctx.state.argc = len
+        ctx.state.argcStack.push(ctx.state.argc);
+        ctx.state.paramcStack.push(ctx.state.paramc);
+        ctx.state.paramc = ctx.state.argc = len;
       }
     });
   }
 
   function args(ctx, cc) {
     if (match(ctx, TK_COMMA)) {
-      eat(ctx, TK_COMMA)
-      ast.funcApp(ctx, ctx.state.paramc - ctx.state.argc)
-      finishArgs(ctx)
-      cc.cls = "punc"
-      return cc
+      eat(ctx, TK_COMMA);
+      ast.funcApp(ctx, ctx.state.paramc - ctx.state.argc);
+      finishArgs(ctx);
+      cc.cls = "punc";
+      return cc;
     }
     else
     if (ctx.state.argc === 0) {
-      ast.funcApp(ctx, ctx.state.paramc)
-      finishArgs()
-      return cc(ctx)
+      ast.funcApp(ctx, ctx.state.paramc);
+      finishArgs();
+      return cc(ctx);
     }
     return arg(ctx, function (ctx) {
-      return args(ctx, cc)
+      return args(ctx, cc);
     })
     function finishArgs() {
-      ctx.state.argc = ctx.state.argcStack.pop()
-      ctx.state.paramc = ctx.state.paramcStack.pop()
+      ctx.state.argc = ctx.state.argcStack.pop();
+      ctx.state.paramc = ctx.state.paramcStack.pop();
     }
   }
 
   function arg(ctx, cc) {
-    ctx.state.argc--
-    return expr(ctx, cc)
+    ctx.state.argc--;
+    return expr(ctx, cc);
   }
 
   function postfixExpr(ctx, cc) {
-    //log("postfixExpr()")
+    //log("postfixExpr()");
     return funcApp(ctx, function (ctx) {
-      //log("found funcApp")
+      //log("found funcApp");
       if (match(ctx, TK_POSTOP)) {
-        eat(ctx, TK_POSTOP)
-        cc.cls = "operator"
-        ast.postfixExpr(ctx, lexeme)
-        return cc
+        eat(ctx, TK_POSTOP);
+        cc.cls = "operator";
+        ast.postfixExpr(ctx, lexeme);
+        return cc;
       }
-      return cc(ctx)
+      return cc(ctx);
     })
   }
-  
+
   function prefixExpr(ctx, cc) {
-    //log("prefixExpr()")
+    //log("prefixExpr()");
     if (match(ctx, TK_MINUS)) {
-      eat(ctx, TK_MINUS)
+      eat(ctx, TK_MINUS);
       var ret = function(ctx) {
         return postfixExpr(ctx, function (ctx) {
-          ast.prefixExpr(ctx, "NEG")
-          return cc
-        })        
+          ast.prefixExpr(ctx, "NEG");
+          return cc;
+        })
       }
       ret.cls = "number"   // use number because of convention
-      return ret
+      return ret;
     }
-    return postfixExpr(ctx, cc)
+    return postfixExpr(ctx, cc);
   }
 
   function getPrecedence(op) {
@@ -973,13 +960,17 @@ endif */
       , "GT": 4
       , "LE": 4
       , "GE": 4
+      , "PLUS": 5
       , "ADD": 5
+      , "MINUS": 5
       , "SUB": 5
+      , "TIMES": 6
       , "MUL": 6
+      , "FRAC": 6
       , "DIV": 6
       , "MOD": 6
       , "POW": 7
-    }[op]
+    }[op];
   }
 
   function binaryExpr(ctx, prevOp, cc) {
@@ -1018,7 +1009,7 @@ endif */
       return cc(ctx)
     })
   }
-  
+
   function relationalExpr(ctx, cc) {
     return binaryExpr(ctx, "", function (ctx) {
       return cc(ctx)
@@ -1134,8 +1125,8 @@ endif */
   }
 
   function emptyExpr(ctx) {
-    return emptyInput(ctx) 
-      || match(ctx, TK_THEN) 
+    return emptyInput(ctx)
+      || match(ctx, TK_THEN)
       || match(ctx, TK_ELSE)
       || match(ctx, TK_OR)
       || match(ctx, TK_END)
@@ -1202,7 +1193,7 @@ endif */
       folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
       ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
-      //print("POOL\n" + JSON.stringify(ctx.state.nodePool, null, 2));
+      print("POOL\n" + JSON.stringify(ctx.state.nodePool, null, 2));
       return cc
     })
   }
@@ -1273,7 +1264,7 @@ endif */
   function topEnv(ctx) {
     return ctx.state.env[ctx.state.env.length-1]
   }
-  
+
   exports.topEnv = topEnv
 
   var lastAST
@@ -1456,7 +1447,7 @@ endif */
 
       return 0;
     }
-    
+
     function number(c) {
       while (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)) {
         lexeme += String.fromCharCode(c);
@@ -1469,7 +1460,7 @@ endif */
       }  // otherwise, we are at the end of stream
       return TK_NUM;
     }
-    
+
     function string(c) {
       var quoteChar = c
       lexeme += String.fromCharCode(c)
@@ -1500,23 +1491,23 @@ endif */
 
       return TK_COMMENT
     }
-    
+
     function ident(c) {
       while ((c >= 'A'.charCodeAt(0) && c <= 'Z'.charCodeAt(0)) ||
-           (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0)) || 
-           (c === '-'.charCodeAt(0)) || 
-           (c === '@'.charCodeAt(0)) || 
-           (c === '+'.charCodeAt(0)) || 
-           (c === '#'.charCodeAt(0)) || 
-           (c === ':'.charCodeAt(0)) || 
-           (c === '_'.charCodeAt(0)) || 
-           (c === '~'.charCodeAt(0)) || 
-           (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0))) 
+           (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0)) ||
+           (c === '-'.charCodeAt(0)) ||
+           (c === '@'.charCodeAt(0)) ||
+           (c === '+'.charCodeAt(0)) ||
+           (c === '#'.charCodeAt(0)) ||
+           (c === ':'.charCodeAt(0)) ||
+           (c === '_'.charCodeAt(0)) ||
+           (c === '~'.charCodeAt(0)) ||
+           (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)))
       {
-        lexeme += String.fromCharCode(c);         
+        lexeme += String.fromCharCode(c);
         c = stream.peek() ? stream.next().charCodeAt(0) : 0
       }
-    
+
       if (c) {
         stream.backUp(1);
       }  // otherwise, we are at the end of stream
@@ -1569,7 +1560,7 @@ exports.foldTime = function () {
 }
 
 var folder = function() {
-  var _ = exports._
+  var _ = exports._;
 
   var table = {
     "PROG" : program,
@@ -1579,6 +1570,7 @@ var folder = function() {
     "BOOL" : bool,
     "NUM" : num,
     "STR" : str,
+    "PARENS" : unaryExpr,
     "TRI" : triangle,
     "ROTATE" : rotate,
     "SCALE" : scale,
@@ -1618,10 +1610,14 @@ var folder = function() {
     "BACKGROUND": background,
     "MUL": mul,
     "DIV": div,
+    "TIMES": binaryExpr,
+    "FRAC": binaryExpr,
     "MOD": mod,
     "SUB": sub,
+    "PLUS": binaryExpr,
+    "MINUS": binaryExpr,
     "ADD": add,
-    "POW": pow,
+    "POW": binaryExpr,
 
     "OR": orelse,
     "AND": andalso,
@@ -1632,7 +1628,6 @@ var folder = function() {
     "LE": le,
     "GE": ge,
 
-
     "NEG": neg,
     "COS": cos,
     "SIN": sin,
@@ -1642,516 +1637,517 @@ var folder = function() {
     "LIST": list,
     "CASE": caseExpr,
     "OF": ofClause,
-  }
+  };
 
-  var canvasWidth = 0
-  var canvasHeight = 0
+  var canvasWidth = 0;
+  var canvasHeight = 0;
 
   return {
     fold: fold,
-  }
+  };
 
   // CONTROL FLOW ENDS HERE
-// 1 eq 2..  
-  var nodePool
-  var ctx
+
+  var nodePool;
+  var ctx;
 
   function fold(cx, nid) {
-    ctx = cx
-    nodePool = ctx.state.nodePool
-    var t0 = new Date
-    visit(nid)
-    var t1 = new Date
-    foldTime += (t1-t0)
+    ctx = cx;
+    nodePool = ctx.state.nodePool;
+    var t0 = new Date;
+    visit(nid);
+    var t1 = new Date;
+    foldTime += (t1-t0);
   }
 
   function visit(nid) {
-
-    var node = nodePool[nid]
-    
-    //print("visit() nid="+nid)
-
+    var node = nodePool[nid];
+    //print("visit() nid="+nid);
     if (node == null) {
-      return null
+      return null;
     }
 
     if (node.tag === void 0) {
-      return [ ]  // clean up stubs
+      return [ ]  // clean up stubs;
     } else if (isFunction(table[node.tag])) {
-      var ret = table[node.tag](node)
-      //print("ret="+ret)
-      return ret
+      var ret = table[node.tag](node);
+      //print("ret="+ret);
+      return ret;
     } else {
-      throw "missing visitor method for " + node.tag        
+      throw "missing visitor method for " + node.tag;
     }
 
-    throw "missing visitor method for " + node
+    throw "missing visitor method for " + node;
   }
 
   function isArray(v) {
-    return _.isArray(v)
+    return _.isArray(v);
   }
 
   function isObject(v) {
-    return _isObjet(v)
+    return _isObjet(v);
   }
 
   function isString(v) {
-    return _.isString(v)
+    return _.isString(v);
   }
 
   function isPrimitive(v) {
-    return _.isNull(v) || _.isString(v) || _.isNumber(v) || _.isBoolean(v)
+    return _.isNull(v) || _.isString(v) || _.isNumber(v) || _.isBoolean(v);
   }
 
   function isFunction(v) {
-    return _.isFunction(v)
+    return _.isFunction(v);
   }
 
   // BEGIN VISITOR METHODS
 
-  var edgesNode
+  var edgesNode;
 
   function program(node) {
-    visit(node.elts[0])
-    ast.program(ctx)
+    visit(node.elts[0]);
+    ast.program(ctx);
   }
 
   function caseExpr(node) {
-    visit(node.elts[node.elts.length-1])
-    var expr = ast.pop(ctx)
+    visit(node.elts[node.elts.length-1]);
+    var expr = ast.pop(ctx);
     for (var i = node.elts.length-2; i >= 0; i--) {
-      var ofNode = ctx.state.nodePool[node.elts[i]]
-      var patternNode = ofNode.elts[1]
-      visit(patternNode)
-      var pattern = ast.pop(ctx)
+      var ofNode = ctx.state.nodePool[node.elts[i]];
+      var patternNode = ofNode.elts[1];
+      visit(patternNode);
+      var pattern = ast.pop(ctx);
       if (expr === pattern) {
-        visit(ofNode.elts[0])
-        return
+        visit(ofNode.elts[0]);
+        return;
       }
     }
   }
 
   function ofClause(node) {
     for (var i = 0; i < node.elts.length; i++) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.ofClause(ctx)
+    ast.ofClause(ctx);
   }
 
   function list(node) {
-    visit(node.elts[0])
+    visit(node.elts[0]);
     ast.list(ctx)
   }
 
   function exprs(node) {
     for (var i = 0; i < node.elts.length; i++) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.exprs(ctx, node.elts.length)
+    ast.exprs(ctx, node.elts.length);
   }
 
   function recurse(node) {
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
     ast.funcApp(ctx, node.elts.length-1) // func name is the +1
   }
 
   function triangle(node) {
-    ast.name(ctx, "triangle")
+    ast.name(ctx, "triangle");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
     ast.funcApp(ctx, node.elts.length)
   }
 
   function triside(node) {
-    ast.name(ctx, "triside")
+    ast.name(ctx, "triside");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function rectangle(node) {
-    ast.name(ctx, "rectangle")
+    ast.name(ctx, "rectangle");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function map(node) {
-    //log("map() length="+node.elts.length)
-    ast.name(ctx, "map")
+    //log("map() length="+node.elts.length);
+    ast.name(ctx, "map");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function ellipse(node) {
-    ast.name(ctx, "ellipse")
+    ast.name(ctx, "ellipse");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function random(node) {
-    ast.name(ctx, "random")
+    ast.name(ctx, "random");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function arc(node) {
-    ast.name(ctx, "arc")
+    ast.name(ctx, "arc");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function arcto(node) {
-    ast.name(ctx, "arcto")
+    ast.name(ctx, "arcto");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function bezier(node) {
-    ast.name(ctx, "bezier")
+    ast.name(ctx, "bezier");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
 
   function line(node) {
-    ast.name(ctx, "line")
+    ast.name(ctx, "line");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function point(node) {
-    ast.name(ctx, "point")
+    ast.name(ctx, "point");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function path(node) {
-    ast.name(ctx, "path")
+    ast.name(ctx, "path");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function closepath(node) {
-    ast.name(ctx, "closepath")
+    ast.name(ctx, "closepath");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function moveto(node) {
-    ast.name(ctx, "moveto")
+    ast.name(ctx, "moveto");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function lineto(node) {
-    ast.name(ctx, "lineto")
+    ast.name(ctx, "lineto");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function curveto(node) {
-    ast.name(ctx, "curveto")
+    ast.name(ctx, "curveto");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function random(node) {
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.random(ctx)
+    ast.random(ctx);
   }
 
   function grid(node) {
-    ast.name(ctx, "grid")
+    ast.name(ctx, "grid");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function rotate(node) {
-    ast.name(ctx, "rotate")
+    ast.name(ctx, "rotate");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function translate(node) {
-    ast.name(ctx, "translate")
+    ast.name(ctx, "translate");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function scale(node) {
-    ast.name(ctx, "scale")
+    ast.name(ctx, "scale");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function skewX(node) {
-    ast.name(ctx, "skewx")
+    ast.name(ctx, "skewx");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function skewY(node) {
-    ast.name(ctx, "skewy")
+    ast.name(ctx, "skewy");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function rgb(node) {
-    ast.name(ctx, "rgb")
+    ast.name(ctx, "rgb");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function rgba(node) {
-    ast.name(ctx, "rgba")
+    ast.name(ctx, "rgba");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function color(node) {
-    ast.name(ctx, "color")
+    ast.name(ctx, "color");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function text(node) {
-    ast.name(ctx, "text")
+    ast.name(ctx, "text");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function math_text(node) {
-    ast.name(ctx, "math-text")
+    ast.name(ctx, "math-text");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function fsize(node) {
-    ast.name(ctx, "font-size")
+    ast.name(ctx, "font-size");
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i])
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function size(node) {
-    ast.name(ctx, "size")
+    ast.name(ctx, "size");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function background(node) {
-    ast.name(ctx, "background")
+    ast.name(ctx, "background");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function cos(node) {
-    visit(node.elts[0])
+    visit(node.elts[0]);
     ast.cos(ctx)
   }
 
   function sin(node) {
-    visit(node.elts[0])
-    ast.sin(ctx)
+    visit(node.elts[0]);
+    ast.sin(ctx);
   }
 
   function atan(node) {
-    visit(node.elts[0])
-    ast.atan(ctx)
+    visit(node.elts[0]);
+    ast.atan(ctx);
   }
 
   function pi(node) {
-    ast.pi(ctx)
+    ast.pi(ctx);
   }
 
   function neg(node) {
-    visit(node.elts[0])
-    ast.neg(ctx)
+    visit(node.elts[0]);
+    ast.neg(ctx);
   }
 
-  function div(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.div(ctx)
+  function unaryExpr(node) {
+    visit(node.elts[0]);
+    ast.unaryExpr(ctx, node.tag);
   }
 
-  function mul(node) {
-/*
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.mul(ctx)
-*/
-    ast.name(ctx, "mul")
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
-    }
-    ast.funcApp(ctx, node.elts.length)
+  function binaryExpr(node) {
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.binaryExpr(ctx, node.tag);
   }
 
   function add(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.add(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.add(ctx);
   }
 
   function sub(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.sub(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.sub(ctx);
+  }
+
+  function mul(node) {
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.mul(ctx);
+  }
+
+  function div(node) {
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.div(ctx);
   }
 
   function mod(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.mod(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.mod(ctx);
   }
 
   function pow(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.pow(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.pow(ctx);
   }
 
   function orelse(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.orelse(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.orelse(ctx);
   }
 
   function andalso(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.andalso(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.andalso(ctx);
   }
 
   function eq(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.eq(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.eq(ctx);
   }
 
   function ne(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.ne(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.ne(ctx);
   }
 
   function lt(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.lt(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.lt(ctx);
   }
 
   function gt(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.gt(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.gt(ctx);
   }
 
   function le(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.le(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.le(ctx);
   }
 
   function ge(node) {
-    visit(node.elts[1])
-    visit(node.elts[0])
-    ast.ge(ctx)
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.ge(ctx);
   }
 
   function stroke(node) {
-    ast.name(ctx, "stroke")
+    ast.name(ctx, "stroke");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function strokeWidth(node) {
-    ast.name(ctx, "stroke-width")
+    ast.name(ctx, "stroke-width");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function fill(node) {
-    ast.name(ctx, "fill")
+    ast.name(ctx, "fill");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function clip(node) {
-    ast.name(ctx, "clip")
+    ast.name(ctx, "clip");
     for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
+      visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length)
+    ast.funcApp(ctx, node.elts.length);
   }
 
   // when folding identifiers we encounter three cases:
@@ -2159,7 +2155,7 @@ var folder = function() {
   // -- the identifier has a value, so we replace it with the value
   // -- the identifier is a reference to a local without a value, so we keep the identifier
   // -- the identifier is unbound, so we raise an error
- 
+
   function ident(node) {
     var name = node.elts[0];
     var word = env.findWord(ctx, name);
@@ -2176,7 +2172,8 @@ var folder = function() {
 //        assert(false, "implement forward references to functions")
 //      }
     } else {
-      assert(false, "unresolved ident "+name);
+      //assert(false, "unresolved ident "+name);
+      ast.push(ctx, node);
     }
   }
 
