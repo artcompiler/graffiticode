@@ -57,7 +57,7 @@ var ast = (function () {
     string: string,
     name: name,
     funcApp: funcApp,
-    binaryExpr: binaryExpr,
+//    binaryExpr: binaryExpr,
     unaryExpr: unaryExpr,
     prefixExpr: prefixExpr,
     letDefn: letDefn,
@@ -306,7 +306,6 @@ var ast = (function () {
         elts.push(elt);
       }
     }
-    elts = elts.reverse();
     var nameId = pop(ctx);
     var e = node(ctx, nameId).elts;
     if (!e) {
@@ -342,15 +341,6 @@ var ast = (function () {
   function list(ctx) {
     var elts = [pop(ctx)];
     push(ctx, {tag: "LIST", elts: elts});
-  }
-
-  function binaryExpr(ctx, name) {
-    //log("ast.binaryExpr() name="+name);
-    var elts = [];
-    // args are in the order produced by the parser
-    elts.push(pop(ctx)); 
-    elts.push(pop(ctx));
-    push(ctx, {tag: name, elts: elts.reverse()});
   }
 
   function unaryExpr(ctx, name) {
@@ -1611,14 +1601,14 @@ var folder = function() {
     "BACKGROUND": background,
     "MUL": mul,
     "DIV": div,
-    "TIMES": binaryExpr,
-    "FRAC": binaryExpr,
+    "TIMES": times,
+    "FRAC": frac,
     "MOD": mod,
     "SUB": sub,
-    "PLUS": binaryExpr,
-    "MINUS": binaryExpr,
+    "PLUS": plus,
+    "MINUS": minus,
     "ADD": add,
-    "POW": binaryExpr,
+    "POW": pow,
 
     "OR": orelse,
     "AND": andalso,
@@ -2029,10 +2019,44 @@ var folder = function() {
     ast.unaryExpr(ctx, node.tag);
   }
 
-  function binaryExpr(node) {
-    visit(node.elts[1]);
-    visit(node.elts[0]);
-    ast.binaryExpr(ctx, node.tag);
+  function plus(node) {
+    ast.name(ctx, "plus");
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp(ctx, node.elts.length);
+  }
+
+  function minus(node) {
+    ast.name(ctx, "minus");
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp(ctx, node.elts.length);
+  }
+
+  function times(node) {
+    ast.name(ctx, "times");
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp(ctx, node.elts.length);
+  }
+
+  function frac(node) {
+    ast.name(ctx, "frac");
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp(ctx, node.elts.length);
+  }
+
+  function pow(node) {
+    ast.name(ctx, "pow");
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp(ctx, node.elts.length);
   }
 
   function add(node) {
