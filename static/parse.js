@@ -298,15 +298,15 @@ var ast = (function () {
   function funcApp(ctx, argc) {
     var underscore = ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
     var elts = [];
-    while (argc > 0) {
+    while (argc--) {
       var elt = pop(ctx);
       if (elt === underscore) {
         elts.push(0);
       } else {
         elts.push(elt);
       }
-      argc--;
     }
+    elts = elts.reverse();
     var nameId = pop(ctx);
     var e = node(ctx, nameId).elts;
     if (!e) {
@@ -347,7 +347,8 @@ var ast = (function () {
   function binaryExpr(ctx, name) {
     //log("ast.binaryExpr() name="+name);
     var elts = [];
-    elts.push(pop(ctx));
+    // args are in the order produced by the parser
+    elts.push(pop(ctx)); 
     elts.push(pop(ctx));
     push(ctx, {tag: name, elts: elts.reverse()});
   }
