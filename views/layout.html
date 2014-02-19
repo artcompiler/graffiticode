@@ -110,7 +110,7 @@ console.log("editor=" + editor + " readOnly=" + editor.getOption("readOnly"));
           $("#signin").css("display", "inline-block")
           $("#signout").css("display", "none")
           $("#username").data("user", {id:1, email: "guest@graffiticode.org", name: "Guest"})
-          editor.setOption("readOnly", true);          
+          editor.setOption("readOnly", true);
       },
       error: function(xhr, status, err) {
           alert("Logout failure: " + err);

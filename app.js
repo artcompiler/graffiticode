@@ -204,15 +204,9 @@ app.get('/code', function (req, res) {
 app.put('/code', function (req, res) {
   var srcAst = req.body.ast;
   var type = req.body.type;
-  if (type === "math") {
-    var objAst = math_transformer.transform(srcAst);
-    var obj = math_renderer.render(objAst);
-    res.send(obj);
-  } else {
-    var objAst = transformer.transform(srcAst);
-    var obj = renderer.render(objAst);
-    res.send(obj);
-  }
+  var objAst = transformer.transform(srcAst);
+  var obj = renderer.render(objAst);
+  res.send(obj);
 });
 
 // Commit and return commit id

@@ -57,7 +57,7 @@ var ast = (function () {
     string: string,
     name: name,
     funcApp: funcApp,
-//    binaryExpr: binaryExpr,
+    binaryExpr: binaryExpr,
     unaryExpr: unaryExpr,
     prefixExpr: prefixExpr,
     letDefn: letDefn,
@@ -75,6 +75,7 @@ var ast = (function () {
     sub: sub,
     mul: mul,
     div: div,
+    pow: pow,
     orelse: orelse,
     andalso: andalso,
     eq: eq,
@@ -153,25 +154,27 @@ var ast = (function () {
   }
 
   function node(ctx, nid) {
-    var ret = { elts: [] };
     var n = ctx.state.nodePool[nid];
     if (!n) {
       return {};
     }
+    var elts = [];
     switch (n.tag) {
     case "NUM":
     case "STR":
     case "IDENT":
-      //do nothing
-      ret = n;
-      break
+      elts[0] = n.elts[0];
+      break;
     default:
       for (var i=0; i < n.elts.length; i++) {
-        ret.elts[i] = node(ctx, n.elts[i]);
+        elts[i] = node(ctx, n.elts[i]);
       }
       break;
     }
-    return ret;
+    return {
+      tag: n.tag,
+      elts: elts,
+    };
   }
 
   function dumpAll(ctx) {
@@ -265,6 +268,7 @@ var ast = (function () {
   }
 
   function number(ctx, str) {
+    assert(typeof str === "string");
     push(ctx, {tag: "NUM", elts: [str]});
   }
 
@@ -278,7 +282,6 @@ var ast = (function () {
 
   // interpret a nid in the current environment
 
-
   function fold(ctx, def, args) {
     env.enterEnv(ctx, def.name);
     var lexicon = def.env.lexicon;
@@ -287,7 +290,6 @@ var ast = (function () {
       if (!id) continue;
       var word = lexicon[id];
       word.val = args[args.length-1-word.offset]  // offsets are from end of args
-      print("fold() id=" + id + " val=" + word.val);
       env.addWord(ctx, id, word);
     }
     // in line function body at call site
@@ -341,6 +343,15 @@ var ast = (function () {
   function list(ctx) {
     var elts = [pop(ctx)];
     push(ctx, {tag: "LIST", elts: elts});
+  }
+
+  function binaryExpr(ctx, name) {
+    //log("ast.binaryExpr() name="+name);
+    var elts = [];
+    // args are in the order produced by the parser
+    elts.push(pop(ctx)); 
+    elts.push(pop(ctx));
+    push(ctx, {tag: name, elts: elts.reverse()});
   }
 
   function unaryExpr(ctx, name) {
@@ -400,37 +411,84 @@ var ast = (function () {
 
   function add(ctx) {
     //log("ast.add()");
-    var v2 = +node(ctx, pop(ctx)).elts[0];
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, v1+v2);
+    var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
+    var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
+    if (n1.tag !== "NUM" || n2.tag !== "NUM") {
+      push(ctx, {tag: "ADD", elts: [n1, n2]});
+    } else {
+      number(ctx, +v1 + +v2);
+    }
   }
 
   function sub(ctx) {
     //log("ast.sub()");
-    var v2 = +node(ctx, pop(ctx)).elts[0];
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, v1-v2);
+    var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
+    var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
+    if (n1.tag !== "NUM" || n2.tag !== "NUM") {
+      push(ctx, {tag: "SUB", elts: [n1, n2]});
+    } else {
+      number(ctx, +v1 - +v2);
+    }
   }
 
   function mul(ctx) {
     //log("ast.mul()");
-    var v2 = +node(ctx, pop(ctx)).elts[0];
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, v1*v2);
+    var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
+    var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
+    if (n1.tag === undefined) {
+      n1 = n1.elts[0];
+    }
+    if (n2.tag === undefined) {
+      n2 = n2.elts[0];
+    }
+    if (n1.tag !== "NUM" || n2.tag !== "NUM") {
+      push(ctx, {tag: "MUL", elts: [n1, n2]});
+    } else {
+      number(ctx, +v1 * +v2);
+    }
   }
 
   function div(ctx) {
     //log("ast.div()");
-    var v2 = +node(ctx, pop(ctx)).elts[0];
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, v1/v2);
+    var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
+    var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
+    if (n1.tag !== "NUM" || n2.tag !== "NUM") {
+      push(ctx, {tag: "DIV", elts: [n1, n2]});
+    } else {
+      number(ctx, +v1 / +v2);
+    }
+  }
+
+  function mod(ctx) {
+    var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
+    var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
+    if (n1.tag !== "NUM" || n2.tag !== "NUM") {
+      push(ctx, {tag: "MOD", elts: [n1, n2]});
+    } else {
+      number(ctx, +v1 % +v2);
+    }
   }
 
   function pow(ctx) {
-    //log("ast.pow()");
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    var v2 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, Math.pow(v1, v2));;
+    var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
+    var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
+    if (n1.tag !== "NUM" || n2.tag !== "NUM") {
+      push(ctx, {tag: "POW", elts: [n1, n2]});
+    } else {
+      number(ctx, Math.pow(+v1, +v2));
+    }
   }
 
   function orelse(ctx) {
@@ -502,7 +560,11 @@ var ast = (function () {
         elts.push(elt);
       }
     }
-    push(ctx, {tag: "EXPRS", elts: elts.reverse()});
+    if (elts.length > 1) {
+      push(ctx, {tag: "EXPRS", elts: elts.reverse()});
+    } else {
+      push(ctx, elts[0]);
+    }
   }
   function letDefn(ctx) {
     pop(ctx)  // name
@@ -599,7 +661,6 @@ var env = (function () {
 
   function findWord(ctx, lexeme) {
     var env = ctx.state.env;
-    ////print("findWord() lexeme=" + JSON.stringify(lexeme));
     for (var i = env.length-1; i >= 0; i--) {
       var word = env[i].lexicon[lexeme];
       if (word) {
@@ -610,8 +671,6 @@ var env = (function () {
   }
 
   function addWord(ctx, lexeme, entry) {
-    //print("addWord() lexeme=" + lexeme);
-//    parser.topEnv(ctx).lexicon[lexeme] = entry;
     exports.topEnv(ctx).lexicon[lexeme] = entry;
     return null;
   }
@@ -712,7 +771,6 @@ exports.parser = (function () {
   function next(ctx) {
     var tk = peek(ctx);
     ctx.state.nextToken = -1;
-    //print("next() tk="+tk+" lexeme="+lexeme);
     scanCount++;
     return tk;
   }
@@ -940,7 +998,6 @@ exports.parser = (function () {
   }
 
   function getPrecedence(op) {
-    //print("getPrecedence() op="+op)
     return {
       "": 0
       , "OR": 1
@@ -951,13 +1008,9 @@ exports.parser = (function () {
       , "GT": 4
       , "LE": 4
       , "GE": 4
-      , "PLUS": 5
       , "ADD": 5
-      , "MINUS": 5
       , "SUB": 5
-      , "TIMES": 6
       , "MUL": 6
-      , "FRAC": 6
       , "DIV": 6
       , "MOD": 6
       , "POW": 7
@@ -1603,12 +1656,14 @@ var folder = function() {
     "DIV": div,
     "TIMES": times,
     "FRAC": frac,
-    "MOD": mod,
     "SUB": sub,
     "PLUS": plus,
     "MINUS": minus,
+    "EXPO": expo,
+
     "ADD": add,
     "POW": pow,
+    "MOD": mod,
 
     "OR": orelse,
     "AND": andalso,
@@ -2019,43 +2074,39 @@ var folder = function() {
     ast.unaryExpr(ctx, node.tag);
   }
 
+  function visitArgs(args) {
+    for (var i = args.length - 1; i >= 0; i--) {
+      visit(args[i]);
+    }
+  }
+
   function plus(node) {
     ast.name(ctx, "plus");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
+    visitArgs(node.elts);
     ast.funcApp(ctx, node.elts.length);
   }
 
   function minus(node) {
     ast.name(ctx, "minus");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
+    visitArgs(node.elts);
     ast.funcApp(ctx, node.elts.length);
   }
 
   function times(node) {
     ast.name(ctx, "times");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
+    visitArgs(node.elts);
     ast.funcApp(ctx, node.elts.length);
   }
 
   function frac(node) {
     ast.name(ctx, "frac");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
+    visitArgs(node.elts);
     ast.funcApp(ctx, node.elts.length);
   }
 
-  function pow(node) {
-    ast.name(ctx, "pow");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
+  function expo(node) {
+    ast.name(ctx, "expo");
+    visitArgs(node.elts);
     ast.funcApp(ctx, node.elts.length);
   }
 
@@ -2083,16 +2134,16 @@ var folder = function() {
     ast.div(ctx);
   }
 
-  function mod(node) {
-    visit(node.elts[1]);
-    visit(node.elts[0]);
-    ast.mod(ctx);
-  }
-
   function pow(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
     ast.pow(ctx);
+  }
+
+  function mod(node) {
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.mod(ctx);
   }
 
   function orelse(node) {

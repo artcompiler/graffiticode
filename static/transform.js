@@ -46,7 +46,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     "MINUS" : minus,
     "TIMES" : times,
     "FRAC" : frac,
-    "POW" : pow,
+    "EXPO" : expo,
 
     "TEXT" : text,
     "MATH-TEXT" : math_text,
@@ -243,32 +243,32 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function plus(node) {
-    var v1 = visit(node.elts[0]);
-    var v2 = visit(node.elts[1]);
+    var v2 = visit(node.elts[0]);
+    var v1 = visit(node.elts[1]);
     return v1 + "+" + v2;
   }
 
   function minus(node) {
-    var v1 = visit(node.elts[0]);
-    var v2 = visit(node.elts[1]);
+    var v2 = visit(node.elts[0]);
+    var v1 = visit(node.elts[1]);
     return v1 + "-" + v2;
   }
 
   function times(node) {
-    var v1 = visit(node.elts[0]);
-    var v2 = visit(node.elts[1]);
+    var v2 = visit(node.elts[0]);
+    var v1 = visit(node.elts[1]);
     return v1 + " \\times " + v2;
   }
 
   function frac(node) {
-    var v1 = visit(node.elts[0]);
-    var v2 = visit(node.elts[1]);
+    var v2 = visit(node.elts[0]);
+    var v1 = visit(node.elts[1]);
     return "\\frac{" + v1 + "}{" + v2 + "}";
   }
 
-  function pow(node) {
-    var v1 = visit(node.elts[0]);
-    var v2 = visit(node.elts[1]);
+  function expo(node) {
+    var v2 = visit(node.elts[0]);
+    var v1 = visit(node.elts[1]);
     return v1 + "^{" + v2 + "}";
   }
 

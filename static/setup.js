@@ -9,7 +9,7 @@
 		lineWrapping: "true",
 		lineNumbers: "true",
 		indentWithTabs: "true",
-		readOnly: "true",
+		readOnly: "false", //"true",
 		theme: theme,
 		onUpdate: function() {
 		},
@@ -45,6 +45,6 @@
 		}
 	    })
 	    
-	    //    updateDisplay()
+	    editor.setOption("readOnly", false);
 	    exports.gc.start()
 	})

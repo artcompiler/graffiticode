@@ -102,7 +102,7 @@ exports.globalLexicon = {
     "minus" : { "tk": 0x01, "name": "MINUS", "cls": "function", "length": 2 },
     "times" : { "tk": 0x01, "name": "TIMES", "cls": "function", "length": 2 },
     "frac" : { "tk": 0x01, "name": "FRAC", "cls": "function", "length": 2 },
-    "pow" : { "tk": 0x01, "name": "POW", "cls": "function", "length": 2 },
+    "expo" : { "tk": 0x01, "name": "EXPO", "cls": "function", "length": 2 },
     "parens" : { "tk": 0x01, "name": "PARENS", "cls": "function", "length": 1 },
 
     // TK_BINOP = 0x0E
@@ -111,6 +111,7 @@ exports.globalLexicon = {
     "mul" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
     "div" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
     "divide" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
+    "pow" : { "tk": 0x0E, "name": "POW", "cls": "operator", "length": 2 },
     "mod" : { "tk": 0x0E, "name": "MOD", "cls": "operator", "length": 0 },
     "or" : { "tk": 0x0E, "name": "OR", "cls": "operator", "length": 0 },
     "and" : { "tk": 0x0E, "name": "AND", "cls": "operator", "length": 0 },
@@ -121,7 +122,5 @@ exports.globalLexicon = {
     "le" : { "tk": 0x0E, "name": "LE", "cls": "operator", "length": 0 },
     "ge" : { "tk": 0x0E, "name": "GE", "cls": "operator", "length": 0 },
 
-
-    "deg" : { "tk": 0x0A, "cls": "operator", "length": 0 }
-
+    "deg" : { "tk": 0x0A, "cls": "operator", "length": 0 },
 }

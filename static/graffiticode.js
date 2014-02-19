@@ -22,7 +22,7 @@ exports.gc = (function () {
 		    updateObj(data);
       },
       error: function(xhr, msg, err) {
-		    alert(msg+" "+err);
+		    console.log(msg+" "+err);
       }
 	  });
   }
@@ -58,7 +58,7 @@ exports.gc = (function () {
         }
       },
       error: function(xhr, msg, err) {
-		    alert(msg+" "+err);
+		    console.log(msg+" "+err);
       }
 	  });
   }
@@ -126,7 +126,7 @@ exports.gc = (function () {
         loadMoreThumbnails(true)
       },
       error: function(xhr, msg, err) {
-		    alert(msg+" "+err)
+		    console.log(msg+" "+err)
       }
 	  });
   }
@@ -142,7 +142,7 @@ exports.gc = (function () {
 		    addPiece(data, data.src, data.obj, false)
       },
       error: function(xhr, msg, err) {
-		    alert(msg+" "+err)
+		    console.log(msg+" "+err)
       }
 	  })
   }
@@ -174,7 +174,7 @@ exports.gc = (function () {
 		    }
       },
       error: function(xhr, msg, err) {
-		    alert(msg+" "+err);
+		    console.log(msg+" "+err);
       }
 	  });
   }
