@@ -76,6 +76,7 @@ var ast = (function () {
     mul: mul,
     div: div,
     pow: pow,
+    concat: concat,
     orelse: orelse,
     andalso: andalso,
     eq: eq,
@@ -85,6 +86,7 @@ var ast = (function () {
     le: le,
     ge: ge,
     random: random,
+    math_random: math_random,
     neg: neg,
     list: list,
     cos: cos,
@@ -268,8 +270,8 @@ var ast = (function () {
   }
 
   function number(ctx, str) {
-    assert(typeof str === "string");
-    push(ctx, {tag: "NUM", elts: [str]});
+    assert(typeof str === "string" || typeof str === "number");
+    push(ctx, {tag: "NUM", elts: [String(str)]});
   }
 
   function string(ctx, str) {
@@ -324,7 +326,8 @@ var ast = (function () {
     if (def.nid) {
       // recursion guard
       if (ctx.state.nodeStack.length > 900) {
-        throw "runaway recursion";
+        return;  // just stop recursing
+        //throw "runaway recursion";
       }
       // we have a user def, so fold it.
       fold(ctx, def, elts);
@@ -369,6 +372,22 @@ var ast = (function () {
   }
 
   function random(ctx) {
+    var min = +node(ctx, pop(ctx)).elts[0];
+    var max = +node(ctx, pop(ctx)).elts[0];
+    if (max < min) {
+      var t = max;
+      max = min;
+      min = t;
+    }
+    var rand = Math.random();
+    console.log("min=" + min + " max=" + max + " rand=" + rand);
+    console.log("x=" + ((max-min)*rand));
+    var num = min + Math.floor((max-min)*rand);
+    console.log("num=" + num);
+    number(ctx, num);
+  }
+
+  function math_random(ctx) {
     var elts = [];
     elts.push(pop(ctx));
     elts.push(pop(ctx));
@@ -380,7 +399,8 @@ var ast = (function () {
   }
 
   function cos(ctx) {
-    var v1 = node(ctx, pop(ctx)).elts[0];
+    var v1 = +node(ctx, pop(ctx)).elts[0];
+    print("cos() v1=" + v1);
     number(ctx, Math.cos(v1));
   }
 
@@ -424,8 +444,8 @@ var ast = (function () {
 
   function sub(ctx) {
     //log("ast.sub()");
-    var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
+    var n2 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
@@ -456,8 +476,8 @@ var ast = (function () {
 
   function div(ctx) {
     //log("ast.div()");
-    var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
+    var n2 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
@@ -468,8 +488,8 @@ var ast = (function () {
   }
 
   function mod(ctx) {
-    var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
+    var n2 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
@@ -480,14 +500,26 @@ var ast = (function () {
   }
 
   function pow(ctx) {
-    var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
-    var v2 = n2.elts[0];
+    var n2 = node(ctx, pop(ctx));
     var v1 = n1.elts[0];
+    var v2 = n2.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
       push(ctx, {tag: "POW", elts: [n1, n2]});
     } else {
       number(ctx, Math.pow(+v1, +v2));
+    }
+  }
+
+  function concat(ctx) {
+    var n1 = node(ctx, pop(ctx));
+    var n2 = node(ctx, pop(ctx));
+    var v1 = n1.elts[0];
+    var v2 = n2.elts[0];
+    if ((n1.tag !== "STR" && n1.tag !== "NUM") || (n2.tag !== "STR" && n2.tag !== "NUM")) {
+      push(ctx, {tag: "CONCAT", elts: [n1, n2]});
+    } else {
+      string(ctx, ""+v1+v2);
     }
   }
 
@@ -1008,6 +1040,7 @@ exports.parser = (function () {
       , "GT": 4
       , "LE": 4
       , "GE": 4
+      , "CONCAT": 5
       , "ADD": 5
       , "SUB": 5
       , "MUL": 6
@@ -1625,6 +1658,7 @@ var folder = function() {
     "BEZIER" : bezier,
     "LINE" : line,
     "POINT" : point,
+    "DOT" : dot,
     "CALL" : null,
     "ARC" : arc,
 
@@ -1649,6 +1683,7 @@ var folder = function() {
     "COLOR" : color,
     "TEXT" : text,
     "MATH-TEXT" : math_text,
+    "MATH-VALUE" : math_value,
     "FSIZE" : fsize,
     "SIZE" : size,
     "BACKGROUND": background,
@@ -1664,6 +1699,7 @@ var folder = function() {
     "ADD": add,
     "POW": pow,
     "MOD": mod,
+    "CONCAT": concat,
 
     "OR": orelse,
     "AND": andalso,
@@ -1837,12 +1873,21 @@ var folder = function() {
     ast.funcApp(ctx, node.elts.length);
   }
 
+/*
   function random(node) {
     ast.name(ctx, "random");
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
     ast.funcApp(ctx, node.elts.length);
+  }
+*/
+
+  function random(node) {
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.random(ctx);
   }
 
   function arc(node) {
@@ -1869,7 +1914,6 @@ var folder = function() {
     ast.funcApp(ctx, node.elts.length);
   }
 
-
   function line(node) {
     ast.name(ctx, "line");
     for (var i = node.elts.length-1; i >= 0; i--) {
@@ -1880,6 +1924,14 @@ var folder = function() {
 
   function point(node) {
     ast.name(ctx, "point");
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp(ctx, node.elts.length);
+  }
+
+  function dot(node) {
+    ast.name(ctx, "dot");
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
@@ -1924,13 +1976,6 @@ var folder = function() {
       visit(node.elts[i]);
     }
     ast.funcApp(ctx, node.elts.length);
-  }
-
-  function random(node) {
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.random(ctx);
   }
 
   function grid(node) {
@@ -2015,6 +2060,14 @@ var folder = function() {
 
   function math_text(node) {
     ast.name(ctx, "math-text");
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp(ctx, node.elts.length);
+  }
+
+  function math_value(node) {
+    ast.name(ctx, "math-value");
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
@@ -2138,6 +2191,12 @@ var folder = function() {
     visit(node.elts[1]);
     visit(node.elts[0]);
     ast.pow(ctx);
+  }
+
+  function concat(node) {
+    visit(node.elts[1]);
+    visit(node.elts[0]);
+    ast.concat(ctx);
   }
 
   function mod(node) {

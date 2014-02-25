@@ -53,6 +53,7 @@ exports.globalLexicon = {
 
     "text" : { "tk": 0x01, "name": "TEXT", "cls": "function", "length": 1 },
     "math-text" : { "tk": 0x01, "name": "MATH-TEXT", "cls": "function", "length": 1 },
+    "math-value" : { "tk": 0x01, "name": "MATH-VALUE", "cls": "function", "length": 1 },
 
     "tri" :      { "tk": 0x01, "name": "TRI", "cls": "function", "length": 6 },
     "triangle" : { "tk": 0x01, "name": "TRI", "cls": "function", "length": 6 },
@@ -65,6 +66,7 @@ exports.globalLexicon = {
     "grid" : { "tk": 0x01, "name": "GRID", "cls": "function", "length": 4 },
     "line" : { "tk": 0x01, "name": "LINE", "cls": "function", "length": 2 },
     "point" : { "tk": 0x01, "name": "POINT", "cls": "function", "length": 2 },
+    "dot" : { "tk": 0x01, "name": "DOT", "cls": "function", "length": 2 },
 
     "path" : { "tk": 0x01, "name": "PATH", "cls": "function", "length": 1 },
     "closepath" : { "tk": 0x01, "name": "CLOSEPATH", "cls": "function", "length": 0 },
@@ -88,15 +90,11 @@ exports.globalLexicon = {
     "color" : { "tk": 0x01, "name": "COLOR", "cls": "function", "length": 2 },
     "font-size" : { "tk": 0x01, "name": "FSIZE", "cls": "function", "length": 2 },
     "random" : { "tk": 0x01, "name": "RAND", "cls": "function", "length": 2 },
+    "math-random" : { "tk": 0x01, "name": "MATH-RAND", "cls": "function", "length": 2 },
 
     "cos" : { "tk": 0x01, "name": "COS", "cls": "function", "length": 1 },
     "sin" : { "tk": 0x01, "name": "SIN", "cls": "function", "length": 1 },
     "atan" : { "tk": 0x01, "name": "ATAN", "cls": "function", "length": 1 },
-
-    "pi" : { "tk": 0x01, "name": "PI", "cls": "val", "length": 0},
-    "_" : { "tk": 0x01, "name": "VOID", "cls": "val", "length": 0, "val": 0},
-    "true" : { "tk": 0x14, "cls": "val", "length": 0 },
-    "false" : { "tk": 0x14, "cls": "val", "length": 0 },
 
     "plus" : { "tk": 0x01, "name": "PLUS", "cls": "function", "length": 2 },
     "minus" : { "tk": 0x01, "name": "MINUS", "cls": "function", "length": 2 },
@@ -105,13 +103,19 @@ exports.globalLexicon = {
     "expo" : { "tk": 0x01, "name": "EXPO", "cls": "function", "length": 2 },
     "parens" : { "tk": 0x01, "name": "PARENS", "cls": "function", "length": 1 },
 
+    "pi" : { "tk": 0x01, "name": "PI", "cls": "val", "length": 0},
+    "_" : { "tk": 0x01, "name": "VOID", "cls": "val", "length": 0, "val": 0},
+    "true" : { "tk": 0x14, "cls": "val", "length": 0 },
+    "false" : { "tk": 0x14, "cls": "val", "length": 0 },
+
     // TK_BINOP = 0x0E
     "add" : { "tk": 0x0E, "name": "ADD", "cls": "operator", "length": 0 },
     "sub" : { "tk": 0x0E, "name": "SUB", "cls": "operator", "length": 0 },
     "mul" : { "tk": 0x0E, "name": "MUL", "cls": "operator", "length": 0 },
     "div" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
     "divide" : { "tk": 0x0E, "name": "DIV", "cls": "operator", "length": 0 },
-    "pow" : { "tk": 0x0E, "name": "POW", "cls": "operator", "length": 2 },
+    "pow" : { "tk": 0x0E, "name": "POW", "cls": "operator", "length": 0 },
+    "concat" : { "tk": 0x0E, "name": "CONCAT", "cls": "operator", "length": 0 },
     "mod" : { "tk": 0x0E, "name": "MOD", "cls": "operator", "length": 0 },
     "or" : { "tk": 0x0E, "name": "OR", "cls": "operator", "length": 0 },
     "and" : { "tk": 0x0E, "name": "AND", "cls": "operator", "length": 0 },
