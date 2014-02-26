@@ -57,7 +57,6 @@ exports.renderer = function() {
     str += prefix()
     str += visit(node, "  ")
     str += suffix()
-    print("render() str=" + str);
     return str
   }
 

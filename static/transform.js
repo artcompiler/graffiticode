@@ -194,7 +194,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   function visit(nid, visitor) {
     // Get the node from the pool of nodes.
     var node = nodePool[nid];
-    print("visit() visitor=" + (visitor ? visitor["visitor-name"] : "builtins") + " node=" + JSON.stringify(node));
     if (node == null) {
       return null;
     } else if (node.tag === void 0) {

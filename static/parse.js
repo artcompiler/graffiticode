@@ -1873,7 +1873,6 @@ var folder = function() {
     ast.funcApp(ctx, node.elts.length);
   }
 
-/*
   function random(node) {
     ast.name(ctx, "random");
     for (var i = node.elts.length-1; i >= 0; i--) {
@@ -1881,14 +1880,15 @@ var folder = function() {
     }
     ast.funcApp(ctx, node.elts.length);
   }
-*/
 
+/*
   function random(node) {
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
     ast.random(ctx);
   }
+*/
 
   function arc(node) {
     ast.name(ctx, "arc");
