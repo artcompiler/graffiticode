@@ -46,6 +46,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         return args[1];
       } else if (args[1] === "1") {
         return args[0];
+      } else if (args[0] === "0") || args[1] === "0") {
+        return "0";
       } else if (node.elts[1].tag !== "NUM") {
         return args[1] + "" + args[0];
       } else {
@@ -61,7 +63,10 @@ exports.transformer = GraffitiCode.transformer = function() {
         return args[1];
       } else if (args[1] === "0") {
         return args[0];
-      } 
+      }
+      if (args[0].charAt(0) === "-") {
+        return args[1] + args[0];
+      }
       return args[1] + "+" + args[0];
     };
     function num (node) {
