@@ -42,12 +42,12 @@ exports.transformer = GraffitiCode.transformer = function() {
       node.elts.forEach(function (arg) {
         args.push(visit(arg, mathTextVisitor));
       });
-      if (args[0] === "1") {
+      if (args[0] === 1) {
         return args[1];
-      } else if (args[1] === "1") {
+      } else if (args[1] === 1) {
         return args[0];
-      } else if (args[0] === "0" || args[1] === "0") {
-        return "0";
+//      } else if (args[0] === "0" || args[1] === "0") {
+//        return "0";
       } else if (node.elts[1].tag !== "NUM") {
         return args[1] + "" + args[0];
       } else {
@@ -64,8 +64,9 @@ exports.transformer = GraffitiCode.transformer = function() {
       } else if (args[1] === "0") {
         return args[0];
       }
-      if (args[0].charAt(0) === "-") {
-        return args[1] + args[0];
+      print("MathTextVisitor.plus() args[0]=" + JSON.stringify(args[0]));
+      if (String(args[0]).charAt(0) === "-") {
+        return args[1] + "" + args[0];
       }
       return args[1] + "+" + args[0];
     };
