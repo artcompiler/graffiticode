@@ -92,7 +92,6 @@ navigator.id.watch({
 console.log("editor=" + editor + " readOnly=" + editor.getOption("readOnly"));
       },
       error: function(xhr, status, err) { 
-          editor.setOption("readOnly", false);
           alert("Login failure: " + err);
       }
     });
