@@ -57,6 +57,7 @@ var ast = (function () {
     string: string,
     name: name,
     funcApp: funcApp,
+    funcApp2: funcApp2,
     binaryExpr: binaryExpr,
     unaryExpr: unaryExpr,
     prefixExpr: prefixExpr,
@@ -89,11 +90,11 @@ var ast = (function () {
     math_random: math_random,
     neg: neg,
     list: list,
-    cos: cos,
-    sin: sin,
+//    cos: cos,
+//    sin: sin,
     atan: atan,
     bool: bool,
-    pi: pi,
+//    pi: pi,
   };
 
   return new Ast;
@@ -307,6 +308,8 @@ var ast = (function () {
       if (elt === underscore) {
         elts.push(0);
       } else {
+//        folder.fold(ctx, elt);
+//        elts.push(pop(ctx));
         elts.push(elt);
       }
     }
@@ -341,6 +344,26 @@ var ast = (function () {
         push(ctx, {tag: def.name, elts: elts});
       }
     }
+  }
+
+  function funcApp2(ctx, argc) {
+    var underscore = ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
+    var elts = [];
+    while (argc--) {
+      var elt = pop(ctx);
+      if (elt === underscore) {
+        elts.push(0);
+      } else {
+        elts.push(elt);
+      }
+    }
+    var nameId = pop(ctx);
+    var e = node(ctx, nameId).elts;
+    if (!e) {
+      return;
+    }
+    var name = e[0];
+    push(ctx, {tag: name, elts: elts});
   }
 
   function list(ctx) {
@@ -394,26 +417,28 @@ var ast = (function () {
     push(ctx, {tag: "RAND", elts: elts.reverse()});
   }
 
+/*
   function pi(ctx) {
     push(ctx, {tag: "PI", elts: []});
   }
 
   function cos(ctx) {
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    print("cos() v1=" + v1);
-    number(ctx, Math.cos(v1));
+    var v1 = node(ctx, pop(ctx));
+    print("cos() v1=" + JSON.stringify(v1));
+    push(ctx, {tag: "COS", elts: [v1]});
   }
 
   function sin(ctx) {
     //log("ast.sin()");
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, Math.sin(v1));
+    var v1 = node(ctx, pop(ctx));
+    push(ctx, {tag: "SIN", elts: [v1]});
   }
+*/
 
   function atan(ctx) {
     //log("ast.atan()");
     var v1 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, Math.atan(v1));
+    push(ctx, {tag: "ATAN", elts: [v1]});
   }
 
   function neg(ctx) {
@@ -436,7 +461,7 @@ var ast = (function () {
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "ADD", elts: [n1, n2]});
+      push(ctx, {tag: "PLUS", elts: [n1, n2]});
     } else {
       number(ctx, +v1 + +v2);
     }
@@ -449,7 +474,7 @@ var ast = (function () {
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "SUB", elts: [n1, n2]});
+      push(ctx, {tag: "MINUS", elts: [n1, n2]});
     } else {
       number(ctx, +v1 - +v2);
     }
@@ -468,7 +493,7 @@ var ast = (function () {
       n2 = n2.elts[0];
     }
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "MUL", elts: [n1, n2]});
+      push(ctx, {tag: "TIMES", elts: [n2, n1]});
     } else {
       number(ctx, +v1 * +v2);
     }
@@ -481,7 +506,7 @@ var ast = (function () {
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "DIV", elts: [n1, n2]});
+      push(ctx, {tag: "FRAC", elts: [n2, n1]});
     } else {
       number(ctx, +v1 / +v2);
     }
@@ -1648,27 +1673,45 @@ var folder = function() {
     "NUM" : num,
     "STR" : str,
     "PARENS" : unaryExpr,
-    "TRI" : triangle,
+    "MAP": map,
+    "CALL" : null,
+    "MUL": mul,
+    "DIV": div,
+    "SUB": sub,
+    "ADD": add,
+    "POW": pow,
+    "MOD": mod,
+    "CONCAT": concat,
+    "OR": orelse,
+    "AND": andalso,
+    "NE": ne,
+    "EQ": eq,
+    "LT": lt,
+    "GT": gt,
+    "LE": le,
+    "GE": ge,
+    "NEG": neg,
+    "LIST": list,
+    "CASE": caseExpr,
+    "OF": ofClause,
+
+/*
     "ROTATE" : rotate,
     "SCALE" : scale,
     "TRISIDE" : triside,
     "RECT" : rectangle,
-    "MAP": map,
     "ELLIPSE" : ellipse,
     "BEZIER" : bezier,
     "LINE" : line,
     "POINT" : point,
     "DOT" : dot,
-    "CALL" : null,
     "ARC" : arc,
-
     "PATH" : path,
     "CLOSEPATH" : closepath,
     "MOVETO" : moveto,
     "LINETO" : lineto,
     "CURVETO" : curveto,
     "ARCTO" : arcto,
-
     "RAND" : random,
     "GRID" : grid,
     "TRANSLATE" : translate,
@@ -1687,38 +1730,13 @@ var folder = function() {
     "FSIZE" : fsize,
     "SIZE" : size,
     "BACKGROUND": background,
-    "MUL": mul,
-    "DIV": div,
     "TIMES": times,
     "FRAC": frac,
-    "SUB": sub,
     "PLUS": plus,
     "MINUS": minus,
     "EXPO": expo,
+*/
 
-    "ADD": add,
-    "POW": pow,
-    "MOD": mod,
-    "CONCAT": concat,
-
-    "OR": orelse,
-    "AND": andalso,
-    "NE": ne,
-    "EQ": eq,
-    "LT": lt,
-    "GT": gt,
-    "LE": le,
-    "GE": ge,
-
-    "NEG": neg,
-    "COS": cos,
-    "SIN": sin,
-    "ATAN": atan,
-    "PI": pi,
-
-    "LIST": list,
-    "CASE": caseExpr,
-    "OF": ofClause,
   };
 
   var canvasWidth = 0;
@@ -1755,11 +1773,13 @@ var folder = function() {
       var ret = table[node.tag](node);
       //print("ret="+ret);
       return ret;
-    } else {
-      throw "missing visitor method for " + node.tag;
     }
 
-    throw "missing visitor method for " + node;
+    // FIXME visit args here
+    print("visit() node=" + JSON.stringify(node));
+//    ast.push(ctx, node);
+    funcApp2(node);
+//    throw "missing visitor method for " + node;
   }
 
   function isArray(v) {
@@ -1832,6 +1852,7 @@ var folder = function() {
     ast.funcApp(ctx, node.elts.length-1) // func name is the +1
   }
 
+/*
   function triangle(node) {
     ast.name(ctx, "triangle");
     for (var i = node.elts.length-1; i >= 0; i--) {
@@ -1839,6 +1860,7 @@ var folder = function() {
     }
     ast.funcApp(ctx, node.elts.length)
   }
+*/
 
   function triside(node) {
     ast.name(ctx, "triside");
@@ -2082,6 +2104,14 @@ var folder = function() {
     ast.funcApp(ctx, node.elts.length);
   }
 
+  function funcApp2(node) {
+    ast.name(ctx, node.tag);
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.funcApp2(ctx, node.elts.length);
+  }
+
   function size(node) {
     ast.name(ctx, "size");
     for (var i = node.elts.length-1; i >= 0; i--) {
@@ -2098,6 +2128,7 @@ var folder = function() {
     ast.funcApp(ctx, node.elts.length);
   }
 
+/*
   function cos(node) {
     visit(node.elts[0]);
     ast.cos(ctx)
@@ -2107,15 +2138,18 @@ var folder = function() {
     visit(node.elts[0]);
     ast.sin(ctx);
   }
+*/
 
   function atan(node) {
     visit(node.elts[0]);
     ast.atan(ctx);
   }
 
+/*
   function pi(node) {
     ast.pi(ctx);
   }
+*/
 
   function neg(node) {
     visit(node.elts[0]);
@@ -2295,9 +2329,13 @@ var folder = function() {
     var name = node.elts[0];
     var word = env.findWord(ctx, name);
     if (word) {
-      if (word.cls==="val" && word.val) {
-        ast.push(ctx, word.val);
-        visit(ast.pop(ctx));      // reduce the val expr
+      if (word.cls==="val") {
+        if (word.val) {
+          ast.push(ctx, word.val);
+          visit(ast.pop(ctx));      // reduce the val expr
+        } else {
+          ast.push(ctx, {tag: word.name, elts: []});  // create a node from the word entry
+        }
       } else {
         ast.push(ctx, node);
       }

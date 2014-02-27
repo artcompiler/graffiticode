@@ -89,30 +89,53 @@ exports.transformer = GraffitiCode.transformer = function() {
         args.push(visit(arg, mathValueVisitor));
       });
       return Math.pow(args[1], args[0]);
-    };
+    }
     function times(node) {
       var args = [];
       node.elts.forEach(function (arg) {
         args.push(visit(arg, mathValueVisitor));
       });
       return +args[1] * +args[0];
-    };
+    }
+    function frac(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, mathValueVisitor));
+      });
+      return +args[1] / +args[0];
+    }
     function plus(node) {
       var args = [];
       node.elts.forEach(function (arg) {
         args.push(visit(arg, mathValueVisitor));
       });
       return +args[1] + +args[0];
-    };
+    }
     function num (node) {
       return +node.elts[0];
-    };
+    }
+    function pi(node) {
+      return Math.PI;
+    }
+    function cos(node) {
+      var v1 = visit(node.elts[0], mathValueVisitor);
+      print("mathValueVistor cos() v1=" + v1);
+      return Math.cos(+v1);
+    }
+    function sin(node) {
+      var v1 = visit(node.elts[0], mathValueVisitor);
+      return Math.sin(+v1);
+    }
     return {
       "visitor-name": "MathValueVisitor",
       "EXPO": expo,
       "NUM": num,
       "TIMES": times,
+      "FRAC": frac,
       "PLUS": plus,
+      "PI": pi,
+      "COS": cos,
+      "SIN": sin,
     };
   }
 
@@ -175,6 +198,8 @@ exports.transformer = GraffitiCode.transformer = function() {
     "BACKGROUND" : background,
 
     "PI": pi,
+    "COS": cos,
+    "SIN": sin,
   }
 
   return {
@@ -479,9 +504,9 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function dot(node) {
-    print("dot");
     var x = visit(node.elts[1], mathValueVisitor);
     var y = visit(node.elts[0], mathValueVisitor);
+    print("dot x=" + x + " y=" + y);
     return {
       "tag": "ellipse",
       "cx": x,
@@ -909,8 +934,17 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function pi(node) {
-    print("pi")
     return "\\pi"
+  }
+
+  function cos(node) {
+    var v1 = visit(node.elts[0]);
+    return "\\cos" + v1;
+  }
+
+  function sin(node) {
+    var v1 = visit(node.elts[0]);
+    return "\\sin" + v1;
   }
 
   function stub(node) {
