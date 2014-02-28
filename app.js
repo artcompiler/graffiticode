@@ -230,6 +230,10 @@ app.post('/code', function (req, res){
         " VALUES ('" + user + "', '" + parent + "', '" + views +
         " ', '" + forks + "', now(), '" + src + "', '" + obj + "');"
       client.query(queryStr, function(err, result) {
+        if (err) {
+          res.send(400, err);
+          return;
+        }
         var queryStr =
           "SELECT pieces.*, users.name FROM pieces, users" +
           " WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1";

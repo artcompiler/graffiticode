@@ -58,7 +58,7 @@ exports.gc = (function () {
         }
       },
       error: function(xhr, msg, err) {
-		    console.log(msg+" "+err);
+		    console.log("Unable to submit code. Probably due to a SQL syntax error");
       }
 	  });
   }

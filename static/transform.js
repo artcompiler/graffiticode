@@ -380,10 +380,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       min = t;
     }
     var rand = Math.random();
-    console.log("min=" + min + " max=" + max + " rand=" + rand);
-    console.log("x=" + ((max-min)*rand));
     var num = min + Math.floor((max-min)*rand);
-    console.log("num=" + num);
     return num;
   }
 
@@ -768,7 +765,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function size(node) {
-    console.log("size()");
     var elts = []
     var width = visit(node.elts[1])
     var height = visit(node.elts[0])
