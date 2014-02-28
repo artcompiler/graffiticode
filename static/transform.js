@@ -126,6 +126,10 @@ exports.transformer = GraffitiCode.transformer = function() {
       var v1 = visit(node.elts[0], mathValueVisitor);
       return Math.sin(+v1);
     }
+    function atan(node) {
+      var v1 = visit(node.elts[0], mathValueVisitor);
+      return Math.atan(+v1);
+    }
     return {
       "visitor-name": "MathValueVisitor",
       "EXPO": expo,
@@ -136,6 +140,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       "PI": pi,
       "COS": cos,
       "SIN": sin,
+      "ATAN": atan,
     };
   }
 
@@ -200,6 +205,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     "PI": pi,
     "COS": cos,
     "SIN": sin,
+    "ATAN": atan,
   }
 
   return {
@@ -945,6 +951,11 @@ exports.transformer = GraffitiCode.transformer = function() {
   function sin(node) {
     var v1 = visit(node.elts[0]);
     return "\\sin" + v1;
+  }
+
+  function atan(node) {
+    var v1 = visit(node.elts[0]);
+    return "\\atan" + v1;
   }
 
   function stub(node) {

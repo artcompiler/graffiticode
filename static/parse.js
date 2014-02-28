@@ -90,11 +90,7 @@ var ast = (function () {
     math_random: math_random,
     neg: neg,
     list: list,
-//    cos: cos,
-//    sin: sin,
-    atan: atan,
     bool: bool,
-//    pi: pi,
   };
 
   return new Ast;
@@ -308,8 +304,6 @@ var ast = (function () {
       if (elt === underscore) {
         elts.push(0);
       } else {
-//        folder.fold(ctx, elt);
-//        elts.push(pop(ctx));
         elts.push(elt);
       }
     }
@@ -328,7 +322,7 @@ var ast = (function () {
     // If recursive call, then this callee does not have a nid yet.
     if (def.nid) {
       // recursion guard
-      if (ctx.state.nodeStack.length > 900) {
+      if (ctx.state.nodeStack.length > 500) {
         return;  // just stop recursing
         //throw "runaway recursion";
       }
@@ -347,15 +341,10 @@ var ast = (function () {
   }
 
   function funcApp2(ctx, argc) {
-    var underscore = ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
     var elts = [];
     while (argc--) {
       var elt = pop(ctx);
-      if (elt === underscore) {
-        elts.push(0);
-      } else {
-        elts.push(elt);
-      }
+      elts.push(elt);
     }
     var nameId = pop(ctx);
     var e = node(ctx, nameId).elts;
@@ -415,30 +404,6 @@ var ast = (function () {
     elts.push(pop(ctx));
     elts.push(pop(ctx));
     push(ctx, {tag: "RAND", elts: elts.reverse()});
-  }
-
-/*
-  function pi(ctx) {
-    push(ctx, {tag: "PI", elts: []});
-  }
-
-  function cos(ctx) {
-    var v1 = node(ctx, pop(ctx));
-    print("cos() v1=" + JSON.stringify(v1));
-    push(ctx, {tag: "COS", elts: [v1]});
-  }
-
-  function sin(ctx) {
-    //log("ast.sin()");
-    var v1 = node(ctx, pop(ctx));
-    push(ctx, {tag: "SIN", elts: [v1]});
-  }
-*/
-
-  function atan(ctx) {
-    //log("ast.atan()");
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    push(ctx, {tag: "ATAN", elts: [v1]});
   }
 
   function neg(ctx) {
@@ -1423,6 +1388,7 @@ exports.parser = (function () {
     }
     catch (x) {
       console.log(x.stack);
+      console.log(ast.dumpAll(ctx));
       if (x === "syntax error") {
         console.log("---------")
         console.log("exception caught!!!=")
@@ -1694,49 +1660,6 @@ var folder = function() {
     "LIST": list,
     "CASE": caseExpr,
     "OF": ofClause,
-
-/*
-    "ROTATE" : rotate,
-    "SCALE" : scale,
-    "TRISIDE" : triside,
-    "RECT" : rectangle,
-    "ELLIPSE" : ellipse,
-    "BEZIER" : bezier,
-    "LINE" : line,
-    "POINT" : point,
-    "DOT" : dot,
-    "ARC" : arc,
-    "PATH" : path,
-    "CLOSEPATH" : closepath,
-    "MOVETO" : moveto,
-    "LINETO" : lineto,
-    "CURVETO" : curveto,
-    "ARCTO" : arcto,
-    "RAND" : random,
-    "GRID" : grid,
-    "TRANSLATE" : translate,
-    "SKEWX" : skewX,
-    "SKEWY" : skewY,
-    "RGB" : rgb,
-    "RGBA" : rgba,
-    "FILL" : fill,
-    "CLIP" : clip,
-    "STROKE" : stroke,
-    "STROKEWIDTH" : strokeWidth,
-    "COLOR" : color,
-    "TEXT" : text,
-    "MATH-TEXT" : math_text,
-    "MATH-VALUE" : math_value,
-    "FSIZE" : fsize,
-    "SIZE" : size,
-    "BACKGROUND": background,
-    "TIMES": times,
-    "FRAC": frac,
-    "PLUS": plus,
-    "MINUS": minus,
-    "EXPO": expo,
-*/
-
   };
 
   var canvasWidth = 0;
@@ -1850,32 +1773,7 @@ var folder = function() {
       visit(node.elts[i]);
     }
     ast.funcApp(ctx, node.elts.length-1) // func name is the +1
-  }
-
-/*
-  function triangle(node) {
-    ast.name(ctx, "triangle");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length)
-  }
-*/
-
-  function triside(node) {
-    ast.name(ctx, "triside");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function rectangle(node) {
-    ast.name(ctx, "rectangle");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
+//    ast.funcApp(ctx, node.elts.length) // func name is the +1
   }
 
   function map(node) {
@@ -1887,223 +1785,6 @@ var folder = function() {
     ast.funcApp(ctx, node.elts.length);
   }
 
-  function ellipse(node) {
-    ast.name(ctx, "ellipse");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function random(node) {
-    ast.name(ctx, "random");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-/*
-  function random(node) {
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.random(ctx);
-  }
-*/
-
-  function arc(node) {
-    ast.name(ctx, "arc");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function arcto(node) {
-    ast.name(ctx, "arcto");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function bezier(node) {
-    ast.name(ctx, "bezier");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function line(node) {
-    ast.name(ctx, "line");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function point(node) {
-    ast.name(ctx, "point");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function dot(node) {
-    ast.name(ctx, "dot");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function path(node) {
-    ast.name(ctx, "path");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function closepath(node) {
-    ast.name(ctx, "closepath");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function moveto(node) {
-    ast.name(ctx, "moveto");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function lineto(node) {
-    ast.name(ctx, "lineto");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function curveto(node) {
-    ast.name(ctx, "curveto");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function grid(node) {
-    ast.name(ctx, "grid");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function rotate(node) {
-    ast.name(ctx, "rotate");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function translate(node) {
-    ast.name(ctx, "translate");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function scale(node) {
-    ast.name(ctx, "scale");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function skewX(node) {
-    ast.name(ctx, "skewx");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function skewY(node) {
-    ast.name(ctx, "skewy");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function rgb(node) {
-    ast.name(ctx, "rgb");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function rgba(node) {
-    ast.name(ctx, "rgba");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function color(node) {
-    ast.name(ctx, "color");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function text(node) {
-    ast.name(ctx, "text");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function math_text(node) {
-    ast.name(ctx, "math-text");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function math_value(node) {
-    ast.name(ctx, "math-value");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function fsize(node) {
-    ast.name(ctx, "font-size");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i])
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
   function funcApp2(node) {
     ast.name(ctx, node.tag);
     for (var i = node.elts.length-1; i >= 0; i--) {
@@ -2111,45 +1792,6 @@ var folder = function() {
     }
     ast.funcApp2(ctx, node.elts.length);
   }
-
-  function size(node) {
-    ast.name(ctx, "size");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function background(node) {
-    ast.name(ctx, "background");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-/*
-  function cos(node) {
-    visit(node.elts[0]);
-    ast.cos(ctx)
-  }
-
-  function sin(node) {
-    visit(node.elts[0]);
-    ast.sin(ctx);
-  }
-*/
-
-  function atan(node) {
-    visit(node.elts[0]);
-    ast.atan(ctx);
-  }
-
-/*
-  function pi(node) {
-    ast.pi(ctx);
-  }
-*/
 
   function neg(node) {
     visit(node.elts[0]);
@@ -2165,36 +1807,6 @@ var folder = function() {
     for (var i = args.length - 1; i >= 0; i--) {
       visit(args[i]);
     }
-  }
-
-  function plus(node) {
-    ast.name(ctx, "plus");
-    visitArgs(node.elts);
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function minus(node) {
-    ast.name(ctx, "minus");
-    visitArgs(node.elts);
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function times(node) {
-    ast.name(ctx, "times");
-    visitArgs(node.elts);
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function frac(node) {
-    ast.name(ctx, "frac");
-    visitArgs(node.elts);
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function expo(node) {
-    ast.name(ctx, "expo");
-    visitArgs(node.elts);
-    ast.funcApp(ctx, node.elts.length);
   }
 
   function add(node) {
@@ -2287,38 +1899,6 @@ var folder = function() {
     ast.ge(ctx);
   }
 
-  function stroke(node) {
-    ast.name(ctx, "stroke");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function strokeWidth(node) {
-    ast.name(ctx, "stroke-width");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function fill(node) {
-    ast.name(ctx, "fill");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
-  function clip(node) {
-    ast.name(ctx, "clip");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    ast.funcApp(ctx, node.elts.length);
-  }
-
   // when folding identifiers we encounter three cases:
   // -- the identifier is a function name, so we create a funcApp node
   // -- the identifier has a value, so we replace it with the value
@@ -2333,8 +1913,10 @@ var folder = function() {
         if (word.val) {
           ast.push(ctx, word.val);
           visit(ast.pop(ctx));      // reduce the val expr
-        } else {
+        } else if (word.name) {
           ast.push(ctx, {tag: word.name, elts: []});  // create a node from the word entry
+        } else {
+          ast.push(ctx, node);  // push the original node to be resolved later.
         }
       } else {
         ast.push(ctx, node);
