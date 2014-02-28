@@ -86,8 +86,6 @@ var ast = (function () {
     gt: gt,
     le: le,
     ge: ge,
-    random: random,
-    math_random: math_random,
     neg: neg,
     list: list,
     bool: bool,
@@ -322,9 +320,9 @@ var ast = (function () {
     // If recursive call, then this callee does not have a nid yet.
     if (def.nid) {
       // recursion guard
-      if (ctx.state.nodeStack.length > 500) {
-        return;  // just stop recursing
-        //throw "runaway recursion";
+      if (ctx.state.nodeStack.length > 380) {
+        //return;  // just stop recursing
+        throw new Error("runaway recursion");
       }
       // we have a user def, so fold it.
       fold(ctx, def, elts);
@@ -381,29 +379,6 @@ var ast = (function () {
     var elts = [];
     elts.push(pop(ctx));
     push(ctx, {tag: name, elts: elts});
-  }
-
-  function random(ctx) {
-    var min = +node(ctx, pop(ctx)).elts[0];
-    var max = +node(ctx, pop(ctx)).elts[0];
-    if (max < min) {
-      var t = max;
-      max = min;
-      min = t;
-    }
-    var rand = Math.random();
-    console.log("min=" + min + " max=" + max + " rand=" + rand);
-    console.log("x=" + ((max-min)*rand));
-    var num = min + Math.floor((max-min)*rand);
-    console.log("num=" + num);
-    number(ctx, num);
-  }
-
-  function math_random(ctx) {
-    var elts = [];
-    elts.push(pop(ctx));
-    elts.push(pop(ctx));
-    push(ctx, {tag: "RAND", elts: elts.reverse()});
   }
 
   function neg(ctx) {
@@ -778,7 +753,7 @@ exports.parser = (function () {
     //log("eat() tk="+tk);
     var nextToken = next(ctx);
     if (nextToken !== tk) {
-      throw "syntax error: expecting "+tk+" found "+nextToken;
+      throw "syntax error: expecting " + tk + " found " + nextToken;
     }
   }
 
@@ -1255,7 +1230,6 @@ exports.parser = (function () {
   }
 
   function program(ctx, cc) {
-    //log("program()")
     return exprsStart(ctx, function (ctx) {
       folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
       ast.program(ctx)
@@ -1266,7 +1240,6 @@ exports.parser = (function () {
   }
 
   function def(ctx, cc) {
-    //log("def()")
     if (match(ctx, TK_LET)) {
       eat(ctx, TK_LET)
       var ret = function (ctx) {
@@ -1347,7 +1320,6 @@ exports.parser = (function () {
       if (stream.peek()===void 0) {
         throw "comment"
       }
-
       // call the continuation and store the next continuation
       //log(">>parse() cc="+state.cc+"\n")
       if (state.cc === null) {
@@ -1360,43 +1332,32 @@ exports.parser = (function () {
       if (cc) {
         cls = cc.cls
       }
-
       if (cc === null && exports.doRecompile) {
         var thisAST = ast.poolToJSON(ctx)
         var lastAST = lastAST
         if (!_.isEqual(lastAST, thisAST)) {
-//          compileCode(thisAST)
           exports.gc.compileCode(thisAST)
         }
         lastAST = thisAST
       }
-
       var c;
       while ((c = stream.peek()) &&
            (c===' ' || c==='\t')) {
         stream.next()
       }
-
-      //print("---------")
-      //print("parse() pos="+stream.pos)
-      //print("parse() lexeme="+lexeme)
-      //print("parse() cls="+cls)
-      //print("parse() cc="+cc+"\n")
-      //print("parse() nodePool="+ast.dumpAll(ctx)+"\n")
-      //print("parse() nodeStack="+ctx.state.nodeStack+"\n")
-
-    }
-    catch (x) {
+    } catch (x) {
       console.log(x.stack);
       console.log(ast.dumpAll(ctx));
-      if (x === "syntax error") {
+      if (x instanceof Error) {
+        alert(x.message);
+        next(ctx)
+        cls = "error"
+      } else if (x.indexOf("syntax error") === 0) {
         console.log("---------")
         console.log("exception caught!!!=")
         cls = "error"
         state.cc = null
-      }
-      else
-      if (x === "comment") {
+      } else if (x === "comment") {
         //print("comment found")
         cls = x
       } else {
@@ -1409,13 +1370,6 @@ exports.parser = (function () {
     var t1 = new Date;
     parseCount++
     parseTime += t1 - t0
-    //if (t1-t0 > 2)
-    //{
-    //  console.log("t="+(t1-t0))
-    //  console.log("cc="+cc)
-    //  console.log("lastCC="+lastCC)
-    //}
-
     return cls
   }
 
@@ -1689,7 +1643,6 @@ var folder = function() {
     if (node == null) {
       return null;
     }
-
     if (node.tag === void 0) {
       return [ ]  // clean up stubs;
     } else if (isFunction(table[node.tag])) {
@@ -1697,12 +1650,7 @@ var folder = function() {
       //print("ret="+ret);
       return ret;
     }
-
-    // FIXME visit args here
-    print("visit() node=" + JSON.stringify(node));
-//    ast.push(ctx, node);
     funcApp2(node);
-//    throw "missing visitor method for " + node;
   }
 
   function isArray(v) {
@@ -1773,11 +1721,9 @@ var folder = function() {
       visit(node.elts[i]);
     }
     ast.funcApp(ctx, node.elts.length-1) // func name is the +1
-//    ast.funcApp(ctx, node.elts.length) // func name is the +1
   }
 
   function map(node) {
-    //log("map() length="+node.elts.length);
     ast.name(ctx, "map");
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
@@ -1903,7 +1849,6 @@ var folder = function() {
   // -- the identifier is a function name, so we create a funcApp node
   // -- the identifier has a value, so we replace it with the value
   // -- the identifier is a reference to a local without a value, so we keep the identifier
-  // -- the identifier is unbound, so we raise an error
 
   function ident(node) {
     var name = node.elts[0];

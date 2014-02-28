@@ -54,6 +54,8 @@ exports.globalLexicon = {
     "text" : { "tk": 0x01, "name": "TEXT", "cls": "function", "length": 1 },
     "math-text" : { "tk": 0x01, "name": "MATH-TEXT", "cls": "function", "length": 1 },
     "math-value" : { "tk": 0x01, "name": "MATH-VALUE", "cls": "function", "length": 1 },
+    "math-simplify" : { "tk": 0x01, "name": "MATH-SIMPLIFY", "cls": "function", "length": 1 },
+    "simplify" : { "tk": 0x01, "name": "MATH-SIMPLIFY", "cls": "function", "length": 1 },
 
     "tri" :      { "tk": 0x01, "name": "TRI", "cls": "function", "length": 6 },
     "triangle" : { "tk": 0x01, "name": "TRI", "cls": "function", "length": 6 },

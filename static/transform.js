@@ -3,7 +3,7 @@
 /* Copyright (c) 2014, Art Compiler LLC */
 
 var _ = require("underscore");
-//var MathCore = require("../static/mathcore");
+var MathCore = require("../static/mathcore");
 
 if (!this.GraffitiCode) {
   this.GraffitiCode = GraffitiCode = {};
@@ -48,8 +48,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         return args[0];
       } else if (args[0] === 0 || args[1] === 0) {
         return "0";
-      } else if (node.elts[1].tag !== "NUM") {
-        return args[1] + "" + args[0];
+//      } else if (node.elts[1].tag !== "NUM") {
+//        return args[1] + "" + args[0];
       } else {
         return args[1] + " \\times " + args[0];
       }
@@ -73,12 +73,22 @@ exports.transformer = GraffitiCode.transformer = function() {
     function num (node) {
       return node.elts[0];
     };
+    function simplify(node) {
+      print("MathCore.Model=" + MathCore.Model);
+      var v1 = visit(node.elts[0], mathTextVisitor);
+      print("simplify() v1=" + v1);
+      var model = MathCore.Model.create(v1);
+      var node = model.simplify(model);
+      return node.toLaTeX(node);
+    }
     return {
       "visitor-name": "MathTextVisitor",
       "EXPO": expo,
       "NUM": num,
       "TIMES": times,
       "PLUS": plus,
+      "SIMPLIFY": simplify,
+      "MATH-SIMPLIFY": simplify,
     };
   }
 
@@ -88,7 +98,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       node.elts.forEach(function (arg) {
         args.push(visit(arg, mathValueVisitor));
       });
-      return Math.pow(args[1], args[0]);
+      return Math.pow(+args[1], +args[0]);
     }
     function times(node) {
       var args = [];
@@ -102,6 +112,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       node.elts.forEach(function (arg) {
         args.push(visit(arg, mathValueVisitor));
       });
+      print("MathValueVisitor.frac() args=" + JSON.stringify(args));
       return +args[1] / +args[0];
     }
     function plus(node) {
@@ -110,6 +121,13 @@ exports.transformer = GraffitiCode.transformer = function() {
         args.push(visit(arg, mathValueVisitor));
       });
       return +args[1] + +args[0];
+    }
+    function minus(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, mathValueVisitor));
+      });
+      return +args[1] - +args[0];
     }
     function num (node) {
       return +node.elts[0];
@@ -130,6 +148,10 @@ exports.transformer = GraffitiCode.transformer = function() {
       var v1 = visit(node.elts[0], mathValueVisitor);
       return Math.atan(+v1);
     }
+    function parens(node) {
+      var v1 = visit(node.elts[0], mathValueVisitor);
+      return +v1;
+    }
     return {
       "visitor-name": "MathValueVisitor",
       "EXPO": expo,
@@ -137,10 +159,12 @@ exports.transformer = GraffitiCode.transformer = function() {
       "TIMES": times,
       "FRAC": frac,
       "PLUS": plus,
+      "MINUS": minus,
       "PI": pi,
       "COS": cos,
       "SIN": sin,
       "ATAN": atan,
+      "PARENS": parens,
     };
   }
 
@@ -174,6 +198,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     "ARCTO" : arcto,
     "ARC" : arc,
 
+    "MATH-RAND" : random,
     "RAND" : random,
     "PLUS" : plus,
     "CONCAT" : concat,
@@ -231,10 +256,12 @@ exports.transformer = GraffitiCode.transformer = function() {
       return [ ];  // clean up stubs
     } else if (visitor) {
       var visit = visitor[node.tag];
+      print("visit() visit=" + visit);
       if (visit) {
         return visit(node);
       }
     }
+
     if (isFunction(table[node.tag])) {
       // There is a visitor method for this node, so call it.
       return table[node.tag](node);
@@ -778,7 +805,7 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function size(node) {
-    //print("size")
+    console.log("size()");
     var elts = []
     var width = visit(node.elts[1])
     var height = visit(node.elts[0])
