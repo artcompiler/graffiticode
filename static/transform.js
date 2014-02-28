@@ -64,7 +64,6 @@ exports.transformer = GraffitiCode.transformer = function() {
       } else if (args[1] === "0") {
         return args[0];
       }
-      print("MathTextVisitor.plus() args[0]=" + JSON.stringify(args[0]));
       if (String(args[0]).charAt(0) === "-") {
         return args[1] + "" + args[0];
       }
@@ -74,9 +73,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       return node.elts[0];
     };
     function simplify(node) {
-      print("MathCore.Model=" + MathCore.Model);
       var v1 = visit(node.elts[0], mathTextVisitor);
-      print("simplify() v1=" + v1);
       var model = MathCore.Model.create(v1);
       var node = model.simplify(model);
       return node.toLaTeX(node);
@@ -112,7 +109,6 @@ exports.transformer = GraffitiCode.transformer = function() {
       node.elts.forEach(function (arg) {
         args.push(visit(arg, mathValueVisitor));
       });
-      print("MathValueVisitor.frac() args=" + JSON.stringify(args));
       return +args[1] / +args[0];
     }
     function plus(node) {
@@ -137,7 +133,6 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
     function cos(node) {
       var v1 = visit(node.elts[0], mathValueVisitor);
-      print("mathValueVistor cos() v1=" + v1);
       return Math.cos(+v1);
     }
     function sin(node) {
@@ -256,7 +251,6 @@ exports.transformer = GraffitiCode.transformer = function() {
       return [ ];  // clean up stubs
     } else if (visitor) {
       var visit = visitor[node.tag];
-      print("visit() visit=" + visit);
       if (visit) {
         return visit(node);
       }
@@ -295,7 +289,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   var edgesNode;
 
   function program(node) {
-    //print("program() nodePool="+JSON.stringify(nodePool))
     canvasSize(640, 360) // default size
     canvasColor = "255" // default color
     var elts = [ ]
@@ -308,7 +301,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function exprs(node) {
-    //print("exprs() node="+JSON.stringify(node))
     var elts = []
     if (node.elts) {
       for (var i = 0; i < node.elts.length; i++) {
@@ -326,7 +318,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function callExpr(node) {
-    //print("callExpr")
     var name = visit(node.elts.pop())
     var elts = []
     for (var i = node.elts.length-1; i >= 0; i--) {
@@ -344,7 +335,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function triangle(node) {
-    //print("triangle")
     var elts = []
     var x0 = visit(node.elts[5])
     var y0 = visit(node.elts[4])
@@ -362,7 +352,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function grid(node) {
-    //print("grid")
     var elts = [];
     var w = +visit(node.elts[3]);
     var h = +visit(node.elts[2]);
@@ -382,7 +371,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function random(node) {
-    //print("random");
     var elts = [];
     var min = +visit(node.elts[0]);
     var max = +visit(node.elts[1]);
@@ -400,7 +388,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function concat(node) {
-    print("concat() node=" + JSON.stringify(node));
     var v2 = visit(node.elts[0]);
     var v1 = visit(node.elts[1]);
     return "" + v2 + v1;
@@ -437,7 +424,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function rectangle(node) {
-    //print("rectangle");
     var elts = [];
     var w = visit(node.elts[1]);
     var h = visit(node.elts[0]);
@@ -451,7 +437,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function ellipse(node) {
-    //print("ellipse");
     var elts = [];
     var w = visit(node.elts[1]);
     var h = visit(node.elts[0]);
@@ -470,7 +455,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function arc(node) {
-    //print("arc");
     var elts = [];
     var rx = visit(node.elts[3]) / 2;
     var ry = visit(node.elts[2]) / 2;
@@ -490,7 +474,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function bezier(node) {
-    //print("bezier")
     var elts = []
     var x0 = visit(node.elts[7])
     var y0 = visit(node.elts[6])
@@ -511,7 +494,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function line(node) {
-    //print("line")
     var x = visit(node.elts[1])
     var y = visit(node.elts[0])
     return {
@@ -524,7 +506,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function point(node) {
-    //print("point")
     var x = visit(node.elts[1], mathValueVisitor)
     var y = visit(node.elts[0], mathValueVisitor)
     return {
@@ -539,7 +520,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   function dot(node) {
     var x = visit(node.elts[1], mathValueVisitor);
     var y = visit(node.elts[0], mathValueVisitor);
-    print("dot x=" + x + " y=" + y);
     return {
       "tag": "ellipse",
       "cx": x,
@@ -550,7 +530,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function path(node) {
-    //print("path")
     var elts = []
     var d = visit(node.elts[0])
     return {
@@ -560,7 +539,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function moveto(node) {
-    //print("moveto")
     var x = visit(node.elts[2])
     var y = visit(node.elts[1])
     var d = visit(node.elts[0])
@@ -568,7 +546,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function lineto(node) {
-    //print("lineto")
     var x = visit(node.elts[2])
     var y = visit(node.elts[1])
     var d = visit(node.elts[0])
@@ -576,7 +553,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function curveto(node) {
-    //print("curveto")
     var x1 = visit(node.elts[6])
     var y1 = visit(node.elts[5])
     var x2 = visit(node.elts[4])
@@ -588,7 +564,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function arcto(node) {
-    //print("arcto")
     var elts = []
     var rx = visit(node.elts[4]) / 2
     var ry = visit(node.elts[3]) / 2
@@ -607,12 +582,10 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function closepath(node) {
-    //print("closepath")
     return "Z"
   }
 
   function text(node) {
-    //print("text")
     var elts = []
     var str = ""+visit(node.elts[0])
     elts.push(str)
@@ -639,7 +612,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function fsize(node) {
-    //print("fsize")
     var elts = []
     var size = visit(node.elts[1])
     elts.push(visit(node.elts[0]))
@@ -651,7 +623,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function triside(node) {
-    //print("triangle")
     var elts = []
     var l2 = visit(node.elts[2])
     var l1 = visit(node.elts[1])
@@ -683,7 +654,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function rotate(node) {
-    //print("rotate")
     var elts = []
     var angle = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -695,7 +665,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function translate(node) {
-    //print("translate")
     var elts = []
     var x = +visit(node.elts[2])
     var y = +visit(node.elts[1])
@@ -708,7 +677,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function scale(node) {
-    //print("scale")
     var elts = []
     var factor = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -720,7 +688,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function skewX(node) {
-    //print("skewX")
     var elts = []
     var angle = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -732,7 +699,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function skewY(node) {
-    //print("skewY")
     var elts = []
     var angle = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -744,7 +710,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function rgb(node) {
-    //print("rgb")
     var elts = []
     var r = visit(node.elts[2])
     var g = visit(node.elts[1])
@@ -757,7 +722,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function rgba(node) {
-    //print("rgb")
     var elts = []
     var r = visit(node.elts[3])
     var g = visit(node.elts[2])
@@ -772,7 +736,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function color(node) {
-    //print("color")
     var elts = []
     var rgb = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -838,7 +801,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function stroke(node) {
-    //print("stroke")
     var elts = []
     var rgb = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -869,7 +831,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function strokeWidth(node) {
-    //print("strokeWidth")
     var elts = []
     var width = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -882,7 +843,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function fill(node) {
-    //print("fill")
     var elts = []
     var rgb = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -918,7 +878,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function clip(node) {
-    //print("clip")
     var elts = []
     var path = visit(node.elts[1])
     var shape = visit(node.elts[0])
@@ -941,27 +900,22 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function ident(node) {
-    //print("identifier()")
     return node.elts[0]
   }
 
   function bool(node) {
-    //print("bool()")
     return node.elts[0]
   }
 
   function num(node) {
-    //print("num()")
     return node.elts[0]
   }
 
   function str(node) {
-    //print("str()")
     return node.elts[0]
   }
 
   function parens(node) {
-    //print("parens()")
     var v1 = visit(node.elts[0]);
     return "(" + v1 + ")";
   }
@@ -986,7 +940,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function stub(node) {
-    //print("stub: " + node.tag)
     return ""
   }
 }()
