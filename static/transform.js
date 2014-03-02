@@ -48,8 +48,8 @@ exports.transformer = GraffitiCode.transformer = function() {
         return args[0];
       } else if (args[0] === 0 || args[1] === 0) {
         return "0";
-//      } else if (node.elts[1].tag !== "NUM") {
-//        return args[1] + "" + args[0];
+      } else if (node.elts[1].tag !== "NUM") {
+        return args[1] + "" + args[0];
       } else {
         return args[1] + " \\times " + args[0];
       }
