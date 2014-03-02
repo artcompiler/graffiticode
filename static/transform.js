@@ -109,7 +109,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       node.elts.forEach(function (arg) {
         args.push(visit(arg, mathValueVisitor));
       });
-      return +args[1] / +args[0];
+      return +args[0] / +args[1];
     }
     function plus(node) {
       var args = [];
@@ -151,6 +151,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       "visitor-name": "MathValueVisitor",
       "EXPO": expo,
       "NUM": num,
+      "MUL": times,
       "TIMES": times,
       "FRAC": frac,
       "DIV": frac,
@@ -202,6 +203,10 @@ exports.transformer = GraffitiCode.transformer = function() {
     "TIMES" : times,
     "FRAC" : frac,
     "EXPO" : expo,
+
+    "ADD" : plus,
+    "SUB" : minus,
+    "MUL" : mul,
     "DIV" : div,
 
     "TEXT" : text,
@@ -262,6 +267,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       // There is a visitor method for this node, so call it.
       return table[node.tag](node);
     } else {
+      console.log("Missing method for " + node.tag);
       throw "missing visitor method for " + node.tag;
     }
   }
@@ -411,15 +417,18 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function frac(node) {
-    var v2 = visit(node.elts[0]);
-    var v1 = visit(node.elts[1]);
+    var v1 = visit(node.elts[0]);
+    var v2 = visit(node.elts[1]);
     return "\\frac{" + v1 + "}{" + v2 + "}";
   }
 
+  function mul(node) {
+    return visit(node, mathValueVisitor);
+  }
+
   function div(node) {
-    print("div()");
-    var v2 = visit(node.elts[0]);
-    var v1 = visit(node.elts[1]);
+    var v1 = visit(node.elts[0]);
+    var v2 = visit(node.elts[1]);
     return v1 + " \\div " + v2;
   }
 

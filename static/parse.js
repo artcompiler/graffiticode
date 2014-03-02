@@ -489,7 +489,7 @@ var ast = (function () {
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "DIV", elts: [n2, n1]});
+      push(ctx, {tag: "DIV", elts: [n1, n2]});
     } else {
       number(ctx, +v1 / +v2);
     }
@@ -1277,6 +1277,7 @@ exports.parser = (function () {
       folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
       ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
+//      print(ast.dumpAll(ctx));
       return cc
     })
   }
