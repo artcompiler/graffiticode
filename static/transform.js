@@ -105,11 +105,9 @@ exports.transformer = GraffitiCode.transformer = function() {
       return +args[1] * +args[0];
     }
     function frac(node) {
-      var args = [];
-      node.elts.forEach(function (arg) {
-        args.push(visit(arg, mathValueVisitor));
-      });
-      return +args[0] / +args[1];
+      var v1 = visit(node.elts[0], mathValueVisitor);
+      var v2 = visit(node.elts[1], mathValueVisitor);
+      return +v1 / +v2;
     }
     function plus(node) {
       var args = [];
@@ -417,8 +415,8 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function frac(node) {
-    var v1 = visit(node.elts[0]);
-    var v2 = visit(node.elts[1]);
+    var v1 = visit(node.elts[1]);
+    var v2 = visit(node.elts[0]);
     return "\\frac{" + v1 + "}{" + v2 + "}";
   }
 
