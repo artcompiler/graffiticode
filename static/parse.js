@@ -58,6 +58,7 @@ var ast = (function () {
     name: name,
     funcApp: funcApp,
     funcApp2: funcApp2,
+    call: call,
     binaryExpr: binaryExpr,
     unaryExpr: unaryExpr,
     prefixExpr: prefixExpr,
@@ -325,6 +326,54 @@ var ast = (function () {
         throw new Error("runaway recursion");
       }
       // we have a user def, so fold it.
+      //fold(ctx, def, elts);
+
+      // We have a user def so create a call node that gets folded bottom up.
+      elts.push(nameId);
+      push(ctx, {tag: "CALL", elts: elts});
+    } else if (def.nid === 0) {  // defer folding
+      elts.push(nameId);
+      push(ctx, {tag: "RECURSE", elts: elts});
+    } else {
+      if (def.val) {
+        push(ctx, def.val);
+      } else {
+        push(ctx, {tag: def.name, elts: elts});
+      }
+    }
+  }
+
+  function call(ctx, argc) {
+    var underscore = ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
+    var elts = [];
+    while (argc--) {
+      var elt = pop(ctx);
+      if (elt === underscore) {
+        elts.push(0);
+      } else {
+        elts.push(elt);
+      }
+    }
+    var nameId = pop(ctx);
+    var e = node(ctx, nameId).elts;
+    if (!e) {
+      return;
+    }
+    var name = e[0];
+    var def = env.findWord(ctx, name);
+    // FIXME need to allow forward references
+    if (!def) {
+      throw "def not found for " + JSON.stringify(name);
+    }
+
+    // If recursive call, then this callee does not have a nid yet.
+    if (def.nid) {
+      // recursion guard
+      if (ctx.state.nodeStack.length > 380) {
+        //return;  // just stop recursing
+        throw new Error("runaway recursion");
+      }
+      // we have a user def, so fold it.
       fold(ctx, def, elts);
     } else if (def.nid === 0) {  // defer folding
       elts.push(nameId);
@@ -338,6 +387,7 @@ var ast = (function () {
     }
   }
 
+  // calling primitives
   function funcApp2(ctx, argc) {
     var elts = [];
     while (argc--) {
@@ -387,13 +437,6 @@ var ast = (function () {
     number(ctx, -1*v1);
   }
 
-  function mod(ctx) {
-    //log("ast.mod()");
-    var v2 = +node(ctx, pop(ctx)).elts[0];
-    var v1 = +node(ctx, pop(ctx)).elts[0];
-    number(ctx, v1%v2);
-  }
-
   function add(ctx) {
     //log("ast.add()");
     var n2 = node(ctx, pop(ctx));
@@ -401,7 +444,7 @@ var ast = (function () {
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "PLUS", elts: [n1, n2]});
+      push(ctx, {tag: "ADD", elts: [n1, n2]});
     } else {
       number(ctx, +v1 + +v2);
     }
@@ -414,7 +457,7 @@ var ast = (function () {
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "MINUS", elts: [n1, n2]});
+      push(ctx, {tag: "SUB", elts: [n1, n2]});
     } else {
       number(ctx, +v1 - +v2);
     }
@@ -433,7 +476,7 @@ var ast = (function () {
       n2 = n2.elts[0];
     }
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "TIMES", elts: [n2, n1]});
+      push(ctx, {tag: "MUL", elts: [n2, n1]});
     } else {
       number(ctx, +v1 * +v2);
     }
@@ -446,7 +489,7 @@ var ast = (function () {
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "FRAC", elts: [n2, n1]});
+      push(ctx, {tag: "DIV", elts: [n2, n1]});
     } else {
       number(ctx, +v1 / +v2);
     }
@@ -1234,7 +1277,6 @@ exports.parser = (function () {
       folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
       ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
-      print("POOL\n" + JSON.stringify(ctx.state.nodePool, null, 2));
       return cc
     })
   }
@@ -1594,7 +1636,7 @@ var folder = function() {
     "STR" : str,
     "PARENS" : unaryExpr,
     "MAP": map,
-    "CALL" : null,
+    "CALL" : call,
     "MUL": mul,
     "DIV": div,
     "SUB": sub,
@@ -1639,7 +1681,6 @@ var folder = function() {
 
   function visit(nid) {
     var node = nodePool[nid];
-    //print("visit() nid="+nid);
     if (node == null) {
       return null;
     }
@@ -1647,7 +1688,6 @@ var folder = function() {
       return [ ]  // clean up stubs;
     } else if (isFunction(table[node.tag])) {
       var ret = table[node.tag](node);
-      //print("ret="+ret);
       return ret;
     }
     funcApp2(node);
@@ -1720,7 +1760,7 @@ var folder = function() {
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length-1) // func name is the +1
+    ast.call(ctx, node.elts.length-1) // func name is the +1
   }
 
   function map(node) {
@@ -1729,6 +1769,13 @@ var folder = function() {
       visit(node.elts[i]);
     }
     ast.funcApp(ctx, node.elts.length);
+  }
+
+  function call(node) {
+    for (var i = node.elts.length-1; i >= 0; i--) {
+      visit(node.elts[i]);
+    }
+    ast.call(ctx, node.elts.length-1);
   }
 
   function funcApp2(node) {
@@ -1890,7 +1937,6 @@ var folder = function() {
   }
 
   function stub(node) {
-    //print("stub: " + node.tag)
     return "";
   }
 }();

@@ -153,6 +153,7 @@ exports.transformer = GraffitiCode.transformer = function() {
       "NUM": num,
       "TIMES": times,
       "FRAC": frac,
+      "DIV": frac,
       "PLUS": plus,
       "MINUS": minus,
       "PI": pi,
@@ -201,6 +202,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     "TIMES" : times,
     "FRAC" : frac,
     "EXPO" : expo,
+    "DIV" : div,
 
     "TEXT" : text,
     "MATH-TEXT" : math_text,
@@ -412,6 +414,13 @@ exports.transformer = GraffitiCode.transformer = function() {
     var v2 = visit(node.elts[0]);
     var v1 = visit(node.elts[1]);
     return "\\frac{" + v1 + "}{" + v2 + "}";
+  }
+
+  function div(node) {
+    print("div()");
+    var v2 = visit(node.elts[0]);
+    var v1 = visit(node.elts[1]);
+    return v1 + " \\div " + v2;
   }
 
   function expo(node) {
