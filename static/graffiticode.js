@@ -11,20 +11,20 @@ exports.gc = (function () {
     } else {
       exports.id = 0;
     }
-	  var src = editor.getValue();
-	  $.ajax({
-	    type: "PUT",
+    var src = editor.getValue();
+    $.ajax({
+      type: "PUT",
       url: "/code",
-	    data: {ast: ast, type: exports.lexiconType},
+      data: {ast: ast, type: exports.lexiconType},
       dataType: "text",
       success: function(data) {
-		    updateGraffito(data, src, ast);
-		    updateObj(data);
+        updateGraffito(data, src, ast);
+        updateObj(data);
       },
       error: function(xhr, msg, err) {
-		    console.log(msg+" "+err);
+        console.log(msg+" "+err);
       }
-	  });
+    });
   }
 
   // {src, obj} -> {id}
@@ -34,14 +34,14 @@ exports.gc = (function () {
       return;
     }
     var user = $("#username").data("user");
-	  var src = exports.src;
-	  var pool = exports.pool;
-	  var obj = exports.obj;
+    var src = exports.src;
+    var pool = exports.pool;
+    var obj = exports.obj;
     var parent = exports.parent;
-	  $.ajax({
-	    type: "POST",
+    $.ajax({
+      type: "POST",
       url: "/code",
-	    data: {
+      data: {
         src: src,
         ast: pool,
         obj: obj,
@@ -52,15 +52,15 @@ exports.gc = (function () {
       success: function(data) {
         exports.id = data.id
         exports.gist_id = data.gist_id
-		    addPiece(data, src, obj, false)
+        addPiece(data, src, obj, false)
         if (next) {
           next()
         }
       },
       error: function(xhr, msg, err) {
-		    console.log("Unable to submit code. Probably due to a SQL syntax error");
+        console.log("Unable to submit code. Probably due to a SQL syntax error");
       }
-	  });
+    });
   }
   
   // {src, obj} -> {id}
@@ -76,14 +76,14 @@ exports.gc = (function () {
     }
     var user = $("#username").data("user");
     var id = exports.id;
-	  var src = exports.src;
-	  var pool = exports.pool;
-	  var obj = exports.obj;
+    var src = exports.src;
+    var pool = exports.pool;
+    var obj = exports.obj;
     var parent = exports.parent;
-	  $.ajax({
-	    type: "POST",
+    $.ajax({
+      type: "POST",
       url: "/gist",
-	    data: {
+      data: {
         id: id,
         src: src.replace(/\t/g,"    "),
         ast: pool,
@@ -105,49 +105,49 @@ exports.gc = (function () {
       error: function(xhr, msg, err) {
         console.log("postGist() msg="+msg+" err="+err);
       }
-	  });
+    });
   }
   
   // get a list of piece ids that match a search criterial
   // {} -> [{id}]
   function queryPieces() {
-	  $.ajax({
-	    type: "GET",
+    $.ajax({
+      type: "GET",
       url: "/pieces",
-	    data: {},
+      data: {},
       dataType: "json",
       success: function(data) {
         var pieces = []
-		    for (var i = 0; i < data.length; i++) {
-		      pieces[i] = data[i].id
-		    }
+        for (var i = 0; i < data.length; i++) {
+          pieces[i] = data[i].id
+        }
         exports.pieces = pieces
         exports.nextThumbnail = 0
         loadMoreThumbnails(true)
       },
       error: function(xhr, msg, err) {
-		    console.log(msg+" "+err)
+        console.log(msg+" "+err)
       }
-	  });
+    });
   }
 
   // {id} -> {id, src, obj}
   function getPiece(id) {
-	  $.ajax({
-	    type: "GET",
+    $.ajax({
+      type: "GET",
       url: "/code/"+id,
       dataType: "json",
       success: function(data) {
-		    data = data[0]
-		    addPiece(data, data.src, data.obj, false)
+        data = data[0]
+        addPiece(data, data.src, data.obj, false)
       },
       error: function(xhr, msg, err) {
-		    console.log(msg+" "+err)
+        console.log(msg+" "+err)
       }
-	  })
+    })
   }
 
-  var loadIncrement = 50;
+  var loadIncrement = 1;
 
   // {} -> [{id, src, obj}]
   function loadMoreThumbnails(doUpdateSrc) {
@@ -161,26 +161,26 @@ exports.gc = (function () {
       end = len;
     }
     var list = exports.pieces.slice(start, end)
-	  $.ajax({
-	    type: "GET",
+    $.ajax({
+      type: "GET",
       url: "/code",
       data : {list: String(list)},
       dataType: "json",
       success: function(data) {
-		    for (var i = 0; i < data.length; i++) {
-		      var d = data[i];
+        for (var i = 0; i < data.length; i++) {
+          var d = data[i];
           exports.currentThumbnail = start + i;  // keep track of the current thumbnail in case of async
-		      addPiece(d, d.src, d.obj, true);
-		    }
+          addPiece(d, d.src, d.obj, true);
+        }
       },
       error: function(xhr, msg, err) {
-		    console.log(msg+" "+err);
+        console.log(msg+" "+err);
       }
-	  });
+    });
   }
 
   function updateAST(data) {
-    //	astCodeMirror.setValue(data)
+    //  astCodeMirror.setValue(data)
   }
 
   // The source should always be associated with an id
@@ -196,18 +196,18 @@ exports.gc = (function () {
       }
     }
     if (src) {
-	    editor.setValue(src.split("\\n").join("\n"));
+      editor.setValue(src.split("\\n").join("\n"));
     }
   }
 
   function updateObj(obj) {
-	  objCodeMirror.setValue(obj);
+    objCodeMirror.setValue(obj);
   }
 
   function updateGraffito(obj, src, pool) {
 //    obj = "When \$a \\ne 0\$, there are two solutions to \\(ax^2 + bx + c = 0\\) and they are" +
 //      " \$\$x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}.\$\$";
-	  $("#graff-view").html(obj);
+    $("#graff-view").html(obj);
     $("#graff-view").attr("onclick", "exports.postPiece(this)");
     var width = $("#graff-view svg").width();
     var height = $("#edit-view svg").height();
@@ -240,22 +240,25 @@ exports.gc = (function () {
     var id = data.id;
     var gist_id = data.gist_id;
     if (append) {
-	    $(".gallery-panel").append("<div class='piece' id='"+id+"'></div>");
+      $(".gallery-panel").append("<div class='piece' id='"+id+"'></div>");
       $(".gallery-panel #"+id).append("<div class='thumbnail'></div>");
-	    $(".gallery-panel #"+id).append("<div class='label'></div>");
+      $(".gallery-panel #"+id).append("<div class='label'></div>");
     } else {
-	    $(".gallery-panel").prepend("<div class='piece' id='"+id+"'/>");
-	    $("div#"+id).append("<div class='thumbnail'/>");
-	    $("div#"+id).append("<div class='label'/>");
+      $(".gallery-panel").prepend("<div class='piece' id='"+id+"'/>");
+      $("div#"+id).append("<div class='thumbnail'/>");
+      $("div#"+id).append("<div class='label'/>");
     }
     // store info about piece in thumbnail object
     $(".gallery-panel #"+id).data("piece", data);
-    $(".gallery-panel #"+id+" .thumbnail").append($(obj).clone());
-    $(".gallery-panel #"+id+" .thumbnail svg").css("width", "220");
-    $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124");
-    $(".gallery-panel #"+id+" .thumbnail")
-      .attr("onclick", "exports.gc.clickThumbnail(event, '" + id + "')")
-      .attr("title", "Click to view in the workspace.");
+//    $(".gallery-panel #"+id+" .thumbnail").append($(obj).clone());
+    $.get("http://"+location.host+"/graffiti/"+id, function (img) {
+      $(".gallery-panel #"+id+" .thumbnail").append(img);
+      $(".gallery-panel #"+id+" .thumbnail svg").css("width", "220");
+      $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124");
+      $(".gallery-panel #"+id+" .thumbnail")
+        .attr("onclick", "exports.gc.clickThumbnail(event, '" + id + "')")
+        .attr("title", "Click to view in the workspace.");
+    });
     $(".gallery-panel #" + id + " .label")
       .html(data.views + " Views, " + data.forks + " Forks, " +
             new Date(data.created).toDateString().substring(4) + ", " +
@@ -428,12 +431,12 @@ exports.gc = (function () {
   }
 
   return {
-	  postPiece: postPiece,
-	  postGist: postGist,
-	  compileCode: compileCode,
-	  updateAST: updateAST,
-	  updateSrc: updateSrc,
-	  updateGraffito: updateGraffito,
+    postPiece: postPiece,
+    postGist: postGist,
+    compileCode: compileCode,
+    updateAST: updateAST,
+    updateSrc: updateSrc,
+    updateGraffito: updateGraffito,
     clickThumbnail: clickThumbnail,
     loadMoreThumbnails: loadMoreThumbnails,
     start: start,

@@ -187,7 +187,7 @@ app.get('/code', function (req, res) {
     var queryStr =
       "SELECT pieces.*, users.name FROM pieces, users" +
       " WHERE pieces.user_id = users.id AND pieces.id" +
-      " IN ("+list+") ORDER BY views DESC, forks DESC, pieces.created DESC";
+      " IN ("+list+") ORDER BY pieces.id DESC";
     client.query(queryStr, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
@@ -235,7 +235,9 @@ app.post('/code', function (req, res){
           return;
         }
         var queryStr =
-          "SELECT pieces.*, users.name FROM pieces, users" +
+//          "SELECT pieces.*, users.name FROM pieces, users" +
+//          " WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1";
+          "SELECT pieces.id, pieces.gist_id, pieces.name, pieces.views, pieces.forks, pieces.created, users.name FROM pieces, users" +
           " WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1";
         client.query(queryStr, function (err, result) {
           res.send(result.rows[0]);
