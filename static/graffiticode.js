@@ -279,16 +279,16 @@ exports.gc = (function () {
     $.get("http://"+location.host+"/graffiti/"+newId, function (newButton) {
       $.get("http://"+location.host+"/graffiti/"+findId, function (openButton) {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
-          $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
+//          $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
             showWorkspace()
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.newCode()' title='New' href='#'>"+newButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.showArchive()' title='Browse' href='#'>"+openButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postPiece()' title='Save' href='#'>"+saveButton+"</a>")
-            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postGist()' title='Share' href='#'>"+shareButton+"</a>")
+//            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postGist()' title='Share' href='#'>"+shareButton+"</a>")
             $.get("http://"+location.host+"/code/"+srcId, function (data) {
               updateSrc(data[0].id, data[0].src)
             })
-          })
+//          })
         })
       })
     });
