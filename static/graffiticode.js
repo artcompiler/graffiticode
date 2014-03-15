@@ -147,12 +147,12 @@ exports.gc = (function () {
     })
   }
 
-  var loadIncrement = 1;
+  var loadIncrement = 5;
 
   // {} -> [{id, src, obj}]
-  function loadMoreThumbnails(doUpdateSrc) {
+  function loadMoreThumbnails(firstLoad) {
     var start = exports.nextThumbnail;
-    var end = exports.nextThumbnail = start + loadIncrement;
+    var end = exports.nextThumbnail = start + (firstLoad ? 50 : loadIncrement);
     var len = exports.pieces.length;
     if (start >= len || exports.currentThumbnail >= len) {
       return;
