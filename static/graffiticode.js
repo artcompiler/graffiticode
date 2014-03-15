@@ -147,7 +147,7 @@ exports.gc = (function () {
     })
   }
 
-  var loadIncrement = 5;
+  var loadIncrement = 10;
 
   // {} -> [{id, src, obj}]
   function loadMoreThumbnails(firstLoad) {
