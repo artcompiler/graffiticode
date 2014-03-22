@@ -93,7 +93,7 @@ exports.gc = (function () {
       },
       dataType: "json",
       success: function(data) {
-        var pieceData = $(".gallery-panel #"+id).data("piece");
+//        var pieceData = $(".gallery-panel #"+id).data("piece");
         var gist_id = exports.gist_id = data.gist_id;
         $(".gallery-panel #"+id+" .label").html(pieceData.views+" Views, "+pieceData.forks+" Forks, " + 
           new Date(pieceData.created).toDateString().substring(4) + ", " +
@@ -160,7 +160,7 @@ exports.gc = (function () {
     if (end > len) {
       end = len;
     }
-    var list = exports.pieces.slice(start, end)
+    var list = exports.pieces.slice(start, end);
     $.ajax({
       type: "GET",
       url: "/code",
@@ -188,7 +188,8 @@ exports.gc = (function () {
     exports.firstCompile = true;
     exports.id = id;
     exports.parent = exports.id;
-    var data = $(".gallery-panel #"+id).data("piece");
+//    var data = $(".gallery-panel #"+id).data("piece");
+    var data = $(".gallery-panel #" + id).data(".label", "all");
     if (data) {
       exports.gist_id = data.gist_id;
       if (!src) {
@@ -229,7 +230,10 @@ exports.gc = (function () {
     }
     else {
       showWorkspace();
-      updateSrc(id);
+      $.get("http://"+location.host+"/code/"+id, function (data) {
+        updateSrc(data[0].id, data[0].src)
+      })
+//      updateSrc(id);
     }
   }
 
@@ -239,34 +243,36 @@ exports.gc = (function () {
     }
     var id = data.id;
     var gist_id = data.gist_id;
+    // store info about piece in thumbnail object
     if (append) {
-      $(".gallery-panel").append("<div class='piece' id='"+id+"'></div>");
-      $(".gallery-panel #"+id).append("<div class='thumbnail'></div>");
-      $(".gallery-panel #"+id).append("<div class='label'></div>");
+      $(".gallery-panel").append("<div class='piece' id='"+id+"'/>");
+      $(".gallery-panel #"+id).append("<iframe class='thumbnail'" +
+         " src='http://" + location.host + "/graffiti/" + id + "'></iframe>");
+      $(".gallery-panel #"+id).append("<div class='label'/>");
     } else {
       $(".gallery-panel").prepend("<div class='piece' id='"+id+"'/>");
-      $("div#"+id).append("<div class='thumbnail'/>");
+      $(".gallery-panel #"+id).append("<iframe class='thumbnail'" +
+         " src='http://" + location.host + "/graffiti/" + id + "'></iframe>");
       $("div#"+id).append("<div class='label'/>");
     }
-    // store info about piece in thumbnail object
-    $(".gallery-panel #"+id).data("piece", data);
-//    $(".gallery-panel #"+id+" .thumbnail").append($(obj).clone());
-    $.get("http://"+location.host+"/graffiti/"+id, function (img) {
-      $(".gallery-panel #"+id+" .thumbnail").append(img);
-      $(".gallery-panel #"+id+" .thumbnail svg").css("width", "220");
-      $(".gallery-panel #"+id+" .thumbnail svg").css("height", "124");
-      $(".gallery-panel #"+id+" .thumbnail")
-        .attr("onclick", "exports.gc.clickThumbnail(event, '" + id + "')")
-        .attr("title", "Click to view in the workspace.");
-    });
+//    $(".gallery-panel #"+id+" .thumbnail html").css("width", "220");
+//    $(".gallery-panel #"+id+" .thumbnail html").css("height", "124");
+//    $(".gallery-panel #"+id+" .piece")
+//    $(".gallery-panel #" + id + " .thumbnail")
+//       .attr("onclick", "exports.gc.clickThumbnail(event, '" + id + "')")
+//        .attr("title", "Click to view #" + id + " in the workspace.");
     $(".gallery-panel #" + id + " .label")
-      .html(data.views + " Views, " + data.forks + " Forks, " +
+        .html(data.views + " Views, " + data.forks + " Forks, " +
             new Date(data.created).toDateString().substring(4) + ", " +
-            data.name + "<br><a href='http://" + location.host + "/graffiti/" +
+            data.name +
+            "<br><a href='#' onclick='exports.gc.clickThumbnail(event, \"" + id + "\")'>Edit</a> " +
+
+            "<a href='http://" + location.host + "/graffiti/" +
             id + "' target='_blank'>Graffiti/" + id + "</a>" +
             (gist_id ? 
              ", <a href='https://gist.github.com/" + gist_id + "' target='_blank'>Gist/" +
              gist_id + "</a>" : ""));
+    $(".gallery-panel #" + id).data(".label", "all", data);
   }
 
   function start() {

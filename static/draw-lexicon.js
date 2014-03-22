@@ -94,6 +94,16 @@ exports.globalLexicon = {
     "random" : { "tk": 0x01, "name": "RAND", "cls": "function", "length": 2 },
     "math-random" : { "tk": 0x01, "name": "MATH-RAND", "cls": "function", "length": 2 },
 
+    "d3-text" : { "tk": 0x01, "name": "D3-TEXT", "cls": "function", "length": 2 },
+    "attr" : { "tk": 0x01, "name": "D3-ATTR", "cls": "function", "length": 3 },
+    "style" : { "tk": 0x01, "name": "D3-STYLE", "cls": "function", "length": 3 },
+    "select" : { "tk": 0x01, "name": "D3-SELECT", "cls": "function", "length": 2 },
+    "select-all" : { "tk": 0x01, "name": "D3-SELECTALL", "cls": "function", "length": 2 },
+    "append" : { "tk": 0x01, "name": "D3-APPEND", "cls": "function", "length": 2 },
+    "data" : { "tk": 0x01, "name": "D3-DATA", "cls": "function", "length": 2 },
+    "enter" : { "tk": 0x01, "name": "D3-ENTER", "cls": "function", "length": 1 },
+    "function" : { "tk": 0x01, "name": "D3-FUNCTION", "cls": "function", "length": 3 },
+
     "cos" : { "tk": 0x01, "name": "COS", "cls": "function", "length": 1 },
     "sin" : { "tk": 0x01, "name": "SIN", "cls": "function", "length": 1 },
     "atan" : { "tk": 0x01, "name": "ATAN", "cls": "function", "length": 1 },
@@ -106,7 +116,7 @@ exports.globalLexicon = {
     "parens" : { "tk": 0x01, "name": "PARENS", "cls": "function", "length": 1 },
 
     "pi" : { "tk": 0x01, "name": "PI", "cls": "val", "length": 0},
-    "_" : { "tk": 0x01, "name": "VOID", "cls": "val", "length": 0, "val": 0},
+    "_" : { "tk": 0x01, "name": "VOID", "cls": "val", "length": 0},
     "true" : { "tk": 0x14, "cls": "val", "length": 0 },
     "false" : { "tk": 0x14, "cls": "val", "length": 0 },
 

@@ -13,6 +13,8 @@ exports.renderer = function() {
 
   exports.render = render
 
+  var scripts;
+
   return {
     render: render,
   }
@@ -24,10 +26,19 @@ exports.renderer = function() {
   
   var nodePool
 
-  function prefix() {        
-    return [ '<?xml version="1.0" standalone="no"?>'
-             , '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
-             , '"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+  function prefix() {
+    scripts = "";
+
+    return [ //'<?xml version="1.0" standalone="no"?>'
+             //, '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
+             //, '"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+             , '<html xmlns="http://www.w3.org/1999/xhtml">'
+             , '<head>'
+             , '<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>'
+             , '<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>'
+             , '</head>'
+             , '<body>'
+             , '<div class="graffiti">'
              , '<svg'
              , '  viewBox="0 0 ' + transformer.canvasWidth() + ' ' + transformer.canvasHeight()+'"'
              , '  width="' + transformer.canvasWidth() + '" height="' + transformer.canvasHeight() + '"'
@@ -48,6 +59,12 @@ exports.renderer = function() {
   function suffix() {
     return [ ''
              , '</svg>'
+             , '</div>'
+             , '<script>'
+             , '$(document).ready(function () {' + scripts + '})'
+             , '</script>'
+             , '</body>'
+             , '</html>'
            ].join("\n")
   }
 
@@ -57,9 +74,9 @@ exports.renderer = function() {
     str += prefix()
     str += visit(node, "  ")
     str += suffix()
+    print("render() str=" + str);
     return str
   }
-
 
   function visit(node, padding) {
 
@@ -69,21 +86,20 @@ exports.renderer = function() {
 
     var tagName = node.tag
     var attrs = ""
-    for (var name in node) {
-      if (name=="tag" || name=="elts") {
-        continue
-      }
-      else if (tagName === "path" && name === "d") {
+    print("visit() tagName=" + tagName);
+    for (var name in node) {   // iterate through attributes
+      if (name === "tag" || name === "elts") {
+        continue;
+      } else if (tagName === "path" && name === "d") {
         attrs += " d='" + node[name] + "'"
-        continue
+        continue;
       }
       attrs += " " + name + "='" + node[name] + "'"
     }
 
     if (attrs.length === 0) {
       var indent = ""
-    }
-    else {
+    } else {
       var indent = "   "
     }
 
@@ -98,8 +114,9 @@ exports.renderer = function() {
 
     if (tagName === "g" && attrs.length === 0) {   // skip g elements without attrs
       var tag = elts
-    }
-    else {
+    } else if (tagName === "script" && node.elts.length === 1) {
+      scripts += "\n" + node.elts[0] + ";";
+    } else {
       var tag = "\n"+padding+"<" + tagName + attrs + ">" + elts + "\n"+padding+"</" + tagName + ">"
     }
     return tag

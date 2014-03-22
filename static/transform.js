@@ -29,6 +29,126 @@ exports.transformer = GraffitiCode.transformer = function() {
     return canvasColor
   }
 
+  function D3Visitor () {
+    function nil(node) {
+      return "d3.selectAll('.graffiti')";
+//      return "d3";
+    }
+    function str(node) {
+      return "'" + node.elts[0] + "'";
+    }
+    function style(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".style(" + args[2] + ", " + args[1] + ")";
+    };
+    function text(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      print("text() target=" + JSON.stringify(target));
+      return target + ".text(" + args[1] + ")";
+    };
+    function attr(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".attr(" + args[2] + ", " + args[1] + ")";
+    };
+    function append(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".append(" + args[1] + ")";
+    };
+    function select(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".select(" + args[1] + ")";
+    };
+    function select_all(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".selectAll(" + args[1] + ")";
+    };
+    function data(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".data(" + args[1] + ")";
+    };
+    function enter(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".enter()";
+    };
+    function func(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      return "(function " + args[2] + "(" + args[1].substring(1, args[1].length-1) + ") { return " + args[0] + "})";
+    };
+    function times(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      return args[1] + " * " + args[0];
+    }
+    function minus(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      return args[1] + " - " + args[0];
+    }
+    function plus(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      return args[1] + " + " + args[0];
+    }
+    return {
+      "visitor-name": "D3Visitor",
+      "VOID": nil,
+      "STR": str,
+      "D3-STYLE": style,
+      "D3-TEXT": text,
+      "D3-ATTR": attr,
+      "D3-APPEND": append,
+      "D3-SELECT": select,
+      "D3-SELECTALL": select_all,
+      "D3-DATA": data,
+      "D3-ENTER": enter,
+      "D3-FUNCTION": func,
+      "TIMES": times,
+      "MINUS": minus,
+      "PLUS": plus,
+    };
+  }
+
   function MathTextVisitor () {
     function expo(node) {
       var args = [];
@@ -163,12 +283,14 @@ exports.transformer = GraffitiCode.transformer = function() {
     };
   }
 
+  var d3Visitor = D3Visitor();
   var mathTextVisitor = MathTextVisitor();
   var mathValueVisitor = MathValueVisitor();
   
   var table = {
     "PROG" : program,
     "EXPRS" : exprs,
+    "LIST" : list,
     "CALL" : callExpr,
     "IDENT" : ident,
     "BOOL" : bool,
@@ -231,6 +353,11 @@ exports.transformer = GraffitiCode.transformer = function() {
     "COS": cos,
     "SIN": sin,
     "ATAN": atan,
+
+    "D3-TEXT": d3_text,
+    "D3-ATTR": d3_attr,
+    "D3-STYLE": d3_style,
+    "D3-FUNCTION": d3_function,
   }
 
   return {
@@ -250,6 +377,7 @@ exports.transformer = GraffitiCode.transformer = function() {
   function visit(nid, visitor) {
     // Get the node from the pool of nodes.
     var node = nodePool[nid];
+    print("visit() tag=" + node.tag + " visitor=" + visitor);
     if (node == null) {
       return null;
     } else if (node.tag === void 0) {
@@ -258,6 +386,8 @@ exports.transformer = GraffitiCode.transformer = function() {
       var visit = visitor[node.tag];
       if (visit) {
         return visit(node);
+      } else {
+        print("visit() visitor=" + visitor["visitor-name"] + " tag=" + node.tag + " not found!");
       }
     }
 
@@ -295,6 +425,7 @@ exports.transformer = GraffitiCode.transformer = function() {
   var edgesNode;
 
   function program(node) {
+    print("transformer program() node=" + JSON.stringify(node, null, 2));
     canvasSize(640, 360) // default size
     canvasColor = "255" // default color
     var elts = [ ]
@@ -321,6 +452,18 @@ exports.transformer = GraffitiCode.transformer = function() {
       //            class: "exprs",
       elts: elts
     }
+  }
+
+  function list(node) {
+    print("list() node=" + JSON.stringify(node));
+    var elts = []
+    if (node.elts) {
+      for (var i = 0; i < node.elts.length; i++) {
+        elts.push(visit(node.elts[i]))
+      }
+    }
+    print("list() elts=" + JSON.stringify(elts[0].elts));
+    return "[" + elts[0].elts + "]";
   }
 
   function callExpr(node) {
@@ -606,6 +749,39 @@ exports.transformer = GraffitiCode.transformer = function() {
       "tag": "text",
       "elts": elts,
     }
+  }
+
+  function d3_text(node) {
+    var str = d3Visitor["D3-TEXT"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_attr(node) {
+    print("d3_attr() node=" + JSON.stringify(node));
+    var str = d3Visitor["D3-ATTR"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_style(node) {
+    var str = d3Visitor["D3-STYLE"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_function(node) {
+    var str = d3Visitor["D3-FUNCTION"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
   }
 
   function math_text(node) {
