@@ -256,9 +256,14 @@ exports.gc = (function () {
         });
     } else {
       $(".gallery-panel").prepend("<div class='piece' id='"+id+"'/>");
-      $(".gallery-panel #"+id).append("<iframe class='thumbnail'" + 
-         " src='http://" + location.host + "/graffiti/" + id + "'></iframe>");
-      $("div#"+id).append("<br><div class='label'/>");
+      $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
+         "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
+      $(".gallery-panel #" + id).append("<br><div class='label'/>");
+      $(".gallery-panel #" + id + " iframe")
+        .load(function() {
+          $(this).css("height", $(this).contents().height() + "px");
+          $(this).css("width", $(this).contents().width() + "px");
+        });
     }
 //    $(".gallery-panel #"+id+" .thumbnail html").css("width", "220");
 //    $(".gallery-panel #"+id+" .thumbnail html").css("height", "124");
