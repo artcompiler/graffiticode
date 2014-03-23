@@ -343,18 +343,17 @@ body .main .gallery-panel {
 
 .piece {
   float: left;
-  margin-right: 10;
-  margin-bottom: 20;
-  overflow: scroll;
-  display: block;
+//  margin-right: 10;
+//  margin-bottom: 20;
+  overflow: none;
+  display: inline-block;
   height: auto;
   width: 100%;
 }
 
 .thumbnail {
-  display: block;
   float: left;
-  border-width: 1;
+//  border-width: 1;
   border-style: solid;
   border-color: #ccc;
   background: #fff;

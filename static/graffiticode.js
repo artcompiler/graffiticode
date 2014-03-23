@@ -267,13 +267,13 @@ exports.gc = (function () {
 //       .attr("onclick", "exports.gc.clickThumbnail(event, '" + id + "')")
 //        .attr("title", "Click to view #" + id + " in the workspace.");
     $(".gallery-panel #" + id + " .label")
-        .html("#" + id + " " + data.views + " Views, " + data.forks + " Forks, " +
+        .html("<b>#" + id + "</b> " + data.views + " Views, " + data.forks + " Forks, " +
             new Date(data.created).toDateString().substring(4) + ", " +
             data.name +
-            "<br><a href='#' onclick='exports.gc.clickThumbnail(event, \"" + id + "\")'><b>Edit</b></a> " +
+            "<br><a href='#' onclick='exports.gc.clickThumbnail(event, \"" + id + "\")'>Edit</a> " +
 
             "<a href='http://" + location.host + "/graffiti/" +
-            id + "' target='_blank'><b>View</b></a>" +
+            id + "' target='_blank'>View</a>" +
             (gist_id ? 
              ", <a href='https://gist.github.com/" + gist_id + "' target='_blank'>Gist/" +
              gist_id + "</a>" : ""));
