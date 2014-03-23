@@ -336,36 +336,29 @@ body .main .essay-panel {
 body .main .gallery-panel {
   display: none;
   float: left;
-//  position: relative;
-//  top: 100;
-//  margin-left: 20;
-//  margin-top:10;
-//  width: 240;
-  width: 95%;
-  min-width: 1000;
-//  border-width: 1;
-//  border-style: solid;
-//  border-color: #aaa;
+  width: 100%;
   background: #eee;
+  display: block;
 }
 
 .piece {
   float: left;
-  width: 220;
-  height: 144;
-//  margin-left:10;
-  margin-right:10;
+  margin-right: 10;
   margin-bottom: 20;
+  overflow: scroll;
+  display: block;
+  height: auto;
+  width: 100%;
 }
 
 .thumbnail {
+  display: block;
   float: left;
-  width: 220;
-  height: 124;
   border-width: 1;
   border-style: solid;
   border-color: #ccc;
   background: #fff;
+//  zoom: 0.75; -moz-transform: scale(0.75); -moz-transform-origin: 0 0;
 }
 
 .label {
@@ -373,8 +366,8 @@ body .main .gallery-panel {
   margin-top: 3;
   padding-left: 10;
   padding-bottom: 10;
-  width: 220;
-  height: 20;
+  width: 100%;
+  height: auto;
   font-size: 10;
   color: #555;
 }
