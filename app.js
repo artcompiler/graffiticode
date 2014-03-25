@@ -134,18 +134,23 @@ app.get('/bitzee', function(req, res) {
 // get the piece with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
-  pg.connect(conString, function (err, client) {
-    client.query("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
-      var rows;
-      if (!result || result.rows.length===0) {
-        rows = [{}];
-      } else {
-        rows = result.rows;
-      }
-      res.send(rows);
+  console.log("get /code/:id = " + id);
+  if (+id === 0) {
+    res.send(lastObj);
+  } else {
+    pg.connect(conString, function (err, client) {
+      client.query("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
+        var rows;
+        if (!result || result.rows.length===0) {
+          rows = [{}];
+        } else {
+          rows = result.rows;
+        }
+        res.send(rows);
+      });
+      client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
     });
-    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
-  });
+  }
 });
 
 // get the piece with :id
@@ -200,12 +205,14 @@ app.get('/code', function (req, res) {
   });
 });
 
+var lastObj;
+
 // Compile code (idempotent)
 app.put('/code', function (req, res) {
   var srcAst = req.body.ast;
   var type = req.body.type;
   var objAst = transformer.transform(srcAst);
-  var obj = renderer.render(objAst);
+  var obj = lastObj = renderer.render(objAst);
   res.send(obj);
 });
 

@@ -34,6 +34,30 @@ exports.transformer = GraffitiCode.transformer = function() {
       return "d3.selectAll('.graffiti')";
 //      return "d3";
     }
+    function d3_this(node) {
+      return "this";
+    }
+    function d3(node) {
+      return "d3";
+    }
+    function dx(node) {
+      return "d3.event.x";
+    }
+    function dy(node) {
+      return "d3.event.y";
+    }
+    function drag(node) {
+      return "d3.behavior.drag()";
+    }
+    function log(node) {
+      var args = [];
+      print("print() node=");
+      print(JSON.stringify(node));
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      return "console.log(" + args[0] + ")";
+    }
     function str(node) {
       return "'" + node.elts[0] + "'";
     }
@@ -109,6 +133,13 @@ exports.transformer = GraffitiCode.transformer = function() {
       });
       return "(function " + args[2] + "(" + args[1].substring(1, args[1].length-1) + ") { return " + args[0] + "})";
     };
+    function js_var(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      return "var " + args[1] + " = " + args[0];
+    };
     function times(node) {
       var args = [];
       node.elts.forEach(function (arg) {
@@ -130,10 +161,32 @@ exports.transformer = GraffitiCode.transformer = function() {
       });
       return args[1] + " + " + args[0];
     }
+    function call(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".call(" + args[1] + ")";
+    };
+    function on(node) {
+      var args = [];
+      node.elts.forEach(function (arg) {
+        args.push(visit(arg, d3Visitor));
+      });
+      var target = args[0];
+      return target + ".on(" + args[2] + ", " + args[1] + ")";
+    };
     return {
       "visitor-name": "D3Visitor",
       "VOID": nil,
       "STR": str,
+      "LOG": log,
+      "D3-THIS": d3_this,
+      "D3-D3": d3,
+      "D3-DX": dx,
+      "D3-DY": dy,
+      "D3-DRAG": drag,
       "D3-STYLE": style,
       "D3-TEXT": text,
       "D3-ATTR": attr,
@@ -143,6 +196,9 @@ exports.transformer = GraffitiCode.transformer = function() {
       "D3-DATA": data,
       "D3-ENTER": enter,
       "D3-FUNCTION": func,
+      "D3-VAR": js_var,
+      "D3-CALL": call,
+      "D3-ON": on,
       "TIMES": times,
       "MINUS": minus,
       "PLUS": plus,
@@ -354,10 +410,18 @@ exports.transformer = GraffitiCode.transformer = function() {
     "SIN": sin,
     "ATAN": atan,
 
+    "D3-THIS": d3_this,
+    "D3-DX": d3_dx,
+    "D3-DY": d3_dy,
     "D3-TEXT": d3_text,
     "D3-ATTR": d3_attr,
     "D3-STYLE": d3_style,
     "D3-FUNCTION": d3_function,
+    "D3-VAR": d3_var,
+    "D3-ON": d3_on,
+    "D3-CALL": d3_call,
+
+    "LOG": log,
   }
 
   return {
@@ -751,6 +815,30 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
   }
 
+  function d3_this(node) {
+    var str = d3Visitor["D3-THIS"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_dx(node) {
+    var str = d3Visitor["D3-DX"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_dy(node) {
+    var str = d3Visitor["D3-DY"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
   function d3_text(node) {
     var str = d3Visitor["D3-TEXT"](node, d3Visitor);
     return {
@@ -778,6 +866,38 @@ exports.transformer = GraffitiCode.transformer = function() {
 
   function d3_function(node) {
     var str = d3Visitor["D3-FUNCTION"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_var(node) {
+    var str = d3Visitor["D3-VAR"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_on(node) {
+    var str = d3Visitor["D3-ON"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function d3_call(node) {
+    var str = d3Visitor["D3-CALL"](node, d3Visitor);
+    return {
+      "tag": "script",
+      "elts": [str],
+    };
+  }
+
+  function log(node) {
+    var str = d3Visitor["PRINT"](node, d3Visitor);
     return {
       "tag": "script",
       "elts": [str],

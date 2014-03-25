@@ -304,16 +304,14 @@ body .main .edit-panel {
 }
 
 #graff-view {
-//  position: absolute;
   float: left;
-//  top: 100;
-//  left: 680;
-//  margin-top: 20;
-  margin-left: 20;
+  margin: 0;
   background: #fff;
-//  border-width: 1;
-//  border-style: solid;
-//  border-color: #aaa;
+}
+
+#graff-view iframe {
+  width: 0px;
+  height: 0px;
 }
 
 body .main .essay-panel {

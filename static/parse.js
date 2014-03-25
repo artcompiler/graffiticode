@@ -796,7 +796,7 @@ exports.parser = (function () {
     //log("eat() tk="+tk);
     var nextToken = next(ctx);
     if (nextToken !== tk) {
-      throw "syntax error: expecting " + tk + " found " + nextToken;
+      throw new Error("syntax error: expecting " + tk + " found " + nextToken);
     }
   }
 

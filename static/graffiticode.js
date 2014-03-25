@@ -8,6 +8,7 @@ exports.gc = (function () {
   function compileCode(ast) {
     if (exports.firstCompile) {
       exports.firstCompile = false;
+      return;   // only post second compile, when there are two.
     } else {
       exports.id = 0;
     }
@@ -206,13 +207,19 @@ exports.gc = (function () {
   }
 
   function updateGraffito(obj, src, pool) {
-//    obj = "When \$a \\ne 0\$, there are two solutions to \\(ax^2 + bx + c = 0\\) and they are" +
-//      " \$\$x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}.\$\$";
-    $("#graff-view").html(obj);
-    $("#graff-view").attr("onclick", "exports.postPiece(this)");
-    var width = $("#graff-view svg").width();
-    var height = $("#edit-view svg").height();
-    $("#graff-view").width(width);
+    $("#graff-view").html("<iframe " +
+         "scrolling:no " + "src='http://" + location.host + "/code/0'/>");
+    $("#graff-view iframe")
+      .load(function() {
+//        var width = $("#graff-view svg").width();
+//        var height = $("#edit-view svg").height();
+        var width = $(this).contents().width();
+        var height = $(this).contents().height();
+        $("#graff-view iframe").css("height", height + "px");
+        $("#graff-view iframe").css("width", width + "px");
+//        $("#graff-view").height($(this).contents().height());
+//        $("#graff-view").width($(this).contents().width());
+      });
     exports.src = src;
     exports.pool = pool;
     exports.obj = obj;
@@ -265,12 +272,6 @@ exports.gc = (function () {
           $(this).css("width", $(this).contents().width() + "px");
         });
     }
-//    $(".gallery-panel #"+id+" .thumbnail html").css("width", "220");
-//    $(".gallery-panel #"+id+" .thumbnail html").css("height", "124");
-//    $(".gallery-panel #"+id+" .piece")
-//    $(".gallery-panel #" + id + " .thumbnail")
-//       .attr("onclick", "exports.gc.clickThumbnail(event, '" + id + "')")
-//        .attr("title", "Click to view #" + id + " in the workspace.");
     $(".gallery-panel #" + id + " .label")
         .html("<b>#" + id + "</b> " + data.views + " Views, " + data.forks + " Forks, " +
             new Date(data.created).toDateString().substring(4) + ", " +
@@ -295,16 +296,13 @@ exports.gc = (function () {
     $.get("http://"+location.host+"/graffiti/"+newId, function (newButton) {
       $.get("http://"+location.host+"/graffiti/"+findId, function (openButton) {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
-//          $.get("http://"+location.host+"/graffiti/"+shareId, function (shareButton) {
             showWorkspace()
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.newCode()' title='New' href='#'>"+newButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.showArchive()' title='Browse' href='#'>"+openButton+"</a>")
             $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postPiece()' title='Save' href='#'>"+saveButton+"</a>")
-//            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postGist()' title='Share' href='#'>"+shareButton+"</a>")
             $.get("http://"+location.host+"/code/"+srcId, function (data) {
               updateSrc(data[0].id, data[0].src)
             })
-//          })
         })
       })
     });

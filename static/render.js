@@ -35,7 +35,7 @@ exports.renderer = function() {
              , '<html xmlns="http://www.w3.org/1999/xhtml">'
              , '<head>'
              , '<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>'
-             , '<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>'
+             , '<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>'
              , '</head>'
              , '<body>'
              , '<div class="graffiti">'
