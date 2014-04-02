@@ -2,17 +2,37 @@
 
 <br>
 <p>
-<b>Graffiti Code</b> is a coding environment for synthesizing form. It is
-experimental and currently hard to decode as no documentation is provided. If
-you are curious, you can click around the <i>Archive</i> to see some of our
-experiments. If you are feeling lucky, you can login with <i>Persona</i> and
-try coding some yourself. Beware though, the only help we can offer is what
-you can gleen from the contents of the archive. Oh, and we recommend using a
-recent version of <i>Firefox</i>.
-<br>
-<b>Graffiti Code</b> is produced by 
+<b>Graffiti Code</b> is an experiment in drawing with code. It consists
+primarily of a workspace, a language and an archive.
+
+<p>
+The <b>workspace</b> includes an editor and a viewer. When the code in the
+editor is valid language, it is interpreted and the drawing in the viewer is
+updated.
+
+<p>
+The <b>language</b> of Graffiti Code is functional and statically typed with
+minimal syntax. References to user definitions (keyword 'let') are folded at
+authoring time to produce a graph that consists of expressions of primitive
+values and operations. This graph is interpreted to generate a drawing.
+
+<p>
+The <b>archive</b> displays saved drawings. Saved drawings can be edited or 
+viewed in a new browser window. Editing an existing drawing creates a fork of
+the original. Each archived drawing is an HTML document with an unique URL.
+
+<p>
+Click around the archive to see what has been done. If you feel lucky, login
+with <b>Persona</b> and try writing some code yourself. Beware though, the only
+help we currently offer is what you can gleen from the archive. Oh, and we
+recommend using a recent version of <b>Firefox</b>. (Something to do with a bug
+in Webkit while positioning LaTeX objects embedded in SVG, in case you are
+wondering.)
+
+<p>
+<b>Graffiti Code</b> is created by 
 <a href="http://www.artcompiler.com">
-  <img style="position: relative; top:5" width="20" src="ac-logo.png"/> Art Compiler
+  <img style="position: relative; top:5" width="20" src="ac-logo.png"/>
+  Art Compiler
 </a>
 .
-</p>
