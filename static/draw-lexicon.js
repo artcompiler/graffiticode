@@ -78,6 +78,11 @@ exports.globalLexicon = {
     "arcto" : { "tk": 0x01, "name": "ARCTO", "cls": "function", "length": 5 },
     "arc" : { "tk": 0x01, "name": "ARC", "cls": "function", "length": 4 },
 
+    "step" : { "tk": 0x01, "name": "STEP", "cls": "function", "length": 2 },
+    "pen-up" : { "tk": 0x01, "name": "PENUP", "cls": "function", "length": 0 },
+    "pen-down" : { "tk": 0x01, "name": "PENDOWN", "cls": "function", "length": 0 },
+    "show-track" : { "tk": 0x01, "name": "SHOWTRACK", "cls": "function", "length": 0 },
+
     "translate" : { "tk": 0x01, "name": "TRANSLATE", "cls": "function", "length": 3 },
     "scale" : { "tk": 0x01, "name": "SCALE", "cls": "function", "length": 2 },
     "rotate" : { "tk": 0x01, "name": "ROTATE", "cls": "function", "length": 2 },

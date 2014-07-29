@@ -75,7 +75,6 @@ exports.transformer = GraffitiCode.transformer = function() {
         args.push(visit(arg, d3Visitor));
       });
       var target = args[0];
-      print("text() target=" + JSON.stringify(target));
       return target + ".text(" + args[1] + ")";
     };
     function attr(node) {
@@ -362,6 +361,10 @@ exports.transformer = GraffitiCode.transformer = function() {
     "LINE" : line,
     "POINT" : point,
     "DOT" : dot,
+    "STEP" : step,
+    "PENUP" : penUp,
+    "PENDOWN" : penDown,
+    "SHOWTRACK" : showTrack,
 
     "PATH" : path,
     "CLOSEPATH" : closepath,
@@ -424,6 +427,14 @@ exports.transformer = GraffitiCode.transformer = function() {
     "LOG": log,
   }
 
+  var RADIUS = 100;
+  var STEP_LENGTH = 1;
+  var leftX = 0, leftY = 0, rightX = 0, rightY = 0;
+  var angle = 0;
+  var penX, penY;
+  var penState;
+  var trackState;
+
   return {
     transform: transform,
   };
@@ -432,16 +443,27 @@ exports.transformer = GraffitiCode.transformer = function() {
 
   var nodePool
 
+  function reset() {
+    angle = 0;
+    leftX = RADIUS/2;
+    leftY = 0;
+    rightX = -RADIUS/2;
+    rightY = 0;
+    penX = 0;
+    penY = 0;
+    penState = false;
+    trackState = false;
+  }
+
   function transform(pool) {
+    reset();
     nodePool = pool;
     return visit(pool.root);
   }
 
-
   function visit(nid, visitor) {
     // Get the node from the pool of nodes.
     var node = nodePool[nid];
-    print("visit() tag=" + node.tag + " visitor=" + visitor);
     if (node == null) {
       return null;
     } else if (node.tag === void 0) {
@@ -489,7 +511,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   var edgesNode;
 
   function program(node) {
-    print("transformer program() node=" + JSON.stringify(node, null, 2));
     canvasSize(640, 360) // default size
     canvasColor = "255" // default color
     var elts = [ ]
@@ -519,14 +540,12 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function list(node) {
-    print("list() node=" + JSON.stringify(node));
     var elts = []
     if (node.elts) {
       for (var i = 0; i < node.elts.length; i++) {
         elts.push(visit(node.elts[i]))
       }
     }
-    print("list() elts=" + JSON.stringify(elts[0].elts));
     return "[" + elts[0].elts + "]";
   }
 
@@ -665,6 +684,131 @@ exports.transformer = GraffitiCode.transformer = function() {
       "rx": w/2,
       "ry": h/2,
     };
+  }
+
+  // Each step taken needs to be relative to the position and direction of the
+  // current state.
+  function step(node) {
+    var lsteps = +visit(node.elts[1]);
+    var rsteps = +visit(node.elts[0]);
+    var dirL = lsteps < 0 ? 1 : -1;
+    var dirR = rsteps < 0 ? 1 : -1;
+    lsteps = Math.abs(lsteps);
+    rsteps = Math.abs(rsteps);
+    var points = [];
+    var offset = 0;
+    var delta = 0;
+    var args = [];
+    if (lsteps >= rsteps) {
+      delta = (lsteps - rsteps) / rsteps;  // 3
+      for ( ; rsteps > 0; ) {
+        offset += delta;  // Each lstep is equal to rstep plus delta.
+        stepOneLeft(dirL);
+        stepOneRight(dirR);
+        lsteps--;
+        rsteps--;
+        ink(args);
+        for(; offset >= 1; offset--) {  // 3 * 0 | 3 * 1
+          stepOneLeft(dirL);
+          lsteps--;
+          ink(args);
+        }
+      }
+      // rsteps === 0. only lsteps left
+      for(; lsteps > 0; lsteps--) {  // 3 * 0 | 3 * 1
+        stepOneLeft(dirL);
+        ink(args);
+      }
+    } else {
+      delta = (rsteps - lsteps) / lsteps;
+      for ( ; lsteps > 0; ) {
+        offset += delta;
+        stepOneLeft(dirL);
+        stepOneRight(dirR);
+        lsteps--;
+        rsteps--;
+        ink(args);
+        for(; offset >= 1; offset--) {  // 3 * 0 | 3 * 1
+          stepOneRight(dirR);
+          rsteps--;
+          ink(args);
+        }
+      }
+      // lsteps === 0. only rsteps left
+      for(; rsteps > 0; rsteps--) {  // 3 * 0 | 3 * 1
+        stepOneRight(dirR);
+        ink(args);
+      }
+    }
+    return {
+      "tag": "g",
+      "elts": args,
+    };
+
+    function ink(args) {
+      if (penState) {
+        args.push({
+          "tag": "ellipse",
+          "cx": penX,
+          "cy": penY,
+          "rx": 2,
+          "ry": 2,
+          "fill": "rgb(0,0,255)",
+          "stroke": "rgba(0,0,0,0)",
+        });
+      }
+      if (trackState) {
+        args.push({
+          "tag": "ellipse",
+          "cx": leftX,
+          "cy": leftY,
+          "rx": .5,
+          "ry": .5,
+          "fill": "rgba(255,0,0,.5)",
+          "stroke": "rgba(0,0,0,0)",
+        }, {
+          "tag": "ellipse",
+          "cx": rightX,
+          "cy": rightY,
+          "rx": .5,
+          "ry": .5,
+          "fill": "rgba(0,255,0,.5)",
+          "stroke": "rgba(0,0,0,0)",
+        });
+      }
+    }
+  }
+
+  function stepOneLeft(dir) {
+    var dx = RADIUS * Math.cos(angle - dir * 1/RADIUS);
+    var dy = RADIUS * Math.sin(angle - dir * 1/RADIUS);
+    angle -= dir * 1/RADIUS;
+    leftX = rightX + dx;
+    leftY = rightY + dy;
+    penX = rightX + dx/2;
+    penY = rightY + dy/2;
+  }
+
+  function stepOneRight(dir) {
+    var dx = RADIUS * Math.cos(Math.PI + angle + dir * 1/RADIUS);
+    var dy = RADIUS * Math.sin(Math.PI + angle + dir * 1/RADIUS);
+    angle += dir * 1/RADIUS;
+    rightX = leftX + dx;
+    rightY = leftY + dy;
+    penX = leftX + dx/2;
+    penY = leftY + dy/2;
+  }
+
+  function penUp() {
+    penState = false;
+  }
+
+  function penDown() {
+    penState = true;
+  }
+
+  function showTrack() {
+    trackState = true;
   }
 
   function polarToCartesian(centerX, centerY, radiusX, radiusY, angleInDegrees) {
@@ -848,7 +992,6 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function d3_attr(node) {
-    print("d3_attr() node=" + JSON.stringify(node));
     var str = d3Visitor["D3-ATTR"](node, d3Visitor);
     return {
       "tag": "script",

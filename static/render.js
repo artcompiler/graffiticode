@@ -36,6 +36,11 @@ exports.renderer = function() {
              , '<head>'
              , '<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>'
              , '<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>'
+             , '<style>'
+             , 'body : {'
+             , ' margin: 0;'
+             , '}'
+             , '</style>'
              , '</head>'
              , '<body>'
              , '<div class="graffiti">'
@@ -74,7 +79,6 @@ exports.renderer = function() {
     str += prefix()
     str += visit(node, "  ")
     str += suffix()
-    print("render() str=" + str);
     return str
   }
 
@@ -86,7 +90,6 @@ exports.renderer = function() {
 
     var tagName = node.tag
     var attrs = ""
-    print("visit() tagName=" + tagName);
     for (var name in node) {   // iterate through attributes
       if (name === "tag" || name === "elts") {
         continue;
