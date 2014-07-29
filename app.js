@@ -32,7 +32,7 @@ pg.connect(conString, function(err, client) {
 
 // Configuration
 
-app.configure(function () {
+//app.configure(function () {
   app.set('views', __dirname + '/views');
   app.use(express.logger());
   app.use(express.cookieParser());
@@ -42,7 +42,7 @@ app.configure(function () {
   app.use(express.static(__dirname + '/static'));
   app.use(express.session({ secret: 'keyboard cat' }));
   app.use(app.router);
-});
+//});
 
 app.configure('development', function () {
   app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
