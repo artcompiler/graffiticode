@@ -8,7 +8,13 @@
     "passport-local": "latest",
     "pg": "0.6.x",
     "underscore": "1.4.x",
-    "qs": "latest"
+    "qs": "latest",
+    "morgan": "latest",
+    "cookie-parser": "latest",
+    "body-parser": "latest",
+    "method-override": "latest",
+    "express-session": "latest",
+    "errorhandler": "latest"
   },
   "engines": {
     "node": ">0.8.x",

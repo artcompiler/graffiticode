@@ -20,6 +20,12 @@ var transformer = require('./static/transform.js');
 var renderer = require('./static/render.js');
 var qs = require("qs");
 var app = module.exports = express();
+var logger = require("morgan");
+var cookieParser = require("cookie-parser");
+var bodyParser = require("body-parser");
+var methodOverride = require("method-override");
+var session = require("express-session");
+var errorHandler = require("errorhandler");
 
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
@@ -33,22 +39,35 @@ pg.connect(conString, function(err, client) {
 // Configuration
 
 app.set('views', __dirname + '/views');
-app.use(express.logger());
-app.use(express.cookieParser());
-app.use(express.bodyParser());
-app.use(express.methodOverride());
+app.use(logger);
+app.use(cookieParser);
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+// parse application/vnd.api+json as json
+app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
+
+app.use(function (req, res, next) {
+  console.log(req.body) // populated!
+  next()
+})
+
+app.use(methodOverride);
 app.use(require('stylus').middleware({ src: __dirname + '/static' }));
 app.use(express.static(__dirname + '/static'));
-app.use(express.session({ secret: 'keyboard cat' }));
-app.use(app.router);
+app.use(session({ secret: 'keyboard cat' }));
 
-//app.configure('development', function () {
-app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
-//});
+if (process.env.NODE_ENV === 'development') {
+  app.use(errorHandler({dumpExceptions: true, showStack: true}))
+}
 
-//app.configure('production', function () {
-//  app.use(express.errorHandler());
-//});
+if (process.env.NODE_ENV === 'production') {
+  app.use(errorHandler())
+}
 
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
@@ -302,7 +321,7 @@ app.post('/gist', function (req, resPost) {
 });
 
 // Delete the notes for a label
-app.del('/code/:id', ensureAuthenticated, function (req, res) {
+app.delete('/code/:id', ensureAuthenticated, function (req, res) {
   var id = req.params.id;
   pg.connect(conString, function (err, client) {
     client.query("DELETE FROM todos WHERE id='"+id+"'", function (err, result) {
