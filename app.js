@@ -43,19 +43,20 @@ app.use(morgan("default"));
 app.use(cookieParser());
 
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false, limit: 1000000 }))
 
 // parse application/json
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: 1000000}));
 
 // parse application/text
-app.use(bodyParser.text());
+app.use(bodyParser.text({limit: 1000000}));
+app.use(bodyParser.raw({limit: 1000000}));
 
 // parse application/vnd.api+json as json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
 
 app.use(function (req, res, next) {
-  console.log(req.body) // populated!
+  //console.log(req.body) // populated!
   next()
 })
 
@@ -145,7 +146,6 @@ app.get('/bitzee', function(req, res) {
 // get the piece with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
-  console.log("get /code/:id = " + id);
   if (+id === 0) {
     res.send(lastObj);
   } else {
