@@ -18,8 +18,6 @@ var http = require('http');
 var https = require('https');
 var transformer = require('./static/transform.js');
 var renderer = require('./static/render.js');
-var math_transformer = require('./static/transform-math.js');
-var math_renderer = require('./static/render-math.js');
 var qs = require("qs");
 var app = module.exports = express();
 
