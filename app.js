@@ -32,25 +32,23 @@ pg.connect(conString, function(err, client) {
 
 // Configuration
 
-//app.configure(function () {
-  app.set('views', __dirname + '/views');
-  app.use(express.logger());
-  app.use(express.cookieParser());
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(require('stylus').middleware({ src: __dirname + '/static' }));
-  app.use(express.static(__dirname + '/static'));
-  app.use(express.session({ secret: 'keyboard cat' }));
-  app.use(app.router);
+app.set('views', __dirname + '/views');
+app.use(express.logger());
+app.use(express.cookieParser());
+app.use(express.bodyParser());
+app.use(express.methodOverride());
+app.use(require('stylus').middleware({ src: __dirname + '/static' }));
+app.use(express.static(__dirname + '/static'));
+app.use(express.session({ secret: 'keyboard cat' }));
+app.use(app.router);
+
+//app.configure('development', function () {
+app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
 //});
 
-app.configure('development', function () {
-  app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
-});
-
-app.configure('production', function () {
-  app.use(express.errorHandler());
-});
+//app.configure('production', function () {
+//  app.use(express.errorHandler());
+//});
 
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
