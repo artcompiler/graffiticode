@@ -3,7 +3,6 @@
 /* Copyright (c) 2014, Art Compiler LLC */
 
 var _ = require("underscore");
-var MathCore = require("../static/mathcore");
 
 if (!this.GraffitiCode) {
   this.GraffitiCode = GraffitiCode = {};
