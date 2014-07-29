@@ -20,7 +20,7 @@ var transformer = require('./static/transform.js');
 var renderer = require('./static/render.js');
 var qs = require("qs");
 var app = module.exports = express();
-var logger = require("morgan");
+var morgan = require("morgan");
 var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
@@ -39,14 +39,17 @@ pg.connect(conString, function(err, client) {
 // Configuration
 
 app.set('views', __dirname + '/views');
-app.use(logger);
-app.use(cookieParser);
+app.use(morgan("default"));
+app.use(cookieParser());
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+
+// parse application/text
+app.use(bodyParser.text());
 
 // parse application/vnd.api+json as json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
@@ -56,18 +59,11 @@ app.use(function (req, res, next) {
   next()
 })
 
-app.use(methodOverride);
+
+app.use(methodOverride());
 app.use(require('stylus').middleware({ src: __dirname + '/static' }));
 app.use(express.static(__dirname + '/static'));
 app.use(session({ secret: 'keyboard cat' }));
-
-if (process.env.NODE_ENV === 'development') {
-  app.use(errorHandler({dumpExceptions: true, showStack: true}))
-}
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(errorHandler())
-}
 
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
@@ -224,7 +220,7 @@ var lastObj;
 
 // Compile code (idempotent)
 app.put('/code', function (req, res) {
-  var srcAst = req.body.ast;
+  var srcAst = JSON.parse(req.body.ast);
   var type = req.body.type;
   var objAst = transformer.transform(srcAst);
   var obj = lastObj = renderer.render(objAst);
@@ -464,3 +460,12 @@ app.post("/logout", function (req, res) {
   req.session.destroy()
   res.send("okay")
 });
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(errorHandler({dumpExceptions: true, showStack: true}))
+}
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(errorHandler())
+}
+

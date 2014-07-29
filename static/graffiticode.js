@@ -6,6 +6,7 @@ exports.gc = (function () {
 
   // {src, ast} -> {id, obj}
   function compileCode(ast) {
+    ast = JSON.stringify(ast);
     if (exports.firstCompile) {
       exports.firstCompile = false;
       return;   // only post second compile, when there are two.
@@ -16,7 +17,7 @@ exports.gc = (function () {
     $.ajax({
       type: "PUT",
       url: "/code",
-      data: {ast: ast, type: exports.lexiconType},
+      data: {"ast": ast, "type": exports.lexiconType},
       dataType: "text",
       success: function(data) {
         updateGraffito(data, src, ast);

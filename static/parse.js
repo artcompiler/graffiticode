@@ -1277,7 +1277,7 @@ exports.parser = (function () {
       folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
       ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
-      print(ast.dumpAll(ctx));
+      //print(ast.dumpAll(ctx));
       return cc
     })
   }
