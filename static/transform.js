@@ -752,7 +752,7 @@ exports.transformer = GraffitiCode.transformer = function() {
           "cy": penY,
           "rx": 2,
           "ry": 2,
-          "fill": "rgb(0,0,255)",
+          "fill": "rgba(0,100,200,1)",
           "stroke": "rgba(0,0,0,0)",
         });
       }

@@ -43,14 +43,14 @@ app.use(morgan("default"));
 app.use(cookieParser());
 
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false, limit: 2000000 }))
+app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }))
 
 // parse application/json
-app.use(bodyParser.json({limit: 2000000}));
+app.use(bodyParser.json());
 
 // parse application/text
-app.use(bodyParser.text({limit: 2000000}));
-app.use(bodyParser.raw({limit: 2000000}));
+app.use(bodyParser.text());
+app.use(bodyParser.raw());
 
 // parse application/vnd.api+json as json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
