@@ -781,6 +781,7 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function stepOneLeft(dir) {
+    console.log("stepOneLeft() ONESTEPANGLE=" + ONESTEPANGLE);
     var dx = RADIUS * Math.cos(angle - dir * ONESTEPANGLE);
     var dy = RADIUS * Math.sin(angle - dir * ONESTEPANGLE);
     angle -= dir * 1/RADIUS;
