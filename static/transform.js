@@ -428,7 +428,7 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   var RADIUS = 100;
-  var STEP_LENGTH = .1;
+  var STEP_LENGTH = 1;
   var leftX = 0, leftY = 0, rightX = 0, rightY = 0;
   var angle = 0;
   var penX, penY;
@@ -780,9 +780,9 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function stepOneLeft(dir) {
-    var dx = RADIUS * STEP_LENGTH * Math.cos(angle - dir * 1 / RADIUS);
-    var dy = RADIUS * STEP_LENGTH * Math.sin(angle - dir * 1 / RADIUS);
-    angle -= dir * 1/RADIUS;
+    var dx = RADIUS * Math.cos(angle - dir * 1 / RADIUS * STEP_LENGTH);
+    var dy = RADIUS * Math.sin(angle - dir * 1 / RADIUS * STEP_LENGTH);
+    angle -= dir * 1 / RADIUS * STEP_LENGTH;
     leftX = rightX + dx;
     leftY = rightY + dy;
     penX = rightX + dx/2;
@@ -790,9 +790,9 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function stepOneRight(dir) {
-    var dx = RADIUS * STEP_LENGTH * Math.cos(Math.PI + angle + dir * 1 / RADIUS);
-    var dy = RADIUS * STEP_LENGTH * Math.sin(Math.PI + angle + dir * 1 / RADIUS);
-    angle += dir * 1/RADIUS;
+    var dx = RADIUS * STEP_LENGTH * Math.cos(Math.PI + angle + dir * 1 / RADIUS * STEP_LENGTH);
+    var dy = RADIUS * STEP_LENGTH * Math.sin(Math.PI + angle + dir * 1 / RADIUS * STEP_LENGTH);
+    angle += dir * 1 / RADIUS * STEP_LENGTH;
     rightX = leftX + dx;
     rightY = leftY + dy;
     penX = leftX + dx/2;
