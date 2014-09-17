@@ -778,7 +778,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
   }
 
-  var ONESTEPANGLE = 1/RADIUS/100;
+  var ONESTEPANGLE = 1/RADIUS/10;
 
   function stepOneLeft(dir) {
     var dx = RADIUS * Math.cos(angle - dir * ONESTEPANGLE);
