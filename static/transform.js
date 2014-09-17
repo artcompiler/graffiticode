@@ -20,6 +20,8 @@ exports.transformer = GraffitiCode.transformer = function() {
   var canvasColor = ""
 
   var ticket = 1000
+  var ONESTEPANGLE = 1 / RADIUS;
+
 
   exports.transform = transform
   exports.canvasWidth = function() {return canvasWidth}
@@ -778,11 +780,9 @@ exports.transformer = GraffitiCode.transformer = function() {
     }
   }
 
-  var ONESTEPANGLE = 1/RADIUS;
-
   function stepOneLeft(dir) {
-    var dx = RADIUS * Math.cos(angle - dir * 1 / RADIUS);
-    var dy = RADIUS * Math.sin(angle - dir * 1 / RADIUS);
+    var dx = RADIUS * Math.cos(angle - dir * ONESTEPANGLE);
+    var dy = RADIUS * Math.sin(angle - dir * ONESTEPANGLE);
     angle -= dir * 1/RADIUS;
     leftX = rightX + dx;
     leftY = rightY + dy;
