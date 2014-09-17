@@ -790,8 +790,8 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   function stepOneRight(dir) {
-    var dx = RADIUS * STEP_LENGTH * Math.cos(Math.PI + angle + dir * 1 / RADIUS * STEP_LENGTH);
-    var dy = RADIUS * STEP_LENGTH * Math.sin(Math.PI + angle + dir * 1 / RADIUS * STEP_LENGTH);
+    var dx = RADIUS * Math.cos(Math.PI + angle + dir * 1 / RADIUS * STEP_LENGTH);
+    var dy = RADIUS * Math.sin(Math.PI + angle + dir * 1 / RADIUS * STEP_LENGTH);
     angle += dir * 1 / RADIUS * STEP_LENGTH;
     rightX = leftX + dx;
     rightY = leftY + dy;
