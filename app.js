@@ -222,6 +222,7 @@ var lastObj;
 app.put('/code', function (req, res) {
   var srcAst = JSON.parse(req.body.ast);
   var type = req.body.type;
+  // Switch compilers
   var objAst = transformer.transform(srcAst);
   var obj = lastObj = renderer.render(objAst);
   res.send(obj);
