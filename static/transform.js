@@ -428,7 +428,7 @@ exports.transformer = GraffitiCode.transformer = function() {
   }
 
   var RADIUS = 100;
-  var STEP_LENGTH = .0004;
+  var STEP_LENGTH = .0001;
   var leftX = 0, leftY = 0, rightX = 0, rightY = 0;
   var angle = 0;
   var penX, penY;
