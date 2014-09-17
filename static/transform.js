@@ -426,7 +426,7 @@ exports.transformer = GraffitiCode.transformer = function() {
     "LOG": log,
   }
 
-  var RADIUS = 10;
+  var RADIUS = 100;
   var STEP_LENGTH = 1;
   var leftX = 0, leftY = 0, rightX = 0, rightY = 0;
   var angle = 0;
