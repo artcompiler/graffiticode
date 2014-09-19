@@ -1389,10 +1389,9 @@ exports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-      console.log(x.stack);
-      console.log(ast.dumpAll(ctx));
+      //console.log(x.stack);
+      //console.log(ast.dumpAll(ctx));
       if (x instanceof Error) {
-        alert(x.message);
         next(ctx)
         cls = "error"
       } else if (x.indexOf("syntax error") === 0) {
