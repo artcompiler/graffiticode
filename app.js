@@ -128,7 +128,7 @@ app.get('/math', function (req, res) {
   fs.readFile('views/math.html', function (err, body) {
     res.render('layout.html', { 
       title: 'Graffiti Code',
-      vocabulary: 'math',
+      vocabulary: 'MATH',
       target: 'SVG',
       login: 'Login',
       body: body,

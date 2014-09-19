@@ -212,14 +212,10 @@ exports.gc = (function () {
          "scrolling:no " + "src='http://" + location.host + "/code/0'/>");
     $("#graff-view iframe")
       .load(function() {
-//        var width = $("#graff-view svg").width();
-//        var height = $("#edit-view svg").height();
         var width = $(this).contents().width();
         var height = $(this).contents().height();
         $("#graff-view iframe").css("height", height + "px");
         $("#graff-view iframe").css("width", width + "px");
-//        $("#graff-view").height($(this).contents().height());
-//        $("#graff-view").width($(this).contents().width());
       });
     exports.src = src;
     exports.pool = pool;
