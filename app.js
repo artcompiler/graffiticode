@@ -107,7 +107,7 @@ app.get('/draw', function (req, res) {
 });
 
 app.get('/dr10', function (req, res) {
-  fs.readFile('views/draw.html', function (err, body) {
+  fs.readFile('views/dr10.html', function (err, body) {
     res.render('layout.html', { 
       title: 'Graffiti Code',
       vocabulary: 'dr10',
