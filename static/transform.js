@@ -751,8 +751,8 @@ exports.transformer = GraffitiCode.transformer = function() {
           "tag": "ellipse",
           "cx": penX,
           "cy": penY,
-          "rx": 2,
-          "ry": 2,
+          "rx": 1,
+          "ry": 1,
           "fill": "rgba(0,100,200,1)",
           "stroke": "rgba(0,0,0,0)",
         });
