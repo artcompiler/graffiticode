@@ -186,7 +186,7 @@ app.get('/code/:id', function (req, res) {
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
   pg.connect(conString, function (err, client) {
-    client.query("SELECT obj FROM pieces WHERE id = " + id, function (err, result) {
+    client.query("SELECT obj FROM pieces WHERE id=" + id, function (err, result) {
       var ret;
       if (!result || result.rows.length === 0) {
         ret = "";
@@ -200,9 +200,10 @@ app.get('/graffiti/:id', function (req, res) {
 });
 
 // get list of piece ids
-app.get('/pieces', function (req, res) {
+app.get('/pieces/:lang', function (req, res) {
+  var lang = req.params.lang;
   pg.connect(conString, function (err, client) {
-    client.query("SELECT id FROM pieces ORDER BY id DESC", function (err, result) {
+    client.query("SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC", function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
@@ -248,6 +249,7 @@ app.put('/code', function (req, res) {
 
 // Commit and return commit id
 app.post('/code', function (req, res){
+  var language = req.body.language;
   var src = req.body.src;
   var obj = req.body.obj;
   var user = req.body.user;
@@ -263,9 +265,9 @@ app.post('/code', function (req, res){
       obj = obj.replace(new RegExp("\n","g"), " ");
       obj = obj.replace(new RegExp("'","g"), "\"");
       var queryStr = 
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj)" +
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
-        " ', '" + forks + "', now(), '" + src + "', '" + obj + "');"
+        " ', '" + forks + "', now(), '" + src + "', '" + obj + "', '" + language + "');"
       client.query(queryStr, function(err, result) {
         if (err) {
           res.send(400, err);
@@ -274,8 +276,6 @@ app.post('/code', function (req, res){
         var queryStr =
           "SELECT pieces.*, users.name FROM pieces, users" +
           " WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1";
-//          "SELECT pieces.id, pieces.gist_id, pieces.name, pieces.views, pieces.forks, pieces.created, users.name FROM pieces, users" +
-//          " WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1";
         client.query(queryStr, function (err, result) {
           res.send(result.rows[0]);
         })

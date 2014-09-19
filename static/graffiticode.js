@@ -40,6 +40,7 @@ exports.gc = (function () {
     var pool = exports.pool;
     var obj = exports.obj;
     var parent = exports.parent;
+    var language = exports.language;
     $.ajax({
       type: "POST",
       url: "/code",
@@ -49,6 +50,7 @@ exports.gc = (function () {
         obj: obj,
         user: user ? user.id : 1,
         parent: parent,
+        language: language,
       },
       dataType: "json",
       success: function(data) {
@@ -115,7 +117,7 @@ exports.gc = (function () {
   function queryPieces() {
     $.ajax({
       type: "GET",
-      url: "/pieces",
+      url: "/pieces/" + exports.language,
       data: {},
       dataType: "json",
       success: function(data) {
@@ -270,7 +272,7 @@ exports.gc = (function () {
         });
     }
     $(".gallery-panel #" + id + " .label")
-        .html("<b>#" + id + "</b> " + data.views + " Views, " + data.forks + " Forks, " +
+        .html("<b>" + (data.language===null?"DRAW":data.language) + " #" + id + "</b> " + data.views + " Views, " + data.forks + " Forks, " +
             new Date(data.created).toDateString().substring(4) + ", " +
             data.name +
             "<br><a href='#' onclick='exports.gc.clickThumbnail(event, \"" + id + "\")'>Edit</a> " +
@@ -285,7 +287,6 @@ exports.gc = (function () {
 
   function start() {
     queryPieces();
-    var srcId = 304;
     var newId = 208;
     var findId = 240;
     var archiveId = 242;
@@ -293,15 +294,16 @@ exports.gc = (function () {
     $.get("http://"+location.host+"/graffiti/"+newId, function (newButton) {
       $.get("http://"+location.host+"/graffiti/"+findId, function (openButton) {
         $.get("http://"+location.host+"/graffiti/"+archiveId, function (saveButton) {
-            showWorkspace()
-            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.newCode()' title='New' href='#'>"+newButton+"</a>")
-            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.showArchive()' title='Browse' href='#'>"+openButton+"</a>")
-            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postPiece()' title='Save' href='#'>"+saveButton+"</a>")
+            showWorkspace();
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.newCode()' title='New' href='#'>"+newButton+"</a>");
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.showArchive()' title='Browse' href='#'>"+openButton+"</a>");
+            $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postPiece()' title='Save' href='#'>"+saveButton+"</a>");
+            var srcId = exports.pieces[0];  // Display the last piece
             $.get("http://"+location.host+"/code/"+srcId, function (data) {
-              updateSrc(data[0].id, data[0].src)
-            })
-        })
-      })
+              updateSrc(data[0].id, data[0].src);
+            });
+        });
+      });
     });
   }
 
