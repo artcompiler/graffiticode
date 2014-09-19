@@ -91,7 +91,7 @@ app.get('/', function(req, res) {
 app.get('/draw', function (req, res) {
   fs.readFile('views/draw.html', function (err, body) {
     res.render('layout.html', { 
-      title: 'Graffiti Code | DRAW',
+      title: 'Graffiti Code',
       vocabulary: 'draw',
       target: 'SVG',
       login: 'Login',
