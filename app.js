@@ -91,7 +91,25 @@ app.get('/', function(req, res) {
 app.get('/draw', function (req, res) {
   fs.readFile('views/draw.html', function (err, body) {
     res.render('layout.html', { 
-      title: 'Graffiti Code',
+      title: 'Graffiti Code | DRAW',
+      vocabulary: 'draw',
+      target: 'SVG',
+      login: 'Login',
+      body: body,
+    }, function (error, html) {
+      if (error) {
+        res.send(400, error);
+      } else {
+        res.send(html);
+      }
+    });
+  });
+});
+
+app.get('/dr10', function (req, res) {
+  fs.readFile('views/dr10.html', function (err, body) {
+    res.render('layout.html', {
+      title: 'Graffiti Code | DR10',
       vocabulary: 'draw',
       target: 'SVG',
       login: 'Login',
