@@ -142,12 +142,11 @@ app.get('/math', function (req, res) {
   });
 });
 
-app.get('/bitzee', function(req, res) {
-  fs.readFile('views/bitzee.html', function(err, body) {
-    //  console.log("body="+body)
+app.get('/debug', function (req, res) {
+  fs.readFile('views/debug.html', function (err, body) {
     res.render('layout.html', { 
       title: 'Graffiti Code',
-      vocabulary: 'Triangle',
+      vocabulary: 'DEBUG',
       target: 'SVG',
       login: 'Login',
       body: body,
@@ -203,7 +202,13 @@ app.get('/graffiti/:id', function (req, res) {
 app.get('/pieces/:lang', function (req, res) {
   var lang = req.params.lang;
   pg.connect(conString, function (err, client) {
-    client.query("SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC", function (err, result) {
+    var queryString;
+    if (lang === "DEBUG") {
+      queryString = "SELECT id FROM pieces ORDER BY id DESC";
+    } else {
+      queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
+    }
+    client.query(queryString, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
