@@ -246,7 +246,6 @@ function compile(src, response) {
   if (false) {
     var objAst = transformer.transform(src);
     var obj = lastObj = renderer.render(objAst);
-    console.log("compile() obj=" + obj);
     response.send(obj);
   }
 
@@ -256,7 +255,6 @@ function compile(src, response) {
     "src": src,
   };
   var encodedData = JSON.stringify(data);
-  console.log("compile() encodedData=" + encodedData);
   var options = {
     host: 'api.artcompiler.com',
     path: '/compile/' + 'L32',
@@ -273,8 +271,7 @@ function compile(src, response) {
       data += chunk;
     });
     res.on('end', function () {
-      obj = data; //JSON.parse(data).obj;
-      console.log("compile() obj=" + obj);
+      obj = lastObj = data;
       response.send(obj);
     });
   });
