@@ -20,6 +20,7 @@ exports.gc = (function () {
       data: {"ast": ast, "type": exports.lexiconType},
       dataType: "text",
       success: function(data) {
+        console.log("compileCode() data=" + data);
         updateGraffito(data, src, ast);
         updateObj(data);
       },

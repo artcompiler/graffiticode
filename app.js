@@ -242,14 +242,54 @@ app.get('/code', function (req, res) {
 
 var lastObj;
 
+function compile(src, response) {
+  if (false) {
+    var objAst = transformer.transform(src);
+    var obj = lastObj = renderer.render(objAst);
+    console.log("compile() obj=" + obj);
+    response.send(obj);
+  }
+
+  var data = {
+    "description": "graffiticode",
+    "language": "L32",
+    "src": src,
+  };
+  var encodedData = JSON.stringify(data);
+  console.log("compile() encodedData=" + encodedData);
+  var options = {
+    host: 'api.artcompiler.com',
+    path: '/compile/' + 'L32',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'text/plain',
+      'Content-Length': encodedData.length
+    },
+  };
+  var obj = null;
+  var req = http.request(options, function(res) {
+    var data = "";
+    res.on('data', function (chunk) {
+      data += chunk;
+    });
+    res.on('end', function () {
+      obj = data; //JSON.parse(data).obj;
+      console.log("compile() obj=" + obj);
+      response.send(obj);
+    });
+  });
+  req.write(encodedData);
+  req.end();
+  req.on('error', function(e) {
+    console.log(e);
+    response.send(e);
+  });
+}
+
 // Compile code (idempotent)
 app.put('/code', function (req, res) {
-  var srcAst = JSON.parse(req.body.ast);
-  var type = req.body.type;
-  // Switch compilers
-  var objAst = transformer.transform(srcAst);
-  var obj = lastObj = renderer.render(objAst);
-  res.send(obj);
+  var src = JSON.parse(req.body.ast);
+  compile(src, res);
 });
 
 // Commit and return commit id
