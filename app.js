@@ -271,8 +271,8 @@ function compile(src, response) {
       data += chunk;
     });
     res.on('end', function () {
-      obj = lastObj = data;
-      response.send(obj);
+      lastObj = data;
+      response.send("success!");
     });
   });
   req.write(encodedData);
@@ -441,7 +441,6 @@ function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
   res.redirect('/login')
 }
-
 
 if (!module.parent) {
   var port = process.env.PORT || 3000;
