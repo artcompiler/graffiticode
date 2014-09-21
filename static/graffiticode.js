@@ -17,7 +17,11 @@ exports.gc = (function () {
     $.ajax({
       type: "PUT",
       url: "/code",
-      data: {"ast": ast, "type": exports.lexiconType},
+      data: {
+        "ast": ast,
+        "type": exports.lexiconType,
+        "language": exports.language,
+      },
       dataType: "text",
       success: function(data) {
         console.log("compileCode() data=" + data);

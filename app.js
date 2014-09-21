@@ -124,6 +124,24 @@ app.get('/dr10', function (req, res) {
   });
 });
 
+app.get('/L101', function (req, res) {
+  fs.readFile('views/L101.html', function (err, body) {
+    res.render('layout.html', { 
+      title: 'Graffiti Code',
+      vocabulary: 'L101',
+      target: 'SVG',
+      login: 'Login',
+      body: body,
+    }, function (error, html) {
+      if (error) {
+        res.send(400, error);
+      } else {
+        res.send(html);
+      }
+    });
+  });
+});
+
 app.get('/math', function (req, res) {
   fs.readFile('views/math.html', function (err, body) {
     res.render('layout.html', { 
@@ -242,24 +260,22 @@ app.get('/code', function (req, res) {
 
 var lastObj;
 
-function compile(src, response) {
-  if (false) {
-    var objAst = transformer.transform(src);
-    var obj = lastObj = renderer.render(objAst);
-    response.send(obj);
+function compile(language, src, response) {
+  if (language === "DRAW" || language === "DR10") {
+    // Hanldle legacy case
+    language = "L30";
   }
-
   var data = {
     "description": "graffiticode",
-    "language": "L32",
+    "language": language,
     "src": src,
   };
   var encodedData = JSON.stringify(data);
   var options = {
-    //host: 'localhost',
-    //port: '5000',
-    host: 'api.artcompiler.com',
-    path: '/compile/' + 'L30',
+    host: 'localhost',
+    port: '5000',
+    //host: 'api.artcompiler.com',
+    path: '/compile/' + language,
     method: 'GET',
     headers: {
       'Content-Type': 'text/plain',
@@ -274,7 +290,7 @@ function compile(src, response) {
     });
     res.on('end', function () {
       lastObj = data;
-      response.send("success!");
+      response.send(data);
     });
   });
   req.write(encodedData);
@@ -287,8 +303,10 @@ function compile(src, response) {
 
 // Compile code (idempotent)
 app.put('/code', function (req, res) {
-  var src = JSON.parse(req.body.ast);
-  compile(src, res);
+  var ast = req.body.ast;
+  var language = req.body.language;
+  var src = JSON.parse(ast);
+  compile(language, src, res);
 });
 
 // Commit and return commit id
