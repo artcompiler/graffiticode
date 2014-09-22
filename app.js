@@ -294,8 +294,10 @@ function compile(language, src, response) {
   });
 }
 
-// Compile code
-app.get('/compile', function (req, res) {
+// Compile code (idempotent)
+app.put('/code', function (req, res) {
+// Compile code (idempotent)
+app.put('/compile', function (req, res) {
   var ast = req.body.ast;
   var language = req.body.language;
   var src = JSON.parse(ast);

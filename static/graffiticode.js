@@ -15,7 +15,7 @@ exports.gc = (function () {
     }
     var src = editor.getValue();
     $.ajax({
-      type: "GET",
+      type: "PUT",
       url: "/compile",
       data: {
         "ast": ast,
