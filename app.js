@@ -181,22 +181,18 @@ app.get('/debug', function (req, res) {
 // get the piece with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
-  if (+id === 0) {
-    res.send(lastObj);
-  } else {
-    pg.connect(conString, function (err, client) {
-      client.query("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
-        var rows;
-        if (!result || result.rows.length===0) {
-          rows = [{}];
-        } else {
-          rows = result.rows;
-        }
-        res.send(rows);
-      });
-      client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
+      var rows;
+      if (!result || result.rows.length===0) {
+        rows = [{}];
+      } else {
+        rows = result.rows;
+      }
+      res.send(rows);
     });
-  }
+    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+  });
 });
 
 // get the object code for piece with :id
@@ -258,8 +254,6 @@ app.get('/code', function (req, res) {
   });
 });
 
-var lastObj;
-
 function compile(language, src, response) {
   if (language === "DRAW" || language === "DR10") {
     // Hanldle legacy case
@@ -289,7 +283,6 @@ function compile(language, src, response) {
       data += chunk;
     });
     res.on('end', function () {
-      lastObj = data;
       response.send(data);
     });
   });
@@ -301,8 +294,8 @@ function compile(language, src, response) {
   });
 }
 
-// Compile code (idempotent)
-app.put('/code', function (req, res) {
+// Compile code
+app.get('/compile', function (req, res) {
   var ast = req.body.ast;
   var language = req.body.language;
   var src = JSON.parse(ast);

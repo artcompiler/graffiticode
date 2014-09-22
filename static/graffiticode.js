@@ -15,8 +15,8 @@ exports.gc = (function () {
     }
     var src = editor.getValue();
     $.ajax({
-      type: "PUT",
-      url: "/code",
+      type: "GET",
+      url: "/compile",
       data: {
         "ast": ast,
         "type": exports.lexiconType,
@@ -215,8 +215,6 @@ exports.gc = (function () {
   }
 
   function updateGraffito(obj, src, pool) {
-    //$("#graff-view").html("<div " +
-    //     "scrolling:no " + "src='http://" + location.host + "/code/0'/>");
     $("#graff-view").html("<div " +
          "scrolling:no>" + obj + "</div>");
     $("#graff-view div")
