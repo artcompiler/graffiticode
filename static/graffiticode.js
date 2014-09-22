@@ -215,14 +215,16 @@ exports.gc = (function () {
   }
 
   function updateGraffito(obj, src, pool) {
-    $("#graff-view").html("<iframe " +
-         "scrolling:no " + "src='http://" + location.host + "/code/0'/>");
-    $("#graff-view iframe")
+    //$("#graff-view").html("<div " +
+    //     "scrolling:no " + "src='http://" + location.host + "/code/0'/>");
+    $("#graff-view").html("<div " +
+         "scrolling:no>" + obj + "</div>");
+    $("#graff-view div")
       .load(function() {
         var width = $(this).contents().width();
         var height = $(this).contents().height();
-        $("#graff-view iframe").css("height", height + "px");
-        $("#graff-view iframe").css("width", width + "px");
+        $("#graff-view div").css("height", height + "px");
+        $("#graff-view div").css("width", width + "px");
       });
     exports.src = src;
     exports.pool = pool;

@@ -199,7 +199,7 @@ app.get('/code/:id', function (req, res) {
   }
 });
 
-// get the piece with :id
+// get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
   pg.connect(conString, function (err, client) {
