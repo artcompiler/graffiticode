@@ -255,8 +255,10 @@ app.get('/code', function (req, res) {
 });
 
 function compile(language, src, response) {
-  if (language === "DRAW" || language === "DR10") {
-    // Hanldle legacy case
+  if (language === "DRAW" ||
+      language === "DR10" ||
+      language === "DEBUG") {
+    // Handle legacy case
     language = "L30";
   }
   var data = {

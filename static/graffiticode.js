@@ -24,7 +24,6 @@ exports.gc = (function () {
       },
       dataType: "text",
       success: function(data) {
-        console.log("compileCode() data=" + data);
         updateGraffito(data, src, ast);
         updateObj(data);
       },
@@ -305,7 +304,6 @@ exports.gc = (function () {
           $(".button-bar").append("<a class='button-bar-button' onclick='exports.gc.postPiece()' title='Save' href='#'>"+saveButton+"</a>");
           var srcId = exports.pieces[0];  // Display the last piece
           srcId = srcId ? srcId : 627;
-          console.log("start() srcId=" + srcId + " pieces=" + exports.pieces);
           $.get("http://"+location.host+"/code/"+srcId, function (data) {
             updateSrc(data[0].id, data[0].src);
           });
