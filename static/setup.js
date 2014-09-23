@@ -46,7 +46,7 @@
 	    })
 
 // For local testing only 	    
-//	    editor.setOption("readOnly", false);
+	    editor.setOption("readOnly", false);
 
 	    exports.gc.start()
 	})

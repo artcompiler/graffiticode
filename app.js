@@ -142,6 +142,24 @@ app.get('/L101', function (req, res) {
   });
 });
 
+app.get('/L102', function (req, res) {
+  fs.readFile('views/L102.html', function (err, body) {
+    res.render('layout.html', { 
+      title: 'Graffiti Code',
+      vocabulary: 'L102',
+      target: 'SVG',
+      login: 'Login',
+      body: body,
+    }, function (error, html) {
+      if (error) {
+        res.send(400, error);
+      } else {
+        res.send(html);
+      }
+    });
+  });
+});
+
 app.get('/math', function (req, res) {
   fs.readFile('views/math.html', function (err, body) {
     res.render('layout.html', { 
@@ -259,7 +277,7 @@ function compile(language, src, response) {
       language === "DR10" ||
       language === "DEBUG") {
     // Handle legacy case
-    language = "L30";
+    language = "L100";
   }
   var data = {
     "description": "graffiticode",
@@ -268,9 +286,9 @@ function compile(language, src, response) {
   };
   var encodedData = JSON.stringify(data);
   var options = {
-//    host: 'localhost',
-//    port: '5000',
-    host: 'api.artcompiler.com',
+    host: 'localhost',
+    port: '5000',
+//    host: 'api.artcompiler.com',
     path: '/compile/' + language,
     method: 'GET',
     headers: {
@@ -291,7 +309,7 @@ function compile(language, src, response) {
   req.write(encodedData);
   req.end();
   req.on('error', function(e) {
-    console.log(e);
+    console.log("ERR01 " + e);
     response.send(e);
   });
 }
@@ -387,7 +405,7 @@ app.post('/gist', function (req, resPost) {
     gistReq.write(gistDataEncoded);
     gistReq.end();
     gistReq.on('error', function(e) {
-      res.send(e);
+      res.send("ERR02 " + e);
     });
   }
 });
