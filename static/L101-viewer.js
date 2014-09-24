@@ -64,7 +64,7 @@ exports.viewer = (function () {
       }
     }
 
-    $("#graff-view").html('<svg width="640" height="360"/>');
+    $("#graff-view").html('<svg width="640" height="360" style="top:20; left:20"/>');
     var svg = d3.select("#graff-view svg");
     var circle = svg.selectAll("circle")
       .data(data);
