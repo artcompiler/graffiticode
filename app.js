@@ -273,11 +273,12 @@ app.get('/code', function (req, res) {
 });
 
 function compile(language, src, response) {
+  // Handle legacy case
   if (language === "DRAW" ||
-      language === "DR10" ||
       language === "DEBUG") {
-    // Handle legacy case
     language = "L100";
+  } else if (language === "DR10") {
+    language = "L101";
   }
   var data = {
     "description": "graffiticode",
