@@ -39,6 +39,7 @@ exports.gc = (function () {
     if (exports.parent === exports.id) {
       return;
     }
+    var svg = exports.viewer.capture();
     var user = $("#username").data("user");
     var src = exports.src;
     var pool = exports.pool;
@@ -51,7 +52,7 @@ exports.gc = (function () {
       data: {
         src: src,
         ast: pool,
-        obj: obj,
+        obj: svg,  // obj,
         user: user ? user.id : 1,
         parent: parent,
         language: language,
@@ -214,22 +215,7 @@ exports.gc = (function () {
   }
 
   function updateGraffito(obj, src, pool) {
-    $("#graff-view").html("<div " +
-         "scrolling:no>" + obj + "</div>");
-    $("#graff-view div")
-      .load(function() {
-        var width = $(this).contents().width();
-        var height = $(this).contents().height();
-        $("#graff-view div").css("height", height + "px");
-        $("#graff-view div").css("width", width + "px");
-      });
-    exports.src = src;
-    exports.pool = pool;
-    exports.obj = obj;
-    if (exports.lexiconType === "math") {
-      exports.obj = "\$\$" + obj + "\$\$"
-    }
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub, "graff-view"]);
+    return exports.viewer.update(obj, src, pool);
   }
 
   function clickThumbnail(e, id) {

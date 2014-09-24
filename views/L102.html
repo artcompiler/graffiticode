@@ -6,6 +6,32 @@
   <link rel="stylesheet" href="codemirror-theme.css">
   <style>
   </style>
+<style>
+svg {
+    overflow: hidden;
+}
+
+.node rect {
+    stroke: #333;
+    stroke-width: 1.5px;
+    fill: #fff;
+}
+
+.edgeLabel rect {
+    fill: #fff;
+}
+
+.edgePath {
+    stroke: #333;
+    stroke-width: 1.5px;
+    fill: none;
+}
+text {
+  font-weight: 300;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+  font-size: 11px;
+}
+</style>
   <title><%=title%></title>
 </head>
 <body>
@@ -29,8 +55,11 @@ exports = {
   </script>
   <script src="underscore.js"></script>
   <script src="jquery.js"></script>
+  <script src="d3.v3.js"></script>
+  <script src="dagre-d3.js"></script></body>
   <script src="setup.js"></script>
   <script src="L102-lexicon.js"></script>
+  <script src="L102-viewer.js"></script>
   <script src="graffiticode.js"></script>
   <script src="parse.js"></script>
   <script src="codemirror.js"></script>
@@ -38,5 +67,4 @@ exports = {
   <script src="mode-graffiti.js"></script>
   <script src="mode-xml.js"></script>
   <script src="mode-javascript.js"></script>
-</body>
 </html>
