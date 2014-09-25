@@ -220,6 +220,23 @@ app.get('/graffiti/:id', function (req, res) {
   });
 });
 
+// get the object code for piece with :id
+app.get('/graffiti/dr10/latest', function (req, res) {
+  var id = req.params.id;
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT = 1" + id, function (err, result) {
+      var ret;
+      if (!result || result.rows.length === 0) {
+        ret = "";
+      } else {
+        ret = result.rows[0].obj;
+      }
+      res.send(ret);
+    });
+    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+  });
+});
+
 // get list of piece ids
 app.get('/pieces/:lang', function (req, res) {
   var lang = req.params.lang;
