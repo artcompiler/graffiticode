@@ -5,18 +5,7 @@
 exports.viewer = (function () {
 
   function update(obj, src, pool) {
-    console.log("obj=" + obj);
-/*
-    $("#graff-view").html("<div " +
-         "scrolling:no>" + obj + "</div>");
-    $("#graff-view div")
-      .load(function() {
-        var width = $(this).contents().width();
-        var height = $(this).contents().height();
-        $("#graff-view div").css("height", height + "px");
-        $("#graff-view div").css("width", width + "px");
-      });
-*/
+
     exports.src = src;
     exports.pool = pool;
     exports.obj = obj;
@@ -38,7 +27,7 @@ exports.viewer = (function () {
     }
     
     $("#graff-view").html(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="650" height="680">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="10000" height="10000">' +
         '<defs>' +
         '<style>' +
         'svg {' +
@@ -72,39 +61,16 @@ exports.viewer = (function () {
     );
 
     var renderer = new dagreD3.Renderer();
+    renderer.zoom(false);
     renderer.run(g, d3.select("#graff-view svg g"));
 
-  }
+    var bbox = $("#graff-view svg g")[0].getBBox();
+    $("#graff-view svg").attr("height", (bbox.height + 40) + "px");
+    $("#graff-view svg").attr("width", (bbox.width + 40) + "px");
 
-  function capture() {
-
-    // My SVG file as s string.
-    var mySVG = $("#graff-view").html();
-/*
-    // Create a Data URI.
-//    var mySrc = 'data:image/svg+xml;base64,'+window.btoa(mySVG);
-    // Load up our image.
-    var source = new Image();
-    source.src = "data:image/svg+xml;base64,"+window.btoa(mySVG);
-
-    // Set up our canvas on the page before doing anything.
-    var myCanvas = document.createElement('canvas');
-    myCanvas.width = 640;
-    myCanvas.height = 480;
-    document.getElementById('graff-view').appendChild(myCanvas);
-    // Get drawing context for the Canvas
-    var myCanvasContext = myCanvas.getContext('2d');
-    // Load up our image.
-    // Render our SVG image to the canvas once it loads.
-    source.onload = function(){
-      myCanvasContext.drawImage(source,0,0);
-    }
-*/
-    return mySVG;
   }
 
   return {
     update: update,
-    capture: capture,
   };
 })();

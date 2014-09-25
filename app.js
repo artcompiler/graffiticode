@@ -316,6 +316,7 @@ function compile(language, src, response) {
       data += chunk;
     });
     res.on('end', function () {
+      console.log("compile() data=" + data);
       response.send(data);
     });
   });

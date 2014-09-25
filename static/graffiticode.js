@@ -33,13 +33,39 @@ exports.gc = (function () {
     });
   }
 
+  function capture() {
+
+    // My SVG file as s string.
+    var mySVG = $("#graff-view").html();
+    // Create a Data URI.
+    // Load up our image.
+
+    // Set up our canvas on the page before doing anything.
+    var old = document.getElementById('graff-view').children[0];
+    var myCanvas = document.createElement('canvas');
+    var bbox = $("#graff-view svg")[0].getBBox();
+    myCanvas.width = bbox.width;
+    myCanvas.height = bbox.height;
+
+    document.getElementById('graff-view').replaceChild(myCanvas, old);
+    // Get drawing context for the Canvas
+    var myCanvasContext = myCanvas.getContext('2d');
+    // Load up our image.
+    // Render our SVG image to the canvas once it loads.
+    var source = new Image();
+    source.src = "data:image/svg+xml,"+mySVG;
+    myCanvasContext.drawImage(source,0,0);
+    var dataURL = myCanvas.toDataURL();
+    return '<html><img class="thumbnail" src="' + dataURL + '"/></html>';
+  }
+
   // {src, obj} -> {id}
   function postPiece(next) {
     // if there are no changes then don't post
     if (exports.parent === exports.id) {
       return;
     }
-    var img = exports.viewer.capture();
+    var img = capture();
     var user = $("#username").data("user");
     var src = exports.src;
     var pool = exports.pool;
