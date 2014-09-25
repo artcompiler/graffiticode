@@ -4,6 +4,7 @@
 
 exports.viewer = (function () {
 
+  var STEP = 5; // Relative size of each step.
   var CENTER_X = 320;
   var CENTER_Y = 180;
   var RADIUS = 100;
@@ -102,18 +103,18 @@ exports.viewer = (function () {
           offset += delta;  // Each lstep is equal to rstep plus delta.
           stepOneLeft(dirL);
           stepOneRight(dirR);
-          lsteps--;
-          rsteps--;
+          lsteps -= STEP;
+          rsteps -= STEP;
           ink(args);
-          for(; offset >= 1; offset--) {  // 3 * 0 | 3 * 1
+          for(; offset >= 1; offset -= STEP) {  // 3 * 0 | 3 * 1
             stepOneLeft(dirL);
-            lsteps--;
+            lsteps -= STEP;
             ink(args);
           }
         }
       }
       // rsteps === 0. only lsteps left
-      for(; lsteps > 0; lsteps--) {  // 3 * 0 | 3 * 1
+      for(; lsteps > 0; lsteps -= STEP) {  // 3 * 0 | 3 * 1
         stepOneLeft(dirL);
         ink(args);
       }
@@ -124,18 +125,18 @@ exports.viewer = (function () {
           offset += delta;
           stepOneLeft(dirL);
           stepOneRight(dirR);
-          lsteps--;
-          rsteps--;
+          lsteps -= STEP;
+          rsteps -= STEP;
           ink(args);
           for(; offset >= 1; offset--) {  // 3 * 0 | 3 * 1
             stepOneRight(dirR);
-            rsteps--;
+            rsteps -= STEP;
             ink(args);
           }
         }
       }
       // lsteps === 0. only rsteps left
-      for(; rsteps > 0; rsteps--) {  // 3 * 0 | 3 * 1
+      for(; rsteps > 0; rsteps -= STEP) {  // 3 * 0 | 3 * 1
         stepOneRight(dirR);
         ink(args);
       }
@@ -149,7 +150,7 @@ exports.viewer = (function () {
           "cx": penX,
           "cy": penY,
           "r": 2,
-          "fill": "rgba(0,100,200,.1)",
+          "fill": "rgba(0,100,200,.5)",
           "stroke": "rgba(0,0,0,0)",
         });
       }
@@ -159,14 +160,14 @@ exports.viewer = (function () {
           "cx": leftX,
           "cy": leftY,
           "r": .5,
-          "fill": "rgba(255,0,0,.1)",
+          "fill": "rgba(255,0,0,.2)",
           "stroke": "rgba(0,0,0,0)",
         }, {
           "tag": "ellipse",
           "cx": rightX,
           "cy": rightY,
           "r": .5,
-          "fill": "rgba(0,255,0,.1)",
+          "fill": "rgba(0,255,0,.2)",
           "stroke": "rgba(0,0,0,0)",
         });
       }
@@ -174,7 +175,7 @@ exports.viewer = (function () {
   }
 
   function stepOneLeft(dir) {
-    angle -= dir * STEP_LENGTH / RADIUS;
+    angle -= STEP * dir * STEP_LENGTH / RADIUS;
     var dx = RADIUS * Math.cos(angle);
     var dy = RADIUS * Math.sin(angle);
     leftX = rightX + dx;
@@ -184,7 +185,7 @@ exports.viewer = (function () {
   }
 
   function stepOneRight(dir) {
-    angle += dir * STEP_LENGTH / RADIUS;
+    angle += STEP * dir * STEP_LENGTH / RADIUS;
     var dx = RADIUS * Math.cos(Math.PI + angle);
     var dy = RADIUS * Math.sin(Math.PI + angle);
     rightX = leftX + dx;
