@@ -224,17 +224,19 @@ app.get('/graffiti/:id', function (req, res) {
 // get the object code for piece with :id
 app.get('/graffiti/dr10/latest', function (req, res) {
   pg.connect(conString, function (err, client) {
-    client.query("SELECT obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1", function (err, result) {
+    var id, obj;
+    client.query("SELECT id, obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1", function (err, result) {
       var ret;
       if (!result || result.rows.length === 0) {
-        ret = "";
+        obj = "";
       } else {
-        ret = result.rows[0].obj;
+        obj = result.rows[0].obj;
+        id = result.rows[0].id;
       }
-      console.log("GET /graffiti/dr10/latest ret=" + ret);
+      console.log("GET /graffiti/dr10/latest obj=" + obj);
       res.send(ret);
     });
-    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+    client.query("UPDATE pieces SET views = views + 1 WHERE id = " + id);
   });
 });
 
