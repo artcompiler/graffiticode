@@ -4,7 +4,6 @@
 
 exports.viewer = (function () {
 
-  var STEP = 5; // Relative size of each step.
   var CENTER_X = 320;
   var CENTER_Y = 180;
   var RADIUS = 100;
@@ -14,6 +13,10 @@ exports.viewer = (function () {
   var penX = 0, penY = 0;
   var penState = true;
   var trackState = false;
+  var lastInkX = Number.MAX_VALUE, lastInkY = Number.MAX_VALUE, needsInk = true;
+  var INK_RADIUS = 2;
+  var INK_DISTANCE = INK_RADIUS / 2;
+  var INK_OPACITY = 0.4;
 
   function reset() {
     angle = 0;
@@ -103,18 +106,18 @@ exports.viewer = (function () {
           offset += delta;  // Each lstep is equal to rstep plus delta.
           stepOneLeft(dirL);
           stepOneRight(dirR);
-          lsteps -= STEP;
-          rsteps -= STEP;
+          lsteps--;
+          rsteps--;
           ink(args);
-          for(; offset >= 1; offset -= STEP) {  // 3 * 0 | 3 * 1
+          for(; offset >= 1; offset--) {  // 3 * 0 | 3 * 1
             stepOneLeft(dirL);
-            lsteps -= STEP;
+            lsteps--;
             ink(args);
           }
         }
       }
       // rsteps === 0. only lsteps left
-      for(; lsteps > 0; lsteps -= STEP) {  // 3 * 0 | 3 * 1
+      for(; lsteps > 0; lsteps--) {  // 3 * 0 | 3 * 1
         stepOneLeft(dirL);
         ink(args);
       }
@@ -125,32 +128,46 @@ exports.viewer = (function () {
           offset += delta;
           stepOneLeft(dirL);
           stepOneRight(dirR);
-          lsteps -= STEP;
-          rsteps -= STEP;
+          lsteps--;
+          rsteps--;
           ink(args);
           for(; offset >= 1; offset--) {  // 3 * 0 | 3 * 1
             stepOneRight(dirR);
-            rsteps -= STEP;
+            rsteps--;
             ink(args);
           }
         }
       }
       // lsteps === 0. only rsteps left
-      for(; rsteps > 0; rsteps -= STEP) {  // 3 * 0 | 3 * 1
+      for(; rsteps > 0; rsteps--) {  // 3 * 0 | 3 * 1
         stepOneRight(dirR);
         ink(args);
       }
     }
     return args;
 
+    function checkInk() {
+      var dx = penX - lastInkX;
+      var dy = penY - lastInkY;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d > INK_DISTANCE) {
+        needsInk = true;
+        lastInkX = penX;
+        lastInkY = penY;
+      } else {
+        needsInk = false;
+      }
+    }
+
     function ink(args) {
-      if (penState) {
+      checkInk();
+      if (penState && needsInk) {
         args.push({
           "tag": "ellipse",
           "cx": penX,
           "cy": penY,
-          "r": 2,
-          "fill": "rgba(0,100,200,.5)",
+          "r": INK_RADIUS,
+          "fill": "rgba(0,100,200," + INK_OPACITY + ")",
           "stroke": "rgba(0,0,0,0)",
         });
       }
@@ -175,7 +192,7 @@ exports.viewer = (function () {
   }
 
   function stepOneLeft(dir) {
-    angle -= STEP * dir * STEP_LENGTH / RADIUS;
+    angle -= dir * STEP_LENGTH / RADIUS;
     var dx = RADIUS * Math.cos(angle);
     var dy = RADIUS * Math.sin(angle);
     leftX = rightX + dx;
@@ -185,7 +202,7 @@ exports.viewer = (function () {
   }
 
   function stepOneRight(dir) {
-    angle += STEP * dir * STEP_LENGTH / RADIUS;
+    angle += dir * STEP_LENGTH / RADIUS;
     var dx = RADIUS * Math.cos(Math.PI + angle);
     var dy = RADIUS * Math.sin(Math.PI + angle);
     rightX = leftX + dx;
