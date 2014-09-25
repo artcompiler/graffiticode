@@ -4,6 +4,8 @@
 
 exports.viewer = (function () {
 
+  var CENTER_X = 320;
+  var CENTER_Y = 180;
   var RADIUS = 100;
   var STEP_LENGTH = .1745;
   var leftX = 0, leftY = 0, rightX = 0, rightY = 0;
@@ -14,10 +16,10 @@ exports.viewer = (function () {
 
   function reset() {
     angle = 0;
-    leftX = RADIUS/2;
-    leftY = 0;
-    rightX = -RADIUS/2;
-    rightY = 0;
+    leftX = CENTER_X + RADIUS/2;
+    leftY = CENTER_Y;
+    rightX = CENTER_X - RADIUS/2;
+    rightY = CENTER_Y;
     penX = 0;
     penY = 0;
     penState = false;
@@ -64,7 +66,7 @@ exports.viewer = (function () {
       }
     }
 
-    $("#graff-view").html('<svg width="640" height="360" style="top:20; left:20"/>');
+    $("#graff-view").html('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360">');
     var svg = d3.select("#graff-view svg");
     var circle = svg.selectAll("circle")
       .data(data);
@@ -207,27 +209,25 @@ exports.viewer = (function () {
 
     // My SVG file as s string.
     var mySVG = $("#graff-view").html();
-/*
     // Create a Data URI.
-//    var mySrc = 'data:image/svg+xml;base64,'+window.btoa(mySVG);
     // Load up our image.
-    var source = new Image();
-    source.src = "data:image/svg+xml;base64,"+window.btoa(mySVG);
 
     // Set up our canvas on the page before doing anything.
+    var old = document.getElementById('graff-view').children[0];
     var myCanvas = document.createElement('canvas');
     myCanvas.width = 640;
-    myCanvas.height = 480;
-    document.getElementById('graff-view').appendChild(myCanvas);
+    myCanvas.height = 360;
+
+    document.getElementById('graff-view').replaceChild(myCanvas, old);
     // Get drawing context for the Canvas
     var myCanvasContext = myCanvas.getContext('2d');
     // Load up our image.
     // Render our SVG image to the canvas once it loads.
-    source.onload = function(){
-      myCanvasContext.drawImage(source,0,0);
-    }
-*/
-    return mySVG;
+    var source = new Image();
+    source.src = "data:image/svg+xml,"+mySVG;
+    myCanvasContext.drawImage(source,0,0);
+    var dataURL = myCanvas.toDataURL();
+    return '<html><img class="thumbnail" src="' + dataURL + '"/></html>';
   }
 
   return {

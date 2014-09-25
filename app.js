@@ -107,21 +107,7 @@ app.get('/draw', function (req, res) {
 });
 
 app.get('/dr10', function (req, res) {
-  fs.readFile('views/dr10.html', function (err, body) {
-    res.render('layout.html', { 
-      title: 'Graffiti Code',
-      vocabulary: 'DR10',
-      target: 'SVG',
-      login: 'Login',
-      body: body,
-    }, function (error, html) {
-      if (error) {
-        res.send(400, error);
-      } else {
-        res.send(html);
-      }
-    });
-  });
+  res.send("<html>This URL has been decprecated. Try '/L101'");
 });
 
 app.get('/L101', function (req, res) {
@@ -217,12 +203,16 @@ app.get('/code/:id', function (req, res) {
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
   pg.connect(conString, function (err, client) {
-    client.query("SELECT obj FROM pieces WHERE id=" + id, function (err, result) {
+    client.query("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
       var ret;
       if (!result || result.rows.length === 0) {
         ret = "";
       } else {
-        ret = result.rows[0].obj;
+        ret = result.rows[0].img;
+        if (!ret) {
+          // For backward compatibility
+          ret = result.rows[0].obj;
+        }
       }
       res.send(ret);
     });
@@ -330,6 +320,7 @@ app.post('/code', function (req, res){
   var obj = req.body.obj;
   var user = req.body.user;
   var parent = req.body.parent;
+  var img = req.body.img;
   parent = parent ? parent : 1;
   user = user ?user : 1;
   commit();
@@ -340,10 +331,12 @@ app.post('/code', function (req, res){
       src = src.replace(new RegExp("\n","g"), "\\n");
       obj = obj.replace(new RegExp("\n","g"), " ");
       obj = obj.replace(new RegExp("'","g"), "\"");
+      img = img.replace(new RegExp("\n","g"), " ");
+      img = img.replace(new RegExp("'","g"), "\"");
       var queryStr = 
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language)" +
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, img)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
-        " ', '" + forks + "', now(), '" + src + "', '" + obj + "', '" + language + "');"
+        " ', '" + forks + "', now(), '" + src + "', '" + obj + "', '" + language + "', '" + img + "');"
       client.query(queryStr, function(err, result) {
         if (err) {
           res.send(400, err);

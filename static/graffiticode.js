@@ -39,7 +39,7 @@ exports.gc = (function () {
     if (exports.parent === exports.id) {
       return;
     }
-    var svg = exports.viewer.capture();
+    var img = exports.viewer.capture();
     var user = $("#username").data("user");
     var src = exports.src;
     var pool = exports.pool;
@@ -52,7 +52,8 @@ exports.gc = (function () {
       data: {
         src: src,
         ast: pool,
-        obj: svg,  // obj,
+        obj: obj,
+        img: img,
         user: user ? user.id : 1,
         parent: parent,
         language: language,
@@ -61,7 +62,7 @@ exports.gc = (function () {
       success: function(data) {
         exports.id = data.id
         exports.gist_id = data.gist_id
-        addPiece(data, src, obj, false)
+        addPiece(data, src, obj, img, false)
         if (next) {
           next()
         }
@@ -148,7 +149,7 @@ exports.gc = (function () {
       dataType: "json",
       success: function(data) {
         data = data[0]
-        addPiece(data, data.src, data.obj, false)
+        addPiece(data, data.src, data.obj, data.img, false)
       },
       error: function(xhr, msg, err) {
         console.log(msg+" "+err)
@@ -179,7 +180,7 @@ exports.gc = (function () {
         for (var i = 0; i < data.length; i++) {
           var d = data[i];
           exports.currentThumbnail = start + i;  // keep track of the current thumbnail in case of async
-          addPiece(d, d.src, d.obj, true);
+          addPiece(d, d.src, d.obj, d.img, true);
         }
       },
       error: function(xhr, msg, err) {
@@ -233,7 +234,7 @@ exports.gc = (function () {
     }
   }
 
-  function addPiece(data, src, obj, append) {
+  function addPiece(data, src, obj, img, append) {
     if (!data || !data.id) {
       return;
     }
@@ -242,8 +243,14 @@ exports.gc = (function () {
     // store info about piece in thumbnail object
     if (append) {
       $(".gallery-panel").append("<p><div class='piece' id='"+id+"'/>");
-      $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
-         "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
+      if (img) {
+//        $(".gallery-panel #" + id).append("<img class='thumbnail' " +
+//          "scrolling:no " + "src='" + img + "'/>");
+        $(".gallery-panel #" + id).append(img);
+      } else {
+        $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
+          "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
+      }
       $(".gallery-panel #" + id).append("<br><div class='label'/>");
       $(".gallery-panel #" + id + " iframe")
         .load(function() {
@@ -252,8 +259,12 @@ exports.gc = (function () {
         });
     } else {
       $(".gallery-panel").prepend("<div class='piece' id='"+id+"'/>");
-      $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
-         "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
+      if (img) {
+        $(".gallery-panel #" + id).append(img);
+      } else {
+        $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
+          "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
+      }
       $(".gallery-panel #" + id).append("<br><div class='label'/>");
       $(".gallery-panel #" + id + " iframe")
         .load(function() {
