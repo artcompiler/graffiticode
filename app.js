@@ -224,9 +224,8 @@ app.get('/graffiti/:id', function (req, res) {
 // get the object code for piece with :id
 app.get('/graffiti/dr10/latest', function (req, res) {
   console.log("GET /graffiti/dr10/latest");
-  var id = req.params.id;
   pg.connect(conString, function (err, client) {
-    client.query("SELECT id, obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1" + id, function (err, result) {
+    client.query("SELECT obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1", function (err, result) {
       var ret;
       if (!result || result.rows.length === 0) {
         ret = "";
