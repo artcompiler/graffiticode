@@ -234,7 +234,7 @@ app.get('/graffiti/dr10/latest', function (req, res) {
         id = result.rows[0].id;
       }
       console.log("GET /graffiti/dr10/latest obj=" + obj);
-      res.send(ret);
+      res.send(obj);
     });
     if (id) {
       client.query("UPDATE pieces SET views = views + 1 WHERE id = " + id);
