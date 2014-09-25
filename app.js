@@ -236,7 +236,9 @@ app.get('/graffiti/dr10/latest', function (req, res) {
       console.log("GET /graffiti/dr10/latest obj=" + obj);
       res.send(ret);
     });
-    client.query("UPDATE pieces SET views = views + 1 WHERE id = " + id);
+    if (id) {
+      client.query("UPDATE pieces SET views = views + 1 WHERE id = " + id);
+    }
   });
 });
 
