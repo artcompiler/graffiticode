@@ -177,14 +177,14 @@ exports.viewer = (function () {
           "cx": leftX,
           "cy": leftY,
           "r": .5,
-          "fill": "rgba(255,0,0,.2)",
+          "fill": "rgba(255,0,0,.1)",
           "stroke": "rgba(0,0,0,0)",
         }, {
           "tag": "ellipse",
           "cx": rightX,
           "cy": rightY,
           "r": .5,
-          "fill": "rgba(0,255,0,.2)",
+          "fill": "rgba(0,255,0,.1)",
           "stroke": "rgba(0,0,0,0)",
         });
       }
