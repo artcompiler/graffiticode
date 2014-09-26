@@ -48,6 +48,7 @@ exports.globalLexicon = {
 
     "print" : { "tk": 0x01, "cls": "function", "length": 1 },
 
+    "equiv-symbolic" : { "tk": 0x01, "name": "EQUIVSYM", "cls": "function", "length": 2 },
     "simplify" : { "tk": 0x01, "name": "SIMPLIFY", "cls": "function", "length": 1 },
     "expand" : { "tk": 0x01, "name": "EXPAND", "cls": "function", "length": 1 },
 
