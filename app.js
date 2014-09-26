@@ -299,9 +299,9 @@ function compile(language, src, response) {
   };
   var encodedData = JSON.stringify(data);
   var options = {
-    host: 'localhost',
-    port: '5000',
-//    host: 'api.artcompiler.com',
+//    host: 'localhost',
+//    port: '5000',
+    host: 'api.artcompiler.com',
     path: '/compile/' + language,
     method: 'GET',
     headers: {
