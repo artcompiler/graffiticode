@@ -14,9 +14,11 @@ exports.viewer = (function () {
     var g = new dagreD3.Digraph();
     
     obj = JSON.parse(obj);
+    var startNode, stopNode;
+    startNode = obj.start;
+    stopNode = obj.stop;
     if (obj.nodes) {
       obj.nodes.forEach(function (n) {
-        console.log("n=" + n);
         g.addNode(n, {label: n});
       });
     }
@@ -33,17 +35,20 @@ exports.viewer = (function () {
         'svg {' +
         '    overflow: hidden;' +
         '}' +
-        '' +
         '.node rect {' +
         '    stroke: #333;' +
         '    stroke-width: 1.5px;' +
         '    fill: #fff;' +
         '}' +
-        '' +
+        '#start rect {' +
+        '    fill: #0f0;' +
+        '}' +
+        '#stop rect {' +
+        '    fill: #f00;' +
+        '}' +
         '.edgeLabel rect {' +
         '    fill: #fff;' +
         '}' +
-        '' +
         '.edgePath {' +
         '    stroke: #333;' +
         '    stroke-width: 1.5px;' +
@@ -63,7 +68,12 @@ exports.viewer = (function () {
     var renderer = new dagreD3.Renderer();
     renderer.zoom(false);
     renderer.run(g, d3.select("#graff-view svg g"));
-
+    startNode.forEach(function(n) {
+      $(".node:contains('" + n + "')").attr("id", "start");
+    });
+    stopNode.forEach(function(n) {
+      $(".node:contains('" + n + "')").attr("id", "stop");
+    });
     var bbox = $("#graff-view svg g")[0].getBBox();
     $("#graff-view svg").attr("height", (bbox.height + 40) + "px");
     $("#graff-view svg").attr("width", (bbox.width + 40) + "px");
