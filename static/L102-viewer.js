@@ -69,10 +69,20 @@ exports.viewer = (function () {
     renderer.zoom(false);
     renderer.run(g, d3.select("#graff-view svg g"));
     startNode.forEach(function(n) {
-      $(".node:contains('" + n + "')").attr("id", "start");
+      var elts = d3.selectAll(".node");
+      elts.each(function (label, i) {
+        if (label === n) {
+          d3.select(this).attr("id", "start");
+        }
+      });
     });
     stopNode.forEach(function(n) {
-      $(".node:contains('" + n + "')").attr("id", "stop");
+      var elts = d3.selectAll(".node");
+      elts.each(function (label, i) {
+        if (label === n) {
+          d3.select(this).attr("id", "stop");
+        }
+      });
     });
     var bbox = $("#graff-view svg g")[0].getBBox();
     $("#graff-view svg").attr("height", (bbox.height + 40) + "px");
