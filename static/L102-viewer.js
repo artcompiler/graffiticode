@@ -41,10 +41,10 @@ exports.viewer = (function () {
         '    fill: #fff;' +
         '}' +
         '#start rect {' +
-        '    fill: #0f0;' +
+        '    fill: rgba(0,255,0,.3);' +
         '}' +
         '#stop rect {' +
-        '    fill: #f00;' +
+        '    fill: rgba(255,0,0,.3);' +
         '}' +
         '.edgeLabel rect {' +
         '    fill: #fff;' +
