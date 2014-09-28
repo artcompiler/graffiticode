@@ -14,7 +14,7 @@ exports.viewer = (function () {
   var penState = true;
   var trackState = false;
   var lastInkX = Number.MAX_VALUE, lastInkY = Number.MAX_VALUE, needsInk = true;
-  var INK_RADIUS = 2;
+  var INK_RADIUS = 1;
   var INK_DISTANCE = INK_RADIUS / 2;
   var INK_OPACITY = 0.4;
 
