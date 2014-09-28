@@ -6,16 +6,16 @@ exports.viewer = (function () {
 
   var CENTER_X = 320;
   var CENTER_Y = 180;
-  var RADIUS = 100;
-  var STEP_LENGTH = .1745;
+  var RADIUS = 100*4;
+  var STEP_LENGTH = .1745*4;
   var leftX = 0, leftY = 0, rightX = 0, rightY = 0;
   var angle = 0;
   var penX = 0, penY = 0;
   var penState = true;
   var trackState = false;
   var lastInkX = Number.MAX_VALUE, lastInkY = Number.MAX_VALUE, needsInk = true;
-  var INK_RADIUS = 1;
-  var INK_DISTANCE = INK_RADIUS / 2;
+  var INK_WEIGHT = 1;
+  var INK_DISTANCE = INK_WEIGHT / 2;
   var INK_OPACITY = 0.4;
 
   function reset() {
@@ -171,7 +171,7 @@ exports.viewer = (function () {
           "tag": "ellipse",
           "cx": penX,
           "cy": penY,
-          "r": INK_RADIUS,
+          "r": INK_WEIGHT,
           "fill": "rgba(0,100,200," + INK_OPACITY + ")",
           "stroke": "rgba(0,0,0,0)",
         });
