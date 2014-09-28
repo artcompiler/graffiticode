@@ -6,8 +6,9 @@ exports.viewer = (function () {
 
   var CENTER_X = 320;
   var CENTER_Y = 180;
-  var RADIUS = 100*4;
-  var STEP_LENGTH = .1745*4;
+  var SCALE = 2;
+  var RADIUS = 100*SCALE;
+  var STEP_LENGTH = .1745*SCALE;
   var leftX = 0, leftY = 0, rightX = 0, rightY = 0;
   var angle = 0;
   var penX = 0, penY = 0;
