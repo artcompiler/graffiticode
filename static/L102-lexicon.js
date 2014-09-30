@@ -87,4 +87,8 @@ exports.globalLexicon = {
     "ge" : { "tk": 0x0E, "name": "GE", "cls": "operator", "length": 0 },
 
     "deg" : { "tk": 0x0A, "cls": "operator", "length": 0 },
+
+    "select" : { "tk": 0x01, "name": "SELECT", "cls": "function", "length": 2 },
+    "select-all" : { "tk": 0x01, "name": "SELECTALL", "cls": "function", "length": 2 },
+    "nth-child" : { "tk": 0x01, "name": "NTH-CHILD", "cls": "function", "length": 1 },
 }
