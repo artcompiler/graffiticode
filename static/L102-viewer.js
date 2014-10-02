@@ -19,7 +19,7 @@ exports.viewer = (function () {
     stopNode = obj.stop;
     if (obj.nodes) {
       obj.nodes.forEach(function (n) {
-        g.addNode(n, {label: n});
+        g.addNode(n.id, {label: n.label});
       });
     }
     if (obj.edges) {
@@ -29,40 +29,9 @@ exports.viewer = (function () {
     }
     
     $("#graff-view").html(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="10000" height="10000">' +
-        '<defs>' +
-        '<style>' +
-        'svg {' +
-        '    overflow: hidden;' +
-        '}' +
-        '.node rect {' +
-        '    stroke: #333;' +
-        '    stroke-width: 1.5px;' +
-        '    fill: #fff;' +
-        '}' +
-        '#start rect {' +
-        '    fill: rgba(0,255,0,.3);' +
-        '}' +
-        '#stop rect {' +
-        '    fill: rgba(255,0,0,.3);' +
-        '}' +
-        '.edgeLabel rect {' +
-        '    fill: #fff;' +
-        '}' +
-        '.edgePath {' +
-        '    stroke: #333;' +
-        '    stroke-width: 1.5px;' +
-        '    fill: none;' +
-        '}' +
-        'text {' +
-        '  font-weight: 300;' +
-        '  font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;' +
-        '  font-size: 11px;' +
-        '}' +
-        '</style>' +
-        '</defs>' +
+     '<svg xmlns="http://www.w3.org/2000/svg" width="10000" height="10000">' +
         '    <g transform="translate(20,20)"/>' +
-        '</svg>'
+     '</svg>'
     );
 
     var renderer = new dagreD3.Renderer();
