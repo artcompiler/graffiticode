@@ -30,6 +30,37 @@ exports.viewer = (function () {
     
     $("#graff-view").html(
      '<svg xmlns="http://www.w3.org/2000/svg" width="10000" height="10000">' +
+        '<defs>' +
+        '<style>' +
+        'svg {' +
+        '    overflow: hidden;' +
+        '}' +
+        '.node rect {' +
+        '    stroke: #333;' +
+        '    stroke-width: 1.5px;' +
+        '    fill: #fff;' +
+        '}' +
+        '#start rect {' +
+        '    fill: rgba(0,255,0,.3);' +
+        '}' +
+        '#stop rect {' +
+        '    fill: rgba(255,0,0,.3);' +
+        '}' +
+        '.edgeLabel rect {' +
+        '    fill: #fff;' +
+        '}' +
+        '.edgePath {' +
+        '    stroke: #333;' +
+        '    stroke-width: 1.5px;' +
+        '    fill: none;' +
+        '}' +
+        'text {' +
+        '  font-weight: 300;' +
+        '  font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;' +
+        '  font-size: 11px;' +
+        '}' +
+        '</style>' +
+        '</defs>' +
         '    <g transform="translate(20,20)"/>' +
      '</svg>'
     );
@@ -79,7 +110,7 @@ exports.viewer = (function () {
     // Load up our image.
     // Render our SVG image to the canvas once it loads.
     var source = new Image();
-    source.src = "data:image/svg+xml,"+mySVG;
+    source.src = "data:image/svg+xml;base64," + window.btoa(mySVG);
     myCanvasContext.drawImage(source,0,0);
     var dataURL = myCanvas.toDataURL();
     return '<html><img class="thumbnail" src="' + dataURL + '"/></html>';

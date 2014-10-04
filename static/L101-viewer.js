@@ -248,7 +248,7 @@ exports.viewer = (function () {
     // Load up our image.
     // Render our SVG image to the canvas once it loads.
     var source = new Image();
-    source.src = "data:image/svg+xml,"+mySVG;
+    source.src = "data:image/svg+xml;base64," + window.btoa(mySVG);
     myCanvasContext.drawImage(source,0,0);
     var dataURL = myCanvas.toDataURL();
     return '<html><img class="thumbnail" src="' + dataURL + '"/></html>';
