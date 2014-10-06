@@ -294,7 +294,7 @@ function compile(language, src, response) {
   if (language === "DRAW" ||
       language === "DEBUG") {
     language = "L100";
-  } else if (language === "DR10") {
+  } else if (language === "DR10" || language === "L101") {
     language = "L101";
   } else {
 //    port = "5" + language.substring(1);  // L103 -> 5103
