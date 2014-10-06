@@ -286,11 +286,21 @@ app.get('/code', function (req, res) {
 
 function compile(language, src, response) {
   // Handle legacy case
+//  var port = "5000";
+  var port = "80";
+//  var host = "localhost";
+  var host = "api.artcompiler.com";
+  var path = "/compile/" + language;
   if (language === "DRAW" ||
       language === "DEBUG") {
     language = "L100";
   } else if (language === "DR10") {
     language = "L101";
+  } else {
+//    port = "5" + language.substring(1);  // L103 -> 5103
+//    host = "localhost";
+    host = language + "-artcompiler.herokuapp.com";
+    path = "/compile";
   }
   var data = {
     "description": "graffiticode",
@@ -299,10 +309,9 @@ function compile(language, src, response) {
   };
   var encodedData = JSON.stringify(data);
   var options = {
-//    host: 'localhost',
-//    port: '5000',
-    host: 'api.artcompiler.com',
-    path: '/compile/' + language,
+    host: host,
+    port: port,
+    path: path,
     method: 'GET',
     headers: {
       'Content-Type': 'text/plain',
