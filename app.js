@@ -299,7 +299,7 @@ function compile(language, src, response) {
   } else {
 //    port = "5" + language.substring(1);  // L103 -> 5103
 //    host = "localhost";
-    host = language + "-artcompiler.herokuapp.com";
+    host = language + ".artcompiler.com";
     path = "/compile";
   }
   var data = {
