@@ -146,6 +146,24 @@ app.get('/L102', function (req, res) {
   });
 });
 
+app.get('/L104', function (req, res) {
+  fs.readFile('views/L104.html', function (err, body) {
+    res.render('layout.html', { 
+      title: 'Graffiti Code',
+      vocabulary: 'L104',
+      target: 'HTML',
+      login: 'Login',
+      body: body,
+    }, function (error, html) {
+      if (error) {
+        res.send(400, error);
+      } else {
+        res.send(html);
+      }
+    });
+  });
+});
+
 app.get('/math', function (req, res) {
   fs.readFile('views/math.html', function (err, body) {
     res.render('layout.html', { 
@@ -297,8 +315,8 @@ function compile(language, src, response) {
   } else if (language === "DR10" || language === "L101") {
     language = "L101";
   } else {
-//    port = "5" + language.substring(1);  // L103 -> 5103
-//    host = "localhost";
+    port = "5" + language.substring(1);  // e.g. L103 -> 5103
+    host = "localhost";
     host = language + ".artcompiler.com";
     path = "/compile";
   }

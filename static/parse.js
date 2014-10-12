@@ -438,7 +438,7 @@ var ast = (function () {
   }
 
   function add(ctx) {
-    //log("ast.add()");
+    log("ast.add()");
     var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];

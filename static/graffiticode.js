@@ -244,10 +244,9 @@ exports.gc = (function () {
     if (append) {
       $(".gallery-panel").append("<p><div class='piece' id='"+id+"'/>");
       if (img) {
-//        $(".gallery-panel #" + id).append("<img class='thumbnail' " +
-//          "scrolling:no " + "src='" + img + "'/>");
         $(".gallery-panel #" + id).append(img);
       } else {
+        // Legacy
         $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
           "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
       }
