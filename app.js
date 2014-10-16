@@ -288,7 +288,7 @@ function retrieve(language, path, response) {
 //  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
 //  var host = "localhost";
   var port = "80";
-  var host = language + ".artcompiler.com";
+  var host = language + "-artcompiler.herokuapp.com";
   var data = [];
   var options = {
     host: host,
@@ -310,7 +310,7 @@ function compile(language, src, response) {
 //  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
 //  var host = "localhost";
   var port = "80";
-  var host = language + ".artcompiler.com";
+  var host = language + "-artcompiler.herokuapp.com";
   var path = "/compile";
   if (language === "DRAW" ||
       language === "DEBUG") {
