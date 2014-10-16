@@ -110,24 +110,6 @@ app.get('/dr10', function (req, res) {
   res.send("<html>This URL has been decprecated. Try '/L101'");
 });
 
-app.get('/L101', function (req, res) {
-  fs.readFile('views/L101.html', function (err, body) {
-    res.render('layout.html', { 
-      title: 'Graffiti Code',
-      vocabulary: 'L101',
-      target: 'SVG',
-      login: 'Login',
-      body: body,
-    }, function (error, html) {
-      if (error) {
-        res.send(400, error);
-      } else {
-        res.send(html);
-      }
-    });
-  });
-});
-
 app.get('/L102', function (req, res) {
   fs.readFile('views/L102.html', function (err, body) {
     res.render('layout.html', { 
@@ -302,23 +284,39 @@ app.get('/code', function (req, res) {
   });
 });
 
+function retrieve(language, path, response) {
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+//  var host = "localhost";
+  var port = "80";
+  var host = language + ".artcompiler.com";
+  var data = [];
+  var options = {
+    host: host,
+    port: port,
+    path: "/" + path,
+    method: "GET",
+  };
+  var req = http.get(options, function(res) {
+    res.on("data", function (chunk) {
+      data.push(chunk);
+    }).on("end", function () {
+      response.send(data.join(""));
+    });
+  });
+}
+
 function compile(language, src, response) {
   // Handle legacy case
-//  var port = "5000";
-  var port = "80";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
 //  var host = "localhost";
-  var host = "api.artcompiler.com";
-  var path = "/compile/" + language;
+  var port = "80";
+  var host = language + ".artcompiler.com";
+  var path = "/compile";
   if (language === "DRAW" ||
       language === "DEBUG") {
     language = "L100";
-  } else if (language === "DR10" || language === "L101") {
-    language = "L101";
-  } else {
-    port = "5" + language.substring(1);  // e.g. L103 -> 5103
-    host = "localhost";
-    host = language + ".artcompiler.com";
-    path = "/compile";
+    host = "api.artcompiler.com";
+    path = "/compile/" + language;
   }
   var data = {
     "description": "graffiticode",
@@ -508,6 +506,31 @@ app.get('/archive', function (req, res) {
     res.redirect("/todos.html");
   });
 });
+
+app.get("/:lang/:path", function (req, res) {
+  var language = req.params.lang;
+  var path = req.params.path;
+  retrieve(language, path, res);
+});
+
+app.get('/:lang', function (req, res) {
+  var lang = req.params.lang;
+  console.log("/GET /:lang lang=" + lang);
+  res.render('index.html', { 
+    title: 'Graffiti Code',
+    language: lang,
+    vocabulary: lang,
+    target: 'SVG',
+    login: 'Login',
+  }, function (error, html) {
+    if (error) {
+      res.send(400, error);
+    } else {
+      res.send(html);
+    }
+  });
+});
+
 
 // Simple route middleware to ensure user is authenticated.
 //   Use this route middleware on any resource that needs to be protected.  If
