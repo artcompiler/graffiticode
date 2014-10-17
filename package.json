@@ -14,7 +14,8 @@
     "body-parser": "latest",
     "method-override": "latest",
     "express-session": "latest",
-    "errorhandler": "latest"
+    "errorhandler": "latest",
+    "connect-timeout": "latest"
   },
   "engines": {
     "node": ">0.8.x",
