@@ -223,9 +223,8 @@ app.get('/graffiti/:id', function (req, res) {
 
 // get the object code for piece with :id
 app.get('/graffiti/dr10/latest', function (req, res) {
-  req.socket.removeAllListeners("timeout");
-  req.socket.setTimeout(10000);
-  req.socket.on("timeout", function() {
+  req.setTimeout(10000);
+  req.on("timeout", function() {
     console.log("socket timeout");
   });
   pg.connect(conString, function (err, client) {
