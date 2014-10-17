@@ -223,9 +223,6 @@ app.get('/graffiti/:id', function (req, res) {
 
 // get the object code for piece with :id
 app.get('/graffiti/dr10/latest', function (req, res) {
-  res.setTimeout(1000, function (err) {
-    console.log("/graffiti/dr10/latest timed out");
-  });
   pg.connect(conString, function (err, client) {
     var id, obj;
     client.query("SELECT id, obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1", function (err, result) {
@@ -238,6 +235,9 @@ app.get('/graffiti/dr10/latest', function (req, res) {
       }
       console.log("GET /graffiti/dr10/latest obj=" + obj);
       res.send(obj);
+      res.on("timeout", function (msg) {
+        console.log("/graffiti/dr10/latest timed out: " + msg);
+      });
     });
     if (id) {
       client.query("UPDATE pieces SET views = views + 1 WHERE id = " + id);
