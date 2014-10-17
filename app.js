@@ -66,10 +66,6 @@ app.use(function (err, req, res, next) {
   next(err)
 })
 
-app.use(timeout(240000));
-
-
-
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
     var template = _.template(String(templateData));
@@ -227,6 +223,11 @@ app.get('/graffiti/:id', function (req, res) {
 
 // get the object code for piece with :id
 app.get('/graffiti/dr10/latest', function (req, res) {
+  req.socket.removeAllListeners("timeout");
+  req.socket.setTimeout(0);
+  req.socket.on("timeout", function() {
+    console.log("socket timeout");
+  });
   pg.connect(conString, function (err, client) {
     var id, obj;
     client.query("SELECT id, obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1", function (err, result) {
