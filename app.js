@@ -66,7 +66,7 @@ app.use(function (err, req, res, next) {
   next(err)
 })
 
-app.use(timeout(120000));
+app.use(timeout(240000));
 
 
 
