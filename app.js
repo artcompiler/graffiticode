@@ -26,6 +26,7 @@ var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
 var session = require("express-session");
 var errorHandler = require("errorhandler");
+var timeout = require('connect-timeout');
 
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
@@ -64,6 +65,10 @@ app.use(function (err, req, res, next) {
   console.log("ERROR " + err.stack)
   next(err)
 })
+
+app.use(timeout(120000));
+
+
 
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
@@ -234,9 +239,6 @@ app.get('/graffiti/dr10/latest', function (req, res) {
       }
       console.log("GET /graffiti/dr10/latest obj=" + obj);
       res.send(obj);
-      res.on("timeout", function (msg) {
-        console.log("/graffiti/dr10/latest timed out: " + msg);
-      });
     });
     if (id) {
       client.query("UPDATE pieces SET views = views + 1 WHERE id = " + id);
