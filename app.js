@@ -223,6 +223,9 @@ app.get('/graffiti/:id', function (req, res) {
 
 // get the object code for piece with :id
 app.get('/graffiti/dr10/latest', function (req, res) {
+  res.setTimeout(1000, function (err) {
+    console.log("/graffiti/dr10/latest timed out");
+  });
   pg.connect(conString, function (err, client) {
     var id, obj;
     client.query("SELECT id, obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1", function (err, result) {
