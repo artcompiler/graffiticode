@@ -55,16 +55,15 @@ app.use(bodyParser.raw());
 // parse application/vnd.api+json as json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
 
-app.use(function (req, res, next) {
-  //console.log(req.body) // populated!
-  next()
-})
-
-
 app.use(methodOverride());
 app.use(require('stylus').middleware({ src: __dirname + '/static' }));
 app.use(express.static(__dirname + '/static'));
 app.use(session({ secret: 'keyboard cat' }));
+
+app.use(function (err, req, res, next) {
+  console.log("ERROR " + err.stack)
+  next(err)
+})
 
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
