@@ -19,6 +19,8 @@ exports.viewer = (function () {
   var INK_DISTANCE = INK_WEIGHT / 2;
   var INK_OPACITY = 0.4;
 
+  var ccode = "";
+
   function reset() {
     angle = 0;
     leftX = CENTER_X + RADIUS/2;
@@ -97,6 +99,7 @@ exports.viewer = (function () {
   // Each step taken needs to be relative to the position and direction of the
   // current state.
   function step(lsteps, rsteps) {
+    ccode += "step(" + lsteps + ", " + rsteps + ");\n";
     var dirL = lsteps < 0 ? 1 : -1;
     var dirR = rsteps < 0 ? 1 : -1;
     lsteps = Math.abs(lsteps);
@@ -218,10 +221,12 @@ exports.viewer = (function () {
   }
 
   function penUp() {
+    ccode += "penUp();\n";
     penState = false;
   }
 
   function penDown() {
+    ccode += "penDown();\n";
     penState = true;
   }
 
