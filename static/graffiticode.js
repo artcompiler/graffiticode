@@ -40,7 +40,7 @@ exports.gc = (function () {
     }
     var img = exports.viewer.capture();
     var user = $("#username").data("user");
-    var src = exports.src;
+    var src = exports.src.replace(/\\/g, "\\\\");
     var pool = exports.pool;
     var obj = exports.obj;
     var parent = exports.parent;
