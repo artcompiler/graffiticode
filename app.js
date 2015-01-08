@@ -254,9 +254,10 @@ app.get('/pieces/:lang', function (req, res) {
     if (lang === "DEBUG") {
       queryString = "SELECT id FROM pieces ORDER BY id DESC";
     } else {
-      queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
+      queryString = "SELECT id FROM pieces WHERE language='" + lang + "' AND label != 'hide' ORDER BY id DESC";
     }
     client.query(queryString, function (err, result) {
+      console.log("GET /pieces/:lang result=" + JSON.stringify(result));
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
@@ -310,8 +311,8 @@ function retrieve(language, path, response) {
 
 function compile(language, src, response) {
   // Handle legacy case
-//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
 //  var host = "localhost";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
   var host = language + ".artcompiler.com";
   var port = "80";
   var path = "/compile";
@@ -372,6 +373,7 @@ app.post('/code', function (req, res){
   var user = req.body.user;
   var parent = req.body.parent;
   var img = req.body.img;
+  var label = req.body.label;
   parent = parent ? parent : 1;
   user = user ?user : 1;
   commit();
@@ -385,9 +387,10 @@ app.post('/code', function (req, res){
       img = img.replace(new RegExp("\n","g"), " ");
       img = img.replace(new RegExp("'","g"), "\"");
       var queryStr = 
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, img)" +
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
-        " ', '" + forks + "', now(), '" + src + "', '" + obj + "', '" + language + "', '" + img + "');"
+        " ', '" + forks + "', now(), '" + src + "', '" + obj +
+        " ', '" + language + "', '" + label + "', '" + img + "');"
       client.query(queryStr, function(err, result) {
         if (err) {
           res.send(400, err);
@@ -455,12 +458,22 @@ app.post('/gist', function (req, resPost) {
   }
 });
 
+// Update a label
+app.put('/label', function (req, res) {
+  var id = req.body.id;
+  var label = req.body.label;
+  pg.connect(conString, function (err, client) {
+    client.query("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'");
+    res.send(200)
+  });
+});
+
 // Delete the notes for a label
 app.delete('/code/:id', ensureAuthenticated, function (req, res) {
   var id = req.params.id;
   pg.connect(conString, function (err, client) {
     client.query("DELETE FROM todos WHERE id='"+id+"'", function (err, result) {
-      res.send(result.rows);
+      res.send(500);
     });
   });
 });
@@ -516,6 +529,7 @@ app.get("/:lang/:path", function (req, res) {
   retrieve(language, path, res);
 });
 
+// This is the new way of loading pages
 app.get('/:lang', function (req, res) {
   var lang = req.params.lang;
   console.log("/GET /:lang lang=" + lang);
@@ -631,4 +645,3 @@ if (process.env.NODE_ENV === 'development') {
 if (process.env.NODE_ENV === 'production') {
   app.use(errorHandler())
 }
-

@@ -25,7 +25,6 @@ exports.gc = (function () {
       dataType: "text",
       success: function(data) {
         updateGraffito(data, src, ast);
-        updateObj(data);
       },
       error: function(xhr, msg, err) {
         console.log(msg+" "+err);
@@ -57,6 +56,7 @@ exports.gc = (function () {
         user: user ? user.id : 1,
         parent: parent,
         language: language,
+        label: "show",
       },
       dataType: "json",
       success: function(data) {
@@ -198,7 +198,6 @@ exports.gc = (function () {
     exports.firstCompile = true;
     exports.id = id;
     exports.parent = exports.id;
-//    var data = $(".gallery-panel #"+id).data("piece");
     var data = $(".gallery-panel #" + id).data(".label", "all");
     if (data) {
       exports.gist_id = data.gist_id;
@@ -220,18 +219,32 @@ exports.gc = (function () {
   }
 
   function clickThumbnail(e, id) {
-    if (e.shiftKey) {
-      var host = window.location.host;
-      var url = "http://"+host+"/graffiti/"+id;
-      window.open(url);
-    }
-    else {
-      showWorkspace();
-      $.get("http://"+location.host+"/code/"+id, function (data) {
-        updateSrc(data[0].id, data[0].src)
-      })
-//      updateSrc(id);
-    }
+    showWorkspace();
+    $.get("http://"+location.host+"/code/"+id, function (data) {
+      updateSrc(data[0].id, data[0].src);
+    });
+  }
+
+  function hideThumbnail(e, id) {
+    $.ajax({
+      type: "PUT",
+      url: "/label",
+      data: {
+        id: id,
+        label: "hide",
+      },
+      dataType: "text",
+      success: function(data) {
+        hideItem(id);
+      },
+      error: function(xhr, msg, err) {
+        console.log(msg + " " + err);
+      }
+    });
+  }
+
+  function hideItem(id) {
+    $(".gallery-panel #" + id).hide();
   }
 
   function addPiece(data, src, obj, img, append) {
@@ -280,8 +293,9 @@ exports.gc = (function () {
             "<a href='http://" + location.host + "/graffiti/" +
             id + "' target='_blank'>View</a>" +
             (gist_id ? 
-             ", <a href='https://gist.github.com/" + gist_id + "' target='_blank'>Gist/" +
-             gist_id + "</a>" : ""));
+             " <a href='https://gist.github.com/" + gist_id + "' target='_blank'>Gist/" +
+             gist_id + "</a>" : "") +
+              " <a onclick='exports.gc.hideThumbnail(event, \"" + id + "\")'>Hide</a>");
     $(".gallery-panel #" + id).data(".label", "all", data);
   }
 
@@ -374,6 +388,20 @@ exports.gc = (function () {
     $("#notes-link").css("font-weight", "700")
   }
 
+  function showWorkspace(id) {
+    exports.doRecompile = true;
+    $(".gallery-panel").css("display", "none");
+    $(".essay-panel").css("display", "none");
+    $(".button-bar").show();
+    $(".button-bar-button").show();
+    $(".edit-panel").css("display", "block");
+    $(".nav-link").css("background-color", "#ddd");
+    $(".nav-link").css("font-weight", "400");
+    $("#workspace-link").css("background-color", "#bbb");
+    $("#workspace-link").css("font-weight", "700");
+    showHelp();
+  }
+
   function showArchive() {
     $(".button-bar").css("display", "block");
     $(".button-bar-button").hide();
@@ -416,23 +444,6 @@ exports.gc = (function () {
     $("#feddback-link").css("font-weight", "700")
   }
 
-  function showWorkspace(id) {
-    exports.doRecompile = true
-    $(".gallery-panel").css("display", "none")
-    $(".essay-panel").css("display", "none")
-
-    $(".button-bar").show()
-    $(".button-bar-button").show()
-    $(".edit-panel").css("display", "block")
-
-    $(".nav-link").css("background-color", "#ddd")
-    $(".nav-link").css("font-weight", "400")
-
-    $("#workspace-link").css("background-color", "#bbb")
-    $("#workspace-link").css("font-weight", "700")
-    showHelp()
-  }
-
   function newCode() {
     var srcId = 627;
     $.get("http://"+location.host+"/code/"+srcId, function (data) {
@@ -452,6 +463,7 @@ exports.gc = (function () {
     updateSrc: updateSrc,
     updateGraffito: updateGraffito,
     clickThumbnail: clickThumbnail,
+    hideThumbnail: hideThumbnail,
     loadMoreThumbnails: loadMoreThumbnails,
     start: start,
     showEssay: showEssay,

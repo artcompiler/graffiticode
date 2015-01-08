@@ -64,7 +64,7 @@ img.logo {
   line-height:1.2em;
 }
 
-a:link, a:visited, .quasilink {
+a, a:link, a:visited, .quasilink {
   color: #000;
   cursor: pointer;
   text-decoration: none;
@@ -273,6 +273,7 @@ body .main .edit-panel {
 #obj-view {
   float: left;
 //  margin-left: 20;
+  margin-top: 10;
   margin-bottom: 20;
 //  border-width: 1;
 //  border-style: solid;
@@ -305,7 +306,7 @@ body .main .edit-panel {
 
 #graff-view {
   float: left;
-  margin: 0;
+  margin-botom: 10;
   background: #fff;
 }
 
