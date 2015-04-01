@@ -273,7 +273,7 @@ app.get('/pieces/:lang', function (req, res) {
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
-    console.log("/code list=" + list);
+    console.log("/code req.query=" + JSON.stringify(req.query));
     var queryStr =
       "SELECT pieces.*, users.name FROM pieces, users" +
       " WHERE pieces.user_id = users.id AND pieces.id" +
