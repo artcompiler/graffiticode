@@ -274,7 +274,6 @@ app.get('/pieces/:lang', function (req, res) {
         "' AND " + likeStr +
         "label != 'hide' ORDER BY id DESC";
     }
-    console.log("GET /pieces/:lang queryString=" + queryString);
     client.query(queryString, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
@@ -291,7 +290,6 @@ app.get('/pieces/:lang', function (req, res) {
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
-//    console.log("/code req.query=" + JSON.stringify(req.query));
     var queryStr =
       "SELECT pieces.*, users.name FROM pieces, users" +
       " WHERE pieces.user_id = users.id AND pieces.id" +
@@ -364,7 +362,6 @@ function compile(language, src, response) {
       data += chunk;
     });
     res.on('end', function () {
-//      console.log("compile() data=" + data);
       response.send(data);
     });
   });
@@ -551,7 +548,6 @@ app.get("/:lang/:path", function (req, res) {
 // This is the new way of loading pages
 app.get('/:lang', function (req, res) {
   var lang = req.params.lang;
-//  console.log("/GET /:lang lang=" + lang);
   res.render('index.html', { 
     title: 'Graffiti Code',
     language: lang,
