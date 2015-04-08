@@ -202,7 +202,7 @@ app.get('/code/:id', function (req, res) {
 // get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
-  console.log("GET /graffiti/dr10/:id id=" + id);
+//  console.log("GET /graffiti/dr10/:id id=" + id);
   pg.connect(conString, function (err, client) {
     client.query("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
       var ret;
@@ -237,7 +237,7 @@ app.get('/graffiti/dr10/latest', function (req, res) {
         obj = result.rows[0].obj;
         id = result.rows[0].id;
       }
-      console.log("GET /graffiti/dr10/latest obj=" + obj);
+//      console.log("GET /graffiti/dr10/latest obj=" + obj);
       res.send(obj);
     });
     if (id) {
@@ -247,8 +247,9 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 });
 
 // get list of piece ids
-app.get('/pieces/:lang', function (req, res) {
+app.get('/pieces/:lang', function (req, res) {  
   var lang = req.params.lang;
+  console.log("/pieces/:lang lang=" + lang);
   pg.connect(conString, function (err, client) {
     var queryString;
     if (lang === "DEBUG") {
@@ -257,7 +258,7 @@ app.get('/pieces/:lang', function (req, res) {
       queryString = "SELECT id FROM pieces WHERE language='" + lang + "' AND label != 'hide' ORDER BY id DESC";
     }
     client.query(queryString, function (err, result) {
-      console.log("GET /pieces/:lang result=" + JSON.stringify(result));
+//      console.log("GET /pieces/:lang result=" + JSON.stringify(result));
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
@@ -273,7 +274,7 @@ app.get('/pieces/:lang', function (req, res) {
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
-    console.log("/code req.query=" + JSON.stringify(req.query));
+//    console.log("/code req.query=" + JSON.stringify(req.query));
     var queryStr =
       "SELECT pieces.*, users.name FROM pieces, users" +
       " WHERE pieces.user_id = users.id AND pieces.id" +
@@ -291,10 +292,10 @@ app.get('/code', function (req, res) {
 });
 
 function retrieve(language, path, response) {
-//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-//  var host = "localhost";
-  var host = language + ".artcompiler.com";
-  var port = "80";
+  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+  var host = "localhost";
+//  var host = language + ".artcompiler.com";
+//  var port = "80";
   var data = [];
   var options = {
     host: host,
@@ -312,10 +313,10 @@ function retrieve(language, path, response) {
 
 function compile(language, src, response) {
   // Handle legacy case
-//  var host = "localhost";
-//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-  var host = language + ".artcompiler.com";
-  var port = "80";
+  var host = "localhost";
+  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+//  var host = language + ".artcompiler.com";
+//  var port = "80";
   var path = "/compile";
   if (language === "DRAW" ||
       language === "DEBUG") {
@@ -346,7 +347,7 @@ function compile(language, src, response) {
       data += chunk;
     });
     res.on('end', function () {
-      console.log("compile() data=" + data);
+//      console.log("compile() data=" + data);
       response.send(data);
     });
   });
@@ -533,7 +534,7 @@ app.get("/:lang/:path", function (req, res) {
 // This is the new way of loading pages
 app.get('/:lang', function (req, res) {
   var lang = req.params.lang;
-  console.log("/GET /:lang lang=" + lang);
+//  console.log("/GET /:lang lang=" + lang);
   res.render('index.html', { 
     title: 'Graffiti Code',
     language: lang,
