@@ -247,10 +247,10 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 });
 
 // get list of piece ids
-app.get('/pieces/:lang?:search', function (req, res) {  
-  console.log("/pieces/:lang params=" + JSON.stringify(req.params));
+app.get('/pieces/:lang', function (req, res) {  
   var lang = req.params.lang;
-  var search = req.params.search;
+  var query = req.query;
+  console.log("/pieces/:lang query=" + query);
   pg.connect(conString, function (err, client) {
     var queryString;
     if (lang === "DEBUG") {
