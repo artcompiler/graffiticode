@@ -253,17 +253,19 @@ app.get('/pieces/:lang', function (req, res) {
   console.log("/pieces/:lang search=" + JSON.stringify(search));
   pg.connect(conString, function (err, client) {
     var queryString, likeStr = "";
-    var ss = search.split(",");
-    ss.forEach(function (s) {
+    if (search) {
+      var ss = search.split(",");
+      ss.forEach(function (s) {
+        if (likeStr) {
+          likeStr += " OR ";
+        } else {
+          likeStr += "(";
+        }
+        likeStr += "src like '%" + s + "%'";
+      });
       if (likeStr) {
-        likeStr += " OR ";
-      } else {
-        likeStr += "(";
+        likeStr += ") AND ";
       }
-      likeStr += "src like '%" + s + "%'";
-    });
-    if (likeStr) {
-      likeStr += ") AND ";
     }
     if (lang === "DEBUG") {
       queryString = "SELECT id FROM pieces ORDER BY id DESC";
