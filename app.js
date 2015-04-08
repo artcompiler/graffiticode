@@ -250,7 +250,7 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 app.get('/pieces/:lang', function (req, res) {  
   var lang = req.params.lang;
   var query = req.query;
-  console.log("/pieces/:lang query=" + query);
+  console.log("/pieces/:lang query=" + JSON.stringify(query));
   pg.connect(conString, function (err, client) {
     var queryString;
     if (lang === "DEBUG") {
