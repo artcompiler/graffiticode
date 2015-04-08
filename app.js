@@ -249,14 +249,28 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 // get list of piece ids
 app.get('/pieces/:lang', function (req, res) {  
   var lang = req.params.lang;
-  var query = req.query;
-  console.log("/pieces/:lang query=" + JSON.stringify(query));
+  var search = req.query.q;
+  console.log("/pieces/:lang search=" + JSON.stringify(search));
   pg.connect(conString, function (err, client) {
-    var queryString;
+    var queryString, likeStr = "";
+    var ss = search.split(",");
+    ss.forEach(function (v, i) {
+      if (likeStr) {
+        likeStr += " OR ";
+      } else {
+        likeStr += "(";
+      }
+      likeStr += "src like '%" + s + "%'";
+    });
+    if (likeStr) {
+      likeStr += ") AND ";
+    }
     if (lang === "DEBUG") {
       queryString = "SELECT id FROM pieces ORDER BY id DESC";
     } else {
-      queryString = "SELECT id FROM pieces WHERE language='" + lang + "' AND label != 'hide' ORDER BY id DESC";
+      queryString = "SELECT id FROM pieces WHERE language='" + lang +
+        "' AND " + likeStr +
+        "label != 'hide' ORDER BY id DESC";
     }
     client.query(queryString, function (err, result) {
 //      console.log("GET /pieces/:lang result=" + JSON.stringify(result));
