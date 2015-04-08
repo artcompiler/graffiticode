@@ -254,7 +254,7 @@ app.get('/pieces/:lang', function (req, res) {
   pg.connect(conString, function (err, client) {
     var queryString, likeStr = "";
     var ss = search.split(",");
-    ss.forEach(function (v, i) {
+    ss.forEach(function (s) {
       if (likeStr) {
         likeStr += " OR ";
       } else {
@@ -272,8 +272,8 @@ app.get('/pieces/:lang', function (req, res) {
         "' AND " + likeStr +
         "label != 'hide' ORDER BY id DESC";
     }
+    console.log("GET /pieces/:lang queryString=" + queryString);
     client.query(queryString, function (err, result) {
-//      console.log("GET /pieces/:lang result=" + JSON.stringify(result));
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
