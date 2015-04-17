@@ -1350,7 +1350,8 @@ exports.parser = (function () {
 
   exports.topEnv = topEnv
 
-  var lastAST
+  var lastAST;
+  var lastTimer;
   function parse(stream, state) {
     var ctx = {scan: scanner(stream), state: state}
     var cls
@@ -1379,7 +1380,13 @@ exports.parser = (function () {
         var thisAST = ast.poolToJSON(ctx)
         var lastAST = lastAST
         if (!_.isEqual(lastAST, thisAST)) {
-          exports.gc.compileCode(thisAST)
+          // Compile code if not edit activity after 1 sec.
+          if (lastTimer) {
+            window.clearTimeout(lastTimer);
+          }
+          lastTimer = window.setTimeout(function () {
+            exports.gc.compileCode(thisAST)
+          }, 1000);
         }
         lastAST = thisAST
       }
