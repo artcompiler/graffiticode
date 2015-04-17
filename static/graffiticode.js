@@ -7,12 +7,7 @@ exports.gc = (function () {
   // {src, ast} -> {id, obj}
   function compileCode(ast) {
     ast = JSON.stringify(ast);
-    if (exports.firstCompile) {
-      exports.firstCompile = false;
-      return;   // only post second compile, when there are two.
-    } else {
-      exports.id = 0;
-    }
+    exports.id = 0;
     var src = editor.getValue();
     $.ajax({
       type: "PUT",
@@ -195,7 +190,6 @@ exports.gc = (function () {
 
   // The source should always be associated with an id
   function updateSrc(id, src) {
-    exports.firstCompile = true;
     exports.id = id;
     exports.parent = exports.id;
     var data = $(".gallery-panel #" + id).data(".label", "all");
