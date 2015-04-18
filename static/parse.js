@@ -1382,7 +1382,11 @@ exports.parser = (function () {
         if (!_.isEqual(lastAST, thisAST)) {
           // Compile code if not edit activity after 1 sec.
           if (lastTimer) {
+            // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
+          } else {
+            // First time through, don't delay.
+            exports.gc.compileCode(thisAST)
           }
           lastTimer = window.setTimeout(function () {
             exports.gc.compileCode(thisAST)
