@@ -1382,7 +1382,7 @@ exports.parser = (function () {
         var lastAST;
         if (!_.isEqual(lastAST, thisAST)) {
           // Compile code if not edit activity after 1 sec.
-          if (export.id === lastID && lastTimer) {
+          if (exports.id === lastID && lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
           } else {
