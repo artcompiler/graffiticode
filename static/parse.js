@@ -1387,7 +1387,6 @@ exports.parser = (function () {
             window.clearTimeout(lastTimer);
           } else {
             // First time through, don't delay.
-            console.log("Fast compile");
             exports.gc.compileCode(thisAST)
           }
           lastTimer = window.setTimeout(function () {
