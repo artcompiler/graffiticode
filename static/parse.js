@@ -1350,6 +1350,7 @@ exports.parser = (function () {
 
   exports.topEnv = topEnv
 
+  var lastID;
   var lastAST;
   var lastTimer;
   function parse(stream, state) {
@@ -1377,11 +1378,11 @@ exports.parser = (function () {
         cls = cc.cls
       }
       if (cc === null && exports.doRecompile) {
-        var thisAST = ast.poolToJSON(ctx)
-        var lastAST = lastAST
+        var thisAST = ast.poolToJSON(ctx);
+        var lastAST;
         if (!_.isEqual(lastAST, thisAST)) {
           // Compile code if not edit activity after 1 sec.
-          if (lastTimer) {
+          if (export.id === lastID && lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
           } else {
@@ -1393,7 +1394,8 @@ exports.parser = (function () {
             exports.gc.compileCode(thisAST)
           }, 1000);
         }
-        lastAST = thisAST
+        lastAST = thisAST;
+        lastID = exports.id;
       }
       var c;
       while ((c = stream.peek()) &&
