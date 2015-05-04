@@ -307,10 +307,10 @@ app.get('/code', function (req, res) {
 });
 
 function retrieve(language, path, response) {
-  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-  var host = "localhost";
-//  var host = language + ".artcompiler.com";
-//  var port = "80";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+//  var host = "localhost";
+  var host = language + ".artcompiler.com";
+  var port = "80";
   var data = [];
   var options = {
     host: host,
@@ -328,10 +328,10 @@ function retrieve(language, path, response) {
 
 function compile(language, src, response) {
   // Handle legacy case
-  var host = "localhost";
-  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-//  var host = language + ".artcompiler.com";
-//  var port = "80";
+//  var host = "localhost";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+  var host = language + ".artcompiler.com";
+  var port = "80";
   var path = "/compile";
   if (language === "DRAW" ||
       language === "DEBUG") {
