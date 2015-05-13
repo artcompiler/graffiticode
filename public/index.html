@@ -1,0 +1,34 @@
+<!-- index.html -->
+<html>
+  <head>
+    <title>Edit</title>
+    <link rel="stylesheet" href="codemirror.css">
+    <link rel="stylesheet" href="codemirror-theme.css">
+    <link rel="stylesheet" href="react.css">
+    <script>
+      exports = {
+        language: "L106"
+      };
+    </script>
+    <script src="underscore.js"></script>
+    <script src="https://fb.me/react-with-addons-0.13.3.js"></script>
+    <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="codemirror.js"></script>
+    <script src="L106/lexicon.js"></script>
+    <script src="L106/viewer.js"></script>
+    <script src="parse.js"></script>
+    <script src="mode-graffiti.js"></script>
+    <script type="text/jsx" src="edit.js"></script>
+  </head>
+  <body>
+    <div id="content"></div>
+    <!-- Create a Graffiti Code instance -->
+    <script type="text/jsx">
+      React.render(
+        React.createElement(GraffitiCodeEdit, null),
+        document.getElementById('content')
+      );
+    </script>
+  </body>
+</html>

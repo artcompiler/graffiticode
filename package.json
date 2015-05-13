@@ -4,8 +4,6 @@
   "dependencies": {
     "express": "latest",
     "stylus": "latest",
-    "passport": "latest",
-    "passport-local": "latest",
     "pg": "0.6.x",
     "underscore": "1.4.x",
     "qs": "latest",
