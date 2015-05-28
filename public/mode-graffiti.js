@@ -12,7 +12,7 @@ CodeMirror.defineMode("graffiti", function() {
   }
   return {
     token: function(stream, state) {
-      return parser.parse(stream, state)
+      return parser.parse(stream, state);
     },
     startState: function() {
       return {
@@ -28,7 +28,7 @@ CodeMirror.defineMode("graffiti", function() {
         nodePool: ["unused"],
         nodeMap: {},
         nextToken: -1,
-      }
+      };
     },
     copyState: function(state) {
       return copyObject(state)
@@ -68,8 +68,8 @@ CodeMirror.defineMode("graffiti", function() {
         }
         return nobj
       }
-    }
-  }
+    },
+  };
 });
 CodeMirror.defineMIME("text", "graffiti")
 CodeMirror.handleCursorEvent = function (editor, evt) {

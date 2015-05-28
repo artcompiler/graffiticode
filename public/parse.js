@@ -30,7 +30,7 @@ function log(str) {
 
 // ast module
 
-var ast = (function () {
+var Ast = (function () {
   var _ = exports._;
   var ASSERT = true;
   var assert = function (val, str) {
@@ -45,9 +45,9 @@ var ast = (function () {
     }
   }
 
-  var Ast = function() { }
+  var AstClass = function() { }
 
-  Ast.prototype = {
+  AstClass.prototype = {
     intern: intern,
     node: node,
     dump: dump,
@@ -92,7 +92,7 @@ var ast = (function () {
     bool: bool,
   };
 
-  return new Ast;
+  return new AstClass;
 
   // private implementation
 
@@ -103,7 +103,7 @@ var ast = (function () {
   }
 
   function push(ctx, node) {
-    if (_.isNumber(node)) {   // if already interned
+    if (exports._.isNumber(node)) {   // if already interned
       ctx.state.nodeStack.push(node);
     } else {
       ctx.state.nodeStack.push(intern(ctx, node));
@@ -339,7 +339,7 @@ var ast = (function () {
   }
 
   function call(ctx, argc) {
-    var underscore = ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
+    var underscore = Ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
     var elts = [];
     while (argc--) {
       var elt = pop(ctx);
@@ -404,7 +404,7 @@ var ast = (function () {
   }
 
   function binaryExpr(ctx, name) {
-    //log("ast.binaryExpr() name="+name);
+    //log("Ast.binaryExpr() name="+name);
     var elts = [];
     // args are in the order produced by the parser
     elts.push(pop(ctx)); 
@@ -413,27 +413,27 @@ var ast = (function () {
   }
 
   function unaryExpr(ctx, name) {
-    //log("ast.unaryExpr() name="+name);
+    //log("Ast.unaryExpr() name="+name);
     var elts = [];
     elts.push(pop(ctx));
     push(ctx, {tag: name, elts: elts});
   }
 
   function prefixExpr(ctx, name) {
-    //log("ast.prefixExpr() name="+name);
+    //log("Ast.prefixExpr() name="+name);
     var elts = [];
     elts.push(pop(ctx));
     push(ctx, {tag: name, elts: elts});
   }
 
   function neg(ctx) {
-    //log("ast.neg()");
+    //log("Ast.neg()");
     var v1 = +node(ctx, pop(ctx)).elts[0];
     number(ctx, -1*v1);
   }
 
   function add(ctx) {
-    log("ast.add()");
+    log("Ast.add()");
     var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -446,7 +446,7 @@ var ast = (function () {
   }
 
   function sub(ctx) {
-    //log("ast.sub()");
+    //log("Ast.sub()");
     var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -459,7 +459,7 @@ var ast = (function () {
   }
 
   function mul(ctx) {
-    //log("ast.mul()");
+    //log("Ast.mul()");
     var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -478,7 +478,7 @@ var ast = (function () {
   }
 
   function div(ctx) {
-    //log("ast.div()");
+    //log("Ast.div()");
     var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -741,7 +741,6 @@ exports.parseCount = function () {
   return parseCount;
 };
 
-
 // parser
 exports.parser = (function () {
   var globalLexicon = exports.globalLexicon;
@@ -831,34 +830,34 @@ exports.parser = (function () {
   function bool(ctx, cc) {
     eat(ctx, TK_BOOL);
     cc.cls = "number";
-    ast.bool(ctx, lexeme==="true");
+    Ast.bool(ctx, lexeme==="true");
     return cc;
   }
 
   function number(ctx, cc) {
     eat(ctx, TK_NUM);
     cc.cls = "number";
-    ast.number(ctx, lexeme);
+    Ast.number(ctx, lexeme);
     return cc;
   }
 
   function string(ctx, cc) {
     eat(ctx, TK_STR);
     cc.cls = "string";
-    ast.string(ctx, lexeme.substring(1,lexeme.length-1)) // strip quotes;
+    Ast.string(ctx, lexeme.substring(1,lexeme.length-1)) // strip quotes;
     return cc;
   }
 
   function ident(ctx, cc) {
     eat(ctx, TK_IDENT);
-    ast.name(ctx, lexeme);
+    Ast.name(ctx, lexeme);
     cc.cls = "variable";
     return cc;
   }
 
   function name(ctx, cc) {
     eat(ctx, TK_IDENT);
-    ast.name(ctx, lexeme);
+    Ast.name(ctx, lexeme);
     var word = env.findWord(ctx, lexeme);
     if (word) {
       cc.cls = word.cls;
@@ -928,7 +927,7 @@ exports.parser = (function () {
     var ret = function(ctx) {
       return exprsStart(ctx, function (ctx) {
         eat(ctx, TK_RIGHTBRACKET);
-        ast.list(ctx);
+        Ast.list(ctx);
         cc.cls = "punc";
         return cc;
       })
@@ -956,7 +955,7 @@ exports.parser = (function () {
 
   function funcApp(ctx, cc) {
     return primaryExpr(ctx, function primaryExprCC(ctx) {
-      var node = ast.node(ctx, ast.topNode(ctx));
+      var node = Ast.node(ctx, Ast.topNode(ctx));
       if (node.tag==="IDENT") {
         var name = node.elts[0];
         var word = env.findWord(ctx, name);
@@ -977,14 +976,14 @@ exports.parser = (function () {
   function args(ctx, cc) {
     if (match(ctx, TK_COMMA)) {
       eat(ctx, TK_COMMA);
-      ast.funcApp(ctx, ctx.state.paramc - ctx.state.argc);
+      Ast.funcApp(ctx, ctx.state.paramc - ctx.state.argc);
       finishArgs(ctx);
       cc.cls = "punc";
       return cc;
     }
     else
     if (ctx.state.argc === 0) {
-      ast.funcApp(ctx, ctx.state.paramc);
+      Ast.funcApp(ctx, ctx.state.paramc);
       finishArgs();
       return cc(ctx);
     }
@@ -1009,7 +1008,7 @@ exports.parser = (function () {
       if (match(ctx, TK_POSTOP)) {
         eat(ctx, TK_POSTOP);
         cc.cls = "operator";
-        ast.postfixExpr(ctx, lexeme);
+        Ast.postfixExpr(ctx, lexeme);
         return cc;
       }
       return cc(ctx);
@@ -1022,7 +1021,7 @@ exports.parser = (function () {
       eat(ctx, TK_MINUS);
       var ret = function(ctx) {
         return postfixExpr(ctx, function (ctx) {
-          ast.prefixExpr(ctx, "NEG");
+          Ast.prefixExpr(ctx, "NEG");
           return cc;
         })
       }
@@ -1070,11 +1069,11 @@ exports.parser = (function () {
               if (prevOp !== void 0) {
                 op = prevOp
               }
-              ast.binaryExpr(ctx, op)
+              Ast.binaryExpr(ctx, op)
               return cc(ctx)
             })
           } else {
-            ast.binaryExpr(ctx, prevOp)
+            Ast.binaryExpr(ctx, prevOp)
             return binaryExpr(ctx, op, function(ctx, prevOp) {
               if (prevOp !== void 0) {
                 op = prevOp
@@ -1111,7 +1110,7 @@ exports.parser = (function () {
       return expr(ctx, function (ctx) {
         startCounter(ctx)
         return ofClauses(ctx, function (ctx) {
-          ast.caseExpr(ctx, ctx.state.exprc)
+          Ast.caseExpr(ctx, ctx.state.exprc)
           stopCounter(ctx)
           eat(ctx, TK_END)
           cc.cls = "keyword"
@@ -1145,7 +1144,7 @@ exports.parser = (function () {
         eat(ctx, TK_EQUAL)
         var ret = function(ctx) {
           return exprsStart(ctx, function(ctx) {
-            ast.ofClause(ctx)
+            Ast.ofClause(ctx)
             return cc(ctx)
           })
         }
@@ -1234,7 +1233,7 @@ exports.parser = (function () {
 
   function exprsFinish(ctx, cc) {
     //log("exprsFinish()")
-    ast.exprs(ctx, ctx.state.exprc)
+    Ast.exprs(ctx, ctx.state.exprc)
     stopCounter(ctx)
     return cc(ctx)
   }
@@ -1269,10 +1268,10 @@ exports.parser = (function () {
 
   function program(ctx, cc) {
     return exprsStart(ctx, function (ctx) {
-      folder.fold(ctx, ast.pop(ctx))  // fold the exprs on top
-      ast.program(ctx)
+      folder.fold(ctx, Ast.pop(ctx))  // fold the exprs on top
+      Ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
-      //print(ast.dumpAll(ctx));
+      //print(Ast.dumpAll(ctx));
       return cc
     })
   }
@@ -1282,7 +1281,7 @@ exports.parser = (function () {
       eat(ctx, TK_LET)
       var ret = function (ctx) {
         var ret = name(ctx, function (ctx) {
-          var name = ast.node(ctx, ast.topNode(ctx)).elts[0]
+          var name = Ast.node(ctx, Ast.topNode(ctx)).elts[0]
           // nid=0 means def not finished yet
           env.addWord(ctx, name, { tk: TK_IDENT, cls: "function", length: 0, nid: 0, name: name })
           ctx.state.paramc = 0
@@ -1295,9 +1294,9 @@ exports.parser = (function () {
             var ret = function(ctx) {
               return exprsStart(ctx, function (ctx) {
                 var def = env.findWord(ctx, topEnv(ctx).name)
-                def.nid = ast.peek(ctx)   // save node id for aliased code
+                def.nid = Ast.peek(ctx)   // save node id for aliased code
                 env.exitEnv(ctx)
-                ast.letDefn(ctx)
+                Ast.letDefn(ctx)
                 return cc
               })
             }
@@ -1346,7 +1345,6 @@ exports.parser = (function () {
   }
 
   exports.topEnv = topEnv
-
   var lastID;
   var lastAST;
   var lastTimer;
@@ -1375,9 +1373,9 @@ exports.parser = (function () {
         cls = cc.cls
       }
       if (cc === null && exports.doRecompile) {
-        var thisAST = ast.poolToJSON(ctx);
+        var thisAST = Ast.poolToJSON(ctx);
         var lastAST;
-        if (!_.isEqual(lastAST, thisAST)) {
+        if (!exports._.isEqual(lastAST, thisAST)) {
           // Compile code if not edit activity after 1 sec.
           if (exports.id === lastID && lastTimer) {
             // Reset timer to wait another second.
@@ -1400,7 +1398,7 @@ exports.parser = (function () {
       }
     } catch (x) {
       //console.log(x.stack);
-      //console.log(ast.dumpAll(ctx));
+      //console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
         cls = "error"
@@ -1704,7 +1702,7 @@ var folder = function() {
   }
 
   function isArray(v) {
-    return _.isArray(v);
+    return exports._.isArray(v);
   }
 
   function isObject(v) {
@@ -1712,15 +1710,15 @@ var folder = function() {
   }
 
   function isString(v) {
-    return _.isString(v);
+    return exports._.isString(v);
   }
 
   function isPrimitive(v) {
-    return _.isNull(v) || _.isString(v) || _.isNumber(v) || _.isBoolean(v);
+    return exports._.isNull(v) || exports._.isString(v) || exports._.isNumber(v) || exports._.isBoolean(v);
   }
 
   function isFunction(v) {
-    return _.isFunction(v);
+    return exports._.isFunction(v);
   }
 
   // BEGIN VISITOR METHODS
@@ -1729,17 +1727,17 @@ var folder = function() {
 
   function program(node) {
     visit(node.elts[0]);
-    ast.program(ctx);
+    Ast.program(ctx);
   }
 
   function caseExpr(node) {
     visit(node.elts[node.elts.length-1]);
-    var expr = ast.pop(ctx);
+    var expr = Ast.pop(ctx);
     for (var i = node.elts.length-2; i >= 0; i--) {
       var ofNode = ctx.state.nodePool[node.elts[i]];
       var patternNode = ofNode.elts[1];
       visit(patternNode);
-      var pattern = ast.pop(ctx);
+      var pattern = Ast.pop(ctx);
       if (expr === pattern) {
         visit(ofNode.elts[0]);
         return;
@@ -1751,59 +1749,59 @@ var folder = function() {
     for (var i = 0; i < node.elts.length; i++) {
       visit(node.elts[i]);
     }
-    ast.ofClause(ctx);
+    Ast.ofClause(ctx);
   }
 
   function list(node) {
     visit(node.elts[0]);
-    ast.list(ctx)
+    Ast.list(ctx)
   }
 
   function exprs(node) {
     for (var i = 0; i < node.elts.length; i++) {
       visit(node.elts[i]);
     }
-    ast.exprs(ctx, node.elts.length);
+    Ast.exprs(ctx, node.elts.length);
   }
 
   function recurse(node) {
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    ast.call(ctx, node.elts.length-1) // func name is the +1
+    Ast.call(ctx, node.elts.length-1) // func name is the +1
   }
 
   function map(node) {
-    ast.name(ctx, "map");
+    Ast.name(ctx, "map");
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    ast.funcApp(ctx, node.elts.length);
+    Ast.funcApp(ctx, node.elts.length);
   }
 
   function call(node) {
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    ast.call(ctx, node.elts.length-1);
+    Ast.call(ctx, node.elts.length-1);
   }
 
   function funcApp2(node) {
-    ast.name(ctx, node.tag);
+    Ast.name(ctx, node.tag);
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    ast.funcApp2(ctx, node.elts.length);
+    Ast.funcApp2(ctx, node.elts.length);
   }
 
   function neg(node) {
     visit(node.elts[0]);
-    ast.neg(ctx);
+    Ast.neg(ctx);
   }
 
   function unaryExpr(node) {
     visit(node.elts[0]);
-    ast.unaryExpr(ctx, node.tag);
+    Ast.unaryExpr(ctx, node.tag);
   }
 
   function visitArgs(args) {
@@ -1815,91 +1813,91 @@ var folder = function() {
   function add(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.add(ctx);
+    Ast.add(ctx);
   }
 
   function sub(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.sub(ctx);
+    Ast.sub(ctx);
   }
 
   function mul(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.mul(ctx);
+    Ast.mul(ctx);
   }
 
   function div(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.div(ctx);
+    Ast.div(ctx);
   }
 
   function pow(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.pow(ctx);
+    Ast.pow(ctx);
   }
 
   function concat(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.concat(ctx);
+    Ast.concat(ctx);
   }
 
   function mod(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.mod(ctx);
+    Ast.mod(ctx);
   }
 
   function orelse(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.orelse(ctx);
+    Ast.orelse(ctx);
   }
 
   function andalso(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.andalso(ctx);
+    Ast.andalso(ctx);
   }
 
   function eq(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.eq(ctx);
+    Ast.eq(ctx);
   }
 
   function ne(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.ne(ctx);
+    Ast.ne(ctx);
   }
 
   function lt(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.lt(ctx);
+    Ast.lt(ctx);
   }
 
   function gt(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.gt(ctx);
+    Ast.gt(ctx);
   }
 
   function le(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.le(ctx);
+    Ast.le(ctx);
   }
 
   function ge(node) {
     visit(node.elts[1]);
     visit(node.elts[0]);
-    ast.ge(ctx);
+    Ast.ge(ctx);
   }
 
   // when folding identifiers we encounter three cases:
@@ -1913,15 +1911,15 @@ var folder = function() {
     if (word) {
       if (word.cls==="val") {
         if (word.val) {
-          ast.push(ctx, word.val);
-          visit(ast.pop(ctx));      // reduce the val expr
+          Ast.push(ctx, word.val);
+          visit(Ast.pop(ctx));      // reduce the val expr
         } else if (word.name) {
-          ast.push(ctx, {tag: word.name, elts: []});  // create a node from the word entry
+          Ast.push(ctx, {tag: word.name, elts: []});  // create a node from the word entry
         } else {
-          ast.push(ctx, node);  // push the original node to be resolved later.
+          Ast.push(ctx, node);  // push the original node to be resolved later.
         }
       } else {
-        ast.push(ctx, node);
+        Ast.push(ctx, node);
       }
 // FIXME need to implement this
 //      else
@@ -1930,23 +1928,24 @@ var folder = function() {
 //      }
     } else {
       //assert(false, "unresolved ident "+name);
-      ast.push(ctx, node);
+      Ast.push(ctx, node);
     }
   }
 
   function num(node) {
-    ast.number(ctx, node.elts[0]);
+    Ast.number(ctx, node.elts[0]);
   }
 
   function str(node) {
-    ast.string(ctx, node.elts[0]);
+    Ast.string(ctx, node.elts[0]);
   }
 
   function bool(node) {
-    ast.bool(ctx, node.elts[0]);
+    Ast.bool(ctx, node.elts[0]);
   }
 
   function stub(node) {
     return "";
   }
 }();
+

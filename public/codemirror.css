@@ -26,7 +26,6 @@
   border-right: 1px solid #ddd;
   background-color: #f7f7f7;
   white-space: nowrap;
-  height: auto;
 }
 .CodeMirror-linenumbers {}
 .CodeMirror-linenumber {
