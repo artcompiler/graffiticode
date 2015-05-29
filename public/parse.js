@@ -1344,6 +1344,28 @@ exports.parser = (function () {
     return ctx.state.env[ctx.state.env.length-1]
   }
 
+  function compileCode(ast) {
+    var dispatcher = window.dispatcher;
+    ast = JSON.stringify(ast);
+    exports.id = 0;
+    $.ajax({
+      type: "PUT",
+      url: "/compile",
+      data: {
+        "ast": ast,
+        "type": exports.lexiconType,
+        "language": exports.language,
+      },
+      dataType: "text",
+      success: function(data) {
+        dispatcher.dispatch(JSON.parse(data));
+      },
+      error: function(xhr, msg, err) {
+        console.log(msg+" "+err);
+      }
+    });
+  }
+
   exports.topEnv = topEnv
   var lastID;
   var lastAST;
@@ -1372,20 +1394,20 @@ exports.parser = (function () {
       if (cc) {
         cls = cc.cls
       }
-      if (cc === null && exports.doRecompile) {
+      if (cc === null) {
         var thisAST = Ast.poolToJSON(ctx);
         var lastAST;
         if (!exports._.isEqual(lastAST, thisAST)) {
-          // Compile code if not edit activity after 1 sec.
+          // Compile code if no edit activity after 1 sec.
           if (exports.id === lastID && lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
           } else {
             // First time through, don't delay.
-            exports.gc.compileCode(thisAST)
+            compileCode(thisAST)
           }
           lastTimer = window.setTimeout(function () {
-            exports.gc.compileCode(thisAST)
+            compileCode(thisAST)
           }, 1000);
         }
         lastAST = thisAST;
