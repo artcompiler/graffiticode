@@ -1358,7 +1358,8 @@ exports.parser = (function () {
       },
       dataType: "text",
       success: function(data) {
-        dispatcher.dispatch(JSON.parse(data));
+        var data = JSON.parse(data);
+        dispatcher.dispatch(data);
       },
       error: function(xhr, msg, err) {
         console.log(msg+" "+err);

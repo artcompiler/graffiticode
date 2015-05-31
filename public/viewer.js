@@ -2,18 +2,11 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* copyright (c) 2014, Jeff Dyer */
 window.viewer = (function () {
-  function reset() {
-  }
   var height;
   function updateObj(obj) {
     objCodeMirror.setValue(obj);
   }
   function update(el, obj, src, pool) {
-    reset();
-    exports.src = src;
-    exports.pool = pool;
-    exports.obj = obj;
-//    obj = JSON.parse(obj);
     if (!obj.json) {
       return;
     }
@@ -40,7 +33,6 @@ window.viewer = (function () {
         break;
       }
     });
-//    updateObj(JSON.stringify(obj.json, null, 2));
     var svg = obj.svg;
     function getSize(svg) {
       svg = svg.slice(svg.indexOf("width=") + 7 + 5);
@@ -59,7 +51,7 @@ window.viewer = (function () {
     var text =
       "<text x='30' y='20'>" +
       "<tspan font-size='14' font-weight='600'>" + method + "</tspan> " +
-      "<tspan font-weight='400' font-style='italic'>" + options  + "</tspan>" +
+      "<tspan font-size='12' font-weight='400' font-style='italic'>" + options  + "</tspan>" +
       "</text> ";
     var svg;
     if (obj.valueSVG) {
@@ -78,7 +70,9 @@ window.viewer = (function () {
       var valueHeight = 0;
       if (obj.value) {
         text += 
-        "<text x='4' y='45'><tspan font-size='12' font-weight='400'>" + obj.value + "</tspan></text>";
+          "<text x='4' y='45'><tspan font-size='12' font-weight='400'>" +
+          obj.value +
+          "</tspan></text>";
         valueHeight = 20;
       }
       var responseSize = getSize(obj.responseSVG);
@@ -122,7 +116,7 @@ window.viewer = (function () {
       .html('<g>' + checkSrc + text + svg + '</g>');
     var bbox = $("#graff-view svg g")[0].getBBox();
     $(el).attr("height", (bbox.height + 20) + "px");
-    $(el).attr("width", (bbox.width + 40) + "px");
+//    $(el).attr("width", (bbox.width + 40) + "px");
   }
   function unescapeXML(str) {
     return String(str)

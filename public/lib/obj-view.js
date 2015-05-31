@@ -1,9 +1,16 @@
-define(['exports'], function (exports) {
+define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module, _libDispatcherJs) {
+  /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
+  /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
   'use strict';
 
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  var _Dispatcher = _interopRequireDefault(_libDispatcherJs);
+
   var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
-  var CodeMirrorJSEditor = React.createClass({
-    displayName: 'CodeMirrorJSEditor',
+  var CodeMirrorEditor = React.createClass({
+    displayName: 'CodeMirrorEditor',
 
     propTypes: {
       lineNumbers: React.PropTypes.bool,
@@ -11,50 +18,55 @@ define(['exports'], function (exports) {
     },
     getDefaultProps: function getDefaultProps() {
       return {
-        lineNumbers: false
-      };
+        lineNumbers: false };
     },
     componentDidMount: function componentDidMount() {
-      if (IS_MOBILE) return;
-
+      if (IS_MOBILE) {
+        return;
+      }
       this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
         mode: 'javascript',
         lineNumbers: this.props.lineNumbers,
         lineWrapping: true,
-        smartIndent: false, // javascript mode does bad things with jsx indents
+        smartIndent: true,
         matchBrackets: true,
-        theme: 'solarized-light',
-        readOnly: this.props.readOnly
-      });
-      this.editor.on('change', this.handleChange);
+        theme: 'neat',
+        readOnly: this.props.readOnly,
+        viewportMargin: Infinity,
+        extraKeys: { 'Ctrl-Space': 'autocomplete' } });
+      CodeMirrorEditor.dispatchToken = window.dispatcher.register(this.onChange);
     },
-
     componentDidUpdate: function componentDidUpdate() {
       if (this.props.readOnly) {
         this.editor.setValue(this.props.codeText);
       }
     },
-
+    onChange: function onChange(data) {
+      var objectCode = '';
+      if (data.objectCode) {
+        objectCode = data.objectCode;
+      } else if (data && !data.error && viewer.getObjectCode) {
+        objectCode = viewer.getObjectCode(data);
+      }
+      this.editor.setValue(objectCode);
+    },
     handleChange: function handleChange() {
       if (!this.props.readOnly) {
         this.props.onChange && this.props.onChange(this.editor.getValue());
       }
     },
-
     render: function render() {
       // wrap in a div to fully contain CodeMirror
-      var editor;
-
+      var editor = undefined;
       if (IS_MOBILE) {
         editor = React.createElement(
           'pre',
           { style: { overflow: 'scroll' } },
-          this.props.codeText
+          ''
         );
       } else {
-        editor = React.createElement('textarea', { ref: 'editor', defaultValue: this.props.codeText });
+        editor = React.createElement('textarea', { ref: 'editor', defaultValue: '' });
       }
-
       return React.createElement(
         'div',
         { style: this.props.style, className: this.props.className },
@@ -62,12 +74,10 @@ define(['exports'], function (exports) {
       );
     }
   });
-
   var selfCleaningTimeout = {
     componentDidUpdate: function componentDidUpdate() {
       clearTimeout(this.timeoutID);
     },
-
     setTimeout: (function (_setTimeout) {
       function setTimeout() {
         return _setTimeout.apply(this, arguments);
@@ -83,111 +93,59 @@ define(['exports'], function (exports) {
       this.timeoutID = setTimeout.apply(null, arguments);
     })
   };
-
   var ObjectView = React.createClass({
     displayName: 'ObjectView',
 
     mixins: [selfCleaningTimeout],
-
     MODES: { JSX: 'JSX', JS: 'JS' }, //keyMirror({JSX: true, JS: true}),
-
     propTypes: {
+      codeText: React.PropTypes.string.isRequired,
+      transformer: React.PropTypes.func,
       renderCode: React.PropTypes.bool,
       showCompiledJSTab: React.PropTypes.bool,
       showLineNumbers: React.PropTypes.bool,
       editorTabTitle: React.PropTypes.string
     },
-
     getDefaultProps: function getDefaultProps() {
       return {
-        editorTabTitle: 'Compiled1',
+        editorTabTitle: 'Object',
         showCompiledJSTab: true,
-        showLineNumbers: false
-      };
+        showLineNumbers: true,
+        codeText: '' };
     },
-
     getInitialState: function getInitialState() {
       return {
         mode: this.MODES.JSX,
         code: this.props.codeText };
     },
-
-    handleCodeChange: function handleCodeChange(value) {
-      this.setState({ code: value });
-      this.executeCode();
-    },
-
-    handleCodeModeSwitch: function handleCodeModeSwitch(mode) {
-      this.setState({ mode: mode });
-    },
-
+    handleCodeChange: function handleCodeChange(value) {},
+    handleCodeModeSwitch: function handleCodeModeSwitch(mode) {},
+    compileCode: function compileCode() {},
     render: function render() {
       var isJS = this.state.mode === this.MODES.JS;
       var compiledCode = '';
-      try {} catch (err) {}
-
-      var JSContent = React.createElement(CodeMirrorJSEditor, {
-        key: 'js',
-        className: 'playgroundStage CodeMirror-readonly',
-        codeText: compiledCode,
-        onChange: this.handleCodeChange,
-        readOnly: true,
-        lineNumbers: this.props.showLineNumbers
-      });
-
-      var JSXContent = React.createElement(CodeMirrorJSEditor, {
-        key: 'jsx',
-        onChange: this.handleCodeChange,
-        className: 'playgroundStage',
-        codeText: this.state.code,
-        lineNumbers: this.props.showLineNumbers
-      });
-
-      var JSXTabClassName = 'playground-tab' + (isJS ? '' : ' playground-tab-active');
-      var JSTabClassName = 'playground-tab' + (isJS ? ' playground-tab-active' : '');
-
-      var JSTab = React.createElement(
-        'div',
-        {
-          className: JSTabClassName,
-          onClick: this.handleCodeModeSwitch.bind(this, this.MODES.JS) },
-        'Compiled2'
-      );
-
-      var JSXTab = React.createElement(
-        'div',
-        {
-          className: JSXTabClassName,
-          onClick: this.handleCodeModeSwitch.bind(this, this.MODES.JSX) },
-        this.props.editorTabTitle
-      );
-
+      try {
+        compiledCode = this.compileCode();
+      } catch (err) {}
       return React.createElement(
         'div',
         { className: 'playground' },
         React.createElement(
           'div',
-          null,
-          JSXTab,
-          this.props.showCompiledJSTab && JSTab
-        ),
-        React.createElement(
-          'div',
           { className: 'playgroundCode' },
-          isJS ? JSContent : JSXContent
-        ),
-        React.createElement(
-          'div',
-          { className: 'playgroundPreview' },
-          React.createElement('div', { ref: 'mount' })
+          React.createElement(CodeMirrorEditor, {
+            key: 'jsx',
+            onChange: this.handleCodeChange,
+            className: 'playgroundStage',
+            codeText: this.props.codeText,
+            lineNumbers: this.props.showLineNumbers
+          })
         )
       );
     },
-
     componentDidMount: function componentDidMount() {
       this.executeCode();
     },
-
     componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
       // execute code only when the state's not being updated by switching tab
       // this avoids re-displaying the error, which comes after a certain delay
@@ -195,27 +153,29 @@ define(['exports'], function (exports) {
         this.executeCode();
       }
     },
-
     executeCode: function executeCode() {
+      return;
       var mountNode = React.findDOMNode(this.refs.mount);
-
       try {
         React.unmountComponentAtNode(mountNode);
       } catch (e) {}
-
       try {
+        var compiledCode = this.compileCode();
         if (this.props.renderCode) {
-          React.render(React.createElement(CodeMirrorJSEditor, { codeText: '', readOnly: true }), mountNode);
-        } else {}
+          React.render(React.createElement(CodeMirrorEditor, { codeText: compiledCode, readOnly: true }), mountNode);
+        } else {
+          eval(compiledCode);
+        }
       } catch (err) {
         this.setTimeout(function () {
           React.render(React.createElement(
             'div',
             { className: 'playgroundError' },
-            err.toString()
+            'ERROR:' + err.toString()
           ), mountNode);
         }, 500);
       }
     }
   });
+  module.exports = ObjectView;
 });

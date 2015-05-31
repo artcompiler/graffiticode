@@ -30,17 +30,17 @@ define(["exports", "module"], function (exports, module) {
     },
     componentDidUpdate: function componentDidUpdate() {
       var el = React.findDOMNode(this);
-      if (this.state) {
+      if (this.state && !this.state.error) {
         viewer.update(el, this.state);
       }
     },
     onChange: function onChange(data) {
-      this.setState(data);
+      this.replaceState(data);
     },
     render: function render() {
       return React.createElement(
         "svg",
-        { height: "380", width: "100%" },
+        { height: "380", width: "100%", style: { background: "white" } },
         React.createElement(
           "g",
           null,

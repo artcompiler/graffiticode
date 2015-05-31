@@ -89,7 +89,7 @@ var SourceView = React.createClass({
       editorTabTitle: 'Source',
       showCompiledJSTab: true,
       showLineNumbers: true,
-      codeText: 'let f x y = equivSymbolic x y..\nf "10" "20-10".\n.let x = 10..',
+      codeText: 'equivSymbolic "10" "20-10"..',
     };
   },
   getInitialState: function() {
@@ -99,33 +99,10 @@ var SourceView = React.createClass({
     };
   },
   handleCodeChange: function(value) {
-    this.setState({code: value});
-    this.executeCode();
   },
   handleCodeModeSwitch: function(mode) {
-    this.setState({mode: mode});
   },
   compileCode: function() {
-    // {src, ast} -> {id, obj}
-    var ast = this.state.code;
-    exports.id = 0;
-    var src = editor.getValue();
-    $.ajax({
-      type: "PUT",
-      url: "/compile",
-      data: {
-        "ast": ast,
-        "type": exports.lexiconType,
-        "language": exports.language,
-      },
-      dataType: "text",
-      success: function(data) {
-        updateGraffito(data, src, ast);
-      },
-      error: function(xhr, msg, err) {
-        console.log(msg+" "+err);
-      }
-    });
   },
   render: function() {
     var isJS = this.state.mode === this.MODES.JS;
@@ -141,7 +118,7 @@ var SourceView = React.createClass({
             key="jsx"
             onChange={this.handleCodeChange}
             className="playgroundStage"
-            codeText={'let f x y = equivSymbolic x y..\nf "10" "20-10".\n.'}
+            codeText={'equivSymbolic "10" "20-10"..'}
             lineNumbers={this.props.showLineNumbers}
           />
         </div>

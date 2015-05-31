@@ -24,16 +24,16 @@ var GraffContent = React.createClass({
   },
   componentDidUpdate: function() {
     var el = React.findDOMNode(this);
-    if (this.state) {
+    if (this.state && !this.state.error) {
       viewer.update(el, this.state);
     }
   },
   onChange: function (data) {
-    this.setState(data);
+    this.replaceState(data);
   },
   render: function () {
     return (
-      <svg height="380" width="100%" style="background: white">
+      <svg height="380" width="100%" style={{background: "white"}}>
         <g>
           <rect width="100%" height="100%" fill="#ffffff"/>
         </g>

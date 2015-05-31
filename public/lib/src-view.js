@@ -102,41 +102,16 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
         editorTabTitle: 'Source',
         showCompiledJSTab: true,
         showLineNumbers: true,
-        codeText: 'let f x y = equivSymbolic x y..\nf "10" "20-10".\n.let x = 10..' };
+        codeText: 'equivSymbolic "10" "20-10"..' };
     },
     getInitialState: function getInitialState() {
       return {
         mode: this.MODES.JSX,
         code: this.props.codeText };
     },
-    handleCodeChange: function handleCodeChange(value) {
-      this.setState({ code: value });
-      this.executeCode();
-    },
-    handleCodeModeSwitch: function handleCodeModeSwitch(mode) {
-      this.setState({ mode: mode });
-    },
-    compileCode: function compileCode() {
-      // {src, ast} -> {id, obj}
-      var ast = this.state.code;
-      exports.id = 0;
-      var src = editor.getValue();
-      $.ajax({
-        type: 'PUT',
-        url: '/compile',
-        data: {
-          'ast': ast,
-          'type': exports.lexiconType,
-          'language': exports.language },
-        dataType: 'text',
-        success: function success(data) {
-          updateGraffito(data, src, ast);
-        },
-        error: function error(xhr, msg, err) {
-          console.log(msg + ' ' + err);
-        }
-      });
-    },
+    handleCodeChange: function handleCodeChange(value) {},
+    handleCodeModeSwitch: function handleCodeModeSwitch(mode) {},
+    compileCode: function compileCode() {},
     render: function render() {
       var isJS = this.state.mode === this.MODES.JS;
       var compiledCode = '';
@@ -153,7 +128,7 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
             key: 'jsx',
             onChange: this.handleCodeChange,
             className: 'playgroundStage',
-            codeText: 'let f x y = equivSymbolic x y..\nf "10" "20-10".\n.',
+            codeText: 'equivSymbolic "10" "20-10"..',
             lineNumbers: this.props.showLineNumbers
           })
         )
