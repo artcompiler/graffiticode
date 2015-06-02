@@ -98,7 +98,6 @@ exports.gc = (function () {
       },
       dataType: "json",
       success: function(data) {
-//        var pieceData = $(".gallery-panel #"+id).data("piece");
         var gist_id = exports.gist_id = data.gist_id;
         $(".gallery-panel #"+id+" .label").html(pieceData.views+" Views, "+pieceData.forks+" Forks, " + 
           new Date(pieceData.created).toDateString().substring(4) + ", " +
@@ -210,87 +209,6 @@ exports.gc = (function () {
 
   function updateGraffito(obj, src, pool) {
     return exports.viewer.update(obj, src, pool);
-  }
-
-  function clickThumbnail(e, id) {
-    showWorkspace();
-    $.get("http://"+location.host+"/code/"+id, function (data) {
-      updateSrc(data[0].id, data[0].src);
-    });
-  }
-
-  function hideThumbnail(e, id) {
-    $.ajax({
-      type: "PUT",
-      url: "/label",
-      data: {
-        id: id,
-        label: "hide",
-      },
-      dataType: "text",
-      success: function(data) {
-        hideItem(id);
-      },
-      error: function(xhr, msg, err) {
-        console.log(msg + " " + err);
-      }
-    });
-  }
-
-  function hideItem(id) {
-    $(".gallery-panel #" + id).hide();
-  }
-
-  function addPiece(data, src, obj, img, append) {
-    if (!data || !data.id) {
-      return;
-    }
-    var id = data.id;
-    var gist_id = data.gist_id;
-    // store info about piece in thumbnail object
-    if (append) {
-      $(".gallery-panel").append("<p><div class='piece' id='"+id+"'/>");
-      if (img) {
-        $(".gallery-panel #" + id).append(img);
-      } else {
-        // Legacy
-        $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
-          "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
-      }
-      $(".gallery-panel #" + id).append("<br><div class='label'/>");
-      $(".gallery-panel #" + id + " iframe")
-        .load(function() {
-          $(this).css("height", $(this).contents().height() + "px");
-          $(this).css("width", $(this).contents().width() + "px");
-        });
-    } else {
-      $(".gallery-panel").prepend("<div class='piece' id='"+id+"'/>");
-      if (img) {
-        $(".gallery-panel #" + id).append(img);
-      } else {
-        $(".gallery-panel #" + id).append("<iframe class='thumbnail' " +
-          "scrolling:no " + "src='http://" + location.host + "/graffiti/" + id +"'/>");
-      }
-      $(".gallery-panel #" + id).append("<br><div class='label'/>");
-      $(".gallery-panel #" + id + " iframe")
-        .load(function() {
-          $(this).css("height", $(this).contents().height() + "px");
-          $(this).css("width", $(this).contents().width() + "px");
-        });
-    }
-    $(".gallery-panel #" + id + " .label")
-        .html("<b>" + (data.language===null?"DRAW":data.language) + " #" + id + "</b> " + data.views + " Views, " + data.forks + " Forks, " +
-            new Date(data.created).toDateString().substring(4) + ", " +
-            data.name +
-            "<br><a href='#' onclick='exports.gc.clickThumbnail(event, \"" + id + "\")'>Edit</a> " +
-
-            "<a href='http://" + location.host + "/graffiti/" +
-            id + "' target='_blank'>View</a>" +
-            (gist_id ? 
-             " <a href='https://gist.github.com/" + gist_id + "' target='_blank'>Gist/" +
-             gist_id + "</a>" : "") +
-              " <a onclick='exports.gc.hideThumbnail(event, \"" + id + "\")'>Hide</a>");
-    $(".gallery-panel #" + id).data(".label", "all", data);
   }
 
   function start() {

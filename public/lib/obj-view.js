@@ -43,10 +43,10 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
     },
     onChange: function onChange(data) {
       var objectCode = '';
-      if (data.objectCode) {
-        objectCode = data.objectCode;
+      if (data.obj.objectCode) {
+        objectCode = data.obj.objectCode;
       } else if (data && !data.error && viewer.getObjectCode) {
-        objectCode = viewer.getObjectCode(data);
+        objectCode = viewer.getObjectCode(data.obj);
       }
       this.editor.setValue(objectCode);
     },

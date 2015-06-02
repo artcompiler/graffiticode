@@ -24,7 +24,8 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
       if (IS_MOBILE) {
         return;
       }
-      this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
+      var exports = window.exports;
+      var editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
         mode: 'graffiti',
         lineNumbers: this.props.lineNumbers,
         lineWrapping: true,
@@ -34,13 +35,35 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
         readOnly: this.props.readOnly,
         viewportMargin: Infinity,
         extraKeys: { 'Ctrl-Space': 'autocomplete' } });
-      this.editor.on('change', this.handleChange);
+      var pieces = [];
+      $.ajax({
+        type: 'GET',
+        url: '/pieces/' + exports.language,
+        data: {},
+        dataType: 'json',
+        success: function success(data) {
+          var pieces = [];
+          for (var i = 0; i < data.length; i++) {
+            pieces[i] = data[i].id;
+          }
+          exports.pieces = pieces;
+          $.get('http://' + location.host + '/code/' + pieces[0], function (data) {
+            updateSrc(data[0].id, data[0].src);
+          });
+        },
+        error: function error(xhr, msg, err) {
+          console.log(msg + ' ' + err);
+        }
+      });
+      function updateSrc(id, src) {
+        exports.id = id;
+        exports.parent = exports.id;
+        if (src) {
+          editor.setValue(src.split('\\n').join('\n'));
+        }
+      };
     },
-    componentDidUpdate: function componentDidUpdate() {
-      if (this.props.readOnly) {
-        this.editor.setValue(this.props.codeText);
-      }
-    },
+    componentDidUpdate: function componentDidUpdate() {},
     handleChange: function handleChange() {
       if (!this.props.readOnly) {
         this.props.onChange && this.props.onChange(this.editor.getValue());
@@ -88,7 +111,6 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
     displayName: 'SourceView',
 
     mixins: [selfCleaningTimeout],
-    MODES: { JSX: 'JSX', JS: 'JS' }, //keyMirror({JSX: true, JS: true}),
     propTypes: {
       codeText: React.PropTypes.string.isRequired,
       transformer: React.PropTypes.func,
@@ -102,22 +124,16 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
         editorTabTitle: 'Source',
         showCompiledJSTab: true,
         showLineNumbers: true,
-        codeText: 'equivSymbolic "10" "20-10"..' };
+        codeText: '.' };
     },
     getInitialState: function getInitialState() {
       return {
-        mode: this.MODES.JSX,
         code: this.props.codeText };
     },
-    handleCodeChange: function handleCodeChange(value) {},
-    handleCodeModeSwitch: function handleCodeModeSwitch(mode) {},
-    compileCode: function compileCode() {},
+    handleKeyDown: function handleKeyDown(e) {
+      console.log('handleKeyDown() e=' + e.keyCode);
+    },
     render: function render() {
-      var isJS = this.state.mode === this.MODES.JS;
-      var compiledCode = '';
-      try {
-        compiledCode = this.compileCode();
-      } catch (err) {}
       return React.createElement(
         'div',
         { className: 'playground' },
@@ -125,48 +141,16 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
           'div',
           { className: 'playgroundCode' },
           React.createElement(CodeMirrorEditor, {
-            key: 'jsx',
-            onChange: this.handleCodeChange,
             className: 'playgroundStage',
-            codeText: 'equivSymbolic "10" "20-10"..',
+            codeText: this.props.codeText,
             lineNumbers: this.props.showLineNumbers
           })
         )
       );
     },
     componentDidMount: function componentDidMount() {
-      this.executeCode();
+      $(document.body).on('keydown', this.handleKeyDown);
     },
-    componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-      // execute code only when the state's not being updated by switching tab
-      // this avoids re-displaying the error, which comes after a certain delay
-      if (this.props.transformer !== prevProps.transformer || this.state.code !== prevState.code) {
-        this.executeCode();
-      }
-    },
-    executeCode: function executeCode() {
-      return;
-      var mountNode = React.findDOMNode(this.refs.mount);
-      try {
-        React.unmountComponentAtNode(mountNode);
-      } catch (e) {}
-      try {
-        var compiledCode = this.compileCode();
-        if (this.props.renderCode) {
-          React.render(React.createElement(CodeMirrorEditor, { codeText: compiledCode, readOnly: true }), mountNode);
-        } else {
-          eval(compiledCode);
-        }
-      } catch (err) {
-        this.setTimeout(function () {
-          React.render(React.createElement(
-            'div',
-            { className: 'playgroundError' },
-            'ERROR:' + err.toString()
-          ), mountNode);
-        }, 500);
-      }
-    }
-  });
+    componentDidUpdate: function componentDidUpdate(prevProps, prevState) {} });
   module.exports = SourceView;
 });

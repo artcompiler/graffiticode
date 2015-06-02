@@ -26,7 +26,8 @@ var CodeMirrorEditor = React.createClass({
     if (IS_MOBILE) {
       return;
     }
-    this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
+    let exports = window.exports;
+    let editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
       mode: 'graffiti',
       lineNumbers: this.props.lineNumbers,
       lineWrapping: true,
@@ -37,12 +38,35 @@ var CodeMirrorEditor = React.createClass({
       viewportMargin: Infinity,
       extraKeys: {"Ctrl-Space": "autocomplete"},
     });
-    this.editor.on('change', this.handleChange);
+    let pieces = [];
+    $.ajax({
+      type: "GET",
+      url: "/pieces/" + exports.language,
+      data: {},
+      dataType: "json",
+      success: function(data) {
+        let pieces = [];
+        for (var i = 0; i < data.length; i++) {
+          pieces[i] = data[i].id;
+        }
+        exports.pieces = pieces;
+        $.get("http://"+location.host+"/code/"+pieces[0], function (data) {
+          updateSrc(data[0].id, data[0].src);
+        });
+      },
+      error: function(xhr, msg, err) {
+        console.log(msg+" "+err)
+      }
+    });
+    function updateSrc(id, src) {
+      exports.id = id;
+      exports.parent = exports.id;
+      if (src) {
+        editor.setValue(src.split("\\n").join("\n"));
+      }
+    };
   },
-  componentDidUpdate: function() {
-    if (this.props.readOnly) {
-      this.editor.setValue(this.props.codeText);
-    }
+  componentDidUpdate: function() {    
   },
   handleChange: function() {
     if (!this.props.readOnly) {
@@ -75,7 +99,6 @@ var selfCleaningTimeout = {
 };
 var SourceView = React.createClass({
   mixins: [selfCleaningTimeout],
-  MODES: {JSX: 'JSX', JS: 'JS'}, //keyMirror({JSX: true, JS: true}),
   propTypes: {
     codeText: React.PropTypes.string.isRequired,
     transformer: React.PropTypes.func,
@@ -89,36 +112,24 @@ var SourceView = React.createClass({
       editorTabTitle: 'Source',
       showCompiledJSTab: true,
       showLineNumbers: true,
-      codeText: 'equivSymbolic "10" "20-10"..',
+      codeText: ".",
     };
   },
   getInitialState: function() {
     return {
-      mode: this.MODES.JSX,
       code: this.props.codeText,
     };
   },
-  handleCodeChange: function(value) {
-  },
-  handleCodeModeSwitch: function(mode) {
-  },
-  compileCode: function() {
+  handleKeyDown: function (e) {
+    console.log("handleKeyDown() e=" + e.keyCode);
   },
   render: function() {
-    var isJS = this.state.mode === this.MODES.JS;
-    var compiledCode = '';
-    try {
-      compiledCode = this.compileCode();
-    } catch (err) {
-    }
     return (
       <div className="playground">
         <div className="playgroundCode">
           <CodeMirrorEditor
-            key="jsx"
-            onChange={this.handleCodeChange}
             className="playgroundStage"
-            codeText={'equivSymbolic "10" "20-10"..'}
+            codeText={this.props.codeText}
             lineNumbers={this.props.showLineNumbers}
           />
         </div>
@@ -126,41 +137,9 @@ var SourceView = React.createClass({
     );
   },
   componentDidMount: function() {
-    this.executeCode();
+    $(document.body).on('keydown', this.handleKeyDown);
   },
   componentDidUpdate: function(prevProps, prevState) {
-    // execute code only when the state's not being updated by switching tab
-    // this avoids re-displaying the error, which comes after a certain delay
-    if (this.props.transformer !== prevProps.transformer ||
-        this.state.code !== prevState.code) {
-      this.executeCode();
-    }
   },
-  executeCode: function() {
-    return;
-    var mountNode = React.findDOMNode(this.refs.mount);
-    try {
-      React.unmountComponentAtNode(mountNode);
-    } catch (e) {
-    }
-    try {
-      var compiledCode = this.compileCode();
-      if (this.props.renderCode) {
-        React.render(
-          <CodeMirrorEditor codeText={compiledCode} readOnly={true} />,
-          mountNode
-        );
-      } else {
-        eval(compiledCode);
-      }
-    } catch (err) {
-      this.setTimeout(function() {
-        React.render(
-          <div className="playgroundError">{"ERROR:" + err.toString()}</div>,
-          mountNode
-        );
-      }, 500);
-    }
-  }
 });
 export default SourceView;

@@ -1359,7 +1359,11 @@ exports.parser = (function () {
       dataType: "text",
       success: function(data) {
         var data = JSON.parse(data);
-        dispatcher.dispatch(data);
+        dispatcher.dispatch({
+          src: window.exports.editor.getValue(),
+          obj: data,
+          pool: ast,
+        });
       },
       error: function(xhr, msg, err) {
         console.log(msg+" "+err);

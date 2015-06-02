@@ -27,11 +27,45 @@ define(["exports", "module"], function (exports, module) {
 
     componentDidMount: function componentDidMount() {
       GraffContent.dispatchToken = window.dispatcher.register(this.onChange);
+      this.isDirty = false;
     },
     componentDidUpdate: function componentDidUpdate() {
       var el = React.findDOMNode(this);
       if (this.state && !this.state.error) {
-        viewer.update(el, this.state);
+        var pool = this.state.pool;
+        var src = this.state.src;
+        var obj = this.state.obj;
+        viewer.update(el, obj);
+        var img = viewer.capture(el);
+        postPiece(pool, src, obj, img);
+      }
+      function postPiece(pool, src, obj, img) {
+        var exports = window.exports;
+        var user = $("#username").data("user");
+        obj = JSON.stringify(obj);
+        var parent = exports.parent;
+        var language = exports.language;
+        $.ajax({
+          type: "POST",
+          url: "/code",
+          data: {
+            src: src,
+            ast: pool,
+            obj: "", //obj,
+            img: img.replace(/\\/g, "\\\\"),
+            user: user ? user.id : 1,
+            parent: parent,
+            language: language,
+            label: "show" },
+          dataType: "json",
+          success: function success(data) {
+            exports.id = data.id;
+            exports.gist_id = data.gist_id;
+          },
+          error: function error(xhr, msg, err) {
+            console.log("Unable to submit code. Probably due to a SQL syntax error");
+          }
+        });
       }
     },
     onChange: function onChange(data) {
