@@ -26,7 +26,7 @@ define(["exports", "module"], function (exports, module) {
     displayName: "GraffContent",
 
     componentDidMount: function componentDidMount() {
-      GraffContent.dispatchToken = window.dispatcher.register(this.onChange);
+      GraffView.dispatchToken = window.dispatcher.register(this.onChange);
       this.isDirty = false;
     },
     componentDidUpdate: function componentDidUpdate() {

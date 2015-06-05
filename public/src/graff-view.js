@@ -20,7 +20,7 @@ var selfCleaningTimeout = {
 };
 var GraffContent = React.createClass({
   componentDidMount: function() {
-    GraffContent.dispatchToken = window.dispatcher.register(this.onChange);
+    GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
   },
   componentDidUpdate: function() {

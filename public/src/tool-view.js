@@ -59,14 +59,14 @@ var ToolContent = React.createClass({
   },
   componentDidMount: function() {
     var el = React.findDOMNode(this);
-    ToolContent.dispatchToken = window.dispatcher.register(this.onChange);
+    ToolView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
     d3.select(el).select("#save").on("click", this.onClick);
   },
   componentDidUpdate: function() {
   },
   onChange: function (data) {
-    window.dispatcher.waitFor([GraffContent.dispatchToken]);
+    window.dispatcher.waitFor([GraffView.dispatchToken]);
     if (!window.exports.id) {
       return;
     }

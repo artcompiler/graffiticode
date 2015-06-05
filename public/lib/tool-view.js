@@ -64,13 +64,13 @@ define(["exports", "module", "../lib/graff-view"], function (exports, module, _l
     },
     componentDidMount: function componentDidMount() {
       var el = React.findDOMNode(this);
-      ToolContent.dispatchToken = window.dispatcher.register(this.onChange);
+      ToolView.dispatchToken = window.dispatcher.register(this.onChange);
       this.isDirty = false;
       d3.select(el).select("#save").on("click", this.onClick);
     },
     componentDidUpdate: function componentDidUpdate() {},
     onChange: function onChange(data) {
-      window.dispatcher.waitFor([GraffContent.dispatchToken]);
+      window.dispatcher.waitFor([_GraffView["default"].dispatchToken]);
       if (!window.exports.id) {
         return;
       }
