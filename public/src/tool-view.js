@@ -67,9 +67,6 @@ var ToolContent = React.createClass({
   },
   onChange: function (data) {
     window.dispatcher.waitFor([GraffView.dispatchToken]);
-    if (!window.exports.id) {
-      return;
-    }
     var el = React.findDOMNode(this);
     d3.select(el).select("#save").style("visibility", "visible");
   },

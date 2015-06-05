@@ -71,9 +71,6 @@ define(["exports", "module", "../lib/graff-view"], function (exports, module, _l
     componentDidUpdate: function componentDidUpdate() {},
     onChange: function onChange(data) {
       window.dispatcher.waitFor([_GraffView["default"].dispatchToken]);
-      if (!window.exports.id) {
-        return;
-      }
       var el = React.findDOMNode(this);
       d3.select(el).select("#save").style("visibility", "visible");
     },
