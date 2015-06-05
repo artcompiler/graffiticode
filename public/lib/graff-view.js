@@ -30,6 +30,7 @@ define(["exports", "module"], function (exports, module) {
       this.isDirty = false;
     },
     componentDidUpdate: function componentDidUpdate() {
+      var viewer = window.exports.viewer;
       var el = React.findDOMNode(this);
       if (this.state && !this.state.error) {
         var pool = this.state.pool;

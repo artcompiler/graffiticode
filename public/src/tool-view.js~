@@ -24,7 +24,6 @@ var GraffContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function() {
-    var viewer = window.exports.viewer;
     var el = React.findDOMNode(this);
     if (this.state && !this.state.error) {
       let pool = this.state.pool;
@@ -55,7 +54,6 @@ var GraffContent = React.createClass({
         },
         dataType: "json",
         success: function(data) {
-          // FIXME add to state
           exports.id = data.id
           exports.gist_id = data.gist_id
         },
