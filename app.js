@@ -10,8 +10,6 @@ function print(str) {
 
 var express = require('express');
 var util = require('util');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
 var _ = require('underscore');
 var fs = require('fs');
 var http = require('http');
