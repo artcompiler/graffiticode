@@ -66,6 +66,7 @@ define(["exports", "module"], function (exports, module) {
     },
     componentDidUpdate: function componentDidUpdate() {},
     onChange: function onChange(data) {
+      window.dispatcher.waitFor([GraffContent.dispatchToken]);
       if (!window.exports.id) {
         return;
       }
