@@ -1,7 +1,11 @@
-define(["exports", "module"], function (exports, module) {
+define(["exports", "module", "../lib/graff-view"], function (exports, module, _libGraffView) {
   /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
   /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
   "use strict";
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+  var _GraffView = _interopRequireDefault(_libGraffView);
 
   var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
   var selfCleaningTimeout = {
