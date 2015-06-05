@@ -1358,7 +1358,7 @@ exports.parser = (function () {
       },
       dataType: "text",
       success: function(data) {
-        var data = JSON.parse(data);
+//        var data = JSON.parse(data);
         dispatcher.dispatch({
           src: window.exports.editor.getValue(),
           obj: data,
