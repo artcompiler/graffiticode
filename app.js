@@ -347,10 +347,10 @@ app.get('/code', function (req, res) {
 });
 
 function retrieve(language, path, response) {
-  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-  var host = "localhost";
-//  var host = language + ".artcompiler.com";
-//  var port = "80";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+//  var host = "localhost";
+  var host = language + ".artcompiler.com";
+  var port = "80";
   var data = [];
   var options = {
     host: host,
@@ -368,10 +368,10 @@ function retrieve(language, path, response) {
 
 function compile(language, src, response) {
   // Handle legacy case
-  var host = "localhost";
-  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-//  var host = language + ".artcompiler.com";
-//  var port = "80";
+//  var host = "localhost";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+  var host = language + ".artcompiler.com";
+  var port = "80";
   var path = "/compile";
   var data = {
     "description": "graffiticode",
@@ -584,19 +584,7 @@ app.get("/:lang/:path", function (req, res) {
 // This is the new way of loading pages
 app.get('/:lang', function (req, res) {
   var lang = req.params.lang;
-  res.render('views.html', { 
-    title: 'Graffiti Code',
-    language: lang,
-    vocabulary: lang,
-    target: 'SVG',
-    login: 'Login',
-  }, function (error, html) {
-    if (error) {
-      res.send(400, error);
-    } else {
-      res.send(html);
-    }
-  });
+  res.redirect('/lang?id=' + lang.substring(1));
 });
 
 // Simple route middleware to ensure user is authenticated.
