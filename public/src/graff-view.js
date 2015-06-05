@@ -46,7 +46,7 @@ var GraffContent = React.createClass({
         data: {
           src: src,
           ast: pool,
-          obj: "", //obj,
+          obj: obj,
           img: img.replace(/\\/g, "\\\\"),
           user: user ? user.id : 1,
           parent: parent,
