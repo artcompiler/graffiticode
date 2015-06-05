@@ -65,6 +65,7 @@ var ToolContent = React.createClass({
   componentDidUpdate: function() {
   },
   onChange: function (data) {
+    window.dispatcher.waitFor([GraffContent.dispatchToken]);
     if (!window.exports.id) {
       return;
     }
