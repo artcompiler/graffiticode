@@ -35,7 +35,7 @@ define(["exports", "module"], function (exports, module) {
         var pool = this.state.pool;
         var src = this.state.src;
         var obj = this.state.obj;
-        viewer.update(el, obj);
+        viewer.update(el, obj, src, pool);
         var img = viewer.capture(el);
         postPiece(pool, src, obj, img);
       }
@@ -56,9 +56,10 @@ define(["exports", "module"], function (exports, module) {
             user: user ? user.id : 1,
             parent: parent,
             language: language,
-            label: "show" },
+            label: "temp" },
           dataType: "json",
           success: function success(data) {
+            // FIXME add to state
             exports.id = data.id;
             exports.gist_id = data.gist_id;
           },
@@ -74,11 +75,11 @@ define(["exports", "module"], function (exports, module) {
     render: function render() {
       return React.createElement(
         "svg",
-        { height: "380", width: "100%", style: { background: "white" } },
+        { height: "0", width: "100%", style: { background: "white" } },
         React.createElement(
           "g",
           null,
-          React.createElement("rect", { width: "100%", height: "100%", fill: "#ffffff" })
+          React.createElement("rect", { width: "100%", height: "100%", fill: "white" })
         )
       );
     } });

@@ -29,7 +29,7 @@ var GraffContent = React.createClass({
       let pool = this.state.pool;
       let src = this.state.src;
       let obj = this.state.obj;
-      viewer.update(el, obj);
+      viewer.update(el, obj, src, pool);
       let img = viewer.capture(el);
       postPiece(pool, src, obj, img);
     }
@@ -50,10 +50,11 @@ var GraffContent = React.createClass({
           user: user ? user.id : 1,
           parent: parent,
           language: language,
-          label: "show",
+          label: "temp",
         },
         dataType: "json",
         success: function(data) {
+          // FIXME add to state
           exports.id = data.id
           exports.gist_id = data.gist_id
         },
@@ -68,9 +69,9 @@ var GraffContent = React.createClass({
   },
   render: function () {
     return (
-      <svg height="380" width="100%" style={{background: "white"}}>
+      <svg height="0" width="100%" style={{background: "white"}}>
         <g>
-          <rect width="100%" height="100%" fill="#ffffff"/>
+          <rect width="100%" height="100%" fill="white"/>
         </g>
       </svg>
     );

@@ -40,7 +40,10 @@ pg.connect(conString, function(err, client) {
 // Configuration
 
 app.set('views', __dirname + '/views');
-app.use(morgan("default"));
+app.set('public', __dirname + '/public');
+app.use(morgan('combined', {
+  skip: function (req, res) { return res.statusCode < 400 }
+}));
 app.use(cookieParser());
 
 // parse application/x-www-form-urlencoded
@@ -57,8 +60,8 @@ app.use(bodyParser.raw());
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
 
 app.use(methodOverride());
-app.use(require('stylus').middleware({ src: __dirname + '/static' }));
-app.use(express.static(__dirname + '/static'));
+//app.use(require('stylus').middleware({ src: __dirname + '/static' }));
+app.use(express.static(__dirname + '/public'));
 app.use(session({ secret: 'keyboard cat' }));
 
 app.use(function (err, req, res, next) {
@@ -85,25 +88,62 @@ app.all('*', function (req, res, next) {
 });
 
 app.get('/', function(req, res) {
-  res.redirect("/draw");
+  res.redirect("/index");
 });
 
-app.get('/draw', function (req, res) {
-  fs.readFile('views/draw.html', function (err, body) {
-    res.render('layout.html', { 
-      title: 'Graffiti Code',
-      vocabulary: 'DRAW',
-      target: 'SVG',
-      login: 'Login',
-      body: body,
-    }, function (error, html) {
-      if (error) {
-        res.send(400, error);
+// lang?id=106
+// item?id=12304
+// data?author=dyer&sort=desc
+app.get('/lang', function(req, res) {
+  var id = req.query.id;
+  var lang = "L" + id;
+  res.render('views.html', { 
+    title: 'Graffiti Code',
+    language: lang,
+    vocabulary: lang,
+    target: 'SVG',
+    login: 'Login',
+    item: 0,
+  }, function (error, html) {
+    if (error) {
+      res.send(400, error);
+    } else {
+      res.send(html);
+    }
+  });
+});
+
+app.get('/item', function(req, res) {
+  var id = req.query.id;
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+      var rows;
+      if (!result || result.rows.length===0) {
+        rows = [{}];
       } else {
-        res.send(html);
+        var lang = result.rows[0].language;
+        res.render('views.html', { 
+          title: 'Graffiti Code',
+          language: lang,
+          vocabulary: lang,
+          target: 'SVG',
+          login: 'Login',
+          item: id,
+        }, function (error, html) {
+          if (error) {
+            res.send(400, error);
+          } else {
+            res.send(html);
+          }
+        });
       }
     });
+    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
   });
+});
+
+app.get("/index", function (req, res) {
+  res.sendFile("public/index.html");
 });
 
 app.get('/dr10', function (req, res) {
@@ -333,12 +373,6 @@ function compile(language, src, response) {
 //  var host = language + ".artcompiler.com";
 //  var port = "80";
   var path = "/compile";
-  if (language === "DRAW" ||
-      language === "DEBUG") {
-    language = "L100";
-    host = "api.artcompiler.com";
-    path = "/compile/" + language;
-  }
   var data = {
     "description": "graffiticode",
     "language": language,
@@ -356,6 +390,8 @@ function compile(language, src, response) {
     },
   };
   var obj = null;
+  console.log("compile() data=" + JSON.stringify(data, null, 2));
+  console.log("compile() options=" + JSON.stringify(options, null, 2));
   var req = http.request(options, function(res) {
     var data = "";
     res.on('data', function (chunk) {
@@ -548,7 +584,7 @@ app.get("/:lang/:path", function (req, res) {
 // This is the new way of loading pages
 app.get('/:lang', function (req, res) {
   var lang = req.params.lang;
-  res.render('index.html', { 
+  res.render('views.html', { 
     title: 'Graffiti Code',
     language: lang,
     vocabulary: lang,
@@ -562,7 +598,6 @@ app.get('/:lang', function (req, res) {
     }
   });
 });
-
 
 // Simple route middleware to ensure user is authenticated.
 //   Use this route middleware on any resource that needs to be protected.  If
@@ -660,3 +695,7 @@ if (process.env.NODE_ENV === 'development') {
 if (process.env.NODE_ENV === 'production') {
   app.use(errorHandler())
 }
+
+process.on('uncaughtException', function(err) {
+  console.log('Caught exception: ' + err.stack);
+});

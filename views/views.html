@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="<%=language%>/style.css"></script>
     <script>
       window.exports = {
-        language: "<%=language%>"
+        language: "<%=language%>",
+        id: "<%=item%>",
       };
+      console.log("winow.exports.id=" + window.exports.id);
     </script>
     <script src="<%=language%>/lexicon.js"></script>
     <script src="<%=language%>/viewer.js"></script>
@@ -25,6 +27,7 @@
     <script data-main="lib/index" src="require.js"></script>
   </head>
   <body>
+    <div id="tool-view"></div>
     <div id="src-view"></div>
     <div id="graff-view"></div>
     <div id="obj-view"></div>

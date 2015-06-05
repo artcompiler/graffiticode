@@ -36,28 +36,35 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
         viewportMargin: Infinity,
         extraKeys: { 'Ctrl-Space': 'autocomplete' } });
       var pieces = [];
-      $.ajax({
-        type: 'GET',
-        url: '/pieces/' + exports.language,
-        data: {},
-        dataType: 'json',
-        success: function success(data) {
-          var pieces = [];
-          for (var i = 0; i < data.length; i++) {
-            pieces[i] = data[i].id;
+      var id = +exports.id;
+      if (id) {
+        $.get('http://' + location.host + '/code/' + id, function (data) {
+          updateSrc(data[0].id, data[0].src);
+        });
+      } else {
+        $.ajax({
+          type: 'GET',
+          url: '/pieces/' + exports.language,
+          data: {},
+          dataType: 'json',
+          success: function success(data) {
+            var pieces = [];
+            for (var i = 0; i < data.length; i++) {
+              pieces[i] = data[i].id;
+            }
+            exports.pieces = pieces;
+            $.get('http://' + location.host + '/code/' + pieces[0], function (data) {
+              updateSrc(data[0].id, data[0].src);
+            });
+          },
+          error: function error(xhr, msg, err) {
+            console.log(msg + ' ' + err);
           }
-          exports.pieces = pieces;
-          $.get('http://' + location.host + '/code/' + pieces[0], function (data) {
-            updateSrc(data[0].id, data[0].src);
-          });
-        },
-        error: function error(xhr, msg, err) {
-          console.log(msg + ' ' + err);
-        }
-      });
+        });
+      }
       function updateSrc(id, src) {
-        exports.id = id;
         exports.parent = exports.id;
+        exports.id = id;
         if (src) {
           editor.setValue(src.split('\\n').join('\n'));
         }
