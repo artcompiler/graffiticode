@@ -316,6 +316,7 @@ app.get('/pieces/:lang', function (req, res) {
         rows = [{}];
       } else {
         rows = result.rows;
+        console.log("/pieces rows[0]=" + rows[0].obj);
       }
       res.send(rows);
     });
@@ -432,7 +433,6 @@ app.post('/code', function (req, res){
       obj = obj.replace(new RegExp("'","g"), "\"");
       img = img.replace(new RegExp("\n","g"), " ");
       img = img.replace(new RegExp("'","g"), "\"");
-      console.log("/code obj=" + obj);
       var queryStr = 
         "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
