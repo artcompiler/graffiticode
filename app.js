@@ -316,7 +316,6 @@ app.get('/pieces/:lang', function (req, res) {
         rows = [{}];
       } else {
         rows = result.rows;
-        console.log("/pieces rows[0]=" + JSON.stringify(rows[0]));
       }
       res.send(rows);
     });
@@ -337,6 +336,7 @@ app.get('/code', function (req, res) {
         rows = [{}];
       } else {
         rows = result.rows;
+        console.log("/code rows[0]=" + JSON.stringify(rows[0]));
       }
       res.send(rows)
     });
