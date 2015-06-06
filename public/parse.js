@@ -1406,16 +1406,20 @@ exports.parser = (function () {
         var thisAST = Ast.poolToJSON(ctx);
         if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
           // Compile code if no edit activity after 1 sec.
+          var firstTime = false;
           if (thisID === lastID && lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
           } else {
             // First time through, don't delay.
             compileCode(thisAST);
+            firstTime = true;
           }
-          lastTimer = window.setTimeout(function () {
-            compileCode(thisAST)
-          }, 1000);
+          if (!firstTime) {
+            lastTimer = window.setTimeout(function () {
+              compileCode(thisAST)
+            }, 1000);
+          }
         }
       }
       var c;
