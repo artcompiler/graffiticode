@@ -1404,7 +1404,7 @@ exports.parser = (function () {
       }
       if (cc === null) {
         var thisAST = Ast.poolToJSON(ctx);
-        if (JSON.stringify(lastAST) === JSON.stringify(thisAST)) {
+        if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
           // Compile code if no edit activity after 1 sec.
           if (thisID === lastID && lastTimer) {
             // Reset timer to wait another second.
