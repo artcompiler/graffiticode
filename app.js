@@ -416,7 +416,6 @@ app.post('/code', function (req, res){
   var language = req.body.language;
   var src = req.body.src;
   var obj = req.body.obj;
-  console.log("/code obj=" + obj);
   var user = req.body.user;
   var parent = req.body.parent;
   var img = req.body.img;
@@ -433,6 +432,7 @@ app.post('/code', function (req, res){
       obj = obj.replace(new RegExp("'","g"), "\"");
       img = img.replace(new RegExp("\n","g"), " ");
       img = img.replace(new RegExp("'","g"), "\"");
+      console.log("/code obj=" + obj);
       var queryStr = 
         "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
