@@ -1358,7 +1358,8 @@ exports.parser = (function () {
       },
       dataType: "text",
       success: function(data) {
-        exports.id = data.id;
+        lastID = thisID;
+        thisID = data.id;
         dispatcher.dispatch({
           src: window.exports.editor.getValue(),
           obj: data,
@@ -1373,6 +1374,7 @@ exports.parser = (function () {
 
   exports.topEnv = topEnv
   var lastID;
+  var thisID;
   var lastAST;
   var lastTimer;
   function parse(stream, state) {
@@ -1403,7 +1405,7 @@ exports.parser = (function () {
         var thisAST = Ast.poolToJSON(ctx);
         if (!exports._.isEqual(lastAST, thisAST)) {
           // Compile code if no edit activity after 1 sec.
-          if (exports.id === lastID && lastTimer) {
+          if (thisID === lastID && lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
           } else {
@@ -1414,8 +1416,6 @@ exports.parser = (function () {
             compileCode(thisAST)
           }, 1000);
         }
-        lastAST = thisAST;
-        lastID = exports.id;
       }
       var c;
       while ((c = stream.peek()) &&
