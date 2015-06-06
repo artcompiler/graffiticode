@@ -408,8 +408,7 @@ function compile(language, src, response) {
 app.put('/compile', function (req, res) {
   var ast = req.body.ast;
   var language = req.body.language;
-  var src = JSON.parse(ast);
-  compile(language, src, res);
+  compile(language, ast, res);
 });
 
 // Commit and return commit id
