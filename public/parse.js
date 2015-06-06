@@ -1365,7 +1365,7 @@ exports.parser = (function () {
           src: window.exports.editor.getValue(),
           obj: data,
           pool: ast,
-          dontPost: firstTime,
+          postCode: !firstTime,
         });
       },
       error: function(xhr, msg, err) {

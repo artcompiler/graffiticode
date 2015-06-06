@@ -31,7 +31,7 @@ var GraffContent = React.createClass({
       let src = this.state.src;
       let obj = this.state.obj;
       viewer.update(el, obj, src, pool);
-      if (this.state.dontPost) {
+      if (this.state.postCode) {
         let img = viewer.capture(el);
         postPiece(pool, src, obj, img);
       }
