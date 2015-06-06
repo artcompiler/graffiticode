@@ -1357,7 +1357,7 @@ exports.parser = (function () {
         "type": exports.lexiconType,
         "language": exports.language,
       },
-      dataType: "json",
+      dataType: "text",
       success: function(data) {
         dispatcher.dispatch({
           src: window.exports.editor.getValue(),

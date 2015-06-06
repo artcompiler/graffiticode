@@ -407,7 +407,7 @@ function compile(language, src, response) {
 
 // Compile code (idempotent)
 app.put('/compile', function (req, res) {
-  var ast = req.body.ast;
+  var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
   compile(language, ast, res);
 });
@@ -416,7 +416,7 @@ app.put('/compile', function (req, res) {
 app.post('/code', function (req, res){
   var language = req.body.language;
   var src = req.body.src;
-  var obj = JSON.stringify(req.body.obj);
+  var obj = req.body.obj;
   var user = req.body.user;
   var parent = req.body.parent;
   var img = req.body.img;
