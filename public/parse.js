@@ -1357,7 +1357,7 @@ exports.parser = (function () {
         "type": exports.lexiconType,
         "language": exports.language,
       },
-//      dataType: "text",
+      dataType: "json",
       success: function(data) {
         lastID = thisID;
         thisID = data.id;
