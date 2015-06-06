@@ -415,7 +415,7 @@ app.put('/compile', function (req, res) {
 app.post('/code', function (req, res){
   var language = req.body.language;
   var src = req.body.src;
-  var obj = req.body.obj;
+  var obj = JSON.stringify(req.body.obj);
   var user = req.body.user;
   var parent = req.body.parent;
   var img = req.body.img;
