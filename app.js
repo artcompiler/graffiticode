@@ -316,7 +316,7 @@ app.get('/pieces/:lang', function (req, res) {
         rows = [{}];
       } else {
         rows = result.rows;
-        console.log("/pieces rows[0]=" + rows[0].obj);
+        console.log("/pieces rows[0]=" + JSON.stringify(rows[0]));
       }
       res.send(rows);
     });
