@@ -59,6 +59,7 @@ var GraffContent = React.createClass({
           // FIXME add to state
           exports.id = data.id
           exports.gist_id = data.gist_id
+          window.history.pushState("object or string", "title", "/item?id=" + data.id);
         },
         error: function(xhr, msg, err) {
           console.log("Unable to submit code. Probably due to a SQL syntax error");
