@@ -44,8 +44,8 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
     onChange: function onChange(data) {
       var objectCode = '';
       var obj = JSON.parse(data.obj);
-      if (data.obj.objectCode) {
-        objectCode = data.obj.objectCode;
+      if (obj.objectCode) {
+        objectCode = obj.objectCode;
       } else if (data && !data.error && window.exports.viewer.getObjectCode) {
         objectCode = window.exports.viewer.getObjectCode(data.obj);
       }
