@@ -66,7 +66,7 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
         exports.parent = exports.id;
         exports.id = id;
         if (src) {
-          editor.setValue(src.replace(/\\/g, '\\\\').split('\\n').join('\n'));
+          editor.setValue(src.split(/\\n[^umber]/).join('\n'));
         }
       };
     },
