@@ -1409,13 +1409,13 @@ exports.parser = (function () {
           if (thisID === lastID && lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
+            lastTimer = window.setTimeout(function () {
+              compileCode(thisAST)
+            }, 1000);
           } else {
             // First time through, don't delay.
             compileCode(thisAST);
           }
-          lastTimer = window.setTimeout(function () {
-            compileCode(thisAST)
-          }, 1000);
         }
       }
       var c;
