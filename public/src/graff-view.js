@@ -38,6 +38,7 @@ var GraffContent = React.createClass({
       let exports = window.exports;
       let user = $("#username").data("user");
       obj = JSON.stringify(obj);
+      src = exports.src.replace(/\\/g, "\\\\");
       let parent = exports.parent;
       let language = exports.language;
       $.ajax({

@@ -44,6 +44,7 @@ define(["exports", "module"], function (exports, module) {
         var exports = window.exports;
         var user = $("#username").data("user");
         obj = JSON.stringify(obj);
+        src = exports.src.replace(/\\/g, "\\\\");
         var parent = exports.parent;
         var language = exports.language;
         $.ajax({
