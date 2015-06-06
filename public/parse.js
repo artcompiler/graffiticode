@@ -1401,7 +1401,6 @@ exports.parser = (function () {
       }
       if (cc === null) {
         var thisAST = Ast.poolToJSON(ctx);
-        var lastAST;
         if (!exports._.isEqual(lastAST, thisAST)) {
           // Compile code if no edit activity after 1 sec.
           if (exports.id === lastID && lastTimer) {
