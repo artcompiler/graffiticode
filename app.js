@@ -307,8 +307,9 @@ app.get('/pieces/:lang', function (req, res) {
     } else {
       queryString = "SELECT id FROM pieces WHERE language='" + lang +
         "' AND " + likeStr +
-        "label != 'hide' ORDER BY id DESC";
+        "label = 'show' ORDER BY id DESC";
     }
+    console.log("/pieces lang=" + lang + " query=" + queryString);
     client.query(queryString, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
