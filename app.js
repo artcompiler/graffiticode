@@ -240,7 +240,6 @@ app.get('/code/:id', function (req, res) {
 // get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
-//  console.log("GET /graffiti/dr10/:id id=" + id);
   pg.connect(conString, function (err, client) {
     client.query("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
       var ret;
@@ -275,7 +274,6 @@ app.get('/graffiti/dr10/latest', function (req, res) {
         obj = result.rows[0].obj;
         id = result.rows[0].id;
       }
-//      console.log("GET /graffiti/dr10/latest obj=" + obj);
       res.send(obj);
     });
     if (id) {
@@ -288,7 +286,6 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 app.get('/pieces/:lang', function (req, res) {  
   var lang = req.params.lang;
   var search = req.query.q;
-  console.log("/pieces/:lang search=" + JSON.stringify(search));
   pg.connect(conString, function (err, client) {
     var queryString, likeStr = "";
     if (search) {
@@ -388,8 +385,6 @@ function compile(language, src, response) {
     },
   };
   var obj = null;
-  console.log("compile() data=" + JSON.stringify(data, null, 2));
-  console.log("compile() options=" + JSON.stringify(options, null, 2));
   var req = http.request(options, function(res) {
     var data = "";
     res.on('data', function (chunk) {
