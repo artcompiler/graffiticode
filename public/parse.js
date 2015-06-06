@@ -1347,7 +1347,7 @@ exports.parser = (function () {
   function compileCode(ast, firstTime) {
     lastAST = ast;
     var dispatcher = window.dispatcher;
-//    ast = JSON.stringify(ast);
+    ast = JSON.stringify(ast);
     exports.id = 0;
     $.ajax({
       type: "PUT",
