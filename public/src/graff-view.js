@@ -37,7 +37,6 @@ var GraffContent = React.createClass({
     function postPiece(pool, src, obj, img) {
       let exports = window.exports;
       let user = $("#username").data("user");
-      obj = JSON.stringify(obj);
       src = src.replace(/\\/g, "\\\\");
       let parent = exports.parent;
       let language = exports.language;

@@ -43,7 +43,6 @@ define(["exports", "module"], function (exports, module) {
       function postPiece(pool, src, obj, img) {
         var exports = window.exports;
         var user = $("#username").data("user");
-        obj = JSON.stringify(obj);
         src = src.replace(/\\/g, "\\\\");
         var parent = exports.parent;
         var language = exports.language;
