@@ -46,6 +46,7 @@ var CodeMirrorEditor = React.createClass({
   },
   onChange: function (data) {
     let objectCode = "";
+    let obj = JSON.parse(data.obj);
     if (data.obj.objectCode) {
       objectCode = data.obj.objectCode;
     } else if (data && !data.error && window.exports.viewer.getObjectCode) {

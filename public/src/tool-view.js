@@ -60,7 +60,6 @@ var ToolContent = React.createClass({
   componentDidMount: function() {
     var el = React.findDOMNode(this);
     ToolView.dispatchToken = window.dispatcher.register(this.onChange);
-    this.isDirty = false;
     d3.select(el).select("#save").on("click", this.onClick);
   },
   componentDidUpdate: function() {
