@@ -1347,7 +1347,7 @@ exports.parser = (function () {
   function compileCode(ast, firstTime) {
     lastAST = ast;
     var dispatcher = window.dispatcher;
-    ast = JSON.stringify(ast);
+//    ast = JSON.stringify(ast);
     exports.id = 0;
     $.ajax({
       type: "PUT",
@@ -1359,8 +1359,6 @@ exports.parser = (function () {
       },
       dataType: "json",
       success: function(data) {
-        lastID = thisID;
-        thisID = data.id;
         dispatcher.dispatch({
           src: window.exports.editor.getValue(),
           obj: data,
@@ -1375,10 +1373,9 @@ exports.parser = (function () {
   }
 
   exports.topEnv = topEnv
-  var lastID;
-  var thisID;
   var lastAST;
   var lastTimer;
+  var firstTime = true;
   function parse(stream, state) {
     var ctx = {scan: scanner(stream), state: state}
     var cls
@@ -1407,14 +1404,13 @@ exports.parser = (function () {
         var thisAST = Ast.poolToJSON(ctx);
         if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
           // Compile code if no edit activity after 1 sec.
-          var firstTime = false;
-          if (thisID === lastID && lastTimer) {
+          if (!firstTime && lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
           } else {
             // First time through, don't delay.
-            firstTime = true;
             compileCode(thisAST, firstTime);
+            firstTime = false;
           }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {
