@@ -1345,6 +1345,7 @@ exports.parser = (function () {
   }
 
   function compileCode(ast) {
+    lastAST = ast;
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
     exports.id = 0;
@@ -1410,7 +1411,7 @@ exports.parser = (function () {
             window.clearTimeout(lastTimer);
           } else {
             // First time through, don't delay.
-            compileCode(thisAST)
+            compileCode(thisAST);
           }
           lastTimer = window.setTimeout(function () {
             compileCode(thisAST)
