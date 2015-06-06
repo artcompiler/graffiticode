@@ -1344,7 +1344,7 @@ exports.parser = (function () {
     return ctx.state.env[ctx.state.env.length-1]
   }
 
-  function compileCode(ast) {
+  function compileCode(ast, firstTime) {
     lastAST = ast;
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
@@ -1365,6 +1365,7 @@ exports.parser = (function () {
           src: window.exports.editor.getValue(),
           obj: data,
           pool: ast,
+          dontPost: firstTime,
         });
       },
       error: function(xhr, msg, err) {
@@ -1412,8 +1413,8 @@ exports.parser = (function () {
             window.clearTimeout(lastTimer);
           } else {
             // First time through, don't delay.
-            compileCode(thisAST);
             firstTime = true;
+            compileCode(thisAST, firstTime);
           }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {

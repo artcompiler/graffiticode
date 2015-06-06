@@ -37,8 +37,10 @@ define(["exports", "module"], function (exports, module) {
         var src = this.state.src;
         var obj = this.state.obj;
         viewer.update(el, obj, src, pool);
-        var img = viewer.capture(el);
-        postPiece(pool, src, obj, img);
+        if (this.state.dontPost) {
+          var img = viewer.capture(el);
+          postPiece(pool, src, obj, img);
+        }
       }
       function postPiece(pool, src, obj, img) {
         var exports = window.exports;
