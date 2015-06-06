@@ -367,6 +367,7 @@ function compile(language, src, response) {
   // Handle legacy case
 //  var host = "localhost";
 //  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+  console.log("compile() src=" + JSON.stringify(src));
   var host = language + ".artcompiler.com";
   var port = "80";
   var path = "/compile";
