@@ -1374,7 +1374,7 @@ exports.parser = (function () {
 
   exports.topEnv = topEnv
   var lastAST;
-  var lastTimer;
+  var lastTimer, lastPostTimer;
   var firstTime = true;
   var postCode = false;
   function parse(stream, state) {
@@ -1422,8 +1422,8 @@ exports.parser = (function () {
               }
               lastPostTimer = window.setTimeout(function () {
                 postCode = true;
-              }, 10000);
-            }, 2000);
+              }, 5000);
+            }, 1500);
           }
           firstTime = false;
         }
