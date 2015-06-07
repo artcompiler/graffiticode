@@ -407,7 +407,7 @@ function compile(language, src, response) {
 
 // Compile code (idempotent)
 app.put('/compile', function (req, res) {
-  var ast = JSON.parse(req.body.src);
+  var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
   compile(language, ast, res);
 });
