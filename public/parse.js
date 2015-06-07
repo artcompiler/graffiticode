@@ -1401,9 +1401,9 @@ exports.parser = (function () {
         cls = cc.cls
       }
       if (cc === null) {
-        if (lastPostTimer) {
-          window.clearTimeout(lastPostTimer);
-        }
+        lastPostTimer = window.setTimeout(function () {
+          compileCode(thisAST, true);
+        }, 10000);
         lastPostTimer = window.setTimeout(function () {
           compileCode(thisAST, true);
         }, 10000);
@@ -1422,6 +1422,9 @@ exports.parser = (function () {
             lastTimer = window.setTimeout(function () {
               compileCode(thisAST, false);
             }, 1000);
+            if (lastPostTimer) {
+              window.clearTimeout(lastPostTimer);
+            }
           }
           firstTime = false;
         }
