@@ -25,6 +25,7 @@ define(["exports", "module"], function (exports, module) {
   var GraffContent = React.createClass({
     displayName: "GraffContent",
 
+    componentWillUnmount: function componentWillUnmount() {},
     componentDidMount: function componentDidMount() {
       GraffView.dispatchToken = window.dispatcher.register(this.onChange);
       this.isDirty = false;

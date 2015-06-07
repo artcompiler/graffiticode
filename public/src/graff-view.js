@@ -19,6 +19,8 @@ var selfCleaningTimeout = {
   },
 };
 var GraffContent = React.createClass({
+  componentWillUnmount: function() {
+  },
   componentDidMount: function() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;

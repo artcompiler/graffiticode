@@ -1344,7 +1344,7 @@ exports.parser = (function () {
     return ctx.state.env[ctx.state.env.length-1]
   }
 
-  function compileCode(ast, firstTime) {
+  function compileCode(ast, postCode) {
     lastAST = ast;
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
@@ -1363,7 +1363,7 @@ exports.parser = (function () {
           src: window.exports.editor.getValue(),
           obj: data,
           pool: ast,
-          postCode: !firstTime,
+          postCode: postCode,
         });
       },
       error: function(xhr, msg, err) {
@@ -1409,12 +1409,12 @@ exports.parser = (function () {
             window.clearTimeout(lastTimer);
           } else if (firstTime) {
             // First time through, don't delay.
-            compileCode(thisAST, firstTime);
+            compileCode(thisAST, false);
           }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {
               compileCode(thisAST)
-            }, 1000);
+            }, 2000);
           }
           firstTime = false;
         }

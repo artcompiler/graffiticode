@@ -364,6 +364,34 @@ function retrieve(language, path, response) {
 }
 
 function compile(language, src, response) {
+  // Check database for existing code and return it if found
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT * FROM pieces WHERE ast = " + ast, function(err, result) {
+      var rows;
+      if (!result || result.rows.length===0) {
+        rows = [{}];
+      } else {
+        var lang = result.rows[0].language;
+        res.render('views.html', { 
+          title: 'Graffiti Code',
+          language: lang,
+          vocabulary: lang,
+          target: 'SVG',
+          login: 'Login',
+          item: id,
+        }, function (error, html) {
+          if (error) {
+            res.send(400, error);
+          } else {
+            res.send(html);
+          }
+        });
+      }
+    });
+    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+  });
+  
+
   // Handle legacy case
 //  var host = "localhost";
 //  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
