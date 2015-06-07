@@ -1407,7 +1407,7 @@ exports.parser = (function () {
           if (lastTimer) {
             // Reset timer to wait another second.
             window.clearTimeout(lastTimer);
-          } else {
+          } else if (firstTime) {
             // First time through, don't delay.
             compileCode(thisAST, firstTime);
           }
