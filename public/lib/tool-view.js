@@ -71,7 +71,7 @@ define(["exports", "module", "../lib/graff-view"], function (exports, module, _l
     onChange: function onChange(data) {
       window.dispatcher.waitFor([_GraffView["default"].dispatchToken]);
       var el = React.findDOMNode(this);
-      if (state && state.item) {
+      if (data.id) {
         $.get("http://" + location.host + "/label/" + state.item, function (data) {
           d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
         });

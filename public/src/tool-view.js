@@ -67,7 +67,7 @@ var ToolContent = React.createClass({
   onChange: function (data) {
     window.dispatcher.waitFor([GraffView.dispatchToken]);
     var el = React.findDOMNode(this);
-    if (state && state.item) {
+    if (data.id) {
       $.get("http://"+location.host+"/label/" + state.item, function (data) {
         d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
       });
