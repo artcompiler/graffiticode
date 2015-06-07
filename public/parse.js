@@ -1376,6 +1376,7 @@ exports.parser = (function () {
   var lastAST;
   var lastTimer;
   var firstTime = true;
+  var postCode = false;
   function parse(stream, state) {
     var ctx = {scan: scanner(stream), state: state}
     var cls
@@ -1404,16 +1405,24 @@ exports.parser = (function () {
         var thisAST = Ast.poolToJSON(ctx);
         if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
           // Compile code if no edit activity after 1 sec.
-          if (lastTimer) {
-            // Reset timer to wait another second.
-            window.clearTimeout(lastTimer);
-          } else if (firstTime) {
+          if (firstTime) {
             // First time through, don't delay.
             compileCode(thisAST, false);
           }
+          if (lastTimer) {
+            // Reset timer to wait another second.
+            window.clearTimeout(lastTimer);
+          }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {
-              compileCode(thisAST)
+              compileCode(thisAST, postCode);
+              postCode = false;
+              if (lastPostTimer) {
+                window.clearTimeout(lastPostTimer);
+              }
+              lastPostTimer = window.setTimeout(function () {
+                postCode = true;
+              }, 10000);
             }, 2000);
           }
           firstTime = false;
