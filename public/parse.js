@@ -1410,13 +1410,13 @@ exports.parser = (function () {
           } else {
             // First time through, don't delay.
             compileCode(thisAST, firstTime);
-            firstTime = false;
           }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {
               compileCode(thisAST)
             }, 1000);
           }
+          firstTime = false;
         }
       }
       var c;
