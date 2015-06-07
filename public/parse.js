@@ -1376,7 +1376,6 @@ exports.parser = (function () {
   var lastAST;
   var lastTimer, lastPostTimer;
   var firstTime = true;
-  var postCode = false;
   function parse(stream, state) {
     var ctx = {scan: scanner(stream), state: state}
     var cls
@@ -1415,13 +1414,12 @@ exports.parser = (function () {
           }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {
-              compileCode(thisAST, postCode);
-              postCode = false;
+              compileCode(thisAST, false);
               if (lastPostTimer) {
                 window.clearTimeout(lastPostTimer);
               }
               lastPostTimer = window.setTimeout(function () {
-                postCode = true;
+                compileCode(thisAST, true);
               }, 5000);
             }, 1500);
           }
