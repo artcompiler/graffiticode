@@ -71,9 +71,13 @@ define(["exports", "module", "../lib/graff-view"], function (exports, module, _l
     onChange: function onChange(data) {
       window.dispatcher.waitFor([_GraffView["default"].dispatchToken]);
       var el = React.findDOMNode(this);
-      $.get("http://" + location.host + "/label/" + id, function (data) {
-        d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
-      });
+      if (state && state.item) {
+        $.get("http://" + location.host + "/label/" + state.item, function (data) {
+          d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
+        });
+      } else {
+        d3.select(el).select("#save").style("visibility", "hidden");
+      }
     },
     onClick: function onClick(e) {
       this.showItem();

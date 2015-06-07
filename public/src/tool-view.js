@@ -67,9 +67,13 @@ var ToolContent = React.createClass({
   onChange: function (data) {
     window.dispatcher.waitFor([GraffView.dispatchToken]);
     var el = React.findDOMNode(this);
-    $.get("http://"+location.host+"/label/" + id, function (data) {
-      d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
-    });
+    if (state && state.item) {
+      $.get("http://"+location.host+"/label/" + state.item, function (data) {
+        d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
+      });
+    } else {
+      d3.select(el).select("#save").style("visibility", "hidden");
+    }
   },
   onClick: function (e) {
     this.showItem();
