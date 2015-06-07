@@ -505,6 +505,20 @@ app.post('/gist', function (req, resPost) {
   }
 });
 
+// Get a label
+app.get('/label', function (req, res) {
+  var id = req.body.id;
+  pg.connect(conString, function (err, client) {
+    var label = "";
+    client.query("SELECT label FROM pieces WHERE id = '" + id + "'",  function (err, result) {
+      if (result || result.rows.length === 1) {
+        label = result.rows[0].label;
+      }
+    });
+    res.send(label)
+  });
+});
+
 // Update a label
 app.put('/label', function (req, res) {
   var id = req.body.id;
