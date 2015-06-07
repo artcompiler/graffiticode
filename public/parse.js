@@ -1420,8 +1420,8 @@ exports.parser = (function () {
               }
               lastPostTimer = window.setTimeout(function () {
                 compileCode(thisAST, true);
-              }, 5000);
-            }, 1500);
+              }, 10000);
+            }, 1000);
           }
           firstTime = false;
         }
