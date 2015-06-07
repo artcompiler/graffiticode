@@ -53,7 +53,7 @@ var GraffContent = React.createClass({
           user: user ? user.id : 1,
           parent: parent,
           language: language,
-          label: "temp",
+          label: "show",
         },
         dataType: "json",
         success: function(data) {

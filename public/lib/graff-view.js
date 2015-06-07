@@ -59,7 +59,7 @@ define(["exports", "module"], function (exports, module) {
             user: user ? user.id : 1,
             parent: parent,
             language: language,
-            label: "temp" },
+            label: "show" },
           dataType: "json",
           success: function success(data) {
             // FIXME add to state
