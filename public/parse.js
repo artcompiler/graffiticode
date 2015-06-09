@@ -1401,12 +1401,12 @@ exports.parser = (function () {
         cls = cc.cls
       }
       if (cc === null) {
-        if (!firstTime && lastPostTimer) {
-          window.clearTimeout(lastPostTimer);
+        window.clearTimeout(lastPostTimer);
+        if (!firstTime) {
+          lastPostTimer = window.setTimeout(function () {
+            compileCode(thisAST, true);
+          }, 5000);
         }
-        lastPostTimer = window.setTimeout(function () {
-          compileCode(thisAST, true);
-        }, 5000);
         var thisAST = Ast.poolToJSON(ctx);
         if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
           // Compile code if no edit activity after 1 sec.
