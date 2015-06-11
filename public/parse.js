@@ -1374,7 +1374,7 @@ exports.parser = (function () {
 
   exports.topEnv = topEnv
   var lastAST;
-  var lastTimer, lastPostTimer;
+  var lastTimer;
   var firstTime = true;
   function parse(stream, state) {
     var ctx = {scan: scanner(stream), state: state}
@@ -1401,12 +1401,6 @@ exports.parser = (function () {
         cls = cc.cls
       }
       if (cc === null) {
-        if (lastPostTimer) {
-          window.clearTimeout(lastPostTimer);
-        }
-        lastPostTimer = window.setTimeout(function () {
-          compileCode(thisAST, true);
-        }, 10000);
         var thisAST = Ast.poolToJSON(ctx);
         if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
           // Compile code if no edit activity after 1 sec.
@@ -1420,12 +1414,8 @@ exports.parser = (function () {
           }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {
-              compileCode(thisAST, false);
-            }, 1000);
-            window.clearTimeout(lastPostTimer);
-            lastPostTimer = window.setTimeout(function () {
               compileCode(thisAST, true);
-            }, 10000);
+            }, 1000);
           }
           firstTime = false;
         }
