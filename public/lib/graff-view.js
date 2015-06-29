@@ -37,8 +37,12 @@ define(["exports", "module"], function (exports, module) {
         var pool = this.state.pool;
         var src = this.state.src;
         var obj = this.state.obj;
+        var id = this.state.id;
         viewer.update(el, obj, src, pool);
-        if (this.state.postCode) {
+        if (id) {
+          exports.id = id;
+          window.history.pushState("object or string", "title", "/item?id=" + id);
+        } else if (this.state.postCode) {
           var img = viewer.capture(el);
           postPiece(pool, src, obj, img);
         }

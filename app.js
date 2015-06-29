@@ -223,7 +223,7 @@ app.get('/debug', function (req, res) {
 // get the piece with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
-  pg.connect(conString, function (err, client) {
+   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
       var rows;
       if (!result || result.rows.length===0) {
@@ -309,7 +309,6 @@ app.get('/pieces/:lang', function (req, res) {
         "' AND " + likeStr +
         "label = 'show' ORDER BY id DESC";
     }
-    console.log("/pieces lang=" + lang + " query=" + queryString);
     client.query(queryString, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
@@ -336,7 +335,6 @@ app.get('/code', function (req, res) {
         rows = [{}];
       } else {
         rows = result.rows;
-        console.log("/code rows[0]=" + JSON.stringify(rows[0]));
       }
       res.send(rows)
     });
@@ -344,10 +342,10 @@ app.get('/code', function (req, res) {
 });
 
 function retrieve(language, path, response) {
-  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-  var host = "localhost";
-//  var host = language + ".artcompiler.com";
-//  var port = "80";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+//  var host = "localhost";
+  var host = language + ".artcompiler.com";
+  var port = "80";
   var data = [];
   var options = {
     host: host,
@@ -365,11 +363,11 @@ function retrieve(language, path, response) {
 
 function compile(language, src, response) {
   // Handle legacy case
-  var host = "localhost";
-  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
+//  var host = "localhost";
+//  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
 //  console.log("compile() src=" + JSON.stringify(src));
-//  var host = language + ".artcompiler.com";
-//  var port = "80";
+  var host = language + ".artcompiler.com";
+  var port = "80";
   var path = "/compile";
   var data = {
     "description": "graffiticode",
@@ -394,7 +392,7 @@ function compile(language, src, response) {
       data += chunk;
     });
     res.on('end', function () {
-      response.send(data);
+      response.send({obj: data});
     });
   });
   req.write(encodedData);
@@ -408,8 +406,22 @@ function compile(language, src, response) {
 // Compile code (idempotent)
 app.put('/compile', function (req, res) {
   var ast = JSON.parse(req.body.ast);
+  var src = req.body.src;
   var language = req.body.language;
-  compile(language, ast, res);
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id DESC LIMIT 1", function(err, result) {
+      if (!result || result.rows.length===0) {
+        compile(language, ast, res);
+      } else {
+        var rows = result.rows;
+        var data = {
+          obj: rows[0].obj,
+          id: rows[0].id,
+        };
+        res.send(data);
+      }
+    });
+  });
 });
 
 // Commit and return commit id

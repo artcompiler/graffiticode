@@ -1349,6 +1349,7 @@ exports.parser = (function () {
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
     exports.id = 0;
+    var src = window.exports.editor.getValue();
     $.ajax({
       type: "PUT",
       url: "/compile",
@@ -1356,12 +1357,14 @@ exports.parser = (function () {
         "ast": ast,
         "type": exports.lexiconType,
         "language": exports.language,
+        "src": src,
       },
-      dataType: "text",
+      dataType: "json",
       success: function(data) {
         dispatcher.dispatch({
-          src: window.exports.editor.getValue(),
-          obj: data,
+          id: data.id,
+          src: src,
+          obj: data.obj,
           pool: ast,
           postCode: postCode,
         });
