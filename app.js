@@ -360,12 +360,20 @@ function retrieve(language, path, response) {
     });
   });
 }
-
-function compile(language, src, response) {
+function cleanAndTrim(str) {
+  str = str.replace(new RegExp("\n","g"), " ");
+  while(str.charAt(0) === " ") {
+    str.shift();
+  }
+  while(str.charAt(str.length - 1) === " ") {
+    str = str.substring(0, str.length - 1);
+  }
+  return str;
+}
+function compile(language, src, result, response) {
   // Handle legacy case
 //  var host = "localhost";
 //  var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-//  console.log("compile() src=" + JSON.stringify(src));
   var host = language + ".artcompiler.com";
   var port = "80";
   var path = "/compile";
@@ -392,7 +400,24 @@ function compile(language, src, response) {
       data += chunk;
     });
     res.on('end', function () {
-      response.send({obj: data});
+      var n = cleanAndTrim(data);
+      if (result && result.rows.length === 1) {
+        var o = cleanAndTrim(result.rows[0].obj);
+      }
+      if (o !== n) {
+        // Either the source doesn't exist or the compile produced a different result.
+        var val = {
+          obj: data
+        };
+      } else {
+        // Compile already done, so return previous result.
+        var rows = result.rows;
+        var val = {
+          obj: rows[0].obj,
+          id: rows[0].id,
+        };
+      }
+      response.send(val);
     });
   });
   req.write(encodedData);
@@ -410,16 +435,7 @@ app.put('/compile', function (req, res) {
   var language = req.body.language;
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id DESC LIMIT 1", function(err, result) {
-      if (!result || result.rows.length===0) {
-        compile(language, ast, res);
-      } else {
-        var rows = result.rows;
-        var data = {
-          obj: rows[0].obj,
-          id: rows[0].id,
-        };
-        res.send(data);
-      }
+      compile(language, ast, result, res);
     });
   });
 });
