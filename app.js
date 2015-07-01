@@ -404,7 +404,6 @@ function compile(language, src, result, response) {
       if (result && result.rows.length === 1) {
         var o = cleanAndTrim(result.rows[0].obj);
       }
-      console.log("o=" + o.length + "\nn=" + n.length);
       if (o !== n) {
         // Either the source doesn't exist or the compile produced a different result.
         var val = {
