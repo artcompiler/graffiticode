@@ -456,7 +456,7 @@ app.post('/code', function (req, res){
     var views = 0;
     var forks = 0;
     pg.connect(conString, function (err, client) {
-      src = src.replace(new RegExp("\n","g"), "\\n");
+//      src = src.replace(new RegExp("\n","g"), "\\n");
       obj = obj.replace(new RegExp("\n","g"), " ");
       obj = obj.replace(new RegExp("'","g"), "\"");
       img = img.replace(new RegExp("\n","g"), " ");
@@ -555,6 +555,21 @@ app.put('/label', function (req, res) {
     client.query("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'");
     res.send(200)
   });
+});
+
+// Update a code
+app.put('/code', function (req, res) {
+  var id = req.body.id;
+  var src = req.body.src;
+//  src = src.replace(new RegExp("\n","g"), "\\n");
+  if (!id) {
+    res.send(500);
+  } else {
+    pg.connect(conString, function (err, client) {
+      client.query("UPDATE pieces SET src = '" + src + "' WHERE id = '" + id + "'");
+      res.send(200);
+    });
+  }
 });
 
 // Delete the notes for a label

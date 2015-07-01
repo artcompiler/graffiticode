@@ -1361,6 +1361,7 @@ exports.parser = (function () {
       },
       dataType: "json",
       success: function(data) {
+        window.exports.id = data.id;
         dispatcher.dispatch({
           id: data.id,
           src: src,
@@ -1368,6 +1369,25 @@ exports.parser = (function () {
           pool: ast,
           postCode: postCode,
         });
+      },
+      error: function(xhr, msg, err) {
+        console.log(msg+" "+err);
+      }
+    });
+  }
+
+  function saveSrc() {
+    var id = window.exports.id;
+    var src = window.exports.editor.getValue();
+    $.ajax({
+      type: "PUT",
+      url: "/code",
+      data: {
+        "id": id,
+        "src": src,
+      },
+      dataType: "json",
+      success: function(data) {
       },
       error: function(xhr, msg, err) {
         console.log(msg+" "+err);
@@ -1405,15 +1425,15 @@ exports.parser = (function () {
       }
       if (cc === null) {
         var thisAST = Ast.poolToJSON(ctx);
+        if (lastTimer) {
+          // Reset timer to wait another second pause.
+          window.clearTimeout(lastTimer);
+        }
         if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
           // Compile code if no edit activity after 1 sec.
           if (firstTime) {
             // First time through, don't delay.
             compileCode(thisAST, false);
-          }
-          if (lastTimer) {
-            // Reset timer to wait another second.
-            window.clearTimeout(lastTimer);
           }
           if (!firstTime) {
             lastTimer = window.setTimeout(function () {
@@ -1421,6 +1441,10 @@ exports.parser = (function () {
             }, 1000);
           }
           firstTime = false;
+        } else {
+          lastTimer = window.setTimeout(function () {
+            saveSrc();
+          }, 1000);
         }
       }
       var c;
