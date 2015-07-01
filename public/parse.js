@@ -1348,7 +1348,6 @@ exports.parser = (function () {
     lastAST = ast;
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
-    exports.id = 0;
     var src = window.exports.editor.getValue();
     $.ajax({
       type: "PUT",
@@ -1361,7 +1360,13 @@ exports.parser = (function () {
       },
       dataType: "json",
       success: function(data) {
-        window.exports.id = data.id;
+        if (postCode) {
+          // We are getting a new id, so clear the old one.
+          window.exports.id = 0;
+        } else if (data.id) {
+          // We have a good id, so use it.
+          window.exports.id = data.id;
+        }
         dispatcher.dispatch({
           id: data.id,
           src: src,
