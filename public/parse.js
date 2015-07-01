@@ -1349,6 +1349,7 @@ exports.parser = (function () {
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
     var src = window.exports.editor.getValue();
+    src = src.replace(/\\/g, "\\\\");
     $.ajax({
       type: "PUT",
       url: "/compile",
