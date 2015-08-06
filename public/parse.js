@@ -1384,7 +1384,7 @@ exports.parser = (function () {
   function saveSrc() {
     var id = window.exports.id;
     var src = window.exports.editor.getValue();
-    src = src.replace(/\\/g, "\\\\");
+//    src = src.replace(/\\/g, "\\\\");
     $.ajax({
       type: "PUT",
       url: "/code",
