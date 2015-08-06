@@ -50,7 +50,7 @@ define(["exports", "module"], function (exports, module) {
       function postPiece(pool, src, obj, img) {
         var exports = window.exports;
         var user = $("#username").data("user");
-        src = src.replace(/\\/g, "\\\\");
+        //      src = src.replace(/\\/g, "\\\\");
         var parent = exports.parent;
         var language = exports.language;
         $.ajax({
