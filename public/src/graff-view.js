@@ -45,7 +45,7 @@ var GraffContent = React.createClass({
     function postPiece(pool, src, obj, img) {
       let exports = window.exports;
       let user = $("#username").data("user");
-      src = src.replace(/\\/g, "\\\\");
+//      src = src.replace(/\\/g, "\\\\");
       let parent = exports.parent;
       let language = exports.language;
       $.ajax({
