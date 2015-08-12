@@ -37,6 +37,8 @@ var CodeMirrorEditor = React.createClass({
       readOnly: this.props.readOnly,
       viewportMargin: Infinity,
       extraKeys: {"Ctrl-Space": "autocomplete"},
+      gutters: ["CodeMirror-lint-markers"],
+      lint: true
     });
     let pieces = [];
     let id = +exports.id;

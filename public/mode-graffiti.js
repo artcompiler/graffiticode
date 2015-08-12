@@ -15,6 +15,7 @@ CodeMirror.defineMode("graffiti", function() {
       return parser.parse(stream, state);
     },
     startState: function() {
+      window.errors = [];
       return {
         cc: parser.program,   // top level parsing function
         argc: 0,
@@ -28,6 +29,7 @@ CodeMirror.defineMode("graffiti", function() {
         nodePool: ["unused"],
         nodeMap: {},
         nextToken: -1,
+        errors: [],
       };
     },
     copyState: function(state) {

@@ -6728,6 +6728,7 @@
     // mode/overlays that it is based on (for easy invalidation).
     var st = [cm.state.modeGen], lineClasses = {};
     // Compute the base array of styles
+    state.lineNo = line.lineNo();
     runMode(cm, line.text, cm.doc.mode, state, function(end, style) {
       st.push(end, style);
     }, lineClasses, forceToEnd);

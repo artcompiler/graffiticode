@@ -65,6 +65,7 @@ var ToolContent = React.createClass({
   componentDidUpdate: function() {
   },
   onChange: function (data) {
+    return;
     window.dispatcher.waitFor([GraffView.dispatchToken]);
     var el = React.findDOMNode(this);
     if (data.id) {

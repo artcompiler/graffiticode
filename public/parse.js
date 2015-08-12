@@ -41,7 +41,7 @@ var Ast = (function () {
       str = "failed!";
     }
     if (!val) {
-      alert("assert: " + str);
+      throw new Error(str);
     }
   }
 
@@ -128,6 +128,9 @@ var Ast = (function () {
 
   // deep
   function intern(ctx, n) {
+    if (!n) {
+      return 0;
+    }
     var nodeMap = ctx.state.nodeMap;
     var nodePool = ctx.state.nodePool;
 
@@ -741,14 +744,24 @@ exports.parseCount = function () {
   return parseCount;
 };
 
+
+
 // parser
 exports.parser = (function () {
   var globalLexicon = exports.globalLexicon;
   var _ = exports._;
   function assert(b, str) {
     if (!b) {
-      alert(str);
+      throw new Error(str);
     }
+  }
+  function addError(ctx, str) {
+    ctx.state.errors.push({
+      from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
+      to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
+      message: str,
+      severity : "error",
+    });
   }
 
   var TK_IDENT  = 0x01;
@@ -786,11 +799,19 @@ exports.parser = (function () {
   var TK_BACKQUOTE  = 0xAC;
   var TK_COMMENT    = 0xAD;
 
+  function tokenToLexeme(tk) {
+    switch (tk) {
+      case TK_DOT: return "a dot";
+    }
+    return "an expression";
+  }
+
   function eat(ctx, tk) {
     //log("eat() tk="+tk);
     var nextToken = next(ctx);
     if (nextToken !== tk) {
-      throw new Error("syntax error: expecting " + tk + " found " + nextToken);
+      throw new Error("Expecting " + tokenToLexeme(tk) +
+                      " found " + tokenToLexeme(nextToken) + ".");
     }
   }
 
@@ -855,6 +876,13 @@ exports.parser = (function () {
     return cc;
   }
 
+  function defName(ctx, cc) {
+    eat(ctx, TK_IDENT);
+    Ast.name(ctx, lexeme);
+    cc.cls = "val";
+    return cc;
+  }
+
   function name(ctx, cc) {
     eat(ctx, TK_IDENT);
     Ast.name(ctx, lexeme);
@@ -863,6 +891,12 @@ exports.parser = (function () {
       cc.cls = word.cls;
     } else {
       cc.cls = "comment";
+      ctx.state.errors.push({
+        from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
+        to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
+        message: "Name '" + lexeme + "' not found.",
+        severity : "error",
+      });
     }
     assert(cc, "name");
     return cc;
@@ -986,6 +1020,11 @@ exports.parser = (function () {
       Ast.funcApp(ctx, ctx.state.paramc);
       finishArgs();
       return cc(ctx);
+    }
+    if (match(ctx, TK_DOT)) {
+      addError(ctx, "Expecting " + ctx.state.argc +
+               " more " + (ctx.state.argc === 1 ? "argument" : "arguments") +
+               ".");
     }
     return arg(ctx, function (ctx) {
       return args(ctx, cc);
@@ -1280,7 +1319,7 @@ exports.parser = (function () {
     if (match(ctx, TK_LET)) {
       eat(ctx, TK_LET)
       var ret = function (ctx) {
-        var ret = name(ctx, function (ctx) {
+        var ret = defName(ctx, function (ctx) {
           var name = Ast.node(ctx, Ast.topNode(ctx)).elts[0]
           // nid=0 means def not finished yet
           env.addWord(ctx, name, { tk: TK_IDENT, cls: "function", length: 0, nid: 0, name: name })
@@ -1319,8 +1358,8 @@ exports.parser = (function () {
       return cc
     }
     var ret = function (ctx) {
-      var ret = primaryExpr(ctx, function (ctx) {
-        env.addWord(ctx, lexeme, { tk: TK_IDENT, cls: "ref", offset: ctx.state.paramc })
+      var ret = defName(ctx, function (ctx) {
+        env.addWord(ctx, lexeme, { tk: TK_IDENT, cls: "val", offset: ctx.state.paramc })
         ctx.state.paramc++
         return params(ctx, cc)
       })
@@ -1384,7 +1423,6 @@ exports.parser = (function () {
   function saveSrc() {
     var id = window.exports.id;
     var src = window.exports.editor.getValue();
-//    src = src.replace(/\\/g, "\\\\");
     $.ajax({
       type: "PUT",
       url: "/code",
@@ -1406,7 +1444,10 @@ exports.parser = (function () {
   var lastTimer;
   var firstTime = true;
   function parse(stream, state) {
-    var ctx = {scan: scanner(stream), state: state}
+    var ctx = {
+      scan: scanner(stream),
+      state: state,
+    };
     var cls
     try {
       var c;
@@ -1430,27 +1471,30 @@ exports.parser = (function () {
         cls = cc.cls
       }
       if (cc === null) {
-        var thisAST = Ast.poolToJSON(ctx);
-        if (lastTimer) {
-          // Reset timer to wait another second pause.
-          window.clearTimeout(lastTimer);
-        }
-        if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
-          // Compile code if no edit activity after 1 sec.
-          if (firstTime) {
-            // First time through, don't delay.
-            compileCode(thisAST, false);
+        if (state.errors.length === 0) {
+          var thisAST = Ast.poolToJSON(ctx);
+          if (lastTimer) {
+            // Reset timer to wait another second pause.
+            window.clearTimeout(lastTimer);
           }
-          if (!firstTime) {
+          if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
+            // Compile code if no edit activity after 1 sec.
+            if (firstTime) {
+              // First time through, don't delay.
+              compileCode(thisAST, false);
+            }
+            if (!firstTime) {
+              lastTimer = window.setTimeout(function () {
+                compileCode(thisAST, true);
+              }, 1000);
+            }
+            firstTime = false;
+          } else {
             lastTimer = window.setTimeout(function () {
-              compileCode(thisAST, true);
+              saveSrc();
             }, 1000);
           }
-          firstTime = false;
         } else {
-          lastTimer = window.setTimeout(function () {
-            saveSrc();
-          }, 1000);
         }
       }
       var c;
@@ -1463,12 +1507,8 @@ exports.parser = (function () {
       //console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
+        addError(ctx, x.message);
         cls = "error"
-      } else if (x.indexOf("syntax error") === 0) {
-        console.log("---------")
-        console.log("exception caught!!!=")
-        cls = "error"
-        state.cc = null
       } else if (x === "comment") {
         //print("comment found")
         cls = x
@@ -1482,6 +1522,23 @@ exports.parser = (function () {
     var t1 = new Date;
     parseCount++
     parseTime += t1 - t0
+    if (state.errors) {
+      window.errors = state.errors;
+/*
+      var dispatcher = window.dispatcher;
+      var src = window.exports.editor.getValue();
+      if (window.exports.editor) {
+        dispatcher.dispatch({
+          error: "parsing error",
+          id: 0,
+          src: src,
+          obj: null,
+          pool: null,
+          postCode: false,
+        });
+      }
+*/
+    }
     return cls
   }
 
@@ -1660,28 +1717,10 @@ exports.parser = (function () {
       return parse(stream, state)
     },
 
-    startState: function() {
-      return {
-        cc: program,   // top level parsing function
-        argc: 0,
-        argcStack: [0],
-        paramc: 0,
-        paramcStack: [0],
-        exprc: 0,
-        exprcStack: [0],
-        env: [ {name: "global", lexicon: globalLexicon } ],
-        nodeStack: [],
-        nodePool: ["unused"],
-        nodeMap: {},
-        nextToken: -1,
-      }
-    },
-
     parse: parse,
     program: program,
   }
 
-  exports.startState = parser.startState
   exports.parse = parser.parse
 
   return parser
@@ -1978,9 +2017,11 @@ var folder = function() {
         } else if (word.name) {
           Ast.push(ctx, {tag: word.name, elts: []});  // create a node from the word entry
         } else {
-          Ast.push(ctx, node);  // push the original node to be resolved later.
+          // push the original node to be resolved later.
+          Ast.push(ctx, node);
         }
       } else {
+        // push the original node to be resolved later.
         Ast.push(ctx, node);
       }
 // FIXME need to implement this
