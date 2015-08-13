@@ -478,8 +478,7 @@ app.post('/code', function (req, res){
           return;
         }
         var queryStr =
-          "SELECT pieces.*, users.name FROM pieces, users" +
-          " WHERE pieces.user_id = users.id ORDER BY pieces.id DESC LIMIT 1";
+          "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
         client.query(queryStr, function (err, result) {
           res.send(result.rows[0]);
         })
