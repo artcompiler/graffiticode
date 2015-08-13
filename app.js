@@ -29,9 +29,11 @@ var timeout = require('connect-timeout');
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
 
+console.log(conString);
 //error handling omitted
 pg.connect(conString, function(err, client) {
   client.query("SELECT NOW() as when", function(err, result) {
+    console.log(result);
   })
 });
 
@@ -284,6 +286,7 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 
 // get list of piece ids
 app.get('/pieces/:lang', function (req, res) {  
+  console.log("GET /pieces/:lang");
   var lang = req.params.lang;
   var search = req.query.q;
   pg.connect(conString, function (err, client) {
@@ -309,9 +312,11 @@ app.get('/pieces/:lang', function (req, res) {
         "' AND " + likeStr +
         "label = 'show' ORDER BY id DESC";
     }
+    console.log("GET /pieces/:lang query=" + queryString);
     client.query(queryString, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
+        console.log("no rows");
         rows = [{}];
       } else {
         rows = result.rows;
@@ -323,6 +328,7 @@ app.get('/pieces/:lang', function (req, res) {
 
 // Get pieces
 app.get('/code', function (req, res) {
+  console.log("GET /code");
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
     var queryStr =
