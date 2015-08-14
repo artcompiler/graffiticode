@@ -103,11 +103,16 @@ var Ast = (function () {
   }
 
   function push(ctx, node) {
+    var nid;
     if (exports._.isNumber(node)) {   // if already interned
-      ctx.state.nodeStack.push(node);
+      nid = node;
     } else {
-      ctx.state.nodeStack.push(intern(ctx, node));
+      nid = intern(ctx, node);
+      if (node.coord) {
+        ctx.state.coords[nid] = node.coord;
+      }
     }
+    ctx.state.nodeStack.push(nid);
   }
 
   function topNode(ctx) {
@@ -273,8 +278,12 @@ var Ast = (function () {
     push(ctx, {tag: "NUM", elts: [String(str)]});
   }
 
-  function string(ctx, str) {
-    push(ctx, {tag: "STR", elts: [str]});
+  function string(ctx, str, coord) {
+    push(ctx, {
+      tag: "STR",
+      elts: [str],
+      coord: coord,
+    });
   }
 
   function name(ctx, str) {
@@ -763,7 +772,6 @@ exports.parser = (function () {
       severity : "error",
     });
   }
-
   var TK_IDENT  = 0x01;
   var TK_NUM  = 0x02;
   var TK_STR  = 0x03;
@@ -892,10 +900,18 @@ exports.parser = (function () {
     return cc;
   }
 
+  function getCoord(ctx) {
+    return {
+      from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
+      to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
+    };
+  }
+
   function string(ctx, cc) {
     eat(ctx, TK_STR);
+    var coord = getCoord(ctx);
     cc.cls = "string";
-    Ast.string(ctx, lexeme.substring(1,lexeme.length-1)) // strip quotes;
+    Ast.string(ctx, lexeme.substring(1,lexeme.length-1), coord) // strip quotes;
     return cc;
   }
 
@@ -1429,12 +1445,28 @@ exports.parser = (function () {
       },
       dataType: "json",
       success: function(data) {
-        if (postCode) {
+        var obj = JSON.parse(data.obj);
+        if (obj.error) {
+          var errors = [];
+          obj.error.forEach(function (err) {
+            var coord = window.coords[err.nid];
+            errors.push({
+              from: coord.from,
+              to: coord.to,
+              message: err.str,
+              severity : "error",
+            });
+          });
+          window.exports.lastErrors = window.exports.errors = errors;
+          window.exports.editor.performLint();
+        } else if(postCode) {
           // We are getting a new id, so clear the old one.
           window.exports.id = 0;
+          window.exports.lastErrors = [];
         } else if (data.id) {
           // We have a good id, so use it.
           window.exports.id = data.id;
+          window.exports.lastErrors = [];
         }
         dispatcher.dispatch({
           id: data.id,
@@ -1502,6 +1534,7 @@ exports.parser = (function () {
       }
       if (cc === null) {
         if (state.errors.length === 0) {
+          window.exports.errors = [];
           var thisAST = Ast.poolToJSON(ctx);
           if (lastTimer) {
             // Reset timer to wait another second pause.
@@ -1521,10 +1554,13 @@ exports.parser = (function () {
             firstTime = false;
           } else {
             lastTimer = window.setTimeout(function () {
+              window.exports.errors = window.exports.lastErrors;
+              window.exports.editor.performLint();
               saveSrc();
             }, 1000);
           }
         } else {
+          window.exports.errors = state.errors;
         }
       }
       var c;
@@ -1552,23 +1588,7 @@ exports.parser = (function () {
     var t1 = new Date;
     parseCount++
     parseTime += t1 - t0
-    if (state.errors) {
-      window.errors = state.errors;
-/*
-      var dispatcher = window.dispatcher;
-      var src = window.exports.editor.getValue();
-      if (window.exports.editor) {
-        dispatcher.dispatch({
-          error: "parsing error",
-          id: 0,
-          src: src,
-          obj: null,
-          pool: null,
-          postCode: false,
-        });
-      }
-*/
-    }
+    window.coords = state.coords;
     return cls
   }
 

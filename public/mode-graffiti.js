@@ -30,6 +30,7 @@ CodeMirror.defineMode("graffiti", function() {
         nodeMap: {},
         nextToken: -1,
         errors: [],
+        coords: [],
       };
     },
     copyState: function(state) {

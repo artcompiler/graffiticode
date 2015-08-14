@@ -16,15 +16,8 @@
 "use strict";
 
 CodeMirror.registerHelper("lint", "graffiti", function(text) {
-    var found = [];
-//    found.push({
-//      from: CodeMirror.Pos(0, 0),
-//      to: CodeMirror.Pos(0, 10),
-//      message: "hello error",
-//      severity : "error",
-//    });
-    if (window.errors) {
-	return window.errors;
+    if (window.exports.errors) {
+	return window.exports.errors;
     } else {
 	return [];
     }

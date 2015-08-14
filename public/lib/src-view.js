@@ -36,8 +36,7 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
         viewportMargin: Infinity,
         extraKeys: { 'Ctrl-Space': 'autocomplete' },
         gutters: ['CodeMirror-lint-markers'],
-        lint: true
-      });
+        lint: true });
       var pieces = [];
       var id = +exports.id;
       if (id) {
