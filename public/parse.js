@@ -801,7 +801,37 @@ exports.parser = (function () {
 
   function tokenToLexeme(tk) {
     switch (tk) {
-      case TK_DOT: return "a dot";
+    case TK_EQUAL: return "a '=' symbol";
+    case TK_IF: return "the 'if' keyword";
+    case TK_THEN: return "the 'then' keyword";
+    case TK_ELSE: return "the 'else' keyword";
+    case TK_RETURN: return "the 'return' keyword";
+    case TK_IS: return "the 'is' keyword";
+    case TK_FUN: return "the 'fun' keyword";
+    case TK_VAL: return "the 'val' keyword";
+    case TK_CASE: return "the 'case' keyword";
+    case TK_OF: return "the 'of' keyword";
+    case TK_END: return "the 'end' keyword";
+    case TK_LET: return "the 'let' keyword";
+    case TK_OR: return "the 'or' keyword";
+    case TK_POSTOP:
+    case TK_PREOP:
+    case TK_BINOP:
+      return "an operator";
+    case TK_LEFTPAREN: return "a '('";
+    case TK_RIGHTPAREN: return "a ')'";
+    case TK_LEFTBRACKET: return "a '['";
+    case TK_RIGHTBRACKET: return "a ']'";
+    case TK_LEFTBRACE: return "a '{'";
+    case TK_RIGHTBRACE: return "a '}'";
+    case TK_PLUS: return "a '+'";
+    case TK_MINUS: return "a '-'";
+    case TK_DOT: return "a '.'";
+    case TK_COLON: return "a ':'";
+    case TK_COMMA: return "a ','";
+    case TK_BACKQUOTE: return "a '`'";
+    case TK_COMMENT: return "a comment";
+    case 0: return "the end of the program";
     }
     return "an expression";
   }
@@ -811,7 +841,7 @@ exports.parser = (function () {
     var nextToken = next(ctx);
     if (nextToken !== tk) {
       throw new Error("Expecting " + tokenToLexeme(tk) +
-                      " found " + tokenToLexeme(nextToken) + ".");
+                      ", found " + tokenToLexeme(nextToken) + ".");
     }
   }
 
@@ -1630,7 +1660,7 @@ exports.parser = (function () {
             //return TK_NUM;
             return number(c);
           } else {
-            assert( false, "scan.start(): c="+c);
+            assert(false, "'" + String.fromCharCode(c) + "' has no meaning in this language.");
             return 0;
           }
         }

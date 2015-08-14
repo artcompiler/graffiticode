@@ -406,6 +406,7 @@ function compile(language, src, result, response) {
       data += chunk;
     });
     res.on('end', function () {
+      console.log("compile() data=" + JSON.stringify(data));
       var n = cleanAndTrim(data);
       if (result && result.rows.length === 1) {
         var o = cleanAndTrim(result.rows[0].obj);
