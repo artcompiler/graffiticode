@@ -1446,7 +1446,7 @@ exports.parser = (function () {
       dataType: "json",
       success: function(data) {
         var obj = JSON.parse(data.obj);
-        if (obj.error) {
+        if (obj.error && obj.error.length) {
           var errors = [];
           obj.error.forEach(function (err) {
             var coord = window.coords[err.nid];
@@ -1471,7 +1471,7 @@ exports.parser = (function () {
         dispatcher.dispatch({
           id: data.id,
           src: src,
-          obj: data.obj,
+          obj: obj,
           pool: ast,
           postCode: postCode,
         });
