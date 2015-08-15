@@ -358,15 +358,27 @@ app.get('/code', function (req, res) {
   });
 });
 
+function getCompilerHost(language) {
+  if (port === 3000) {
+    return "localhost";
+  } else {
+    return language + ".artcompiler.com";
+  }
+}
+
+function getCompilerPort(language) {
+  if (port === 3000) {
+    return "5" + language.substring(1);  // e.g. L103 -> 5103
+  } else {
+    return "80";
+  }
+}
+
 function retrieve(language, path, response) {
-  //var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-  //var host = "localhost";
-  var host = language + ".artcompiler.com";
-  var port = "80";
   var data = [];
   var options = {
-    host: host,
-    port: port,
+    host: getCompilerHost(language),
+    port: getCompilerPort(language),
     path: "/" + path,
   };
   var req = http.get(options, function(res) {
@@ -388,10 +400,6 @@ function cleanAndTrim(str) {
   return str;
 }
 function compile(language, src, result, response) {
-  //var port = "5" + language.substring(1);  // e.g. L103 -> 5103
-  //var host = "localhost";
-  var host = language + ".artcompiler.com";
-  var port = "80";
   // Handle legacy case
   var path = "/compile";
   var data = {
@@ -401,8 +409,8 @@ function compile(language, src, result, response) {
   };
   var encodedData = JSON.stringify(data);
   var options = {
-    host: host,
-    port: port,
+    host: getCompilerHost(language),
+    port: getCompilerPort(language),
     path: path,
     method: 'GET',
     headers: {

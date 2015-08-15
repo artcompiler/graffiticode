@@ -607,11 +607,7 @@ var Ast = (function () {
         elts.push(elt);
       }
     }
-    if (elts.length > 1) {
-      push(ctx, {tag: "EXPRS", elts: elts.reverse()});
-    } else {
-      push(ctx, elts[0]);
-    }
+    push(ctx, {tag: "EXPRS", elts: elts.reverse()});
   }
   function letDefn(ctx) {
     pop(ctx)  // name
