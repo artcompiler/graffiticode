@@ -312,16 +312,27 @@ app.get('/pieces/:lang', function (req, res) {
         "' AND " + likeStr +
         "label = 'show' ORDER BY id DESC";
     }
-    console.log("GET /pieces/:lang query=" + queryString);
     client.query(queryString, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
         console.log("no rows");
-        rows = [{}];
+        var insertStr = 
+          "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+          " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+          " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+          " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+        client.query(insertStr, function(err, result) {
+          if (err) {
+            res.send(400, err);
+            return;
+          }
+          client.query(queryString, function (err, result) {
+            res.send(result.rows);
+          });
+        });
       } else {
-        rows = result.rows;
+        res.send(result.rows);
       }
-      res.send(rows);
     });
   });
 });
@@ -406,7 +417,6 @@ function compile(language, src, result, response) {
       data += chunk;
     });
     res.on('end', function () {
-      console.log("compile() data=" + JSON.stringify(data));
       var n = cleanAndTrim(data);
       if (result && result.rows.length === 1) {
         var o = cleanAndTrim(result.rows[0].obj);

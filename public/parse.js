@@ -1471,7 +1471,7 @@ exports.parser = (function () {
         dispatcher.dispatch({
           id: data.id,
           src: src,
-          obj: obj,
+          obj: data.obj,
           pool: ast,
           postCode: postCode,
         });
