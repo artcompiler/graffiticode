@@ -65,6 +65,8 @@ var Ast = (function () {
     letDefn: letDefn,
     caseExpr: caseExpr,
     ofClause: ofClause,
+    record: record,
+    binding: binding,
     exprs: exprs,
     program: program,
     pop: pop,
@@ -599,9 +601,29 @@ var Ast = (function () {
     elts.push(pop(ctx));
     push(ctx, {tag: "OF", elts: elts});
   }
-  function exprs(ctx, n) {
+  function record(ctx) {
+    // Ast record
+    var count = ctx.state.exprc;
     var elts = [];
-    for (var i = n; i > 0; i--) {
+    for (var i = count; i > 0; i--) {
+      var elt = pop(ctx);
+      if (elt !== void 0) {
+        elts.push(elt);
+      }
+    }
+    push(ctx, {tag: "RECORD", elts: elts.reverse()});
+  }
+  function binding(ctx) {
+    // Ast binding
+    var elts = [];
+    elts.push(pop(ctx));
+    elts.push(pop(ctx));
+    push(ctx, {tag: "BINDING", elts: elts.reverse()});
+  }
+  function exprs(ctx, count) {
+    // Ast.exprs
+    var elts = [];
+    for (var i = count; i > 0; i--) {
       var elt = pop(ctx);
       if (elt !== void 0) {
         elts.push(elt);
@@ -945,10 +967,14 @@ exports.parser = (function () {
   }
 
   function record(ctx, cc) {
+    // Parse record
     eat(ctx, TK_LEFTBRACE);
+    startCounter(ctx);
     var ret = function(ctx) {
       return bindings(ctx, function (ctx) {
         eat(ctx, TK_RIGHTBRACE);
+        Ast.record(ctx);
+        stopCounter(ctx);
         cc.cls = "punc";
         return cc;
       })
@@ -962,22 +988,27 @@ exports.parser = (function () {
       return cc;
     }
     return binding(ctx, function (ctx) {
-      if (match(ctx, TK_DOT)) {
-        eat(ctx, TK_DOT);
+      if (match(ctx, TK_COMMA)) {
+        eat(ctx, TK_COMMA);
+        Ast.binding(ctx);
         var ret = function (ctx) {
           return bindings(ctx, cc);
-        }
+        };
         ret.cls = "punc";
         return ret;
       }
-      return cc;
+      return function (ctx) {
+        Ast.binding(ctx);
+        return bindings(ctx, cc);
+      };
     })
   }
 
   function binding(ctx, cc) {
     return ident(ctx, function(ctx) {
-      eat(ctx, TK_EQUAL);
+      eat(ctx, TK_COLON);
       var ret = function(ctx) {
+        countCounter(ctx);
         return expr(ctx, cc);
       }
       ret.cls = "punc";
@@ -1269,15 +1300,12 @@ exports.parser = (function () {
   }
 
   function expr(ctx, cc) {
-    //log("expr()")
     if (match(ctx, TK_LET)) {
-      var ret = def(ctx, cc)
-      //log("def() ret="+ret)
-      return ret
+      var ret = def(ctx, cc);
+      return ret;
     }
-    var ret = condExpr(ctx, cc)
-    //log("condExpr() ret="+ret)
-    return ret
+    var ret = condExpr(ctx, cc);
+    return ret;
   }
 
   function emptyInput(ctx) {
@@ -1307,43 +1335,39 @@ exports.parser = (function () {
   }
 
   function exprsStart(ctx, cc) {
-    //log("exprsStart()")
     startCounter(ctx)
     return exprs(ctx, cc)
   }
 
   function exprsFinish(ctx, cc) {
-    //log("exprsFinish()")
     Ast.exprs(ctx, ctx.state.exprc)
     stopCounter(ctx)
     return cc(ctx)
   }
 
   function exprs(ctx, cc) {
-    //log("exprs()")
     if (match(ctx, TK_DOT)) {   // second dot
-      eat(ctx, TK_DOT)
+      eat(ctx, TK_DOT);
       var ret = function(ctx) {
-        return exprsFinish(ctx, cc)
+        return exprsFinish(ctx, cc);
       }
-      ret.cls = "punc"
-      return ret
+      ret.cls = "punc";
+      return ret;
     }
-
     return expr(ctx, function (ctx) {
-      countCounter(ctx)
+      countCounter(ctx);
       if (match(ctx, TK_DOT)) {
-        eat(ctx, TK_DOT)
+        eat(ctx, TK_DOT);
         var ret = function (ctx) {
           if (emptyInput(ctx) || emptyExpr(ctx)) {
-            return exprsFinish(ctx, cc)
+            return exprsFinish(ctx, cc);
           }
-          return exprs(ctx, cc)
+          return exprs(ctx, cc);
         }
-        ret.cls = "punc"
-        return ret
+        ret.cls = "punc";
+        return ret;
       }
-      return exprsFinish(ctx, cc)
+      return exprsFinish(ctx, cc);
     })
   }
 
@@ -1736,7 +1760,6 @@ exports.parser = (function () {
            (c === '@'.charCodeAt(0)) ||
            (c === '+'.charCodeAt(0)) ||
            (c === '#'.charCodeAt(0)) ||
-           (c === ':'.charCodeAt(0)) ||
            (c === '_'.charCodeAt(0)) ||
            (c === '~'.charCodeAt(0)) ||
            (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)))
@@ -1905,6 +1928,7 @@ var folder = function() {
   }
 
   function exprs(node) {
+    // Fold exprs
     for (var i = 0; i < node.elts.length; i++) {
       visit(node.elts[i]);
     }
