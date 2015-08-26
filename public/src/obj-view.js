@@ -23,9 +23,6 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    if (IS_MOBILE) {
-      return;
-    }
     this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
       mode: 'javascript',
       lineNumbers: this.props.lineNumbers,

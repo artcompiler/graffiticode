@@ -21,9 +21,6 @@ define(['exports', 'module', '../lib/Dispatcher.js'], function (exports, module,
         lineNumbers: false };
     },
     componentDidMount: function componentDidMount() {
-      if (IS_MOBILE) {
-        return;
-      }
       var exports = window.exports;
       var editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
         mode: 'graffiti',

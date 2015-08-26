@@ -23,9 +23,6 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    if (IS_MOBILE) {
-      return;
-    }
     let exports = window.exports;
     let editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
       mode: 'graffiti',

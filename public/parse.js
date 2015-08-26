@@ -412,11 +412,17 @@ var Ast = (function () {
     push(ctx, {tag: name, elts: elts});
   }
 
-  function list(ctx) {
-    var elts = [pop(ctx)];
-    push(ctx, {tag: "LIST", elts: elts});
+  function list(ctx, count) {
+    // Ast list
+    var elts = [];
+    for (var i = count; i > 0; i--) {
+      var elt = pop(ctx);
+      if (elt !== void 0) {
+        elts.push(elt);
+      }
+    }
+    push(ctx, {tag: "LIST", elts: elts.reverse()});
   }
-
   function binaryExpr(ctx, name) {
     //log("Ast.binaryExpr() name="+name);
     var elts = [];
@@ -1031,16 +1037,40 @@ exports.parser = (function () {
 
   function list(ctx, cc) {
     eat(ctx, TK_LEFTBRACKET);
+    startCounter(ctx);
     var ret = function(ctx) {
-      return exprsStart(ctx, function (ctx) {
+      return elements(ctx, function (ctx) {
         eat(ctx, TK_RIGHTBRACKET);
-        Ast.list(ctx);
+        Ast.list(ctx, ctx.state.exprc);
+        stopCounter(ctx);
         cc.cls = "punc";
         return cc;
-      })
+      });
     }
     ret.cls = "punc";
     return ret;
+  }
+
+  function elements(ctx, resume) {
+    return element(ctx, function (ctx) {
+      if (match(ctx, TK_COMMA)) {
+        eat(ctx, TK_COMMA);
+        var ret = function (ctx) {
+          return elements(ctx, resume);
+        };
+        ret.cls = "punc";
+        return ret;
+      }
+      match(ctx, TK_RIGHTBRACKET);
+      return resume;
+    })
+  }
+
+  function element(ctx, resume) {
+    return expr(ctx, function(ctx) {
+      countCounter(ctx);
+      return resume;
+    });
   }
 
   function primaryExpr(ctx, cc) {
@@ -1923,8 +1953,11 @@ var folder = function() {
   }
 
   function list(node) {
-    visit(node.elts[0]);
-    Ast.list(ctx)
+    // Fold list
+    for (var i = 0; i < node.elts.length; i++) {
+      visit(node.elts[i]);
+    }
+    Ast.list(ctx, node.elts.length)
   }
 
   function exprs(node) {

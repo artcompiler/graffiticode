@@ -339,12 +339,11 @@ app.get('/pieces/:lang', function (req, res) {
 
 // Get pieces
 app.get('/code', function (req, res) {
-  console.log("GET /code");
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
+    console.log("GET /code list=" + list);
     var queryStr =
-      "SELECT pieces.*, users.name FROM pieces, users" +
-      " WHERE pieces.user_id = users.id AND pieces.id" +
+      "SELECT * FROM pieces WHERE pieces.id" +
       " IN ("+list+") ORDER BY pieces.id DESC";
     client.query(queryStr, function (err, result) {
       var rows;

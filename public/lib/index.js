@@ -1,4 +1,4 @@
-define(["exports", "../lib/tool-view", "../lib/src-view", "../lib/graff-view", "../lib/obj-view", "../lib/Dispatcher"], function (exports, _libToolView, _libSrcView, _libGraffView, _libObjView, _libDispatcher) {
+define(["exports", "../lib/tool-view", "../lib/src-view", "../lib/graff-view", "../lib/obj-view", "../lib/archive-view", "../lib/Dispatcher"], function (exports, _libToolView, _libSrcView, _libGraffView, _libObjView, _libArchiveView, _libDispatcher) {
   "use strict";
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -11,6 +11,8 @@ define(["exports", "../lib/tool-view", "../lib/src-view", "../lib/graff-view", "
 
   var _ObjectView = _interopRequireDefault(_libObjView);
 
+  var _ArchiveView = _interopRequireDefault(_libArchiveView);
+
   var _Dispatcher = _interopRequireDefault(_libDispatcher);
 
   // This is the one and only dispatcher.
@@ -19,4 +21,5 @@ define(["exports", "../lib/tool-view", "../lib/src-view", "../lib/graff-view", "
   React.render(React.createElement(_SourceView["default"], null), document.getElementById("src-view"));
   React.render(React.createElement(_GraffView["default"], null), document.getElementById("graff-view"));
   React.render(React.createElement(_ObjectView["default"], null), document.getElementById("obj-view"));
+  React.render(React.createElement(_ArchiveView["default"], null), document.getElementById("archive-view"));
 });
