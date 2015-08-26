@@ -411,7 +411,6 @@ var Ast = (function () {
     var name = e[0];
     push(ctx, {tag: name, elts: elts});
   }
-
   function list(ctx, count) {
     // Ast list
     var elts = [];
@@ -1052,6 +1051,9 @@ exports.parser = (function () {
   }
 
   function elements(ctx, resume) {
+    if (match(ctx, TK_RIGHTBRACKET)) {
+      return resume;
+    }
     return element(ctx, function (ctx) {
       if (match(ctx, TK_COMMA)) {
         eat(ctx, TK_COMMA);
@@ -1061,8 +1063,9 @@ exports.parser = (function () {
         ret.cls = "punc";
         return ret;
       }
-      match(ctx, TK_RIGHTBRACKET);
-      return resume;
+      return function (ctx) {
+        return elements(ctx, resume);
+      };
     })
   }
 
