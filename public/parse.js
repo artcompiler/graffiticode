@@ -1503,6 +1503,11 @@ exports.parser = (function () {
           var errors = [];
           obj.error.forEach(function (err) {
             var coord = window.coords[err.nid];
+            if (!coord || !coord.from || !coord.to) {
+              coord = {};
+              coord.from = CodeMirror.Pos(0, 0);
+              coord.to = CodeMirror.Pos(0, 0);
+            }
             errors.push({
               from: coord.from,
               to: coord.to,
