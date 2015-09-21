@@ -110,9 +110,6 @@ var Ast = (function () {
       nid = node;
     } else {
       nid = intern(ctx, node);
-      if (node.coord) {
-        ctx.state.coords[nid] = node.coord;
-      }
     }
     ctx.state.nodeStack.push(nid);
   }
@@ -140,7 +137,6 @@ var Ast = (function () {
     }
     var nodeMap = ctx.state.nodeMap;
     var nodePool = ctx.state.nodePool;
-
     var tag = n.tag;
     var elts = "";
     var elts_nids = [ ];
@@ -157,6 +153,9 @@ var Ast = (function () {
       nodePool.push({tag: tag, elts: n.elts});
       nid = nodePool.length - 1;
       nodeMap[key] = nid;
+      if (n.coord) {
+        ctx.state.coords[nid] = n.coord;
+      }
     }
     return nid;
   }
@@ -275,9 +274,13 @@ var Ast = (function () {
     push(ctx, {tag: "BOOL", elts: [b]});
   }
 
-  function number(ctx, str) {
+  function number(ctx, str, coord) {
     assert(typeof str === "string" || typeof str === "number");
-    push(ctx, {tag: "NUM", elts: [String(str)]});
+    push(ctx, {
+      tag: "NUM",
+      elts: [String(str)],
+      coord: coord,
+    });
   }
 
   function string(ctx, str, coord) {
@@ -411,7 +414,7 @@ var Ast = (function () {
     var name = e[0];
     push(ctx, {tag: name, elts: elts});
   }
-  function list(ctx, count) {
+  function list(ctx, count, coord) {
     // Ast list
     var elts = [];
     for (var i = count; i > 0; i--) {
@@ -420,7 +423,11 @@ var Ast = (function () {
         elts.push(elt);
       }
     }
-    push(ctx, {tag: "LIST", elts: elts.reverse()});
+    push(ctx, {
+      tag: "LIST",
+      elts: elts.reverse(),
+      coord: coord,
+    });
   }
   function binaryExpr(ctx, name) {
     //log("Ast.binaryExpr() name="+name);
@@ -451,14 +458,18 @@ var Ast = (function () {
     number(ctx, -1*v1);
   }
 
-  function add(ctx) {
+  function add(ctx, coord) {
     log("Ast.add()");
     var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-      push(ctx, {tag: "ADD", elts: [n1, n2]});
+      push(ctx, {
+        tag: "ADD",
+        elts: [n1, n2],
+        coord: coord
+      });
     } else {
       number(ctx, +v1 + +v2);
     }
@@ -919,7 +930,7 @@ exports.parser = (function () {
   function number(ctx, cc) {
     eat(ctx, TK_NUM);
     cc.cls = "number";
-    Ast.number(ctx, lexeme);
+    Ast.number(ctx, lexeme, getCoord(ctx));
     return cc;
   }
 
@@ -1040,7 +1051,7 @@ exports.parser = (function () {
     var ret = function(ctx) {
       return elements(ctx, function (ctx) {
         eat(ctx, TK_RIGHTBRACKET);
-        Ast.list(ctx, ctx.state.exprc);
+        Ast.list(ctx, ctx.state.exprc, getCoord(ctx));
         stopCounter(ctx);
         cc.cls = "punc";
         return cc;
