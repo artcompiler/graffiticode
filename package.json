@@ -11,7 +11,7 @@
     "cookie-parser": "latest",
     "body-parser": "latest",
     "method-override": "latest",
-    "cookie-session": "latest",
+    "express-session": "latest",
     "errorhandler": "latest",
     "connect-timeout": "latest"
   },
