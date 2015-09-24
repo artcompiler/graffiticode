@@ -20,9 +20,10 @@ var qs = require("qs");
 var app = module.exports = express();
 var morgan = require("morgan");
 var cookieParser = require("cookie-parser");
+var cookieSession = require("cookie-session");
 var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
-var session = require("express-session");
+//var session = require("express-session");
 var errorHandler = require("errorhandler");
 var timeout = require('connect-timeout');
 
@@ -44,7 +45,12 @@ app.set('public', __dirname + '/public');
 app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
-app.use(cookieParser());
+//app.use(cookieParser());
+app.use(cookieParser('S3CRE7'));
+app.use(cookieSession({
+  key: 'app.sess',
+  secret: 'SUPERsekret'
+}));
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }))
@@ -62,7 +68,7 @@ app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
 app.use(methodOverride());
 //app.use(require('stylus').middleware({ src: __dirname + '/static' }));
 app.use(express.static(__dirname + '/public'));
-app.use(session({ secret: 'keyboard cat' }));
+//app.use(session({ secret: 'keyboard cat' }));
 
 app.use(function (err, req, res, next) {
   console.log("ERROR " + err.stack)
@@ -286,7 +292,6 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 
 // get list of piece ids
 app.get('/pieces/:lang', function (req, res) {  
-  console.log("GET /pieces/:lang");
   var lang = req.params.lang;
   var search = req.query.q;
   pg.connect(conString, function (err, client) {
@@ -341,7 +346,6 @@ app.get('/pieces/:lang', function (req, res) {
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
-    console.log("GET /code list=" + list);
     var queryStr =
       "SELECT * FROM pieces WHERE pieces.id" +
       " IN ("+list+") ORDER BY pieces.id DESC";
