@@ -63,6 +63,7 @@ app.use(bodyParser.raw());
 // parse application/vnd.api+json as json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
 
+
 app.use(methodOverride());
 //app.use(require('stylus').middleware({ src: __dirname + '/static' }));
 app.use(express.static(__dirname + '/public'));
