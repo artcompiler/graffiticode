@@ -20,10 +20,9 @@ var qs = require("qs");
 var app = module.exports = express();
 var morgan = require("morgan");
 var cookieParser = require("cookie-parser");
-var cookieSession = require("cookie-session");
 var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
-//var session = require("express-session");
+var session = require("express-session");
 var errorHandler = require("errorhandler");
 var timeout = require('connect-timeout');
 
@@ -45,9 +44,8 @@ app.set('public', __dirname + '/public');
 app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
-//app.use(cookieParser());
 app.use(cookieParser('S3CRE7'));
-app.use(cookieSession({
+app.use(session({
   key: 'app.sess',
   secret: 'SUPERsekret'
 }));
