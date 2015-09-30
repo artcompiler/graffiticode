@@ -965,10 +965,14 @@ exports.parser = (function () {
 
   function name(ctx, cc) {
     eat(ctx, TK_IDENT);
-    Ast.name(ctx, lexeme);
     var word = env.findWord(ctx, lexeme);
     if (word) {
       cc.cls = word.cls;
+      if (word.cls==="number" && word.val) {
+        Ast.number(ctx, word.val);
+      } else {
+        Ast.name(ctx, lexeme);
+      }
     } else {
       cc.cls = "comment";
       ctx.state.errors.push({
