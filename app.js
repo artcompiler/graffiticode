@@ -340,7 +340,6 @@ app.get('/pieces/:lang', function (req, res) {
 });
 
 app.get('/items', function(req, res) {
-  console.log("/items chunk=" + chunk);
   var data = "";
   req.on("data", function (chunk) {
     console.log("/items chunk=" + chunk);
