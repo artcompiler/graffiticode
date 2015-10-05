@@ -16,7 +16,7 @@
     "connect-timeout": "latest"
   },
   "engines": {
-    "node": ">0.8.x",
+    "node": "latest",
     "npm": "latest"
   },
   "devDependencies": {
