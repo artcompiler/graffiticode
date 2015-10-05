@@ -353,6 +353,7 @@ app.get('/items', function(req, res) {
         "SELECT * FROM pieces WHERE pieces.id" +
         " IN ("+list+") ORDER BY pieces.id DESC";
       client.query(queryStr, function (err, result) {
+        console.log("/items result=" + JSON.stringify(result, null, 2));
         var rows;
         if (!result || result.rows.length === 0) {
           rows = [{}];
