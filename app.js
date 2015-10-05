@@ -339,6 +339,35 @@ app.get('/pieces/:lang', function (req, res) {
   });
 });
 
+app.get('/items', function(req, res) {
+  var data = "";
+  req.on("data", function (chunk) {
+    data += chunk;
+  });
+  req.on('end', function () {
+    pg.connect(conString, function (err, client) {
+      console.log("GET /items data=" + data);
+      var list = JSON.parse(data);
+      var queryStr =
+        "SELECT * FROM pieces WHERE pieces.id" +
+        " IN ("+list+") ORDER BY pieces.id DESC";
+      client.query(queryStr, function (err, result) {
+        var rows;
+        if (!result || result.rows.length === 0) {
+          rows = [{}];
+        } else {
+          rows = result.rows;
+        }
+        res.send(rows)
+      });
+    });
+  });
+  req.on('error', function(e) {
+    console.log(e);
+    res.send(e);
+  });
+});
+
 // Get pieces
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
