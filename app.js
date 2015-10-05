@@ -344,6 +344,7 @@ app.get('/items', function(req, res) {
   var data = "";
   req.on("data", function (chunk) {
     data += chunk;
+    console.log("/items chunk=" + chunk);
   });
   req.on('end', function () {
     console.log("GET /items data=" + data);
