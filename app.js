@@ -342,18 +342,15 @@ app.get('/pieces/:lang', function (req, res) {
 app.get('/items', function(req, res) {
   var data = "";
   req.on("data", function (chunk) {
-    console.log("/items chunk=" + chunk);
     data += chunk;
   });
   req.on('end', function () {
-    console.log("GET /items data=" + data);
     pg.connect(conString, function (err, client) {
       var list = JSON.parse(data);
       var queryStr =
         "SELECT * FROM pieces WHERE pieces.id" +
         " IN ("+list+") ORDER BY pieces.id DESC";
       client.query(queryStr, function (err, result) {
-        console.log("/items result=" + JSON.stringify(result, null, 2));
         var rows;
         if (!result || result.rows.length === 0) {
           rows = [{}];
@@ -374,7 +371,6 @@ app.get('/items', function(req, res) {
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
-    console.log("GET /code query=" + Object.keys(req));
     var queryStr =
       "SELECT * FROM pieces WHERE pieces.id" +
       " IN ("+list+") ORDER BY pieces.id DESC";
