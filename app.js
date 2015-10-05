@@ -343,7 +343,7 @@ app.get('/pieces/:lang', function (req, res) {
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
     var list = req.query.list;
-    console.log("GET /code list=" + list);
+    console.log("GET /code query=" + JSON.stringify(req.query));
     var queryStr =
       "SELECT * FROM pieces WHERE pieces.id" +
       " IN ("+list+") ORDER BY pieces.id DESC";
