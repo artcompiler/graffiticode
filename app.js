@@ -340,13 +340,14 @@ app.get('/pieces/:lang', function (req, res) {
 });
 
 app.get('/items', function(req, res) {
+  console.log("/items");
   var data = "";
   req.on("data", function (chunk) {
     data += chunk;
   });
   req.on('end', function () {
+    console.log("GET /items data=" + data);
     pg.connect(conString, function (err, client) {
-      console.log("GET /items data=" + data);
       var list = JSON.parse(data);
       var queryStr =
         "SELECT * FROM pieces WHERE pieces.id" +
