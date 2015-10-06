@@ -348,7 +348,7 @@ app.get('/items', function(req, res) {
     pg.connect(conString, function (err, client) {
       var list = JSON.parse(data);
       var queryStr =
-        "SELECT id, obj FROM pieces WHERE id" +
+        "SELECT id, src, obj FROM pieces WHERE id" +
         " IN ("+list+") ORDER BY id DESC";
       client.query(queryStr, function (err, result) {
         var rows;
