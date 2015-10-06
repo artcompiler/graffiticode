@@ -304,7 +304,7 @@ app.get('/pieces/:lang', function (req, res) {
         likeStr += "src like '%" + s + "%'";
       });
       if (likeStr) {
-        likeStr += ") AND ";
+        likeStr += ")";
       }
     }
     if (lang === "DEBUG") {
@@ -312,7 +312,7 @@ app.get('/pieces/:lang', function (req, res) {
     } else {
       queryString = "SELECT id FROM pieces WHERE language='" + lang +
         "' AND " + likeStr +
-        "label = 'show' ORDER BY id DESC";
+        "' AND label = 'show' ORDER BY id DESC";
     }
     client.query(queryString, function (err, result) {
       var rows;
