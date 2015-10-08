@@ -367,6 +367,34 @@ app.get('/items', function(req, res) {
   });
 });
 
+app.get('/items/src', function(req, res) {
+  var data = "";
+  req.on("data", function (chunk) {
+    data += chunk;
+  });
+  req.on('end', function () {
+    pg.connect(conString, function (err, client) {
+      var list = JSON.parse(data);
+      var queryStr =
+        "SELECT id, src FROM pieces WHERE id" +
+        " IN ("+list+") ORDER BY id DESC";
+      client.query(queryStr, function (err, result) {
+        var rows;
+        if (!result || result.rows.length === 0) {
+          rows = [{}];
+        } else {
+          rows = result.rows;
+        }
+        res.send(rows)
+      });
+    });
+  });
+  req.on('error', function(e) {
+    console.log(e);
+    res.send(e);
+  });
+});
+
 // Get pieces
 app.get('/code', function (req, res) {
   pg.connect(conString, function (err, client) {
