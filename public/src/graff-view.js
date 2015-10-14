@@ -28,7 +28,7 @@ var GraffContent = React.createClass({
   componentDidUpdate: function() {
     var viewer = window.exports.viewer;
     var el = React.findDOMNode(this);
-    if (this.state && !this.state.error) {
+    if (this.state && !this.state.errors) {
       let pool = this.state.pool;
       let src = this.state.src;
       let obj = this.state.obj;

@@ -1514,8 +1514,9 @@ exports.parser = (function () {
       dataType: "json",
       success: function(data) {
         var obj = JSON.parse(data.obj);
+        var errors;
         if (obj.error && obj.error.length) {
-          var errors = [];
+          errors = [];
           obj.error.forEach(function (err) {
             var coord = window.coords[err.nid];
             if (!coord || !coord.from || !coord.to) {
@@ -1547,6 +1548,7 @@ exports.parser = (function () {
           obj: data.obj,
           pool: ast,
           postCode: postCode,
+          errors: errors,
         });
       },
       error: function(xhr, msg, err) {

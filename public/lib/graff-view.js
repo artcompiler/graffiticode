@@ -33,7 +33,7 @@ define(["exports", "module"], function (exports, module) {
     componentDidUpdate: function componentDidUpdate() {
       var viewer = window.exports.viewer;
       var el = React.findDOMNode(this);
-      if (this.state && !this.state.error) {
+      if (this.state && !this.state.errors) {
         var pool = this.state.pool;
         var src = this.state.src;
         var obj = this.state.obj;
