@@ -521,6 +521,19 @@ app.put('/compile', function (req, res) {
   });
 });
 
+// From http://javascript.about.com/library/blipconvert.htm
+function dot2num(dot) {
+  var d = dot.split('.');
+  return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
+}
+function num2dot(num) {
+  var d = num%256;
+  for (var i = 3; i > 0; i--) { 
+    num = Math.floor(num/256);
+    d = num%256 + '.' + d;}
+  return d;
+}
+
 // Commit and return commit id
 app.post('/code', function (req, res){
   var ip = req.headers['x-forwarded-for'] || 
@@ -531,7 +544,7 @@ app.post('/code', function (req, res){
   var language = req.body.language;
   var src = req.body.src;
   var obj = req.body.obj;
-  var user = ip; //req.body.user;
+  var user = dot2num(ip); //req.body.user;
   var parent = req.body.parent;
   var img = req.body.img;
   var label = req.body.label;
