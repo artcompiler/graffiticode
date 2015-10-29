@@ -523,10 +523,15 @@ app.put('/compile', function (req, res) {
 
 // Commit and return commit id
 app.post('/code', function (req, res){
+  var ip = req.headers['x-forwarded-for'] || 
+     req.connection.remoteAddress || 
+     req.socket.remoteAddress ||
+     req.connection.socket.remoteAddress;
+  console.log("POST /code ip=" + ip);
   var language = req.body.language;
   var src = req.body.src;
   var obj = req.body.obj;
-  var user = req.body.user;
+  var user = ip; //req.body.user;
   var parent = req.body.parent;
   var img = req.body.img;
   var label = req.body.label;
