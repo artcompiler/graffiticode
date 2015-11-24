@@ -109,7 +109,7 @@ app.get('/lang', function(req, res) {
     item: 0,
   }, function (error, html) {
     if (error) {
-      res.send(400, error);
+      res.status(400).send(error);
     } else {
       res.send(html);
     }
@@ -134,7 +134,7 @@ app.get('/item', function(req, res) {
           item: id,
         }, function (error, html) {
           if (error) {
-            res.send(400, error);
+            res.status(400).send(error);
           } else {
             res.send(html);
           }
@@ -163,7 +163,7 @@ app.get('/L102', function (req, res) {
       body: body,
     }, function (error, html) {
       if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
       } else {
         res.send(html);
       }
@@ -181,7 +181,7 @@ app.get('/L104', function (req, res) {
       body: body,
     }, function (error, html) {
       if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
       } else {
         res.send(html);
       }
@@ -199,7 +199,7 @@ app.get('/math', function (req, res) {
       body: body,
     }, function (error, html) {
       if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
       } else {
         res.send(html);
       }
@@ -217,7 +217,7 @@ app.get('/debug', function (req, res) {
       body: body,
     }, function (error, html) {
       if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
       } else {
         res.send(html);
       }
@@ -296,6 +296,7 @@ app.get('/pieces/:lang', function (req, res) {
     if (search) {
       var ss = search.split(",");
       ss.forEach(function (s) {
+        s = cleanAndTrimSrc(s);
         if (likeStr) {
           likeStr += " OR ";
         } else {
@@ -325,7 +326,7 @@ app.get('/pieces/:lang', function (req, res) {
           " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
         client.query(insertStr, function(err, result) {
           if (err) {
-            res.send(400, err);
+            res.status(400).send(err);
             return;
           }
           client.query(queryString, function (err, result) {
@@ -445,8 +446,19 @@ function retrieve(language, path, response) {
     });
   });
 }
-function cleanAndTrim(str) {
+function cleanAndTrimObj(str) {
   str = str.replace(new RegExp("\n","g"), " ");
+  str = str.replace(new RegExp("'","g"), "\"");
+  while(str.charAt(0) === " ") {
+    str.shift();
+  }
+  while(str.charAt(str.length - 1) === " ") {
+    str = str.substring(0, str.length - 1);
+  }
+  return str;
+}
+function cleanAndTrimSrc(str) {
+  str = str.replace(new RegExp("'","g"), "''");
   while(str.charAt(0) === " ") {
     str.shift();
   }
@@ -481,9 +493,9 @@ function compile(language, src, result, response) {
       data += chunk;
     });
     res.on('end', function () {
-      var n = cleanAndTrim(data);
+      var n = cleanAndTrimObj(data);
       if (result && result.rows.length === 1) {
-        var o = cleanAndTrim(result.rows[0].obj);
+        var o = cleanAndTrimObj(result.rows[0].obj);
       }
       if (o !== n) {
         // Either the source doesn't exist or the compile produced a different result.
@@ -540,7 +552,6 @@ app.post('/code', function (req, res){
      req.connection.remoteAddress || 
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
-  console.log("POST /code ip=" + ip);
   var language = req.body.language;
   var src = req.body.src;
   var obj = req.body.obj;
@@ -555,11 +566,9 @@ app.post('/code', function (req, res){
     var views = 0;
     var forks = 0;
     pg.connect(conString, function (err, client) {
-//      src = src.replace(new RegExp("\n","g"), "\\n");
-      obj = obj.replace(new RegExp("\n","g"), " ");
-      obj = obj.replace(new RegExp("'","g"), "\"");
-      img = img.replace(new RegExp("\n","g"), " ");
-      img = img.replace(new RegExp("'","g"), "\"");
+      obj = cleanAndTrimObj(obj);
+      img = cleanAndTrimObj(img);
+      src = cleanAndTrimSrc(src);
       var queryStr = 
         "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
@@ -567,7 +576,7 @@ app.post('/code', function (req, res){
         " ', '" + language + "', '" + label + "', '" + img + "');"
       client.query(queryStr, function(err, result) {
         if (err) {
-          res.send(400, err);
+          res.status(400).send(err);
           return;
         }
         var queryStr =
@@ -577,56 +586,6 @@ app.post('/code', function (req, res){
         })
         client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";");
       });
-    });
-  }
-});
-
-app.post('/gist', function (req, resPost) {
-  var id = req.body.id;
-  var src = req.body.src;
-  var obj = req.body.obj;
-  if (id === 0) {
-    // need to archive code to archive
-  }
-  commit();
-  function commit() {
-    var gistData = {
-      "description": "graffiticode",
-      "public": true,
-      "files": {
-        "src": {
-          "content": src
-        },
-        "obj": {
-          "content": obj
-        }
-      }
-    };
-    var gistDataEncoded = JSON.stringify(gistData);
-    var options = {
-      host: 'api.github.com',
-      path: '/gists',
-      method: 'POST',
-      headers: {'Content-Type': 'text/plain',
-                'Content-Length': gistDataEncoded.length},
-    };
-    var gistReq = https.request(options, function(res) {
-      var data = "";
-      res.on('data', function (chunk) {
-        data += chunk;
-      });
-      res.on('end', function () {
-        var gist_id = JSON.parse(data).id;
-        pg.connect(conString, function(err, client) {
-          client.query("UPDATE pieces SET gist_id = '"+gist_id+"' WHERE id = '"+id+"'");
-          resPost.send({id: id, gist_id: gist_id});
-        });
-      });
-    });
-    gistReq.write(gistDataEncoded);
-    gistReq.end();
-    gistReq.on('error', function(e) {
-      res.send("ERR02 " + e);
     });
   }
 });
@@ -659,7 +618,7 @@ app.put('/label', function (req, res) {
 app.put('/code', function (req, res) {
   var id = req.body.id;
   var src = req.body.src;
-//  src = src.replace(new RegExp("\n","g"), "\\n");
+  src = cleanAndTrimSrc(src);
   if (!id) {
     res.send(500);
   } else {
