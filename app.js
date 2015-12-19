@@ -624,7 +624,7 @@ app.put('/code', function (req, res) {
   } else {
     pg.connect(conString, function (err, client) {
       client.query("UPDATE pieces SET src = '" + src + "' WHERE id = '" + id + "'");
-      res.send(200);
+      res.sendStatus(200);
     });
   }
 });
