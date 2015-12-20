@@ -145,6 +145,26 @@ app.get('/item', function(req, res) {
   });
 });
 
+app.get('/data', function(req, res) {
+  var id = req.query.id;
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+      var obj;
+      if (err) {
+        res.status(400).send(err);
+      } else {
+        if (!result || result.rows.length===0) {
+          obj = {};
+        } else {
+          obj = result.rows[0];
+        }
+        res.send(obj);
+        client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+      }
+    });
+  });
+});
+
 app.get("/index", function (req, res) {
   res.sendFile("public/index.html");
 });
