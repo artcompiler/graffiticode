@@ -156,7 +156,7 @@ app.get('/data', function(req, res) {
         if (!result || result.rows.length===0) {
           obj = [{}];
         } else {
-          obj = [result.rows[0]];
+          obj = [JSON.parse(result.rows[0].obj)];
         }
         res.send(obj);
         client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
