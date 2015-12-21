@@ -594,7 +594,6 @@ app.post('/code', function (req, res){
         " VALUES ('" + user + "', '" + parent + "', '" + views +
         " ', '" + forks + "', now(), '" + src + "', '" + obj +
         " ', '" + language + "', '" + label + "', '" + img + "');"
-      console.log("POST /code queryStr=" + queryStr);
       client.query(queryStr, function(err, result) {
         if (err) {
           console.log("POST /code err=" + err);
