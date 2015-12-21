@@ -596,11 +596,9 @@ app.post('/code', function (req, res){
         " ', '" + language + "', '" + label + "', '" + img + "');"
       client.query(queryStr, function(err, result) {
         if (err) {
-          console.log("POST /code err=" + err);
           res.status(400).send(err);
           return;
         }
-        console.log("POST /code queryStr=" + queryStr);
         var queryStr =
           "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
         client.query(queryStr, function (err, result) {
@@ -608,7 +606,6 @@ app.post('/code', function (req, res){
             res.status(400).send(err);
             return;
           }
-          console.log("POST /code queryStr=" + queryStr);
           res.send(result.rows[0]);
         })
         client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";");
