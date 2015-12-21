@@ -597,6 +597,7 @@ app.post('/code', function (req, res){
       client.query(queryStr, function(err, result) {
         if (err) {
           console.log("POST /code err=" + err);
+          console.log("POST /code queryStr=" + queryStr);
           res.status(400).send(err);
           return;
         }
