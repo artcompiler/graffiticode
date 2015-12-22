@@ -156,6 +156,7 @@ app.get('/data', function(req, res) {
         if (!result || result.rows.length===0) {
           obj = [{}];
         } else {
+          console.log(result.rows);
           obj = [JSON.parse(result.rows[0].obj)];
         }
         res.send(obj);
