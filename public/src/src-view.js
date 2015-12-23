@@ -1,7 +1,7 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-import Dispatcher from "../lib/Dispatcher.js";
+import Dispatcher from "./Dispatcher.js";
 
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)

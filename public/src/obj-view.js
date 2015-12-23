@@ -1,7 +1,7 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-import Dispatcher from "../lib/Dispatcher.js";
+import Dispatcher from "./Dispatcher.js";
 
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
@@ -44,8 +44,12 @@ var CodeMirrorEditor = React.createClass({
   onChange: function (data) {
     let objectCode = "";
     let obj = JSON.parse(data.obj);
-    if (obj.objectCode) {
-      objectCode = JSON.stringify(obj.objectCode, null, 2);
+    if (obj) {
+      if (obj.objectCode) {
+        objectCode = JSON.stringify(obj.objectCode, null, 2);
+      } else {
+        objectCode = JSON.stringify(obj, null, 2);
+      }
     } else if (data && !data.error && window.exports.viewer.getObjectCode) {
       objectCode = window.exports.viewer.getObjectCode(data.obj);
     }

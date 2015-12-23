@@ -1,7 +1,8 @@
 SRC = $(wildcard src/*.js)
 LIB = $(SRC:src/%.js=lib/%.js)
+PUB = $(SRC:src/%.js=pub/%.js)
 
-lib: $(LIB)
-lib/%.js: src/%.js
-	mkdir -p $(@D)
-	babel --modules amd $< -o $@
+default:
+	browserify -t babelify src/index.js > lib/index.js
+
+

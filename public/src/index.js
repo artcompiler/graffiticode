@@ -1,9 +1,9 @@
-import ToolView from "../lib/tool-view";
-import SourceView from "../lib/src-view";
-import GraffView from "../lib/graff-view";
-import ObjectView from "../lib/obj-view";
-import ArchiveView from "../lib/archive-view";
-import Dispatcher from "../lib/Dispatcher";
+import ToolView from "./tool-view";
+import SourceView from "./src-view";
+import GraffView from "./graff-view";
+import ObjectView from "./obj-view";
+import ArchiveView from "./archive-view";
+import Dispatcher from "./Dispatcher";
 // This is the one and only dispatcher.
 window.dispatcher = new Dispatcher;
 React.render(

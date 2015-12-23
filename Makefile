@@ -1,3 +1,3 @@
 default:
 	make -C public/
-	node app
+	node --harmony app
