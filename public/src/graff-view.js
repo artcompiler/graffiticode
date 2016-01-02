@@ -1,6 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 import Dispatcher from "./Dispatcher";
+//import * as React from "react";
+import ReactDOM from "react-dom";
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
     || navigator.userAgent.match(/webOS/i)
@@ -34,7 +36,10 @@ var GraffContent = React.createClass({
       let src = this.state.src;
       let obj = this.state.obj;
       let id = this.state.id;
-      viewer.update(el, obj, src, pool);
+      if (!viewer.Viewer) {
+        // Legacy code path
+        viewer.update(el, obj, src, pool);
+      }
       if (id) {
         exports.id = id
         window.history.pushState("object or string", "title", "/item?id=" + id);
@@ -79,13 +84,21 @@ var GraffContent = React.createClass({
     this.replaceState(data);
   },
   render: function () {
-    return (
-      <svg height="0" width="100%" style={{background: "white"}}>
-        <g>
-          <rect width="100%" height="100%" fill="white"/>
-        </g>
-      </svg>
-    );
+    var Viewer = window.exports.viewer.Viewer;
+    if (Viewer) {
+      var obj = this.state ? JSON.parse(this.state.obj) : {};
+      return (
+          <Viewer className="viewer" {...obj} />
+      );
+    } else {
+      return (
+        <svg height="0" width="100%" style={{background: "white"}}>
+          <g>
+            <rect width="100%" height="100%" fill="white"/>
+          </g>
+        </svg>
+      );
+    }
   },
 });
 var GraffView = React.createClass({
