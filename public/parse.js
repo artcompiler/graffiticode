@@ -956,6 +956,13 @@ exports.parser = (function () {
     return cc;
   }
 
+  function identOrString(ctx, cc) {
+    if (match(ctx, TK_IDENT)) {
+      return ident(ctx, cc);
+    }
+    return string(ctx, cc);
+  }
+
   function defName(ctx, cc) {
     eat(ctx, TK_IDENT);
     Ast.name(ctx, lexeme);
@@ -1025,7 +1032,7 @@ exports.parser = (function () {
   }
 
   function binding(ctx, cc) {
-    return ident(ctx, function(ctx) {
+    return identOrString(ctx, function(ctx) {
       eat(ctx, TK_COLON);
       var ret = function(ctx) {
         countCounter(ctx);
@@ -1628,6 +1635,7 @@ exports.parser = (function () {
             }
             firstTime = false;
           } else {
+            // The AST hasn't changed, but the text has so save the code.
             lastTimer = window.setTimeout(function () {
               window.exports.errors = window.exports.lastErrors;
               window.exports.editor.performLint();
