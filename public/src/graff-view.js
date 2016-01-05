@@ -51,71 +51,77 @@ var GraffContent = React.createClass({
       }
       if (this.state.postCode) {
         let img = viewer.capture(el);
-        postCode(pool, src, obj, img);
+        this.postCode(pool, src, obj, img);
       } else if (id && data) {
         exports.id = id
-        postData(data);
+        this.postData(id, data);
+      } else {
+        // No id and/or data, so reset data state.
+        self.setState({data: undefined});
       }
     }
-    function postCode(pool, src, obj, img) {
-      let exports = window.exports;
-      let user = $("#username").data("user");
-      let parent = exports.parent;
-      let language = exports.language;
-      $.ajax({
-        type: "POST",
-        url: "/code",
-        data: {
-          src: src,
-          ast: pool,
-          obj: obj,
-          img: img ? img.replace(/\\/g, "\\\\") : "",
-          user: user ? user.id : 1,
-          parent: parent,
-          language: language,
-          label: "show",
-        },
-        dataType: "json",
-        success: function(data) {
-          exports.id = data.id;
-          exports.gist_id = data.gist_id
-          window.history.pushState("object or string", "title", "/item?id=" + exports.id);
-          this.setState({id: data.id, postCode: false});
-        },
-        error: function(xhr, msg, err) {
-          console.log("Unable to submit code. Probably due to a SQL syntax error");
-        }
-      });
-    }
-    function postData(obj) {
-      let exports = window.exports;
-      let user = $("#username").data("user");
-      let parent = exports.parent;
-      let language = exports.language;
-      $.ajax({
-        type: "POST",
-        url: "/code",
-        data: {
-          src: "",
-          ast: "",
-          obj: JSON.stringify(obj),
-          img: "",
-          user: user ? user.id : 1,
-          parent: parent,
-          language: "L113",
-          label: "data",
-        },
-        dataType: "json",
-        success: function(data) {
-          // FIXME add to state
-          exports.dataid = data.id
-          window.history.pushState("object or string", "title", "/item?id=" + exports.id + "+" + exports.dataid);
-        },
-        error: function(xhr, msg, err) {
-          console.log("Unable to submit code. Probably due to a SQL syntax error");
-        }
-      });
-    }
+  },
+  postCode: function postCode(pool, src, obj, img) {
+    let exports = window.exports;
+    let user = $("#username").data("user");
+    let parent = exports.parent;
+    let language = exports.language;
+    let self = this;
+    $.ajax({
+      type: "POST",
+      url: "/code",
+      data: {
+        src: src,
+        ast: pool,
+        obj: obj,
+        img: img ? img.replace(/\\/g, "\\\\") : "",
+        user: user ? user.id : 1,
+        parent: parent,
+        language: language,
+        label: "show",
+      },
+      dataType: "json",
+      success: function(data) {
+        exports.id = data.id;
+        exports.gist_id = data.gist_id
+        window.history.pushState("string", "title", "/item?id=" + data.id);
+        self.setState({id: data.id, postCode: false, data: undefined});
+      },
+      error: function(xhr, msg, err) {
+        console.log("Unable to submit code. Probably due to a SQL syntax error");
+      }
+    });
+  },
+  postData: function postData(codeid, obj) {
+    let exports = window.exports;
+    let user = $("#username").data("user");
+    let parent = exports.parent;
+    let language = exports.language;
+    let self = this;
+    $.ajax({
+      type: "POST",
+      url: "/code",
+      data: {
+        src: "",
+        ast: "",
+        obj: JSON.stringify(obj),
+        img: "",
+        user: user ? user.id : 1,
+        parent: parent,
+        language: "L113",
+        label: "data",
+      },
+      dataType: "json",
+      success: function(data) {
+        // FIXME add to state
+        exports.dataid = data.id;
+        window.history.pushState("string", "title", "/item?id=" + codeid + "+" + data.id);
+//        self.setState({id: codeid, dataid: data.id, postCode: false});
+      },
+      error: function(xhr, msg, err) {
+        console.log("Unable to submit code. Probably due to a SQL syntax error");
+      }
+    });
   },
   onChange: function (data) {
     this.setState(data);
