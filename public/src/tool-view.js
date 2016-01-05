@@ -1,6 +1,7 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 import Dispatcher from "./Dispatcher";
+import * as React from "react";
 import GraffView from "./graff-view";
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)

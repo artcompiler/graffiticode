@@ -2,6 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 import Dispatcher from "./Dispatcher.js";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
@@ -24,7 +26,7 @@ var CodeMirrorEditor = React.createClass({
   },
   componentDidMount: function() {
     let exports = window.exports;
-    let editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
+    let editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
       mode: 'graffiti',
       lineNumbers: this.props.lineNumbers,
       lineWrapping: true,

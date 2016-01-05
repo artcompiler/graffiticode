@@ -1,8 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 import Dispatcher from "./Dispatcher";
-//import * as React from "react";
-import ReactDOM from "react-dom";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
     || navigator.userAgent.match(/webOS/i)
@@ -38,7 +38,7 @@ var GraffContent = React.createClass({
   componentDidUpdate: function() {
     var exports = window.exports;
     var viewer = exports.viewer;
-    var el = React.findDOMNode(this);
+    var el = ReactDOM.findDOMNode(this);
     if (this.state && !this.state.errors) {
       let pool = this.state.pool;
       let src = this.state.src;
@@ -55,9 +55,6 @@ var GraffContent = React.createClass({
       } else if (id && data) {
         exports.id = id
         this.postData(id, data);
-      } else {
-        // No id and/or data, so reset data state.
-        self.setState({data: undefined});
       }
     }
   },
@@ -97,7 +94,6 @@ var GraffContent = React.createClass({
     let user = $("#username").data("user");
     let parent = exports.parent;
     let language = exports.language;
-    let self = this;
     $.ajax({
       type: "POST",
       url: "/code",
@@ -116,7 +112,6 @@ var GraffContent = React.createClass({
         // FIXME add to state
         exports.dataid = data.id;
         window.history.pushState("string", "title", "/item?id=" + codeid + "+" + data.id);
-//        self.setState({id: codeid, dataid: data.id, postCode: false});
       },
       error: function(xhr, msg, err) {
         console.log("Unable to submit code. Probably due to a SQL syntax error");

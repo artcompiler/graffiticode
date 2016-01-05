@@ -2,6 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 import Dispatcher from "./Dispatcher.js";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
@@ -23,7 +25,7 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    this.editor = CodeMirror.fromTextArea(React.findDOMNode(this.refs.editor), {
+    this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
       mode: 'javascript',
       lineNumbers: this.props.lineNumbers,
       lineWrapping: true,
@@ -150,7 +152,7 @@ var ObjectView = React.createClass({
   },
   executeCode: function() {
     return;
-    var mountNode = React.findDOMNode(this.refs.mount);
+    var mountNode = ReactDOM.findDOMNode(this.refs.mount);
     try {
       React.unmountComponentAtNode(mountNode);
     } catch (e) {
@@ -158,7 +160,7 @@ var ObjectView = React.createClass({
     try {
       var compiledCode = this.compileCode();
       if (this.props.renderCode) {
-        React.render(
+        ReactDOM.render(
           <CodeMirrorEditor codeText={compiledCode} readOnly={true} />,
           mountNode
         );

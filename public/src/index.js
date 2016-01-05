@@ -1,3 +1,5 @@
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 import ToolView from "./tool-view";
 import SourceView from "./src-view";
 import GraffView from "./graff-view";
@@ -10,15 +12,15 @@ window.dispatcher = new Dispatcher;
 //  React.createElement(ToolView, null),
 //  document.getElementById('tool-view')
 //);
-React.render(
+ReactDOM.render(
   React.createElement(SourceView, null),
   document.getElementById('src-view')
 );
-React.render(
+ReactDOM.render(
   React.createElement(GraffView, null),
   document.getElementById('graff-view')
 );
-React.render(
+ReactDOM.render(
   React.createElement(ObjectView, null),
   document.getElementById('obj-view')
 );
