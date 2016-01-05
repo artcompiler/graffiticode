@@ -27,7 +27,6 @@ var GraffContent = React.createClass({
   componentDidMount: function() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
-/*
     let exports = window.exports;
     let self = this;
     if (exports.data) {
@@ -35,7 +34,6 @@ var GraffContent = React.createClass({
         self.setState({data:data});
       });
     }
-*/
   },
   componentDidUpdate: function() {
     var exports = window.exports;
@@ -79,8 +77,6 @@ var GraffContent = React.createClass({
         },
         dataType: "json",
         success: function(data) {
-          // FIXME add to state
-//          exports.id = data.id
           exports.id = data.id;
           exports.gist_id = data.gist_id
           window.history.pushState("object or string", "title", "/item?id=" + this.state.id);
@@ -126,7 +122,7 @@ var GraffContent = React.createClass({
   render: function () {
     var Viewer = window.exports.viewer.Viewer;
     if (Viewer) {
-      var obj = this.state ? JSON.parse(this.state.obj) : {};
+      var obj = this.state && this.state.obj ? JSON.parse(this.state.obj) : {};
       var data = this.state && this.state.data ? this.state.data : {};
       return (
           <Viewer className="viewer" {...obj} {...data} />

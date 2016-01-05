@@ -18474,15 +18474,13 @@ var GraffContent = React.createClass({
   componentDidMount: function componentDidMount() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
-    /*
-        let exports = window.exports;
-        let self = this;
-        if (exports.data) {
-          $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
-            self.setState({data:data});
-          });
-        }
-    */
+    var exports = window.exports;
+    var self = this;
+    if (exports.data) {
+      $.get("http://" + location.host + "/data?id=" + exports.data, function (data) {
+        self.setState({ data: data });
+      });
+    }
   },
   componentDidUpdate: function componentDidUpdate() {
     var exports = window.exports;
@@ -18573,7 +18571,7 @@ var GraffContent = React.createClass({
   render: function render() {
     var Viewer = window.exports.viewer.Viewer;
     if (Viewer) {
-      var obj = this.state ? JSON.parse(this.state.obj) : {};
+      var obj = this.state && this.state.obj ? JSON.parse(this.state.obj) : {};
       var data = this.state && this.state.data ? this.state.data : {};
       return React.createElement(Viewer, _extends({ className: "viewer" }, obj, data));
     } else {
