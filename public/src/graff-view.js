@@ -49,12 +49,12 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, pool);
       }
-      if (id && data) {
-        exports.id = id
-        postData(data);
-      } else if (this.state.postCode) {
+      if (this.state.postCode) {
         let img = viewer.capture(el);
         postCode(pool, src, obj, img);
+      } else if (id && data) {
+        exports.id = id
+        postData(data);
       }
     }
     function postCode(pool, src, obj, img) {
@@ -79,7 +79,8 @@ var GraffContent = React.createClass({
         success: function(data) {
           exports.id = data.id;
           exports.gist_id = data.gist_id
-          window.history.pushState("object or string", "title", "/item?id=" + this.state.id);
+          window.history.pushState("object or string", "title", "/item?id=" + exports.id);
+          this.setState({id: data.id, postCode: false});
         },
         error: function(xhr, msg, err) {
           console.log("Unable to submit code. Probably due to a SQL syntax error");

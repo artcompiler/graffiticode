@@ -1542,16 +1542,14 @@ exports.parser = (function () {
           });
           window.exports.lastErrors = window.exports.errors = errors;
           window.exports.editor.performLint();
-        } else if (data.id) {
-          // We have a good id, so use it.
-          window.exports.id = data.id;
-          window.exports.lastErrors = [];
         } else if(postCode) {
           // We are getting a new id, so clear the old one.
           window.exports.id = 0;
           window.exports.lastErrors = [];
-        } else {
-          
+        } else if (data.id) {
+          // We have a good id, so use it.
+          window.exports.id = data.id;
+          window.exports.lastErrors = [];
         }
         dispatcher.dispatch({
           id: data.id,
