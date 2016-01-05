@@ -17986,16 +17986,18 @@ module.exports = validateDOMNesting;
  * @providesModule invariant
  */
 
-"use strict" /**
-              * Use invariant() to assert state which your program assumes to be true.
-              *
-              * Provide sprintf-style format (only %s is supported) and arguments
-              * to provide information about what broke and what you were
-              * expecting.
-              *
-              * The invariant message will be stripped in production, but the invariant
-              * will remain to ensure logic does not differ in production.
-              */;
+"use strict";
+
+/**
+ * Use invariant() to assert state which your program assumes to be true.
+ *
+ * Provide sprintf-style format (only %s is supported) and arguments
+ * to provide information about what broke and what you were
+ * expecting.
+ *
+ * The invariant message will be stripped in production, but the invariant
+ * will remain to ensure logic does not differ in production.
+ */
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -18472,31 +18474,41 @@ var GraffContent = React.createClass({
   componentDidMount: function componentDidMount() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
+    /*
+        let exports = window.exports;
+        let self = this;
+        if (exports.data) {
+          $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
+            self.setState({data:data});
+          });
+        }
+    */
   },
   componentDidUpdate: function componentDidUpdate() {
-    var viewer = window.exports.viewer;
+    var exports = window.exports;
+    var viewer = exports.viewer;
     var el = React.findDOMNode(this);
     if (this.state && !this.state.errors) {
       var pool = this.state.pool;
       var src = this.state.src;
       var obj = this.state.obj;
       var id = this.state.id;
+      var data = this.state.data;
       if (!viewer.Viewer) {
         // Legacy code path
         viewer.update(el, obj, src, pool);
       }
-      if (id) {
+      if (id && data) {
         exports.id = id;
-        window.history.pushState("object or string", "title", "/item?id=" + id);
+        postData(data);
       } else if (this.state.postCode) {
         var img = viewer.capture(el);
-        postPiece(pool, src, obj, img);
+        postCode(pool, src, obj, img);
       }
     }
-    function postPiece(pool, src, obj, img) {
+    function postCode(pool, src, obj, img) {
       var exports = window.exports;
       var user = $("#username").data("user");
-      //      src = src.replace(/\\/g, "\\\\");
       var parent = exports.parent;
       var language = exports.language;
       $.ajax({
@@ -18515,9 +18527,39 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function success(data) {
           // FIXME add to state
+          //          exports.id = data.id
           exports.id = data.id;
           exports.gist_id = data.gist_id;
-          window.history.pushState("object or string", "title", "/item?id=" + data.id);
+          window.history.pushState("object or string", "title", "/item?id=" + this.state.id);
+        },
+        error: function error(xhr, msg, err) {
+          console.log("Unable to submit code. Probably due to a SQL syntax error");
+        }
+      });
+    }
+    function postData(obj) {
+      var exports = window.exports;
+      var user = $("#username").data("user");
+      var parent = exports.parent;
+      var language = exports.language;
+      $.ajax({
+        type: "POST",
+        url: "/code",
+        data: {
+          src: "",
+          ast: "",
+          obj: JSON.stringify(obj),
+          img: "",
+          user: user ? user.id : 1,
+          parent: parent,
+          language: "L113",
+          label: "data"
+        },
+        dataType: "json",
+        success: function success(data) {
+          // FIXME add to state
+          exports.dataid = data.id;
+          window.history.pushState("object or string", "title", "/item?id=" + exports.id + "+" + exports.dataid);
         },
         error: function error(xhr, msg, err) {
           console.log("Unable to submit code. Probably due to a SQL syntax error");
@@ -18526,13 +18568,14 @@ var GraffContent = React.createClass({
     }
   },
   onChange: function onChange(data) {
-    this.replaceState(data);
+    this.setState(data);
   },
   render: function render() {
     var Viewer = window.exports.viewer.Viewer;
     if (Viewer) {
       var obj = this.state ? JSON.parse(this.state.obj) : {};
-      return React.createElement(Viewer, _extends({ className: "viewer" }, obj));
+      var data = this.state && this.state.data ? this.state.data : {};
+      return React.createElement(Viewer, _extends({ className: "viewer" }, obj, data));
     } else {
       return React.createElement(
         "svg",
@@ -18597,11 +18640,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // This is the one and only dispatcher.
 window.dispatcher = new _Dispatcher2.default();
-React.render(React.createElement(_toolView2.default, null), document.getElementById('tool-view'));
+//ReactDOM.render(
+//  React.createElement(ToolView, null),
+//  document.getElementById('tool-view')
+//);
 React.render(React.createElement(_srcView2.default, null), document.getElementById('src-view'));
 React.render(React.createElement(_graffView2.default, null), document.getElementById('graff-view'));
 React.render(React.createElement(_objView2.default, null), document.getElementById('obj-view'));
-React.render(React.createElement(_archiveView2.default, null), document.getElementById('archive-view'));
+//ReactDOM.render(
+//  React.createElement(ArchiveView, null),
+//  document.getElementById('archive-view')
+//);
 
 },{"./Dispatcher":147,"./archive-view":148,"./graff-view":149,"./obj-view":151,"./src-view":152,"./tool-view":153}],151:[function(require,module,exports){
 'use strict';
@@ -18652,17 +18701,18 @@ var CodeMirrorEditor = React.createClass({
   },
   onChange: function onChange(data) {
     var objectCode = "";
-    var obj = JSON.parse(data.obj);
+    var obj = data.obj ? JSON.parse(data.obj) : null;
     if (obj) {
       if (obj.objectCode) {
         objectCode = JSON.stringify(obj.objectCode, null, 2);
       } else {
         objectCode = JSON.stringify(obj, null, 2);
       }
+      this.editor.setValue(objectCode);
     } else if (data && !data.error && window.exports.viewer.getObjectCode) {
       objectCode = window.exports.viewer.getObjectCode(data.obj);
+      this.editor.setValue(objectCode);
     }
-    this.editor.setValue(objectCode);
   },
   handleChange: function handleChange() {
     if (!this.props.readOnly) {

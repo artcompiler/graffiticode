@@ -27,31 +27,41 @@ var GraffContent = React.createClass({
   componentDidMount: function() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
+/*
+    let exports = window.exports;
+    let self = this;
+    if (exports.data) {
+      $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
+        self.setState({data:data});
+      });
+    }
+*/
   },
   componentDidUpdate: function() {
-    var viewer = window.exports.viewer;
+    var exports = window.exports;
+    var viewer = exports.viewer;
     var el = React.findDOMNode(this);
     if (this.state && !this.state.errors) {
       let pool = this.state.pool;
       let src = this.state.src;
       let obj = this.state.obj;
       let id = this.state.id;
+      let data = this.state.data;
       if (!viewer.Viewer) {
         // Legacy code path
         viewer.update(el, obj, src, pool);
       }
-      if (id) {
+      if (id && data) {
         exports.id = id
-        window.history.pushState("object or string", "title", "/item?id=" + id);
+        postData(data);
       } else if (this.state.postCode) {
         let img = viewer.capture(el);
-        postPiece(pool, src, obj, img);
+        postCode(pool, src, obj, img);
       }
     }
-    function postPiece(pool, src, obj, img) {
+    function postCode(pool, src, obj, img) {
       let exports = window.exports;
       let user = $("#username").data("user");
-//      src = src.replace(/\\/g, "\\\\");
       let parent = exports.parent;
       let language = exports.language;
       $.ajax({
@@ -70,9 +80,39 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function(data) {
           // FIXME add to state
-          exports.id = data.id
+//          exports.id = data.id
+          exports.id = data.id;
           exports.gist_id = data.gist_id
-          window.history.pushState("object or string", "title", "/item?id=" + data.id);
+          window.history.pushState("object or string", "title", "/item?id=" + this.state.id);
+        },
+        error: function(xhr, msg, err) {
+          console.log("Unable to submit code. Probably due to a SQL syntax error");
+        }
+      });
+    }
+    function postData(obj) {
+      let exports = window.exports;
+      let user = $("#username").data("user");
+      let parent = exports.parent;
+      let language = exports.language;
+      $.ajax({
+        type: "POST",
+        url: "/code",
+        data: {
+          src: "",
+          ast: "",
+          obj: JSON.stringify(obj),
+          img: "",
+          user: user ? user.id : 1,
+          parent: parent,
+          language: "L113",
+          label: "data",
+        },
+        dataType: "json",
+        success: function(data) {
+          // FIXME add to state
+          exports.dataid = data.id
+          window.history.pushState("object or string", "title", "/item?id=" + exports.id + "+" + exports.dataid);
         },
         error: function(xhr, msg, err) {
           console.log("Unable to submit code. Probably due to a SQL syntax error");
@@ -81,14 +121,15 @@ var GraffContent = React.createClass({
     }
   },
   onChange: function (data) {
-    this.replaceState(data);
+    this.setState(data);
   },
   render: function () {
     var Viewer = window.exports.viewer.Viewer;
     if (Viewer) {
       var obj = this.state ? JSON.parse(this.state.obj) : {};
+      var data = this.state && this.state.data ? this.state.data : {};
       return (
-          <Viewer className="viewer" {...obj} />
+          <Viewer className="viewer" {...obj} {...data} />
       );
     } else {
       return (

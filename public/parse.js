@@ -977,6 +977,8 @@ exports.parser = (function () {
       cc.cls = word.cls;
       if (word.cls==="number" && word.val) {
         Ast.number(ctx, word.val);
+      } else if (word.cls==="string" && word.val) {
+        Ast.string(ctx, word.val);
       } else {
         Ast.name(ctx, lexeme);
       }
@@ -1540,14 +1542,16 @@ exports.parser = (function () {
           });
           window.exports.lastErrors = window.exports.errors = errors;
           window.exports.editor.performLint();
-        } else if(postCode) {
-          // We are getting a new id, so clear the old one.
-          window.exports.id = 0;
-          window.exports.lastErrors = [];
         } else if (data.id) {
           // We have a good id, so use it.
           window.exports.id = data.id;
           window.exports.lastErrors = [];
+        } else if(postCode) {
+          // We are getting a new id, so clear the old one.
+          window.exports.id = 0;
+          window.exports.lastErrors = [];
+        } else {
+          
         }
         dispatcher.dispatch({
           id: data.id,
@@ -1680,6 +1684,18 @@ exports.parser = (function () {
   function scanner(stream) {
 
     var lexemeToToken = [ ]
+
+    var keywords = {
+      "let" : { "tk": 0x12, "cls": "keyword" },
+      "if" : { "tk": 0x05, "cls": "keyword" },
+      "then" : { "tk": 0x06, "cls": "keyword" },
+      "else" : { "tk": 0x07, "cls": "keyword" },
+      "case" : { "tk": 0x0F, "cls": "keyword" },
+      "of" : { "tk": 0x10, "cls": "keyword" },
+      "end" : { "tk": 0x11, "cls": "keyword", "length": 0 },
+      "true" : { "tk": 0x14, "cls": "val", "length": 0 },
+      "false" : { "tk": 0x14, "cls": "val", "length": 0 },
+    };
 
     return {
       start: start ,
@@ -1837,7 +1853,8 @@ exports.parser = (function () {
 
       //log("ident() lexeme="+lexeme)
       var tk = TK_IDENT
-      if (globalLexicon[lexeme]) {
+      if (keywords[lexeme]) {
+      } else if (globalLexicon[lexeme]) {
         tk = globalLexicon[lexeme].tk
       }
       return tk;

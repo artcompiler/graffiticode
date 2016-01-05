@@ -107,6 +107,7 @@ app.get('/lang', function(req, res) {
     target: 'SVG',
     login: 'Login',
     item: 0,
+    data: 0,
   }, function (error, html) {
     if (error) {
       res.status(400).send(error);
@@ -117,7 +118,9 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/item', function(req, res) {
-  var id = req.query.id;
+  var ids = req.query.id.split(" ");
+  console.log("GET /item ids=" + ids);
+  var id = ids[0];  // First id is the item id.
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var rows;
@@ -131,7 +134,8 @@ app.get('/item', function(req, res) {
           vocabulary: lang,
           target: 'SVG',
           login: 'Login',
-          item: id,
+          item: ids[0],
+          data: ids[1] ? ids[1] : 0,
         }, function (error, html) {
           if (error) {
             res.status(400).send(error);
