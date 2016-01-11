@@ -149,6 +149,37 @@ app.get('/item', function(req, res) {
   });
 });
 
+app.get('/form', function(req, res) {
+  var ids = req.query.id.split(" ");
+  var id = ids[0];  // First id is the item id.
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+      var rows;
+      if (!result || result.rows.length===0) {
+        rows = [{}];
+      } else {
+        var lang = result.rows[0].language;
+        res.render('form.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          vocabulary: lang,
+          target: 'SVG',
+          login: 'Login',
+          item: ids[0],
+          data: ids[1] ? ids[1] : 0,
+        }, function (error, html) {
+          if (error) {
+            res.status(400).send(error);
+          } else {
+            res.send(html);
+          }
+        });
+      }
+    });
+    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+  });
+});
+
 app.get('/data', function(req, res) {
   var id = req.query.id;
   pg.connect(conString, function (err, client) {

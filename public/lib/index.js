@@ -19454,7 +19454,7 @@ var GraffContent = React.createClass({
       var obj = this.state.obj;
       var id = this.state.id;
       var data = this.state.data;
-      if (!viewer.Viewer) {
+      if (!viewer.Viewer && obj) {
         // Legacy code path
         viewer.update(el, obj, src, pool);
       }
