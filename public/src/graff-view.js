@@ -81,7 +81,7 @@ var GraffContent = React.createClass({
       success: function(data) {
         exports.id = data.id;
         exports.gist_id = data.gist_id
-        window.history.pushState("string", "title", "/item?id=" + data.id);
+        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
         self.setState({id: data.id, postCode: false, data: undefined});
       },
       error: function(xhr, msg, err) {
@@ -111,7 +111,7 @@ var GraffContent = React.createClass({
       success: function(data) {
         // FIXME add to state
         exports.dataid = data.id;
-        window.history.pushState("string", "title", "/item?id=" + codeid + "+" + data.id);
+        window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
       },
       error: function(xhr, msg, err) {
         console.log("Unable to submit code. Probably due to a SQL syntax error");

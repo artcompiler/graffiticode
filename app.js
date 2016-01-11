@@ -136,6 +136,7 @@ app.get('/item', function(req, res) {
           login: 'Login',
           item: ids[0],
           data: ids[1] ? ids[1] : 0,
+          view: "item",
         }, function (error, html) {
           if (error) {
             res.status(400).send(error);
@@ -167,6 +168,7 @@ app.get('/form', function(req, res) {
           login: 'Login',
           item: ids[0],
           data: ids[1] ? ids[1] : 0,
+          view: "form",
         }, function (error, html) {
           if (error) {
             res.status(400).send(error);
