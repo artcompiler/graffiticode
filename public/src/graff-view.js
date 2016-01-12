@@ -3,6 +3,7 @@
 import Dispatcher from "./Dispatcher";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+window.exports.ReactDOM = ReactDOM;
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
     || navigator.userAgent.match(/webOS/i)
