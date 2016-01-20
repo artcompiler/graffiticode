@@ -19450,25 +19450,25 @@ var GraffContent = React.createClass({
     var viewer = exports.viewer;
     var el = ReactDOM.findDOMNode(this);
     if (this.state && !this.state.errors) {
-      var pool = this.state.pool;
+      var ast = this.state.ast;
       var src = this.state.src;
       var obj = this.state.obj;
       var id = this.state.id;
       var data = this.state.data;
       if (!viewer.Viewer && obj) {
         // Legacy code path
-        viewer.update(el, obj, src, pool);
+        viewer.update(el, obj, src, ast);
       }
       if (this.state.postCode) {
         var img = viewer.capture(el);
-        this.postCode(pool, src, obj, img);
+        this.postCode(ast, src, obj, img);
       } else if (id && data) {
         exports.id = id;
         this.postData(id, data);
       }
     }
   },
-  postCode: function postCode(pool, src, obj, img) {
+  postCode: function postCode(ast, src, obj, img) {
     var exports = window.exports;
     var user = $("#username").data("user");
     var parent = exports.parent;
@@ -19479,7 +19479,7 @@ var GraffContent = React.createClass({
       url: "/code",
       data: {
         src: src,
-        ast: pool,
+        ast: ast,
         obj: obj,
         img: img ? img.replace(/\\/g, "\\\\") : "",
         user: user ? user.id : 1,
@@ -19491,7 +19491,7 @@ var GraffContent = React.createClass({
       success: function success(data) {
         exports.id = data.id;
         exports.gist_id = data.gist_id;
-        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
+        //        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
         self.setState({ id: data.id, postCode: false, data: undefined });
       },
       error: function error(xhr, msg, err) {

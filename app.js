@@ -86,7 +86,7 @@ app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^www/) === null && req.headers.host.match(/^localhost/) === null) {
     res.redirect('http://www.'+ req.headers.host + req.url);
   } else {
-    next();     
+    next();
   }
 });
 
@@ -100,7 +100,7 @@ app.get('/', function(req, res) {
 app.get('/lang', function(req, res) {
   var id = req.query.id;
   var lang = "L" + id;
-  res.render('views.html', { 
+  res.render('views.html', {
     title: 'Graffiti Code',
     language: lang,
     vocabulary: lang,
@@ -128,7 +128,7 @@ app.get('/item', function(req, res) {
         rows = [{}];
       } else {
         var lang = result.rows[0].language;
-        res.render('views.html', { 
+        res.render('views.html', {
           title: 'Graffiti Code',
           language: lang,
           vocabulary: lang,
@@ -213,7 +213,7 @@ app.get('/dr10', function (req, res) {
 
 app.get('/L102', function (req, res) {
   fs.readFile('views/L102.html', function (err, body) {
-    res.render('layout.html', { 
+    res.render('layout.html', {
       title: 'Graffiti Code',
       vocabulary: 'L102',
       target: 'SVG',
@@ -231,7 +231,7 @@ app.get('/L102', function (req, res) {
 
 app.get('/L104', function (req, res) {
   fs.readFile('views/L104.html', function (err, body) {
-    res.render('layout.html', { 
+    res.render('layout.html', {
       title: 'Graffiti Code',
       vocabulary: 'L104',
       target: 'HTML',
@@ -249,7 +249,7 @@ app.get('/L104', function (req, res) {
 
 app.get('/math', function (req, res) {
   fs.readFile('views/math.html', function (err, body) {
-    res.render('layout.html', { 
+    res.render('layout.html', {
       title: 'Graffiti Code',
       vocabulary: 'MATH',
       target: 'SVG',
@@ -267,7 +267,7 @@ app.get('/math', function (req, res) {
 
 app.get('/debug', function (req, res) {
   fs.readFile('views/debug.html', function (err, body) {
-    res.render('layout.html', { 
+    res.render('layout.html', {
       title: 'Graffiti Code',
       vocabulary: 'DEBUG',
       target: 'SVG',
@@ -346,7 +346,7 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 });
 
 // get list of piece ids
-app.get('/pieces/:lang', function (req, res) {  
+app.get('/pieces/:lang', function (req, res) {
   var lang = req.params.lang;
   var search = req.query.q;
   pg.connect(conString, function (err, client) {
@@ -377,7 +377,7 @@ app.get('/pieces/:lang', function (req, res) {
       var rows;
       if (!result || result.rows.length === 0) {
         console.log("no rows");
-        var insertStr = 
+        var insertStr =
           "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
           " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
           " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
@@ -525,14 +525,64 @@ function cleanAndTrimSrc(str) {
   }
   return str;
 }
-function compile(language, src, result, response) {
-  // Handle legacy case
+
+// Commit and return commit id
+function postItem(language, src, ast, obj, user, parent, img, label, resume) {
+  var views = 0;
+  var forks = 0;
+  pg.connect(conString, function (err, client) {
+    obj = cleanAndTrimObj(obj);
+    img = cleanAndTrimObj(img);
+    src = cleanAndTrimSrc(src);
+    var queryStr =
+      "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
+      " VALUES ('" + user + "', '" + parent + "', '" + views +
+      " ', '" + forks + "', now(), '" + src + "', '" + obj +
+      " ', '" + language + "', '" + label + "', '" + img + "', '" + JSON.stringify(ast) + "');"
+    client.query(queryStr, function(err, result) {
+      if (err) {
+        console.log("ERROR: " + err);
+        resume(err);
+      } else {
+        var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
+        client.query(queryStr, function (err, result) {
+          resume(err, result);
+        });
+        client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";");
+      }
+    });
+  });
+};
+
+// Commit and return commit id
+function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
+  var views = 0;
+  var forks = 0;
+  pg.connect(conString, function (err, client) {
+    obj = cleanAndTrimObj(obj);
+    img = cleanAndTrimObj(img);
+    src = cleanAndTrimSrc(src);
+    var query =
+      "UPDATE pieces SET " +
+      "src='" + src + "', " +
+      "ast='" + JSON.stringify(ast) + "', " +
+      "obj='" + obj + "' " +
+      "WHERE id='" + id + "'";
+    console.log("updateItem() query=" + query);
+    client.query(query);
+    resume(err, []);
+  });
+};
+
+function compile(language, src, ast, result, response) {
+  // Compile ast to obj.
   var path = "/compile";
   var data = {
     "description": "graffiticode",
     "language": language,
-    "src": src,
+    "src": ast,
   };
+  var rows = result.rows;
   var encodedData = JSON.stringify(data);
   var options = {
     host: getCompilerHost(language),
@@ -555,20 +605,51 @@ function compile(language, src, result, response) {
       if (result && result.rows.length === 1) {
         var o = cleanAndTrimObj(result.rows[0].obj);
       }
-      if (o !== n) {
-        // Either the source doesn't exist or the compile produced a different result.
-        var val = {
-          obj: data
-        };
+      if (rows.length === 0) {
+        var obj = n;
+        var user = 0;
+        var parent = 0;
+        var img = "";
+        var label = "new";
+        // New item.
+        postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
+          if (err) {
+            response.status(400).send(err);
+          } else {
+            console.log("New item " + data.rows[0].id);
+            response.send({
+              obj: obj,
+              id: data.rows[0].id
+            });
+          }
+        });
+      } else if (o !== n) {
+        var row = result.rows[0];
+        var obj = n;
+        var id = row.id;
+        var user = row.user_id;
+        var parent = row.parent_id;
+        var img = row.img;
+        var label = row.label;
+        console.log("Updating item " + id);
+        updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
+          if (err) {
+            console.log(err);
+          }
+        });
+        // Don't wait for update. We have what we need to respond.
+        response.send({
+          obj: obj,
+          id: id
+        });
       } else {
-        // Compile already done, so return previous result.
-        var rows = result.rows;
-        var val = {
+        console.log("Old item " + rows[0].id);
+        // No update needed. Just return the item.
+        response.send({
           obj: rows[0].obj,
-          id: rows[0].id,
-        };
+          id: rows[0].id
+        });
       }
-      response.send(val);
     });
   });
   req.write(encodedData);
@@ -581,12 +662,19 @@ function compile(language, src, result, response) {
 
 // Compile code (idempotent)
 app.put('/compile', function (req, res) {
-  var ast = JSON.parse(req.body.ast);
+  // The AST is the key and the compiler is the map to the object code (OBJ).
+  // PUT /compile does two things:
+  // -- compile the given AST.
+  // -- updates the object code of any items whose object code differs from the result.
+  // FIXME this is the intent, but not the reality (because we don't currently store the AST.)
+  // NOTE there should be an item for each update.
   var src = req.body.src;
+  var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
   pg.connect(conString, function (err, client) {
-    client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id DESC LIMIT 1", function(err, result) {
-      compile(language, ast, result, res);
+    client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id", function(err, result) {
+      // See if there is already an item with the same source for the same language. If so, pass it on.
+      compile(language, src, ast, result, res);
     });
   });
 });
@@ -598,7 +686,7 @@ function dot2num(dot) {
 }
 function num2dot(num) {
   var d = num%256;
-  for (var i = 3; i > 0; i--) { 
+  for (var i = 3; i > 0; i--) {
     num = Math.floor(num/256);
     d = num%256 + '.' + d;}
   return d;
@@ -606,12 +694,13 @@ function num2dot(num) {
 
 // Commit and return commit id
 app.post('/code', function (req, res){
-  var ip = req.headers['x-forwarded-for'] || 
-     req.connection.remoteAddress || 
+  var ip = req.headers['x-forwarded-for'] ||
+     req.connection.remoteAddress ||
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
   var language = req.body.language;
   var src = req.body.src;
+  var ast = req.body.ast !== "" ? req.body.ast : "{}";
   var obj = req.body.obj;
   var user = dot2num(ip); //req.body.user;
   var parent = req.body.parent;
@@ -627,13 +716,14 @@ app.post('/code', function (req, res){
       obj = cleanAndTrimObj(obj);
       img = cleanAndTrimObj(img);
       src = cleanAndTrimSrc(src);
-      var queryStr = 
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+      var queryStr =
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
         " ', '" + forks + "', now(), '" + src + "', '" + obj +
-        " ', '" + language + "', '" + label + "', '" + img + "');"
+        " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
       client.query(queryStr, function(err, result) {
         if (err) {
+          console.log("ERROR: " + err);
           res.status(400).send(err);
           return;
         }
@@ -809,16 +899,16 @@ app.post('/login', function login (req, res) {
   });
 
   vreq.setHeader('Content-Type', 'application/x-www-form-urlencoded');
-  
+
   var data = qs.stringify({
     assertion: req.body.assertion,
     audience: audience
   });
-  
+
   vreq.setHeader('Content-Length', data.length);
   vreq.write(data);
   vreq.end();
-  
+
   function getUserName(email) {
     pg.connect(conString, function (err, client) {
       var queryStr = "SELECT * FROM users WHERE email = '" + email + "'";
