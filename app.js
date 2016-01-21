@@ -119,7 +119,6 @@ app.get('/lang', function(req, res) {
 
 app.get('/item', function(req, res) {
   var ids = req.query.id.split(" ");
-  console.log("GET /item ids=" + ids);
   var id = ids[0];  // First id is the item id.
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
@@ -193,7 +192,6 @@ app.get('/data', function(req, res) {
         if (!result || result.rows.length===0) {
           obj = [{}];
         } else {
-          console.log(result.rows);
           obj = JSON.parse(result.rows[0].obj);
         }
         res.send(obj);
@@ -568,7 +566,6 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
       "ast='" + JSON.stringify(ast) + "', " +
       "obj='" + obj + "' " +
       "WHERE id='" + id + "'";
-    console.log("updateItem() query=" + query);
     client.query(query);
     resume(err, []);
   });
@@ -616,7 +613,6 @@ function compile(language, src, ast, result, response) {
           if (err) {
             response.status(400).send(err);
           } else {
-            console.log("New item " + data.rows[0].id);
             response.send({
               obj: obj,
               id: data.rows[0].id
@@ -631,7 +627,6 @@ function compile(language, src, ast, result, response) {
         var parent = row.parent_id;
         var img = row.img;
         var label = row.label;
-        console.log("Updating item " + id);
         updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             console.log(err);
@@ -643,7 +638,6 @@ function compile(language, src, ast, result, response) {
           id: id
         });
       } else {
-        console.log("Old item " + rows[0].id);
         // No update needed. Just return the item.
         response.send({
           obj: rows[0].obj,

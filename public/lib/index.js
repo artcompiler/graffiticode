@@ -19459,13 +19459,8 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      if (this.state.postCode) {
-        var img = viewer.capture(el);
-        this.postCode(ast, src, obj, img);
-      } else if (id && data) {
-        exports.id = id;
-        this.postData(id, data);
-      }
+      exports.id = id;
+      this.postData(id, data);
     }
   },
   postCode: function postCode(ast, src, obj, img) {
@@ -19491,7 +19486,7 @@ var GraffContent = React.createClass({
       success: function success(data) {
         exports.id = data.id;
         exports.gist_id = data.gist_id;
-        //        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
+        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
         self.setState({ id: data.id, postCode: false, data: undefined });
       },
       error: function error(xhr, msg, err) {

@@ -1547,8 +1547,6 @@ exports.parser = (function () {
           window.exports.id = data.id;
           window.exports.lastErrors = [];
           window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
-          postCode = false;
-          //self.setState({id: data.id, postCode: false, data: undefined});
         }
         dispatcher.dispatch({
           id: data.id,
