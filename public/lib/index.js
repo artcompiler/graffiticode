@@ -19515,8 +19515,11 @@ var GraffContent = React.createClass({
       dataType: "json",
       success: function success(data) {
         // FIXME add to state
-        exports.dataid = data.id;
-        window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
+        if (codeid) {
+          // Wait until we have a codeid to update URL.
+          exports.dataid = data.id;
+          window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
+        }
       },
       error: function error(xhr, msg, err) {
         console.log("Unable to submit code. Probably due to a SQL syntax error");
