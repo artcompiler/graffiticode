@@ -19500,10 +19500,10 @@ var GraffContent = React.createClass({
     var parent = exports.parent;
     var language = exports.language;
     $.ajax({
-      type: "POST",
+      type: "PUT",
       url: "/code",
       data: {
-        src: "",
+        src: JSON.stringify(obj) + "..", // Some JSON is valid source.
         ast: "",
         obj: JSON.stringify(obj),
         img: "",

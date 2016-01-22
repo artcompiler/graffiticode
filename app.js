@@ -528,7 +528,6 @@ function cleanAndTrimSrc(str) {
 function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
-  console.log("postItem() ast=" + ast);
   pg.connect(conString, function (err, client) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
@@ -557,7 +556,6 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
 function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
-  console.log("updateItem() id=" + id + " ast=" + ast);
   pg.connect(conString, function (err, client) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
@@ -623,7 +621,6 @@ function compile(id, language, src, ast, result, response) {
           }
         });
       } else if (o !== n || ast !== result.rows[0].ast) {
-        console.log("ast=" + ast);
         var row = result.rows[0];
         var obj = n;
         id = id ? id : row.id;
@@ -674,6 +671,67 @@ app.put('/compile', function (req, res) {
     client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id", function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
       compile(id, language, src, ast, result, res);
+    });
+  });
+});
+
+/*
+// Update a code
+app.put('/code', function (req, res) {
+  var id = req.body.id;
+  var src = req.body.src;
+  src = cleanAndTrimSrc(src);
+  if (!id) {
+    res.send(500);
+  } else {
+    pg.connect(conString, function (err, client) {
+      client.query("UPDATE pieces SET src = '" + src + "' WHERE id = '" + id + "'");
+      res.sendStatus(200);
+    });
+  }
+});
+*/
+
+app.put('/code', function (req, response) {
+  var id = req.body.id;
+  var src = req.body.src;
+  var ast = req.body.ast ? req.body.ast : "null";  // Possibly undefined.
+  var obj = req.body.obj;
+  var language = req.body.language;
+  var label = req.body.label;
+  pg.connect(conString, function (err, client) {
+    client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id", function(err, result) {
+      // See if there is already an item with the same source for the same language. If so, pass it on.
+      var row = result.rows[0];
+      var id = row ? row.id : id;  // Possibly undefined
+      if (id) {
+        var user = row.user_id;
+        var parent = row.parent_id;
+        var img = row.img;
+        var label = row.label;
+        updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
+          if (err) {
+            console.log(err);
+          }
+        });
+        // Don't wait for update. We have what we need to respond.
+        response.send({
+          id: id
+        });
+      } else {
+        var user = 0;
+        var parent = 0;
+        var img = "";
+        postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
+          if (err) {
+            response.status(400).send(err);
+          } else {
+            response.send({
+              id: data.rows[0].id
+            });
+          }
+        });
+      }
     });
   });
 });
@@ -763,21 +821,6 @@ app.put('/label', function (req, res) {
     client.query("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'");
     res.send(200)
   });
-});
-
-// Update a code
-app.put('/code', function (req, res) {
-  var id = req.body.id;
-  var src = req.body.src;
-  src = cleanAndTrimSrc(src);
-  if (!id) {
-    res.send(500);
-  } else {
-    pg.connect(conString, function (err, client) {
-      client.query("UPDATE pieces SET src = '" + src + "' WHERE id = '" + id + "'");
-      res.sendStatus(200);
-    });
-  }
 });
 
 // Delete the notes for a label
