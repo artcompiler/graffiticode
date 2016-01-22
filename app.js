@@ -506,7 +506,7 @@ function cleanAndTrimObj(str) {
   str = str.replace(new RegExp("\n","g"), " ");
   str = str.replace(new RegExp("'","g"), "\"");
   while(str.charAt(0) === " ") {
-    str.shift();
+    str = str.substring(1);
   }
   while(str.charAt(str.length - 1) === " ") {
     str = str.substring(0, str.length - 1);
@@ -528,6 +528,7 @@ function cleanAndTrimSrc(str) {
 function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
+  console.log("postItem() ast=" + ast);
   pg.connect(conString, function (err, client) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
@@ -556,6 +557,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
 function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
+  console.log("updateItem() ast=" + ast);
   pg.connect(conString, function (err, client) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
