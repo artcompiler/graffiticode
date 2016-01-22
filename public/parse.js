@@ -274,6 +274,10 @@ var Ast = (function () {
     push(ctx, {tag: "BOOL", elts: [b]});
   }
 
+  function nul(ctx) {
+    push(ctx, {tag: "NULL", elts: []});
+  }
+
   function number(ctx, str, coord) {
     assert(typeof str === "string" || typeof str === "number");
     push(ctx, {
@@ -826,6 +830,7 @@ exports.parser = (function () {
   var TK_LET  = 0x12;
   var TK_OR   = 0x13;
   var TK_BOOL   = 0x14;
+  var TK_NULL   = 0x15;
 
   var TK_LEFTPAREN  = 0xA1;
   var TK_RIGHTPAREN   = 0xA2;
@@ -1107,6 +1112,8 @@ exports.parser = (function () {
       return string(ctx, cc);
     } else if (match(ctx, TK_BOOL)) {
       return bool(ctx, cc);
+    } else if (match(ctx, TK_NULL)) {
+      return nul(ctx, cc);
     } else if (match(ctx, TK_LEFTBRACE)) {
       return record(ctx, cc);
     } else if (match(ctx, TK_LEFTPAREN)) {
@@ -1691,6 +1698,7 @@ exports.parser = (function () {
       "end" : { "tk": 0x11, "cls": "keyword", "length": 0 },
       "true" : { "tk": 0x14, "cls": "val", "length": 0 },
       "false" : { "tk": 0x14, "cls": "val", "length": 0 },
+      "null" : { "tk": 0x15, "cls": "val", "length": 0 },
     };
 
     return {
@@ -2194,6 +2202,10 @@ var folder = function() {
 
   function bool(node) {
     Ast.bool(ctx, node.elts[0]);
+  }
+
+  function nul(node) {
+    Ast.nul(ctx);
   }
 
   function stub(node) {
