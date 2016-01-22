@@ -557,7 +557,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
 function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
-  console.log("updateItem() ast=" + ast);
+  console.log("updateItem() id=" + id + " ast=" + ast);
   pg.connect(conString, function (err, client) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
@@ -626,7 +626,7 @@ function compile(id, language, src, ast, result, response) {
         console.log("ast=" + ast);
         var row = result.rows[0];
         var obj = n;
-        var id = id ? id : row.id;
+        id = id ? id : row.id;
         var user = row.user_id;
         var parent = row.parent_id;
         var img = row.img;
