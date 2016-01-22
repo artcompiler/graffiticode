@@ -621,7 +621,8 @@ function compile(language, src, ast, result, response) {
             });
           }
         });
-      } else if (o !== n) {
+      } else if (o !== n || ast !== result.rows[0].ast) {
+        console.log("ast=" + ast);
         var row = result.rows[0];
         var obj = n;
         var id = row.id;
