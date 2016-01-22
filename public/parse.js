@@ -1515,7 +1515,7 @@ exports.parser = (function () {
       type: "PUT",
       url: "/compile",
       data: {
-        "id": !postCode ? window.exports.id : undefined; 
+        "id": !postCode ? window.exports.id : undefined,
         "ast": ast,
         "type": exports.lexiconType,
         "language": exports.language,
