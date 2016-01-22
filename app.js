@@ -565,7 +565,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
     var query =
       "UPDATE pieces SET " +
       "src='" + src + "', " +
-      "ast='" + JSON.stringify(ast) + "', " +
+      "ast='" + ast + "', " +
       "obj='" + obj + "' " +
       "WHERE id='" + id + "'";
     client.query(query);
