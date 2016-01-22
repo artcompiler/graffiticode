@@ -573,7 +573,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   });
 };
 
-function compile(language, src, ast, result, response) {
+function compile(id, language, src, ast, result, response) {
   // Compile ast to obj.
   var path = "/compile";
   var data = {
@@ -626,7 +626,7 @@ function compile(language, src, ast, result, response) {
         console.log("ast=" + ast);
         var row = result.rows[0];
         var obj = n;
-        var id = row.id;
+        var id = id ? id : row.id;
         var user = row.user_id;
         var parent = row.parent_id;
         var img = row.img;
@@ -666,13 +666,14 @@ app.put('/compile', function (req, res) {
   // -- updates the object code of any items whose object code differs from the result.
   // FIXME this is the intent, but not the reality (because we don't currently store the AST.)
   // NOTE there should be an item for each update.
+  var id = req.body.id;
   var src = req.body.src;
   var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id", function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
-      compile(language, src, ast, result, res);
+      compile(id, language, src, ast, result, res);
     });
   });
 });
