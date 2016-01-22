@@ -604,6 +604,7 @@ function compile(language, src, ast, result, response) {
       if (result && result.rows.length === 1) {
         var o = cleanAndTrimObj(result.rows[0].obj);
       }
+      ast = JSON.stringify(ast);
       if (rows.length === 0) {
         var obj = n;
         var user = 0;
@@ -621,7 +622,7 @@ function compile(language, src, ast, result, response) {
             });
           }
         });
-      } else if (o !== n || (ast = JSON.stringify(ast)) !== result.rows[0].ast) {
+      } else if (o !== n || ast !== result.rows[0].ast) {
         console.log("ast=" + ast);
         var row = result.rows[0];
         var obj = n;
