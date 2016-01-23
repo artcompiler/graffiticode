@@ -506,6 +506,7 @@ function cleanAndTrimObj(str) {
   if (!str) {
     return str;
   }
+  str = str.replace(new RegExp("'","g"), "''");
   str = str.replace(new RegExp("\n","g"), " ");
   str = str.replace(new RegExp("'","g"), "\"");
   while(str.charAt(0) === " ") {
@@ -673,7 +674,7 @@ app.put('/compile', function (req, res) {
   var src = req.body.src;
   var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
-  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
+//  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
   var query;
   if (id) {
     // Prefer the given id if there is one.
@@ -685,7 +686,6 @@ app.put('/compile', function (req, res) {
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
-      console.log("result=" + JSON.stringify(result, null, 2));
       compile(id, language, src, ast, result, res);
     });
   });
@@ -700,7 +700,7 @@ app.put('/code', function (req, response) {
   var id = req.body.id;
   var src = req.body.src;
   var language = req.body.language;
-  console.log("PUT /code id=" + id + " lang=" + language + " src=" + src);
+//  console.log("PUT /code id=" + id + " lang=" + language + " src=" + src);
   var query;
   if (id) {
     // Prefer the given id if there is one.
