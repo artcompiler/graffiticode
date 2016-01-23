@@ -673,6 +673,7 @@ app.put('/compile', function (req, res) {
   var src = req.body.src;
   var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
+  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id", function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
