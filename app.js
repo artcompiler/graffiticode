@@ -689,10 +689,7 @@ app.put('/compile', function (req, res) {
 app.put('/code', function (req, response) {
   var id = req.body.id;
   var src = req.body.src;
-  var ast = req.body.ast ? req.body.ast : "null";  // Possibly undefined.
-  var obj = req.body.obj;
   var language = req.body.language;
-  var label = req.body.label;
   if (id) {
     // Prefer the given id if there is one.
     query = "SELECT * FROM pieces WHERE id='" + id + "'";
@@ -706,10 +703,16 @@ app.put('/code', function (req, response) {
       var row = result.rows[0];
       var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
       if (id) {
-        var user = row.user_id;
-        var parent = row.parent_id;
-        var img = row.img;
-        var label = row.label;
+        // Prefer the request values of existing row values.
+        var id = req.body.id ? req.body.id : row.id;
+        var language = req.body.language ? req.body.language : row.language;
+        var src = req.body.src ? req.body.src : row.src;
+        var ast = req.body.ast ? req.body.ast : row.ast;
+        var obj = req.body.obj ? req.body.obj : row.obj;
+        var user = req.body.user_id ? req.body.user_id : row.user_id;
+        var parent = req.body.parent_id ? req.body.parent_id : row.parent_id;
+        var img = req.body.img ? req.body.img : row.img;
+        var label = req.body.label ? req.body.label : row.label;
         updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             console.log(err);
@@ -720,6 +723,12 @@ app.put('/code', function (req, response) {
           id: id
         });
       } else {
+        var id = req.body.id;
+        var src = req.body.src;
+        var language = req.body.language;
+        var ast = req.body.ast ? req.body.ast : "null";  // Possibly undefined.
+        var obj = req.body.obj;
+        var label = req.body.label;
         var user = 0;
         var parent = 0;
         var img = "";
