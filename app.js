@@ -585,7 +585,6 @@ function compile(id, language, src, ast, result, response) {
     "language": language,
     "src": ast,
   };
-  var rows = result.rows;
   var encodedData = JSON.stringify(data);
   var options = {
     host: getCompilerHost(language),
@@ -608,6 +607,7 @@ function compile(id, language, src, ast, result, response) {
       if (result && result.rows.length === 1) {
         var o = cleanAndTrimObj(result.rows[0].obj);
       }
+      var rows = result.rows;
       ast = JSON.stringify(ast);
       if (rows.length === 0) {
         var obj = n;
