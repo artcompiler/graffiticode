@@ -607,7 +607,7 @@ function compile(id, language, src, ast, result, response) {
       if (result && result.rows.length === 1) {
         var o = cleanAndTrimObj(result.rows[0].obj);
       }
-      var rows = result.rows;
+      var rows = result ? result.rows : [];
       ast = JSON.stringify(ast);
       if (rows.length === 0) {
         var obj = n;
