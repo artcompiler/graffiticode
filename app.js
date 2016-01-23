@@ -503,6 +503,9 @@ function retrieve(language, path, response) {
   });
 }
 function cleanAndTrimObj(str) {
+  if (!str) {
+    return str;
+  }
   str = str.replace(new RegExp("\n","g"), " ");
   str = str.replace(new RegExp("'","g"), "\"");
   while(str.charAt(0) === " ") {
@@ -514,6 +517,9 @@ function cleanAndTrimObj(str) {
   return str;
 }
 function cleanAndTrimSrc(str) {
+  if (!str) {
+    return str;
+  }
   str = str.replace(new RegExp("'","g"), "''");
   while(str.charAt(0) === " ") {
     str.shift();
@@ -675,22 +681,10 @@ app.put('/compile', function (req, res) {
   });
 });
 
-/*
-// Update a code
-app.put('/code', function (req, res) {
-  var id = req.body.id;
-  var src = req.body.src;
-  src = cleanAndTrimSrc(src);
-  if (!id) {
-    res.send(500);
-  } else {
-    pg.connect(conString, function (err, client) {
-      client.query("UPDATE pieces SET src = '" + src + "' WHERE id = '" + id + "'");
-      res.sendStatus(200);
-    });
-  }
-});
-*/
+// FIXME there seem to be two different reasons to call this end point:
+// 1/to update the source that has changed whitespace.
+// 2/to update ast and obj that has changed because of system updates.
+// This seems like a problem.
 
 app.put('/code', function (req, response) {
   var id = req.body.id;
@@ -699,11 +693,18 @@ app.put('/code', function (req, response) {
   var obj = req.body.obj;
   var language = req.body.language;
   var label = req.body.label;
+  if (id) {
+    // Prefer the given id if there is one.
+    query = "SELECT * FROM pieces WHERE id='" + id + "'";
+  } else {
+    // Otherwise look for an item with matching source.
+    query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
+  }
   pg.connect(conString, function (err, client) {
-    client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id", function(err, result) {
+    client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
       var row = result.rows[0];
-      var id = row ? row.id : id;  // Possibly undefined
+      var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
       if (id) {
         var user = row.user_id;
         var parent = row.parent_id;
