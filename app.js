@@ -677,6 +677,7 @@ app.put('/compile', function (req, res) {
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id", function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
+      console.log("result=" + JSON.stringify(result, null, 2));
       compile(id, language, src, ast, result, res);
     });
   });
