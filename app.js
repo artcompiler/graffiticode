@@ -690,6 +690,7 @@ app.put('/code', function (req, response) {
   var id = req.body.id;
   var src = req.body.src;
   var language = req.body.language;
+  console.log("PUT /code id=" + id + " lang=" + language + " src=" + src);
   if (id) {
     // Prefer the given id if there is one.
     query = "SELECT * FROM pieces WHERE id='" + id + "'";
