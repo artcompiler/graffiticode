@@ -705,7 +705,8 @@ app.put('/code', function (req, response) {
       if (id) {
         // Prefer the request values of existing row values.
         var id = req.body.id ? req.body.id : row.id;
-        var language = req.body.language ? req.body.language : row.language;
+//        var language = req.body.language ? req.body.language : row.language;
+        var language = row.language;
         var src = req.body.src ? req.body.src : row.src;
         var ast = req.body.ast ? req.body.ast : row.ast;
         var obj = req.body.obj ? req.body.obj : row.obj;
