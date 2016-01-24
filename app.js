@@ -371,10 +371,8 @@ app.get('/pieces/:lang', function (req, res) {
         "' AND " + likeStr +
         "label = 'show' ORDER BY id DESC";
     }
-    console.log("GET /pieces queryString=" + queryString);
     client.query(queryString, function (err, result) {
       var rows;
-      console.log("GET /pieces rows=" + JSON.stringify(rows, null, 2));
       if (!result || result.rows.length === 0) {
         console.log("no rows");
         var insertStr =
@@ -615,7 +613,7 @@ function compile(id, language, src, ast, result, response) {
         var user = 0;
         var parent = 0;
         var img = "";
-        var label = "new";
+        var label = "show";
         // New item.
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
