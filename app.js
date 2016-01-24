@@ -508,7 +508,6 @@ function cleanAndTrimObj(str) {
   }
   str = str.replace(new RegExp("'","g"), "''");
   str = str.replace(new RegExp("\n","g"), " ");
-  str = str.replace(new RegExp("'","g"), "\"");
   while(str.charAt(0) === " ") {
     str = str.substring(1);
   }
@@ -539,6 +538,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
     src = cleanAndTrimSrc(src);
+    ast = cleanAndTrimSrc(ast);
     var queryStr =
       "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
       " VALUES ('" + user + "', '" + parent + "', '" + views +
@@ -546,7 +546,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
       " ', '" + language + "', '" + label + "', '" + img + "', '" + JSON.stringify(ast) + "');"
     client.query(queryStr, function(err, result) {
       if (err) {
-        console.log("ERROR: " + err);
+        console.log("postItem() ERROR: " + err);
         resume(err);
       } else {
         var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
@@ -567,6 +567,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
     src = cleanAndTrimSrc(src);
+    ast = cleanAndTrimSrc(ast);
     var query =
       "UPDATE pieces SET " +
       "src='" + src + "', " +
@@ -597,21 +598,18 @@ function compile(id, language, src, ast, result, response) {
       'Content-Length': encodedData.length
     },
   };
-  var obj = null;
   var req = http.request(options, function(res) {
-    var data = "";
+    var obj = "";
     res.on('data', function (chunk) {
-      data += chunk;
+      obj += chunk;
     });
     res.on('end', function () {
-      var n = cleanAndTrimObj(data);
       if (result && result.rows.length === 1) {
-        var o = cleanAndTrimObj(result.rows[0].obj);
+        var o = result.rows[0].obj;
       }
       var rows = result ? result.rows : [];
       ast = JSON.stringify(ast);
       if (rows.length === 0) {
-        var obj = n;
         var user = 0;
         var parent = 0;
         var img = "";
@@ -627,9 +625,8 @@ function compile(id, language, src, ast, result, response) {
             });
           }
         });
-      } else if (o !== n || ast !== result.rows[0].ast) {
+      } else if (o !== obj || ast !== result.rows[0].ast) {
         var row = result.rows[0];
-        var obj = n;
         id = id ? id : row.id;
         var user = row.user_id;
         var parent = row.parent_id;
@@ -681,7 +678,7 @@ app.put('/compile', function (req, res) {
     query = "SELECT * FROM pieces WHERE id='" + id + "'";
   } else {
     // Otherwise look for an item with matching source.
-    query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY id";
+    query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
   }
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
@@ -796,6 +793,7 @@ app.post('/code', function (req, res){
       obj = cleanAndTrimObj(obj);
       img = cleanAndTrimObj(img);
       src = cleanAndTrimSrc(src);
+      ast = cleanAndTrimSrc(ast);
       var queryStr =
         "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
         " VALUES ('" + user + "', '" + parent + "', '" + views +
@@ -803,7 +801,7 @@ app.post('/code', function (req, res){
         " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
       client.query(queryStr, function(err, result) {
         if (err) {
-          console.log("ERROR: " + err);
+          console.log("commit() ERROR: " + err);
           res.status(400).send(err);
           return;
         }
