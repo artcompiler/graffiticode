@@ -1563,6 +1563,7 @@ exports.parser = (function () {
           ast: ast,
           postCode: postCode,
           errors: errors,
+          data: {}, // Clear state
         });
       },
       error: function(xhr, msg, err) {
