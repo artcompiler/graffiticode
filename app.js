@@ -610,6 +610,7 @@ function compile(id, language, src, ast, result, response) {
       var rows = result ? result.rows : [];
       ast = JSON.stringify(ast);
       if (rows.length === 0) {
+        // We don't have an existing item with the same source, so add one.
         var user = 0;
         var parent = 0;
         var img = "";
