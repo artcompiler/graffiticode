@@ -346,7 +346,8 @@ app.get('/graffiti/dr10/latest', function (req, res) {
 // get list of piece ids
 app.get('/pieces/:lang', function (req, res) {
   var lang = req.params.lang;
-  var search = req.query.q;
+  var search = req.query.src;
+  var label = req.query.label === undefined ? "show" : req.query.label;
   pg.connect(conString, function (err, client) {
     var queryString, likeStr = "";
     if (search) {
@@ -364,13 +365,9 @@ app.get('/pieces/:lang', function (req, res) {
         likeStr += ") AND ";
       }
     }
-    if (lang === "DEBUG") {
-      queryString = "SELECT id FROM pieces ORDER BY id DESC";
-    } else {
-      queryString = "SELECT id FROM pieces WHERE language='" + lang +
-        "' AND " + likeStr +
-        "label = 'show' ORDER BY id DESC";
-    }
+    queryString = "SELECT id FROM pieces WHERE language='" + lang +
+      "' AND " + likeStr +
+      "label = '" + label + "' ORDER BY id DESC";
     client.query(queryString, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
