@@ -355,7 +355,7 @@ app.get('/pieces/:lang', function (req, res) {
       ss.forEach(function (s) {
         s = cleanAndTrimSrc(s);
         if (likeStr) {
-          likeStr += " OR ";
+          likeStr += " AND ";
         } else {
           likeStr += "(";
         }
