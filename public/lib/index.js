@@ -19439,12 +19439,36 @@ var GraffContent = React.createClass({
     this.isDirty = false;
     var exports = window.exports;
     var self = this;
-    if (exports.data) {
-      $.get("http://" + location.host + "/data?id=" + exports.data, function (data) {
-        self.setState({ data: data });
+
+    var pieces = [];
+    var id = +exports.id;
+    if (id) {
+      $.get("http://" + location.host + "/code/" + id, function (data) {
+        var obj = data[0].obj;
+        var src = data[0].src;
+        var ast = data[0].ast;
+        if (exports.data) {
+          $.get("http://" + location.host + "/data?id=" + exports.data, function (data) {
+            dispatcher.dispatch({
+              id: id,
+              src: src,
+              ast: ast,
+              obj: obj,
+              data: data
+            });
+          });
+        } else {
+          dispatcher.dispatch({
+            id: id,
+            src: src,
+            ast: ast,
+            obj: obj,
+            data: {} });
+        }
       });
     }
   },
+  // Clear state
   componentDidUpdate: function componentDidUpdate() {
     var exports = window.exports;
     var viewer = exports.viewer;
