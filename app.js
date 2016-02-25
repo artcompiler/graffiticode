@@ -182,7 +182,8 @@ app.get('/form', function(req, res) {
 });
 
 app.get('/data', function(req, res) {
-  var id = req.query.id;
+  var ids = req.query.id.split(" ");
+  var id = ids[0];  // First id is the item id.
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var obj;
