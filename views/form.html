@@ -15,11 +15,15 @@
     <style>
     .branding {
       font-size: 10;
-      opacity: 0.5;
+      opacity: 0.65;
       text-align: center;
     }
     .branding img {
-      height: 10px;
+      height: 15px;
+    }
+    .branding span {
+      display:inline-block;
+      vertical-align:top;
     }
     </style>
     <script src="<%=language%>/viewer.js"></script>
@@ -29,9 +33,10 @@
   <body>
     <div id="graff-view"></div>
     <div class="branding">
-      POWERED BY
+      <span>POWERED BY</span>
       <a href="http://www.artcompiler.com"><img src="favicon.ico"/img></a>
-      ART COMPILER</div>
+      <span>ART COMPILER</span>
+    </div>
     <script src="lib/form.js"></script>
   </body>
 </html>
