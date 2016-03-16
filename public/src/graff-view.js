@@ -30,7 +30,6 @@ var GraffContent = React.createClass({
     this.isDirty = false;
     let exports = window.exports;
     let self = this;
-
     let pieces = [];
     let id = +exports.id;
     if (id) {

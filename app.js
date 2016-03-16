@@ -1,5 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /**
  * Module dependencies.
  */
@@ -577,7 +575,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   });
 };
 
-function compile(id, language, src, ast, result, response) {
+function compile(id, parent, language, src, ast, result, response) {
   // Compile ast to obj.
   var path = "/compile";
   var data = {
@@ -610,10 +608,10 @@ function compile(id, language, src, ast, result, response) {
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
         var user = 0;
-        var parent = 0;
         var img = "";
         var label = "show";
         // New item.
+        console.log("[1] compile() parent=" + parent);
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
@@ -628,9 +626,10 @@ function compile(id, language, src, ast, result, response) {
         var row = result.rows[0];
         id = id ? id : row.id;
         var user = row.user_id;
-        var parent = row.parent_id;
+        parent = row.parent_id;
         var img = row.img;
         var label = row.label;
+        console.log("[2] compile() id=" + id + " parent=" + parent);
         updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             console.log(err);
@@ -667,6 +666,7 @@ app.put('/compile', function (req, res) {
   // FIXME this is the intent, but not the reality (because we don't currently store the AST.)
   // NOTE there should be an item for each update.
   var id = req.body.id;
+  var parent = req.body.parent;
   var src = req.body.src;
   var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
@@ -682,7 +682,7 @@ app.put('/compile', function (req, res) {
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
-      compile(id, language, src, ast, result, res);
+      compile(id, parent, language, src, ast, result, res);
     });
   });
 });

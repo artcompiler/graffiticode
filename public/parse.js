@@ -1523,6 +1523,7 @@ exports.parser = (function () {
       url: "/compile",
       data: {
         "id": !postCode ? window.exports.id : undefined,
+        "parent": postCode ? window.exports.id : undefined,
         "ast": ast,
         "type": exports.lexiconType,
         "language": exports.language,
