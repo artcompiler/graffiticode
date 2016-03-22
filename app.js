@@ -675,7 +675,6 @@ app.put('/compile', function (req, res) {
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
-  console.log("PUT /compile user=" + user);
 //  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
   var query;
   if (id) {
@@ -688,6 +687,7 @@ app.put('/compile', function (req, res) {
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
+      console.log("PUT /compile user=" + user);
       compile(id, user, parent, language, src, ast, result, res);
     });
   });
