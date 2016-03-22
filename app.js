@@ -528,6 +528,7 @@ function cleanAndTrimSrc(str) {
 
 // Commit and return commit id
 function postItem(user, language, src, ast, obj, user, parent, img, label, resume) {
+  console.log("postItem() user=" + user);
   var views = 0;
   var forks = 0;
   pg.connect(conString, function (err, client) {
@@ -557,6 +558,7 @@ function postItem(user, language, src, ast, obj, user, parent, img, label, resum
 
 // Commit and return commit id
 function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
+  console.log("updateItem() user=" + user);
   var views = 0;
   var forks = 0;
   pg.connect(conString, function (err, client) {
@@ -673,7 +675,6 @@ app.put('/compile', function (req, res) {
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
-  console.log("PUT /compiler id=" + id + " ip=" + ip + " user=" + user);
 //  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
   var query;
   if (id) {
@@ -705,7 +706,6 @@ app.put('/code', function (req, response) {
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
-  console.log("PUT /code id=" + id + " ip=" + ip + " user=" + user);
   var query;
   if (id) {
     // Prefer the given id if there is one.
@@ -782,11 +782,12 @@ app.post('/code', function (req, res){
      req.connection.remoteAddress ||
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
+  var user = dot2num(ip); //req.body.user;
+  console.log("POST /code id=" + id + " ip=" + ip + " user=" + user);
   var language = req.body.language;
   var src = req.body.src;
   var ast = req.body.ast !== "" ? req.body.ast : "{}";
   var obj = req.body.obj;
-  var user = dot2num(ip); //req.body.user;
   var parent = req.body.parent;
   var img = req.body.img;
   var label = req.body.label;
