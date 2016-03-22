@@ -527,7 +527,7 @@ function cleanAndTrimSrc(str) {
 }
 
 // Commit and return commit id
-function postItem(user, language, src, ast, obj, user, parent, img, label, resume) {
+function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   console.log("postItem() user=" + user);
   var views = 0;
   var forks = 0;
@@ -609,11 +609,10 @@ function compile(id, user, parent, language, src, ast, result, response) {
       ast = JSON.stringify(ast);
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
-        var user = 0;
         var img = "";
         var label = "show";
         // New item.
-        postItem(user, language, src, ast, obj, user, parent, img, label, function (err, data) {
+        postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
           } else {
@@ -749,7 +748,7 @@ app.put('/code', function (req, response) {
         var label = req.body.label;
         var parent = 0;
         var img = "";
-        postItem(user, language, src, ast, obj, user, parent, img, label, function (err, data) {
+        postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
           } else {
