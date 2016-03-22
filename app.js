@@ -578,6 +578,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
 };
 
 function compile(id, user, parent, language, src, ast, result, response) {
+  console.log("compile() user=" + user);
   // Compile ast to obj.
   var path = "/compile";
   var data = {
@@ -612,7 +613,6 @@ function compile(id, user, parent, language, src, ast, result, response) {
         var img = "";
         var label = "show";
         // New item.
-        console.log("compile() user=" + user);
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
