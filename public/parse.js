@@ -1766,8 +1766,8 @@ exports.parser = (function () {
         case 92:  // backslash
         case 33:  // !
         case 124: // |
-          comment(c);
-          return "comment";
+          comment(c)
+          throw "comment"
         case 94:  // caret
         case 44:  // comma
         case 42:  // asterisk
