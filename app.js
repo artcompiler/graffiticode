@@ -612,6 +612,7 @@ function compile(id, user, parent, language, src, ast, result, response) {
         var img = "";
         var label = "show";
         // New item.
+        console.log("compile() user=" + user);
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
@@ -674,6 +675,7 @@ app.put('/compile', function (req, res) {
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
+  console.log("PUT /compile user=" + user);
 //  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
   var query;
   if (id) {
