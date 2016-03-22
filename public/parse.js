@@ -1766,9 +1766,8 @@ exports.parser = (function () {
         case 92:  // backslash
         case 33:  // !
         case 124: // |
-          comment(c)
-          throw "comment"
-
+          comment(c);
+          return "comment";
         case 94:  // caret
         case 44:  // comma
         case 42:  // asterisk
@@ -1785,7 +1784,7 @@ exports.parser = (function () {
             //return TK_NUM;
             return number(c);
           } else {
-            assert(false, "'" + String.fromCharCode(c) + "' has no meaning in this language.");
+            //assert(false, "'" + String.fromCharCode(c) + "' has no meaning in this language.");
             return 0;
           }
         }

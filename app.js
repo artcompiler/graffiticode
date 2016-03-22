@@ -527,7 +527,7 @@ function cleanAndTrimSrc(str) {
 }
 
 // Commit and return commit id
-function postItem(language, src, ast, obj, user, parent, img, label, resume) {
+function postItem(user, language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
   pg.connect(conString, function (err, client) {
@@ -575,7 +575,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   });
 };
 
-function compile(id, parent, language, src, ast, result, response) {
+function compile(id, user, parent, language, src, ast, result, response) {
   // Compile ast to obj.
   var path = "/compile";
   var data = {
@@ -611,8 +611,7 @@ function compile(id, parent, language, src, ast, result, response) {
         var img = "";
         var label = "show";
         // New item.
-        console.log("[1] compile() parent=" + parent);
-        postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
+        postItem(user, language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
           } else {
@@ -629,7 +628,6 @@ function compile(id, parent, language, src, ast, result, response) {
         parent = row.parent_id;
         var img = row.img;
         var label = row.label;
-        console.log("[2] compile() id=" + id + " parent=" + parent);
         updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             console.log(err);
@@ -670,6 +668,12 @@ app.put('/compile', function (req, res) {
   var src = req.body.src;
   var ast = JSON.parse(req.body.ast);
   var language = req.body.language;
+  var ip = req.headers['x-forwarded-for'] ||
+     req.connection.remoteAddress ||
+     req.socket.remoteAddress ||
+     req.connection.socket.remoteAddress;
+  var user = dot2num(ip); //req.body.user;
+  console.log("PUT /compiler id=" + id + " ip=" + ip + " user=" + user);
 //  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
   var query;
   if (id) {
@@ -682,7 +686,7 @@ app.put('/compile', function (req, res) {
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
-      compile(id, parent, language, src, ast, result, res);
+      compile(id, user, parent, language, src, ast, result, res);
     });
   });
 });
@@ -696,7 +700,12 @@ app.put('/code', function (req, response) {
   var id = req.body.id;
   var src = req.body.src;
   var language = req.body.language;
-//  console.log("PUT /code id=" + id + " lang=" + language + " src=" + src);
+  var ip = req.headers['x-forwarded-for'] ||
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    req.connection.socket.remoteAddress;
+  var user = dot2num(ip); //req.body.user;
+  console.log("PUT /code id=" + id + " ip=" + ip + " user=" + user);
   var query;
   if (id) {
     // Prefer the given id if there is one.
@@ -718,7 +727,7 @@ app.put('/code', function (req, response) {
         var src = req.body.src ? req.body.src : row.src;
         var ast = req.body.ast ? req.body.ast : row.ast;
         var obj = req.body.obj ? req.body.obj : row.obj;
-        var user = req.body.user_id ? req.body.user_id : row.user_id;
+//        var user = req.body.user_id ? req.body.user_id : row.user_id;
         var parent = req.body.parent_id ? req.body.parent_id : row.parent_id;
         var img = req.body.img ? req.body.img : row.img;
         var label = req.body.label ? req.body.label : row.label;
@@ -738,10 +747,9 @@ app.put('/code', function (req, response) {
         var ast = req.body.ast ? req.body.ast : "null";  // Possibly undefined.
         var obj = req.body.obj;
         var label = req.body.label;
-        var user = 0;
         var parent = 0;
         var img = "";
-        postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
+        postItem(user, language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
           } else {
