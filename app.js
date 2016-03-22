@@ -627,7 +627,7 @@ function compile(id, user, parent, language, src, ast, result, response) {
       } else if (o !== obj || ast !== result.rows[0].ast) {
         var row = result.rows[0];
         id = id ? id : row.id;
-        var user = row.user_id;
+        user = row.user_id;
         parent = row.parent_id;
         var img = row.img;
         var label = row.label;
