@@ -613,6 +613,7 @@ function compile(id, user, parent, language, src, ast, result, response) {
         var img = "";
         var label = "show";
         // New item.
+        console.log("[2] compile() user=" + user);
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
@@ -707,6 +708,7 @@ app.put('/code', function (req, response) {
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
+  console.log("PUT /code ip=" + ip + " user=" + user);
   var query;
   if (id) {
     // Prefer the given id if there is one.
@@ -750,6 +752,7 @@ app.put('/code', function (req, response) {
         var label = req.body.label;
         var parent = 0;
         var img = "";
+        console.log("[2] PUT /code ip=" + ip + " user=" + user);
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
