@@ -528,7 +528,6 @@ function cleanAndTrimSrc(str) {
 
 // Commit and return commit id
 function postItem(language, src, ast, obj, user, parent, img, label, resume) {
-  console.log("postItem() user=" + user);
   var views = 0;
   var forks = 0;
   pg.connect(conString, function (err, client) {
@@ -558,7 +557,6 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
 
 // Commit and return commit id
 function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
-  console.log("updateItem() user=" + user);
   var views = 0;
   var forks = 0;
   pg.connect(conString, function (err, client) {
@@ -578,7 +576,6 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
 };
 
 function compile(id, user, parent, language, src, ast, result, response) {
-  console.log("compile() user=" + user);
   // Compile ast to obj.
   var path = "/compile";
   var data = {
@@ -613,7 +610,6 @@ function compile(id, user, parent, language, src, ast, result, response) {
         var img = "";
         var label = "show";
         // New item.
-        console.log("[2] compile() user=" + user);
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
@@ -676,7 +672,6 @@ app.put('/compile', function (req, res) {
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
-//  console.log("PUT /compile id=" + id + " lang=" + language + " src=" + src);
   var query;
   if (id) {
     // Prefer the given id if there is one.
@@ -688,7 +683,6 @@ app.put('/compile', function (req, res) {
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
-      console.log("PUT /compile user=" + user);
       compile(id, user, parent, language, src, ast, result, res);
     });
   });
@@ -708,7 +702,6 @@ app.put('/code', function (req, response) {
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
-  console.log("PUT /code ip=" + ip + " user=" + user);
   var query;
   if (id) {
     // Prefer the given id if there is one.
@@ -752,7 +745,6 @@ app.put('/code', function (req, response) {
         var label = req.body.label;
         var parent = 0;
         var img = "";
-        console.log("[2] PUT /code ip=" + ip + " user=" + user);
         postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
@@ -787,7 +779,6 @@ app.post('/code', function (req, res){
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
-  console.log("POST /code id=" + id + " ip=" + ip + " user=" + user);
   var language = req.body.language;
   var src = req.body.src;
   var ast = req.body.ast !== "" ? req.body.ast : "{}";
