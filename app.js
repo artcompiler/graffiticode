@@ -762,7 +762,11 @@ app.put('/code', function (req, response) {
 // From http://javascript.about.com/library/blipconvert.htm
 function dot2num(dot) {
   var d = dot.split('.');
-  return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
+  var n = ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
+  if (isNaN(n)) {
+    return 0;
+  }
+  return n;
 }
 function num2dot(num) {
   var d = num%256;
