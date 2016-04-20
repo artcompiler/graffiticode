@@ -527,15 +527,21 @@ module.exports = focusNode;
  * @typechecks
  */
 
+/* eslint-disable fb-www/typeof-undefined */
+
 /**
  * Same as document.activeElement but wraps in a try-catch block. In IE it is
  * not safe to call document.activeElement if there is nothing focused.
  *
- * The activeElement will be null only if the document body is not yet defined.
+ * The activeElement will be null only if the document or document body is not
+ * yet defined.
  */
-"use strict";
+'use strict';
 
 function getActiveElement() /*?DOMElement*/{
+  if (typeof document === 'undefined') {
+    return null;
+  }
   try {
     return document.activeElement || document.body;
   } catch (e) {
@@ -9020,7 +9026,10 @@ var ReactDOMOption = {
       }
     });
 
-    nativeProps.children = content;
+    if (content) {
+      nativeProps.children = content;
+    }
+
     return nativeProps;
   }
 
@@ -10875,6 +10884,10 @@ var ReactEmptyComponentInjection = {
   }
 };
 
+function registerNullComponentID() {
+  ReactEmptyComponentRegistry.registerNullComponentID(this._rootNodeID);
+}
+
 var ReactEmptyComponent = function (instantiate) {
   this._currentElement = null;
   this._rootNodeID = null;
@@ -10883,7 +10896,7 @@ var ReactEmptyComponent = function (instantiate) {
 assign(ReactEmptyComponent.prototype, {
   construct: function (element) {},
   mountComponent: function (rootID, transaction, context) {
-    ReactEmptyComponentRegistry.registerNullComponentID(rootID);
+    transaction.getReactMountReady().enqueue(registerNullComponentID, this);
     this._rootNodeID = rootID;
     return ReactReconciler.mountComponent(this._renderedComponent, rootID, transaction, context);
   },
@@ -15189,7 +15202,7 @@ module.exports = ReactUpdates;
 
 'use strict';
 
-module.exports = '0.14.5';
+module.exports = '0.14.8';
 },{}],113:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -16284,6 +16297,7 @@ var warning = require('fbjs/lib/warning');
  */
 var EventInterface = {
   type: null,
+  target: null,
   // currentTarget is set when dispatching; no use in copying it here
   currentTarget: emptyFunction.thatReturnsNull,
   eventPhase: null,
@@ -16317,8 +16331,6 @@ function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEvent
   this.dispatchConfig = dispatchConfig;
   this.dispatchMarker = dispatchMarker;
   this.nativeEvent = nativeEvent;
-  this.target = nativeEventTarget;
-  this.currentTarget = nativeEventTarget;
 
   var Interface = this.constructor.Interface;
   for (var propName in Interface) {
@@ -16329,7 +16341,11 @@ function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEvent
     if (normalize) {
       this[propName] = normalize(nativeEvent);
     } else {
-      this[propName] = nativeEvent[propName];
+      if (propName === 'target') {
+        this.target = nativeEventTarget;
+      } else {
+        this[propName] = nativeEvent[propName];
+      }
     }
   }
 
@@ -19244,7 +19260,7 @@ var selfCleaningTimeout = {
   componentDidUpdate: function componentDidUpdate() {
     clearTimeout(this.timeoutID);
   },
-  setTimeout: (function (_setTimeout) {
+  setTimeout: function (_setTimeout) {
     function setTimeout() {
       return _setTimeout.apply(this, arguments);
     }
@@ -19254,7 +19270,7 @@ var selfCleaningTimeout = {
     };
 
     return setTimeout;
-  })(function () {
+  }(function () {
     clearTimeout(this.timeoutID);
     this.timeoutID = setTimeout.apply(null, arguments);
   })
@@ -19386,12 +19402,13 @@ exports.default = ArchiveView;
 },{"./Dispatcher":159,"react":157}],161:[function(require,module,exports){
 "use strict";
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 
 var _Dispatcher = require("./Dispatcher");
 
@@ -19415,7 +19432,7 @@ var selfCleaningTimeout = {
   componentDidUpdate: function componentDidUpdate() {
     clearTimeout(this.timeoutID);
   },
-  setTimeout: (function (_setTimeout) {
+  setTimeout: function (_setTimeout) {
     function setTimeout() {
       return _setTimeout.apply(this, arguments);
     }
@@ -19425,7 +19442,7 @@ var selfCleaningTimeout = {
     };
 
     return setTimeout;
-  })(function () {
+  }(function () {
     clearTimeout(this.timeoutID);
     this.timeoutID = setTimeout.apply(null, arguments);
   })
@@ -19723,7 +19740,7 @@ var CodeMirrorEditor = React.createClass({
   },
   render: function render() {
     // wrap in a div to fully contain CodeMirror
-    var editor = undefined;
+    var editor = void 0;
     if (IS_MOBILE) {
       editor = React.createElement(
         "pre",
@@ -19744,7 +19761,7 @@ var selfCleaningTimeout = {
   componentDidUpdate: function componentDidUpdate() {
     clearTimeout(this.timeoutID);
   },
-  setTimeout: (function (_setTimeout) {
+  setTimeout: function (_setTimeout) {
     function setTimeout() {
       return _setTimeout.apply(this, arguments);
     }
@@ -19754,7 +19771,7 @@ var selfCleaningTimeout = {
     };
 
     return setTimeout;
-  })(function () {
+  }(function () {
     clearTimeout(this.timeoutID);
     this.timeoutID = setTimeout.apply(null, arguments);
   })
@@ -19964,7 +19981,7 @@ var selfCleaningTimeout = {
   componentDidUpdate: function componentDidUpdate() {
     clearTimeout(this.timeoutID);
   },
-  setTimeout: (function (_setTimeout) {
+  setTimeout: function (_setTimeout) {
     function setTimeout() {
       return _setTimeout.apply(this, arguments);
     }
@@ -19974,7 +19991,7 @@ var selfCleaningTimeout = {
     };
 
     return setTimeout;
-  })(function () {
+  }(function () {
     clearTimeout(this.timeoutID);
     this.timeoutID = setTimeout.apply(null, arguments);
   })
@@ -20059,7 +20076,7 @@ var selfCleaningTimeout = {
   componentDidUpdate: function componentDidUpdate() {
     clearTimeout(this.timeoutID);
   },
-  setTimeout: (function (_setTimeout) {
+  setTimeout: function (_setTimeout) {
     function setTimeout() {
       return _setTimeout.apply(this, arguments);
     }
@@ -20069,7 +20086,7 @@ var selfCleaningTimeout = {
     };
 
     return setTimeout;
-  })(function () {
+  }(function () {
     clearTimeout(this.timeoutID);
     this.timeoutID = setTimeout.apply(null, arguments);
   })
