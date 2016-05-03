@@ -16,16 +16,23 @@
  * limitations under the License.
  */
 
+if (typeof CodeMirror === "undefined") {
+  CodeMirror = {
+    Pos: function () {
+      return {};
+    }
+  };
+}
+
+if (typeof window === "undefined") {
+  window = {
+    coords: {},
+    exports: []
+  };
+}
+
 function assert(b, str) {
   if (!b) throw str;
-}
-
-function print(str) {
-  console.log(str)
-}
-
-function log(str) {
-  console.log(str)
 }
 
 // ast module
@@ -106,7 +113,7 @@ var Ast = (function () {
 
   function push(ctx, node) {
     var nid;
-    if (exports._.isNumber(node)) {   // if already interned
+    if (typeof node === "number") {   // if already interned
       nid = node;
     } else {
       nid = intern(ctx, node);
@@ -126,7 +133,6 @@ var Ast = (function () {
 
   function peek(ctx) {
     var nodeStack = ctx.state.nodeStack;
-    //log("nodeStack="+nodeStack);
     return nodeStack[nodeStack.length-1];
   }
 
@@ -434,7 +440,6 @@ var Ast = (function () {
     });
   }
   function binaryExpr(ctx, name) {
-    //log("Ast.binaryExpr() name="+name);
     var elts = [];
     // args are in the order produced by the parser
     elts.push(pop(ctx)); 
@@ -443,27 +448,23 @@ var Ast = (function () {
   }
 
   function unaryExpr(ctx, name) {
-    //log("Ast.unaryExpr() name="+name);
     var elts = [];
     elts.push(pop(ctx));
     push(ctx, {tag: name, elts: elts});
   }
 
   function prefixExpr(ctx, name) {
-    //log("Ast.prefixExpr() name="+name);
     var elts = [];
     elts.push(pop(ctx));
     push(ctx, {tag: name, elts: elts});
   }
 
   function neg(ctx) {
-    //log("Ast.neg()");
     var v1 = +node(ctx, pop(ctx)).elts[0];
     number(ctx, -1*v1);
   }
 
   function add(ctx, coord) {
-    log("Ast.add()");
     var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -480,7 +481,6 @@ var Ast = (function () {
   }
 
   function sub(ctx) {
-    //log("Ast.sub()");
     var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -493,7 +493,6 @@ var Ast = (function () {
   }
 
   function mul(ctx) {
-    //log("Ast.mul()");
     var n2 = node(ctx, pop(ctx));
     var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -512,7 +511,6 @@ var Ast = (function () {
   }
 
   function div(ctx) {
-    //log("Ast.div()");
     var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
@@ -791,12 +789,9 @@ exports.parseCount = function () {
   return parseCount;
 };
 
-
-
 // parser
 exports.parser = (function () {
-  var globalLexicon = exports.globalLexicon;
-  var _ = exports._;
+//  var globalLexicon = exports.globalLexicon;
   function assert(b, str) {
     if (!b) {
       throw new Error(str);
@@ -884,7 +879,6 @@ exports.parser = (function () {
   }
 
   function eat(ctx, tk) {
-    //log("eat() tk="+tk);
     var nextToken = next(ctx);
     if (nextToken !== tk) {
       throw new Error("Expecting " + tokenToLexeme(tk) +
@@ -1178,9 +1172,7 @@ exports.parser = (function () {
   }
 
   function postfixExpr(ctx, cc) {
-    //log("postfixExpr()");
     return funcApp(ctx, function (ctx) {
-      //log("found funcApp");
       if (match(ctx, TK_POSTOP)) {
         eat(ctx, TK_POSTOP);
         cc.cls = "operator";
@@ -1192,7 +1184,6 @@ exports.parser = (function () {
   }
 
   function prefixExpr(ctx, cc) {
-    //log("prefixExpr()");
     if (match(ctx, TK_MINUS)) {
       eat(ctx, TK_MINUS);
       var ret = function(ctx) {
@@ -1272,7 +1263,6 @@ exports.parser = (function () {
   }
 
   function condExpr(ctx, cc) {
-    //log("condExpr()")
     if (match(ctx, TK_CASE)) {
       return caseExpr(ctx, cc)
     }
@@ -1280,7 +1270,6 @@ exports.parser = (function () {
   }
 
   function caseExpr(ctx, cc) {
-    //log("caseExpr()")
     eat(ctx, TK_CASE)
     var ret = function (ctx) {
       return expr(ctx, function (ctx) {
@@ -1299,7 +1288,6 @@ exports.parser = (function () {
   }
 
   function ofClauses(ctx, cc) {
-    //log("ofClauses()")
     if (match(ctx, TK_OF)) {
       return ofClause(ctx, function (ctx) {
         countCounter(ctx)
@@ -1313,7 +1301,6 @@ exports.parser = (function () {
   }
 
   function ofClause (ctx, cc) {
-    //log("ofClause()")
     eat(ctx, TK_OF)
     var ret = function (ctx) {
       return pattern(ctx, function (ctx) {
@@ -1338,7 +1325,6 @@ exports.parser = (function () {
   }
 
   function thenClause(ctx, cc) {
-    //log("thenClause()")
     eat(ctx, TK_THEN)
     var ret = function (ctx) {
       return exprsStart(ctx, function (ctx) {
@@ -1354,7 +1340,6 @@ exports.parser = (function () {
   }
 
   function elseClause(ctx, cc) {
-    //log("elseClause()")
     eat(ctx, TK_ELSE)
     var ret = function (ctx) {
       return exprsStart(ctx, cc)
@@ -1440,10 +1425,10 @@ exports.parser = (function () {
       folder.fold(ctx, Ast.pop(ctx))  // fold the exprs on top
       Ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
-      //print(Ast.dumpAll(ctx));
       return cc
     })
   }
+  exports.program = program;
 
   function def(ctx, cc) {
     if (match(ctx, TK_LET)) {
@@ -1483,7 +1468,6 @@ exports.parser = (function () {
   }
 
   function params(ctx, cc) {
-    //log("params()")
     if (match(ctx, TK_EQUAL)) {
       return cc
     }
@@ -1501,7 +1485,6 @@ exports.parser = (function () {
   }
 
   function param(ctx, cc) {
-    //log("param()")
     return primaryExpr(ctx, function (ctx) {
       return cc
     })
@@ -1568,7 +1551,7 @@ exports.parser = (function () {
         });
       },
       error: function(xhr, msg, err) {
-        console.log(msg+" "+err);
+        console.log("ERROR " + msg + " " + err);
       }
     });
   }
@@ -1587,7 +1570,7 @@ exports.parser = (function () {
       success: function(data) {
       },
       error: function(xhr, msg, err) {
-        console.log(msg+" "+err);
+        console.log("ERROR " + msg + " " + err);
       }
     });
   }
@@ -1596,9 +1579,9 @@ exports.parser = (function () {
   var lastAST;
   var lastTimer;
   var firstTime = true;
-  function parse(stream, state) {
+  function parse(stream, state, resume) {
     var ctx = {
-      scan: scanner(stream),
+      scan: scanner(stream, state.env[0].lexicon),
       state: state,
     };
     var cls
@@ -1612,7 +1595,6 @@ exports.parser = (function () {
         throw "comment"
       }
       // call the continuation and store the next continuation
-      //log(">>parse() cc="+state.cc+"\n")
       if (state.cc === null) {
         next(ctx)
         return "comment"
@@ -1624,7 +1606,10 @@ exports.parser = (function () {
         cls = cc.cls
       }
       if (cc === null) {
-        if (state.errors.length === 0) {
+        if (resume) {
+          // FIXME make all paths go through a resume function.
+          resume(state.errors, Ast.poolToJSON(ctx));
+        } else if (state.errors.length === 0) {
           window.exports.errors = [];
           var thisAST = Ast.poolToJSON(ctx);
           if (lastTimer) {
@@ -1661,14 +1646,13 @@ exports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-      //console.log(x.stack);
-      //console.log(Ast.dumpAll(ctx));
+      console.log(x.stack);
+      console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
         addError(ctx, x.message);
         cls = "error"
       } else if (x === "comment") {
-        //print("comment found")
         cls = x
       } else {
         //throw x
@@ -1686,8 +1670,7 @@ exports.parser = (function () {
 
   var lexeme = ""
 
-  function scanner(stream) {
-
+  function scanner(stream, globalLexicon) {
     var lexemeToToken = [ ]
 
     var keywords = {
@@ -1856,7 +1839,6 @@ exports.parser = (function () {
         stream.backUp(1);
       }  // otherwise, we are at the end of stream
 
-      //log("ident() lexeme="+lexeme)
       var tk = TK_IDENT
       if (keywords[lexeme]) {
       } else if (globalLexicon[lexeme]) {
@@ -1957,7 +1939,7 @@ var folder = function() {
   }
 
   function isArray(v) {
-    return exports._.isArray(v);
+    return v instanceof Array;
   }
 
   function isObject(v) {
@@ -1965,15 +1947,20 @@ var folder = function() {
   }
 
   function isString(v) {
-    return exports._.isString(v);
+    return typeof v === "string";
   }
 
   function isPrimitive(v) {
-    return exports._.isNull(v) || exports._.isString(v) || exports._.isNumber(v) || exports._.isBoolean(v);
+    return (
+      v === null ||
+      typeof v === "string" ||
+      typeof v === "number" ||
+      typeof v === "boolean"
+    );
   }
 
   function isFunction(v) {
-    return exports._.isFunction(v);
+    return v instanceof Function;
   }
 
   // BEGIN VISITOR METHODS

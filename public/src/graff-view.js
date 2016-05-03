@@ -33,7 +33,7 @@ var GraffContent = React.createClass({
     let pieces = [];
     let id = +exports.id;
     if (id) {
-      $.get("http://"+location.host+"/code/" + id, function (data) {        
+      $.get("http://"+location.host+"/code/" + id, function (data) {
         let obj = data[0].obj;
         let src = data[0].src;
         let ast = data[0].ast;

@@ -23,6 +23,7 @@ var methodOverride = require("method-override");
 //var session = require("express-session");
 var errorHandler = require("errorhandler");
 var timeout = require('connect-timeout');
+var main = require('./main.js');
 
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
@@ -95,24 +96,50 @@ app.get('/', function(req, res) {
 // lang?id=106
 // item?id=12304
 // data?author=dyer&sort=desc
+// lang?id=106&src=equivLiteral "1+2" "1+2" --> item id
 app.get('/lang', function(req, res) {
   var id = req.query.id;
+  var src = req.query.src;
   var lang = "L" + id;
-  res.render('views.html', {
-    title: 'Graffiti Code',
-    language: lang,
-    vocabulary: lang,
-    target: 'SVG',
-    login: 'Login',
-    item: 0,
-    data: 0,
-  }, function (error, html) {
-    if (error) {
-      res.status(400).send(error);
-    } else {
-      res.send(html);
-    }
-  });
+  console.log("GET /lang lang=" + lang + " src=" + src);
+  if (src) {
+    get(lang, "lexicon.js", function (err, data) {
+      var lstr = data.substring(data.indexOf("{"));
+      console.log("GET /lang lstr=" + lstr);
+      var lexicon = JSON.parse(lstr);
+      console.log("GET /lang lexicon=" + JSON.stringify(lexicon));
+      var ast = main.parse(src, lexicon, function (err, ast) {
+        console.log("GET /lang ast=" + ast);
+        if (ast) {
+          compile(0, 0, 0, lang, src, ast, null, {
+            send: function (data) {
+              console.log("GET /lang data=" + data);
+              res.redirect('/form?id=' + data.id);
+            }
+          });
+        } else {
+          res.status(400).send(err);
+        }
+      });
+      return;
+    });
+  } else {
+    res.render('views.html', {
+      title: 'Graffiti Code',
+      language: lang,
+      vocabulary: lang,
+      target: 'SVG',
+      login: 'Login',
+      item: 0,
+      data: 0,
+    }, function (error, html) {
+      if (error) {
+        res.status(400).send(error);
+      } else {
+        res.send(html);
+      }
+    });
+  }
 });
 
 app.get('/item', function(req, res) {
@@ -180,8 +207,10 @@ app.get('/form', function(req, res) {
 });
 
 app.get('/data', function(req, res) {
+  console.log("GET /data query=" + JSON.stringify(req.query));
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
+  console.log("GET /data ids=" + ids);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var obj;
@@ -193,6 +222,7 @@ app.get('/data', function(req, res) {
         } else {
           obj = JSON.parse(result.rows[0].obj);
         }
+        console.log("GET /data obj=" + JSON.stringify(obj, null, 2));
         res.send(obj);
         client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
       }
@@ -498,6 +528,25 @@ function retrieve(language, path, response) {
     });
   });
 }
+
+function get(language, path, resume) {
+  var data = [];
+  var options = {
+    host: getCompilerHost(language),
+    port: getCompilerPort(language),
+    path: "/" + path,
+  };
+  var req = http.get(options, function(res) {
+    res.on("data", function (chunk) {
+      data.push(chunk);
+    }).on("end", function () {
+      resume([], data.join(""));
+    }).on("error", function () {
+      resume(["ERROR"], "");
+    });
+  });
+}
+
 function cleanAndTrimObj(str) {
   if (!str) {
     return str;
