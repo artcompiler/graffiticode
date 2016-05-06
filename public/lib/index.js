@@ -19495,12 +19495,13 @@ var GraffContent = React.createClass({
       var obj = this.state.obj;
       var id = this.state.id;
       var data = this.state.data;
+      var label = this.state.label;
       if (!viewer.Viewer && obj) {
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
       exports.id = id;
-      this.postData(id, data);
+      this.postData(id, data, label);
     }
   },
   postCode: function postCode(ast, src, obj, img) {
@@ -19534,7 +19535,7 @@ var GraffContent = React.createClass({
       }
     });
   },
-  postData: function postData(codeid, obj) {
+  postData: function postData(codeid, obj, label) {
     var exports = window.exports;
     var user = $("#username").data("user");
     var parent = exports.parent;
@@ -19550,7 +19551,7 @@ var GraffContent = React.createClass({
         user: user ? user.id : 1,
         parent: parent,
         language: "L113",
-        label: "data"
+        label: label + " data"
       },
       dataType: "json",
       success: function success(data) {
@@ -19572,9 +19573,13 @@ var GraffContent = React.createClass({
   render: function render() {
     var Viewer = window.exports.viewer.Viewer;
     if (Viewer) {
-      var obj = this.state && this.state.obj ? JSON.parse(this.state.obj) : {};
-      var data = this.state && this.state.data ? this.state.data : {};
-      return React.createElement(Viewer, _extends({ className: "viewer" }, obj, data));
+      if (this.state && this.state.obj) {
+        var obj = this.state && this.state.obj ? JSON.parse(this.state.obj) : {};
+        var data = this.state && this.state.data ? this.state.data : {};
+        return React.createElement(Viewer, _extends({ className: "viewer" }, obj, data));
+      } else {
+        return React.createElement("div", null);
+      }
     } else {
       return React.createElement(
         "svg",

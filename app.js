@@ -101,20 +101,20 @@ app.get('/lang', function(req, res) {
   var id = req.query.id;
   var src = req.query.src;
   var lang = "L" + id;
-  console.log("GET /lang lang=" + lang + " src=" + src);
+  var type = req.query.type;
   if (src) {
     get(lang, "lexicon.js", function (err, data) {
       var lstr = data.substring(data.indexOf("{"));
-      console.log("GET /lang lstr=" + lstr);
       var lexicon = JSON.parse(lstr);
-      console.log("GET /lang lexicon=" + JSON.stringify(lexicon));
       var ast = main.parse(src, lexicon, function (err, ast) {
-        console.log("GET /lang ast=" + ast);
         if (ast) {
           compile(0, 0, 0, lang, src, ast, null, {
             send: function (data) {
-              console.log("GET /lang data=" + data);
-              res.redirect('/form?id=' + data.id);
+              if (type === "data") {
+                res.redirect('/data?id=' + data.id);
+              } else {
+                res.redirect('/form?id=' + data.id);
+              }
             }
           });
         } else {
@@ -207,10 +207,8 @@ app.get('/form', function(req, res) {
 });
 
 app.get('/data', function(req, res) {
-  console.log("GET /data query=" + JSON.stringify(req.query));
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
-  console.log("GET /data ids=" + ids);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var obj;
@@ -222,7 +220,6 @@ app.get('/data', function(req, res) {
         } else {
           obj = JSON.parse(result.rows[0].obj);
         }
-        console.log("GET /data obj=" + JSON.stringify(obj, null, 2));
         res.send(obj);
         client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
       }

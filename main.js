@@ -22,14 +22,12 @@ var parse = exports.parse = function(src, lexicon, resume) {
     coords: [],
   };
   var next = function () {
-    console.log("next() state.cc=" + state.cc);
     return parser.parse(stream, state, resume);
   }
   while (state.cc != null && stream.peek()) {
     next()
     nodePool = state.nodePool
     nodeStack = state.nodeStack
-    console.log("stream.peek()=" + stream.peek());
   }
   return nodePool;
 }
@@ -37,7 +35,6 @@ var parse = exports.parse = function(src, lexicon, resume) {
 process.argv.forEach(function (val, index, array) {
   if (index < 2) return
   
-  console.log(index + ': ' + val);
   fs = require('fs')
   fs.readFile(val, 'utf8', function (err, data) {
     if (err) {
