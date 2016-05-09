@@ -1536,19 +1536,38 @@ exports.parser = (function () {
           window.exports.editor.performLint();
         } else if (data.id) {
           // We have a good id, so use it.
-          window.exports.id = data.id;
-          window.exports.lastErrors = [];
-          window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
+          var codeData = data;
+          if (+exports.data) {
+            $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
+              window.exports.id = codeData.id;
+              window.exports.lastErrors = [];
+              window.exports.dataid = exports.data;
+              window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeData.id + "+" + exports.data);
+              dispatcher.dispatch({
+                id: codeData.id,
+                src: src,
+                obj: codeData.obj,
+                ast: ast,
+                postCode: postCode,
+                errors: errors,
+                data: data,
+              });
+            });
+          } else {
+            window.exports.id = codeData.id;
+            window.exports.lastErrors = [];
+            window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeData.id);
+            dispatcher.dispatch({
+              id: codeData.id,
+              src: src,
+              obj: codeData.obj,
+              ast: ast,
+              postCode: postCode,
+              errors: errors,
+              data: {}, // Clear state
+            });
+          }
         }
-        dispatcher.dispatch({
-          id: data.id,
-          src: src,
-          obj: data.obj,
-          ast: ast,
-          postCode: postCode,
-          errors: errors,
-          data: {}, // Clear state
-        });
       },
       error: function(xhr, msg, err) {
         console.log("ERROR " + msg + " " + err);

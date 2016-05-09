@@ -19453,38 +19453,38 @@ var GraffContent = React.createClass({
   componentWillUnmount: function componentWillUnmount() {},
   componentDidMount: function componentDidMount() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
-    this.isDirty = false;
-    var exports = window.exports;
-    var self = this;
-    var pieces = [];
-    var id = +exports.id;
-    if (id) {
-      $.get("http://" + location.host + "/code/" + id, function (data) {
-        var obj = data[0].obj;
-        var src = data[0].src;
-        var ast = data[0].ast;
-        if (exports.data) {
-          $.get("http://" + location.host + "/data?id=" + exports.data, function (data) {
-            dispatcher.dispatch({
-              id: id,
-              src: src,
-              ast: ast,
-              obj: obj,
-              data: data
-            });
-          });
-        } else {
-          dispatcher.dispatch({
-            id: id,
-            src: src,
-            ast: ast,
-            obj: obj,
-            data: {} });
-        }
-      });
-    }
+    // this.isDirty = false;
+    // let exports = window.exports;
+    // let self = this;
+    // let pieces = [];
+    // let id = +exports.id;
+    // if (id) {
+    //   $.get("http://"+location.host+"/code/" + id, function (data) {
+    //     let obj = data[0].obj;
+    //     let src = data[0].src;
+    //     let ast = data[0].ast;
+    //     if (+exports.data) {
+    //       $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
+    //         dispatcher.dispatch({
+    //           id: id,
+    //           src: src,
+    //           ast: ast,
+    //           obj: obj,
+    //           data: data,
+    //         });
+    //       });
+    //     } else {
+    //       dispatcher.dispatch({
+    //         id: id,
+    //         src: src,
+    //         ast: ast,
+    //         obj: obj,
+    //         data: {}, // Clear state
+    //       });
+    //     }
+    //   });
+    // }
   },
-  // Clear state
   componentDidUpdate: function componentDidUpdate() {
     var exports = window.exports;
     var viewer = exports.viewer;
@@ -19540,32 +19540,36 @@ var GraffContent = React.createClass({
     var user = $("#username").data("user");
     var parent = exports.parent;
     var language = exports.language;
-    $.ajax({
-      type: "PUT",
-      url: "/code",
-      data: {
-        src: JSON.stringify(obj) + "..", // Some JSON is valid source.
-        ast: "",
-        obj: JSON.stringify(obj),
-        img: "",
-        user: user ? user.id : 1,
-        parent: parent,
-        language: "L113",
-        label: label + " data"
-      },
-      dataType: "json",
-      success: function success(data) {
-        // FIXME add to state
-        if (codeid) {
-          // Wait until we have a codeid to update URL.
-          exports.dataid = data.id;
-          window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
+    // Append host language to label.
+    label = label ? language + " " + label : language;
+    if (Object.keys(obj).length > 0) {
+      $.ajax({
+        type: "PUT",
+        url: "/code",
+        data: {
+          src: JSON.stringify(obj) + "..", // Some JSON is valid source.
+          ast: "",
+          obj: JSON.stringify(obj),
+          img: "",
+          user: user ? user.id : 1,
+          parent: parent,
+          language: "L113",
+          label: label + " data"
+        },
+        dataType: "json",
+        success: function success(data) {
+          // FIXME add to state
+          if (codeid) {
+            // Wait until we have a codeid to update URL.
+            exports.dataid = data.id;
+            window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
+          }
+        },
+        error: function error(xhr, msg, err) {
+          console.log("Unable to submit code. Probably due to a SQL syntax error");
         }
-      },
-      error: function error(xhr, msg, err) {
-        console.log("Unable to submit code. Probably due to a SQL syntax error");
-      }
-    });
+      });
+    }
   },
   onChange: function onChange(data) {
     this.setState(data);
