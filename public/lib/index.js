@@ -19453,38 +19453,38 @@ var GraffContent = React.createClass({
   componentWillUnmount: function componentWillUnmount() {},
   componentDidMount: function componentDidMount() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
-    // this.isDirty = false;
-    // let exports = window.exports;
-    // let self = this;
-    // let pieces = [];
-    // let id = +exports.id;
-    // if (id) {
-    //   $.get("http://"+location.host+"/code/" + id, function (data) {
-    //     let obj = data[0].obj;
-    //     let src = data[0].src;
-    //     let ast = data[0].ast;
-    //     if (+exports.data) {
-    //       $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
-    //         dispatcher.dispatch({
-    //           id: id,
-    //           src: src,
-    //           ast: ast,
-    //           obj: obj,
-    //           data: data,
-    //         });
-    //       });
-    //     } else {
-    //       dispatcher.dispatch({
-    //         id: id,
-    //         src: src,
-    //         ast: ast,
-    //         obj: obj,
-    //         data: {}, // Clear state
-    //       });
-    //     }
-    //   });
-    // }
+    this.isDirty = false;
+    var exports = window.exports;
+    var self = this;
+    var pieces = [];
+    var id = +exports.id;
+    if (id) {
+      $.get("http://" + location.host + "/code/" + id, function (data) {
+        var obj = data[0].obj;
+        var src = data[0].src;
+        var ast = data[0].ast;
+        if (+exports.data) {
+          $.get("http://" + location.host + "/data?id=" + exports.data, function (data) {
+            dispatcher.dispatch({
+              id: id,
+              src: src,
+              ast: ast,
+              obj: obj,
+              data: data
+            });
+          });
+        } else {
+          dispatcher.dispatch({
+            id: id,
+            src: src,
+            ast: ast,
+            obj: obj,
+            data: {} });
+        }
+      });
+    }
   },
+  // Clear state
   componentDidUpdate: function componentDidUpdate() {
     var exports = window.exports;
     var viewer = exports.viewer;
