@@ -102,6 +102,7 @@ app.get('/lang', function(req, res) {
   var src = req.query.src;
   var lang = "L" + id;
   var type = req.query.type;
+  console.log("GET /lang id=" + id);
   if (src) {
     get(lang, "lexicon.js", function (err, data) {
       var lstr = data.substring(data.indexOf("{"));
