@@ -22,7 +22,7 @@ CodeMirror.defineMode("graffiti", function() {
         argcStack: [0],
         paramc: 0,
         paramcStack: [0],
-        env: [ {name: "global", lexicon: exports.globalLexicon } ],
+        env: [ {name: "global", lexicon: Object.assign({}, exports.keywords, exports.globalLexicon) } ],
         exprc: 0,
         exprcStack: [0],
         nodeStack: [],

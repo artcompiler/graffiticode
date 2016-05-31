@@ -337,7 +337,7 @@ var Ast = (function () {
     var def = env.findWord(ctx, name);
     // FIXME need to allow forward references
     if (!def) {
-      throw "def not found for " + JSON.stringify(name);
+      throw new Error("def not found for " + JSON.stringify(name));
     }
 
     // If recursive call, then this callee does not have a nid yet.
@@ -791,12 +791,23 @@ exports.parseCount = function () {
 
 // parser
 exports.parser = (function () {
-//  var globalLexicon = exports.globalLexicon;
   function assert(b, str) {
     if (!b) {
       throw new Error(str);
     }
   }
+  var keywords = window.exports.keywords = {
+    "let" : { "tk": 0x12, "cls": "keyword" },
+    "if" : { "tk": 0x05, "cls": "keyword" },
+    "then" : { "tk": 0x06, "cls": "keyword" },
+    "else" : { "tk": 0x07, "cls": "keyword" },
+    "case" : { "tk": 0x0F, "cls": "keyword" },
+    "of" : { "tk": 0x10, "cls": "keyword" },
+    "end" : { "tk": 0x11, "cls": "keyword", "length": 0 },
+    "true" : { "tk": 0x14, "cls": "val", "length": 0 },
+    "false" : { "tk": 0x14, "cls": "val", "length": 0 },
+    "null" : { "tk": 0x15, "cls": "val", "length": 0 },
+  };
   function addError(ctx, str) {
     ctx.state.errors.push({
       from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
@@ -983,12 +994,13 @@ exports.parser = (function () {
       }
     } else {
       cc.cls = "comment";
-      ctx.state.errors.push({
-        from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
-        to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
-        message: "Name '" + lexeme + "' not found.",
-        severity : "error",
-      });
+      // ctx.state.errors.push({
+      //   from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
+      //   to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
+      //   message: "Name '" + lexeme + "' not found.",
+      //   severity : "error",
+      // });
+      addError(ctx, "Name '" + lexeme + "' not found.");
     }
     assert(cc, "name");
     return cc;
@@ -1449,8 +1461,8 @@ exports.parser = (function () {
               return exprsStart(ctx, function (ctx) {
                 var def = env.findWord(ctx, topEnv(ctx).name)
                 def.nid = Ast.peek(ctx)   // save node id for aliased code
-                env.exitEnv(ctx)
-                Ast.letDefn(ctx)
+                env.exitEnv(ctx);
+                Ast.letDefn(ctx);
                 return cc
               })
             }
@@ -1690,20 +1702,6 @@ exports.parser = (function () {
   var lexeme = ""
 
   function scanner(stream, globalLexicon) {
-    var lexemeToToken = [ ]
-
-    var keywords = {
-      "let" : { "tk": 0x12, "cls": "keyword" },
-      "if" : { "tk": 0x05, "cls": "keyword" },
-      "then" : { "tk": 0x06, "cls": "keyword" },
-      "else" : { "tk": 0x07, "cls": "keyword" },
-      "case" : { "tk": 0x0F, "cls": "keyword" },
-      "of" : { "tk": 0x10, "cls": "keyword" },
-      "end" : { "tk": 0x11, "cls": "keyword", "length": 0 },
-      "true" : { "tk": 0x14, "cls": "val", "length": 0 },
-      "false" : { "tk": 0x14, "cls": "val", "length": 0 },
-      "null" : { "tk": 0x15, "cls": "val", "length": 0 },
-    };
 
     return {
       start: start ,
@@ -1711,7 +1709,7 @@ exports.parser = (function () {
       lexeme: function () {
         return lexeme
       }
-     }
+    }
 
     // begin private functions
 
@@ -1860,6 +1858,7 @@ exports.parser = (function () {
 
       var tk = TK_IDENT
       if (keywords[lexeme]) {
+        tk = keywords[lexeme].tk;
       } else if (globalLexicon[lexeme]) {
         tk = globalLexicon[lexeme].tk
       }
