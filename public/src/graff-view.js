@@ -1,5 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 import Dispatcher from "./Dispatcher";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
@@ -63,7 +61,7 @@ var GraffContent = React.createClass({
     var exports = window.exports;
     var viewer = exports.viewer;
     var el = ReactDOM.findDOMNode(this);
-    if (this.state && !this.state.errors) {
+    if (this.state && this.state.saveData && !this.state.errors) {
       let ast = this.state.ast;
       let src = this.state.src;
       let obj = this.state.obj;

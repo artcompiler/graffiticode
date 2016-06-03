@@ -19268,9 +19268,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _Dispatcher = require("./Dispatcher");
 
@@ -19351,7 +19349,7 @@ var GraffContent = React.createClass({
     var exports = window.exports;
     var viewer = exports.viewer;
     var el = ReactDOM.findDOMNode(this);
-    if (this.state && !this.state.errors) {
+    if (this.state && this.state.saveData && !this.state.errors) {
       var ast = this.state.ast;
       var src = this.state.src;
       var obj = this.state.obj;
