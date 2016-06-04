@@ -61,7 +61,7 @@ var GraffContent = React.createClass({
     var exports = window.exports;
     var viewer = exports.viewer;
     var el = ReactDOM.findDOMNode(this);
-    if (this.state && this.state.saveData && !this.state.errors) {
+    if (this.state && !this.state.errors) {
       let ast = this.state.ast;
       let src = this.state.src;
       let obj = this.state.obj;
@@ -112,6 +112,7 @@ var GraffContent = React.createClass({
     let user = $("#username").data("user");
     let parent = exports.parent;
     let language = exports.language;
+    let updateHistory = this.state.updateHistory;
     // Append host language to label.
     label = label ? language + " " + label : language;
     if (Object.keys(obj).length > 0) {
@@ -134,7 +135,9 @@ var GraffContent = React.createClass({
           if (codeid) {
             // Wait until we have a codeid to update URL.
             exports.dataid = data.id;
-            window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
+            if (updateHistory) {
+              window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
+            }
           }
         },
         error: function(xhr, msg, err) {

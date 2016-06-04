@@ -1554,7 +1554,7 @@ exports.parser = (function () {
               window.exports.id = codeData.id;
               window.exports.lastErrors = [];
               window.exports.dataid = exports.data;
-              window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeData.id + "+" + exports.data);
+              window.history.pushState(codeData.id, exports.language, "/" + exports.view + "?id=" + codeData.id + "+" + exports.data);
               dispatcher.dispatch({
                 id: codeData.id,
                 src: src,
@@ -1568,7 +1568,7 @@ exports.parser = (function () {
           } else {
             window.exports.id = codeData.id;
             window.exports.lastErrors = [];
-            window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeData.id);
+            window.history.pushState(codeData.id, exports.language, "/" + exports.view + "?id=" + codeData.id);
             dispatcher.dispatch({
               id: codeData.id,
               src: src,
