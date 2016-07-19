@@ -19257,7 +19257,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-// This is the one and only dispatcher.
 window.dispatcher = new _Dispatcher2.default();
 ReactDOM.render(React.createElement(_graffView2.default, null), document.getElementById('graff-view'));
 
