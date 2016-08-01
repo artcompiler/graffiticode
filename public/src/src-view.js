@@ -70,7 +70,9 @@ var CodeMirrorEditor = React.createClass({
       exports.parent = exports.id;
       exports.id = id;
       if (src) {
-        editor.setValue(src.split(/\\n[^umber]/).join("\n"));
+        // Avoid adding newlines for commands that begin with \n
+        src = src.split(/\\n[^umber^less^gtr]/)
+        editor.setValue(src.join("\n"));
       }
     };
   },
