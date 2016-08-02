@@ -146,6 +146,7 @@ app.get('/lang', function(req, res) {
 app.get('/item', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
+  console.log("GET /item ids=" + ids);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var rows;
@@ -178,6 +179,7 @@ app.get('/item', function(req, res) {
 app.get('/form', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
+  console.log("GET /form ids=" + ids);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var rows;
@@ -210,6 +212,7 @@ app.get('/form', function(req, res) {
 app.get('/data', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
+  console.log("GET /data ids=" + ids);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var obj;

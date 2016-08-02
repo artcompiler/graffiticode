@@ -19957,7 +19957,8 @@ var CodeMirrorEditor = React.createClass({
       exports.parent = exports.id;
       exports.id = id;
       if (src) {
-        src = src.split(/\\n[^umber^less^gtr]/);
+        // Avoid adding newlines for commands that begin with \n
+        src = src.split(/\\n[^uelg]/); // number, ne, ngtr, nless
         editor.setValue(src.join("\n"));
       }
     };
