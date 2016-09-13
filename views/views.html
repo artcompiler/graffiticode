@@ -1,4 +1,6 @@
 <!-- index.html -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
     <title><%=language%> | Graffiti Code</title>
@@ -8,7 +10,8 @@
     <link rel="stylesheet" href="react.css">
     <link rel="stylesheet" href="normalize.css">
     <link rel="stylesheet" href="skeleton.css">
-    <link rel="stylesheet" href="<%=language%>/style.css"></script>
+    <link rel="stylesheet" href="<%=language%>/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css">
     <script>
       window.exports = {
         language: "<%=language%>",
@@ -29,6 +32,7 @@
     <script src="mode-graffiti.js"></script>
     <script src="lint.js"></script>
     <script src="lint-graffiti.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.js"></script>
   </head>
   <body>
     <div id="tool-view"></div>

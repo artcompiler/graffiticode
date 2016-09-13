@@ -19406,9 +19406,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _Dispatcher = require("./Dispatcher");
 
@@ -19540,6 +19538,7 @@ var GraffContent = React.createClass({
     var user = $("#username").data("user");
     var parent = exports.parent;
     var language = exports.language;
+    var updateHistory = this.state.updateHistory;
     // Append host language to label.
     label = label ? language + " " + label : language;
     if (Object.keys(obj).length > 0) {
@@ -19562,7 +19561,9 @@ var GraffContent = React.createClass({
           if (codeid) {
             // Wait until we have a codeid to update URL.
             exports.dataid = data.id;
-            window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
+            if (updateHistory) {
+              window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
+            }
           }
         },
         error: function error(xhr, msg, err) {

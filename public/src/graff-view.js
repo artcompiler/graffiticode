@@ -1,5 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 import Dispatcher from "./Dispatcher";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
@@ -114,6 +112,7 @@ var GraffContent = React.createClass({
     let user = $("#username").data("user");
     let parent = exports.parent;
     let language = exports.language;
+    let updateHistory = this.state.updateHistory;
     // Append host language to label.
     label = label ? language + " " + label : language;
     if (Object.keys(obj).length > 0) {
@@ -136,7 +135,9 @@ var GraffContent = React.createClass({
           if (codeid) {
             // Wait until we have a codeid to update URL.
             exports.dataid = data.id;
-            window.history.pushState("string", "title", "/" + exports.view + "?id=" + codeid + "+" + data.id);
+            if (updateHistory) {
+              window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
+            }
           }
         },
         error: function(xhr, msg, err) {
