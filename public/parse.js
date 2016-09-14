@@ -1621,6 +1621,7 @@ exports.parser = (function () {
       while ((c = stream.peek()) && (c===' ' || c==='\t')) {
         stream.next()
       }
+      console.log("c=" + c);
       // if this is a blank line, treat it as a comment
       if (stream.peek()===void 0) {
         throw "comment"
@@ -1678,10 +1679,11 @@ exports.parser = (function () {
       }
     } catch (x) {
       console.log(x.stack);
-      console.log(Ast.dumpAll(ctx));
+      //console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
         addError(ctx, x.message);
+        state.cc = null;  // done for now.
         cls = "error"
       } else if (x === "comment") {
         cls = x
