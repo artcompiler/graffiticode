@@ -38,6 +38,24 @@ pg.connect(conString, function(err, client) {
 
 // Configuration
 
+var env = process.env.NODE_ENV || 'development';
+
+// http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
+// http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
+app.all('*', function (req, res, next) {
+  if (req.headers.host.match(/^localhost/) === null) {
+    if (req.headers.host.match(/^www/) === null) {
+      res.redirect('https://www.'+ req.headers.host + req.url);
+    } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
+      res.redirect(['https://', req.headers.host, req.url].join(''));
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+});
+
 app.set('views', __dirname + '/views');
 app.set('public', __dirname + '/public');
 app.use(morgan('combined', {
@@ -79,19 +97,6 @@ app.engine('html', function (templateFile, options, callback) {
 });
 
 // Routes
-
-// http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
-app.all('*', function (req, res, next) {
-  if (req.headers.host.match(/^www/) === null && req.headers.host.match(/^localhost/) === null) {
-    res.redirect('http://www.'+ req.headers.host + req.url);
-  } else {
-    next();
-  }
-});
-
-   app.get('/.well-known/acme-challenge/:content', function(req, res) {
-     res.send('0Ip_atpl2qISiAS8BRD6fiq6cKun9ziq-SRSeUGDIZc.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI')
-   });
 
 app.get('/', function(req, res) {
   res.redirect("/index");
@@ -1072,3 +1077,5 @@ if (process.env.NODE_ENV === 'production') {
 process.on('uncaughtException', function(err) {
   console.log('Caught exception: ' + err.stack);
 });
+
+
