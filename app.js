@@ -89,6 +89,10 @@ app.all('*', function (req, res, next) {
   }
 });
 
+   app.get('/.well-known/acme-challenge/:content', function(req, res) {
+     res.send('0Ip_atpl2qISiAS8BRD6fiq6cKun9ziq-SRSeUGDIZc.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI')
+   });
+
 app.get('/', function(req, res) {
   res.redirect("/index");
 });
