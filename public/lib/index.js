@@ -19447,12 +19447,12 @@ var GraffContent = React.createClass({
     var pieces = [];
     var id = +exports.id;
     if (id) {
-      $.get("http://" + location.host + "/code/" + id, function (data) {
+      $.get(location.origin + "/code/" + id, function (data) {
         var obj = data[0].obj;
         var src = data[0].src;
         var ast = data[0].ast;
         if (+exports.data) {
-          $.get("http://" + location.host + "/data?id=" + exports.data, function (data) {
+          $.get(location.origin + "/data?id=" + exports.data, function (data) {
             dispatcher.dispatch({
               id: id,
               src: src,
@@ -19916,7 +19916,7 @@ var CodeMirrorEditor = React.createClass({
     var pieces = [];
     var id = +exports.id;
     if (id) {
-      $.get("http://" + location.host + "/code/" + id, function (data) {
+      $.get(location.origin + "/code/" + id, function (data) {
         updateSrc(data[0].id, data[0].src);
       });
     } else {
@@ -19931,7 +19931,7 @@ var CodeMirrorEditor = React.createClass({
             pieces[i] = data[i].id;
           }
           exports.pieces = pieces;
-          $.get("http://" + location.host + "/code/" + pieces[0], function (data) {
+          $.get(location.origin + "/code/" + pieces[0], function (data) {
             updateSrc(data[0].id, data[0].src);
           });
         },
@@ -20140,7 +20140,7 @@ var ToolContent = React.createClass({
     window.dispatcher.waitFor([_graffView2.default.dispatchToken]);
     var el = React.findDOMNode(this);
     if (data.id) {
-      $.get("http://" + location.host + "/label/" + state.item, function (data) {
+      $.get(location.origin + "/label/" + state.item, function (data) {
         d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
       });
     } else {

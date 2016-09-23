@@ -1550,7 +1550,7 @@ exports.parser = (function () {
           // We have a good id, so use it.
           var codeData = data;
           if (+exports.data) {
-            $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
+            $.get(location.origin + "/data?id=" + exports.data, function (data) {
               window.exports.id = codeData.id;
               window.exports.lastErrors = [];
               window.exports.dataid = exports.data;

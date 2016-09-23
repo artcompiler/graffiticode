@@ -42,7 +42,7 @@ var CodeMirrorEditor = React.createClass({
     let pieces = [];
     let id = +exports.id;
     if (id) {
-      $.get("http://"+location.host+"/code/" + id, function (data) {
+      $.get(location.origin + "/code/" + id, function (data) {
         updateSrc(data[0].id, data[0].src);
       });
     } else {
@@ -57,7 +57,7 @@ var CodeMirrorEditor = React.createClass({
             pieces[i] = data[i].id;
           }
           exports.pieces = pieces;
-          $.get("http://"+location.host+"/code/"+pieces[0], function (data) {
+          $.get(location.origin + "/code/"+pieces[0], function (data) {
             updateSrc(data[0].id, data[0].src);
           });
         },
