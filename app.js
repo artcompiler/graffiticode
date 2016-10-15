@@ -45,7 +45,7 @@ var env = process.env.NODE_ENV || 'development';
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
     console.log("app.all host=" + req.headers.host + " url=" + req.url);
-    if (req.headers.host === "dyerart.graffiticode.com") {
+    if (req.headers.url === "/artcompiler") {
       res.redirect('https://www.graffiticode.com/form?id=471917');
     } else if (req.headers.host.match(/^www/) === null) {
       res.redirect('https://www.'+ req.headers.host + req.url);
