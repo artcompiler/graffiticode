@@ -44,7 +44,10 @@ var env = process.env.NODE_ENV || 'development';
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
-    if (req.headers.host.match(/^www/) === null) {
+    console.log("app.all host=" + req.headers.host);
+    if (req.headers.host === "dyerart.graffiticode.com") {
+      res.redirect('https://www.graffiticode.com/form?id=471917');
+    } else if (req.headers.host.match(/^www/) === null) {
       res.redirect('https://www.'+ req.headers.host + req.url);
     } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
       res.redirect(['https://', req.headers.host, req.url].join(''));
