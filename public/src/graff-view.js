@@ -31,12 +31,12 @@ var GraffContent = React.createClass({
     let pieces = [];
     let id = +exports.id;
     if (id) {
-      $.get("http://"+location.host+"/code/" + id, function (data) {
+      $.get(location.origin + "/code/" + id, function (data) {
         let obj = data[0].obj;
         let src = data[0].src;
         let ast = data[0].ast;
         if (+exports.data) {
-          $.get("http://"+location.host+"/data?id=" + exports.data, function (data) {
+          $.get(location.origin + "/data?id=" + exports.data, function (data) {
             dispatcher.dispatch({
               id: id,
               src: src,
