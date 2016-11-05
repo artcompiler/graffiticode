@@ -40,8 +40,8 @@ var ToolContent = React.createClass({
     });
   },
   showItem: function () {
-    let exports = window.exports;
-    let id = exports.id;
+    let gcexports = window.gcexports;
+    let id = gcexports.id;
     let el = React.findDOMNode(this);
     $.ajax({
       type: "PUT",

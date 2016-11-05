@@ -53,8 +53,8 @@ var CodeMirrorEditor = React.createClass({
         objectCode = JSON.stringify(obj, null, 2);
       }
       this.editor.setValue(objectCode);
-    } else if (data && !data.error && window.exports.viewer.getObjectCode) {
-      objectCode = window.exports.viewer.getObjectCode(data.obj);
+    } else if (data && !data.error && window.gcexports.viewer.getObjectCode) {
+      objectCode = window.gcexports.viewer.getObjectCode(data.obj);
       this.editor.setValue(objectCode);
     }
   },

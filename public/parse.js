@@ -5,7 +5,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * you may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,7 +27,7 @@ if (typeof CodeMirror === "undefined") {
 if (typeof window === "undefined") {
   window = {
     coords: {},
-    exports: []
+    gcexports: []
   };
 }
 
@@ -38,7 +38,6 @@ function assert(b, str) {
 // ast module
 
 var Ast = (function () {
-  var _ = exports._;
   var ASSERT = true;
   var assert = function (val, str) {
     if ( !this.ASSERT ) {
@@ -665,7 +664,7 @@ var Ast = (function () {
 
 // The following code for StreamString was copied from CodeMirror.
 
-exports.StringStream = (function () {
+window.gcexports.StringStream = (function () {
 
   // The character stream used by a mode's parser.
   function StringStream(string, tabSize) {
@@ -754,7 +753,7 @@ var env = (function () {
   }
 
   function addWord(ctx, lexeme, entry) {
-    exports.topEnv(ctx).lexicon[lexeme] = entry;
+    window.gcexports.topEnv(ctx).lexicon[lexeme] = entry;
     return null;
   }
 
@@ -770,33 +769,33 @@ var env = (function () {
 
 var scanTime = 0;
 var scanCount = 0;
-exports.scanTime = function () {
+window.gcexports.scanTime = function () {
   return scanTime;
 };
-exports.scanCount = function () {
+window.gcexports.scanCount = function () {
   return scanCount;
 };
 
 
 var parseTime = 0;
 
-exports.parseTime = function () {
+window.gcexports.parseTime = function () {
   return parseTime;
 };
 
 var parseCount = 0;
-exports.parseCount = function () {
+window.gcexports.parseCount = function () {
   return parseCount;
 };
 
 // parser
-exports.parser = (function () {
+window.gcexports.parser = (function () {
   function assert(b, str) {
     if (!b) {
       throw new Error(str);
     }
   }
-  var keywords = window.exports.keywords = {
+  var keywords = window.gcexports.keywords = {
     "let" : { "tk": 0x12, "cls": "keyword" },
     "if" : { "tk": 0x05, "cls": "keyword" },
     "then" : { "tk": 0x06, "cls": "keyword" },
@@ -1440,7 +1439,7 @@ exports.parser = (function () {
       return cc
     })
   }
-  exports.program = program;
+  window.gcexports.program = program;
 
   function def(ctx, cc) {
     if (match(ctx, TK_LET)) {
@@ -1512,16 +1511,16 @@ exports.parser = (function () {
     lastAST = ast;
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
-    var src = window.exports.editor.getValue();
+    var src = window.gcexports.editor.getValue();
     $.ajax({
       type: "PUT",
       url: "/compile",
       data: {
-        "id": !postCode ? window.exports.id : undefined,
-        "parent": postCode ? window.exports.id : undefined,
+        "id": !postCode ? window.gcexports.id : undefined,
+        "parent": postCode ? window.gcexports.id : undefined,
         "ast": ast,
-        "type": exports.lexiconType,
-        "language": exports.language,
+        "type": window.gcexports.lexiconType,
+        "language": window.gcexports.language,
         "src": src,
       },
       dataType: "json",
@@ -1544,17 +1543,17 @@ exports.parser = (function () {
               severity : "error",
             });
           });
-          window.exports.lastErrors = window.exports.errors = errors;
-          window.exports.editor.performLint();
+          window.gcexports.lastErrors = window.exports.errors = errors;
+          window.gcexports.editor.performLint();
         } else if (data.id) {
           // We have a good id, so use it.
           var codeData = data;
-          if (+exports.data) {
-            $.get(location.origin + "/data?id=" + exports.data, function (data) {
-              window.exports.id = codeData.id;
-              window.exports.lastErrors = [];
-              window.exports.dataid = exports.data;
-              window.history.pushState(codeData.id, exports.language, "/" + exports.view + "?id=" + codeData.id + "+" + exports.data);
+          if (+window.gcexports.data) {
+            $.get(location.origin + "/data?id=" + window.gcexports.data, function (data) {
+              window.gcexports.id = codeData.id;
+              window.gcexports.lastErrors = [];
+              window.gcexports.dataid = window.gcexports.data;
+              window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id + "+" + window.gcexports.data);
               dispatcher.dispatch({
                 id: codeData.id,
                 src: src,
@@ -1566,9 +1565,9 @@ exports.parser = (function () {
               });
             });
           } else {
-            window.exports.id = codeData.id;
-            window.exports.lastErrors = [];
-            window.history.pushState(codeData.id, exports.language, "/" + exports.view + "?id=" + codeData.id);
+            window.gcexports.id = codeData.id;
+            window.gcexports.lastErrors = [];
+            window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id);
             dispatcher.dispatch({
               id: codeData.id,
               src: src,
@@ -1588,8 +1587,8 @@ exports.parser = (function () {
   }
 
   function saveSrc() {
-    var id = window.exports.id;
-    var src = window.exports.editor.getValue();
+    var id = window.gcexports.id;
+    var src = window.gcexports.editor.getValue();
     $.ajax({
       type: "PUT",
       url: "/code",
@@ -1606,7 +1605,7 @@ exports.parser = (function () {
     });
   }
 
-  exports.topEnv = topEnv
+  window.gcexports.topEnv = topEnv
   var lastAST;
   var lastTimer;
   var firstTime = true;
@@ -1642,7 +1641,7 @@ exports.parser = (function () {
           // FIXME make all paths go through a resume function.
           resume(state.errors, Ast.poolToJSON(ctx));
         } else if (state.errors.length === 0) {
-          window.exports.errors = [];
+          window.gcexports.errors = [];
           var thisAST = Ast.poolToJSON(ctx);
           if (lastTimer) {
             // Reset timer to wait another second pause.
@@ -1663,13 +1662,13 @@ exports.parser = (function () {
           } else {
             // The AST hasn't changed, but the text has so save the code.
             lastTimer = window.setTimeout(function () {
-              window.exports.errors = window.exports.lastErrors;
-              window.exports.editor.performLint();
+              window.gcexports.errors = window.gcexports.lastErrors;
+              window.gcexports.editor.performLint();
               saveSrc();
             }, 1000);
           }
         } else {
-          window.exports.errors = state.errors;
+          window.gcexports.errors = state.errors;
         }
       }
       var c;
@@ -1877,19 +1876,19 @@ exports.parser = (function () {
     program: program,
   }
 
-  exports.parse = parser.parse
+  window.gcexports.parse = parser.parse
 
   return parser
 })(); // end parser
 
 var foldTime = 0
 
-exports.foldTime = function () {
+window.gcexports.foldTime = function () {
   return foldTime
 }
 
 var folder = function() {
-  var _ = exports._;
+  var _ = window.gcexports._;
 
   var table = {
     "PROG" : program,
@@ -1960,10 +1959,6 @@ var folder = function() {
 
   function isArray(v) {
     return v instanceof Array;
-  }
-
-  function isObject(v) {
-    return _isObjet(v);
   }
 
   function isString(v) {

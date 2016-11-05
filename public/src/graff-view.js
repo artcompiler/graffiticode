@@ -1,7 +1,7 @@
 import Dispatcher from "./Dispatcher";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-window.exports.ReactDOM = ReactDOM;
+window.gcexports.ReactDOM = ReactDOM;
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
     || navigator.userAgent.match(/webOS/i)
@@ -26,17 +26,17 @@ var GraffContent = React.createClass({
   componentDidMount: function() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
-    let exports = window.exports;
+    let gcexports = window.gcexports;
     let self = this;
     let pieces = [];
-    let id = +exports.id;
+    let id = +gcexports.id;
     if (id) {
       $.get(location.origin + "/code/" + id, function (data) {
         let obj = data[0].obj;
         let src = data[0].src;
         let ast = data[0].ast;
-        if (+exports.data) {
-          $.get(location.origin + "/data?id=" + exports.data, function (data) {
+        if (+gcexports.data) {
+          $.get(location.origin + "/data?id=" + gcexports.data, function (data) {
             dispatcher.dispatch({
               id: id,
               src: src,
@@ -58,9 +58,9 @@ var GraffContent = React.createClass({
     }
   },
   componentDidUpdate: function() {
-    var exports = window.exports;
-    var viewer = exports.viewer;
-    var el = ReactDOM.findDOMNode(this);
+    let gcexports = window.gcexports;
+    let viewer = gcexports.viewer;
+    let el = ReactDOM.findDOMNode(this);
     if (this.state && !this.state.errors) {
       let ast = this.state.ast;
       let src = this.state.src;
@@ -72,15 +72,15 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      exports.id = id
+      gcexports.id = id
       this.postData(id, data, label);
     }
   },
   postCode: function postCode(ast, src, obj, img) {
-    let exports = window.exports;
+    let gcexports = window.gcexports;
     let user = $("#username").data("user");
     let parent = exports.parent;
-    let language = exports.language;
+    let language = gcexports.language;
     let self = this;
     $.ajax({
       type: "POST",
@@ -97,7 +97,7 @@ var GraffContent = React.createClass({
       },
       dataType: "json",
       success: function(data) {
-        exports.id = data.id;
+        gcexports.id = data.id;
         exports.gist_id = data.gist_id
         window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
         self.setState({id: data.id, postCode: false, data: undefined});
@@ -108,10 +108,10 @@ var GraffContent = React.createClass({
     });
   },
   postData: function postData(codeid, obj, label) {
-    let exports = window.exports;
+    let gcexports = window.gcexports;
     let user = $("#username").data("user");
     let parent = exports.parent;
-    let language = exports.language;
+    let language = gcexports.language;
     let updateHistory = this.state.updateHistory;
     // Append host language to label.
     label = label ? language + " " + label : language;
@@ -134,7 +134,7 @@ var GraffContent = React.createClass({
           // FIXME add to state
           if (codeid) {
             // Wait until we have a codeid to update URL.
-            exports.dataid = data.id;
+            gcexports.dataid = data.id;
             if (updateHistory) {
               window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
             }
@@ -150,7 +150,7 @@ var GraffContent = React.createClass({
     this.setState(data);
   },
   render: function () {
-    var Viewer = window.exports.viewer.Viewer;
+    var Viewer = window.gcexports.viewer.Viewer;
     if (Viewer) {
       if (this.state && this.state.obj) {
         var obj = this.state && this.state.obj ? JSON.parse(this.state.obj) : {};

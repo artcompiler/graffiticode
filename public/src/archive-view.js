@@ -19,7 +19,7 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function() {
-    var viewer = window.exports.viewer;
+    var viewer = window.gcexports.viewer;
     var el = React.findDOMNode(this);
     queryPieces();
     // get a list of piece ids that match a search criterial
@@ -27,7 +27,7 @@ var ArchiveContent = React.createClass({
     function queryPieces() {
       $.ajax({
         type: "GET",
-        url: "/pieces/" + window.exports.language,
+        url: "/pieces/" + window.gcexports.language,
         data: {},
         dataType: "json",
         success: function(data) {

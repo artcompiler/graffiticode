@@ -25,8 +25,7 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    let exports = window.exports;
-    let editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
+    let editor = window.gcexports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
       mode: 'graffiti',
       lineNumbers: this.props.lineNumbers,
       lineWrapping: true,
@@ -40,7 +39,7 @@ var CodeMirrorEditor = React.createClass({
       lint: true,
     });
     let pieces = [];
-    let id = +exports.id;
+    let id = +window.gcexports.id;
     if (id) {
       $.get(location.origin + "/code/" + id, function (data) {
         updateSrc(data[0].id, data[0].src);
@@ -48,7 +47,7 @@ var CodeMirrorEditor = React.createClass({
     } else {
       $.ajax({
         type: "GET",
-        url: "/pieces/" + exports.language,
+        url: "/pieces/" + window.gcexports.language,
         data: {},
         dataType: "json",
         success: function(data) {
@@ -56,7 +55,7 @@ var CodeMirrorEditor = React.createClass({
           for (var i = 0; i < data.length; i++) {
             pieces[i] = data[i].id;
           }
-          exports.pieces = pieces;
+          window.gcexports.pieces = pieces;
           $.get(location.origin + "/code/"+pieces[0], function (data) {
             updateSrc(data[0].id, data[0].src);
           });
@@ -67,8 +66,8 @@ var CodeMirrorEditor = React.createClass({
       });
     }
     function updateSrc(id, src) {
-      exports.parent = exports.id;
-      exports.id = id;
+      window.gcexports.parent = window.gcexports.id;
+      window.gcexports.id = id;
       if (src) {
         // Avoid adding newlines for commands that begin with \n
         src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless

@@ -16,8 +16,8 @@
 "use strict";
 
 CodeMirror.registerHelper("lint", "graffiti", function(text) {
-    if (window.exports.errors) {
-	return window.exports.errors;
+    if (window.gcexports.errors) {
+	return window.gcexports.errors;
     } else {
 	return [];
     }

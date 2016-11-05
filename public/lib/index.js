@@ -19272,7 +19272,7 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function componentDidUpdate() {
-    var viewer = window.exports.viewer;
+    var viewer = window.gcexports.viewer;
     var el = React.findDOMNode(this);
     queryPieces();
     // get a list of piece ids that match a search criterial
@@ -19280,7 +19280,7 @@ var ArchiveContent = React.createClass({
     function queryPieces() {
       $.ajax({
         type: "GET",
-        url: "/pieces/" + window.exports.language,
+        url: "/pieces/" + window.gcexports.language,
         data: {},
         dataType: "json",
         success: function success(data) {
@@ -19412,7 +19412,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-window.exports.ReactDOM = ReactDOM;
+window.gcexports.ReactDOM = ReactDOM;
 var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
 var selfCleaningTimeout = {
   componentDidUpdate: function componentDidUpdate() {
@@ -19440,17 +19440,17 @@ var GraffContent = React.createClass({
   componentDidMount: function componentDidMount() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     this.isDirty = false;
-    var exports = window.exports;
+    var gcexports = window.gcexports;
     var self = this;
     var pieces = [];
-    var id = +exports.id;
+    var id = +gcexports.id;
     if (id) {
       $.get(location.origin + "/code/" + id, function (data) {
         var obj = data[0].obj;
         var src = data[0].src;
         var ast = data[0].ast;
-        if (+exports.data) {
-          $.get(location.origin + "/data?id=" + exports.data, function (data) {
+        if (+gcexports.data) {
+          $.get(location.origin + "/data?id=" + gcexports.data, function (data) {
             dispatcher.dispatch({
               id: id,
               src: src,
@@ -19471,8 +19471,8 @@ var GraffContent = React.createClass({
     }
   },
   componentDidUpdate: function componentDidUpdate() {
-    var exports = window.exports;
-    var viewer = exports.viewer;
+    var gcexports = window.gcexports;
+    var viewer = gcexports.viewer;
     var el = ReactDOM.findDOMNode(this);
     if (this.state && !this.state.errors) {
       var ast = this.state.ast;
@@ -19485,15 +19485,15 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      exports.id = id;
+      gcexports.id = id;
       this.postData(id, data, label);
     }
   },
   postCode: function postCode(ast, src, obj, img) {
-    var exports = window.exports;
+    var gcexports = window.gcexports;
     var user = $("#username").data("user");
     var parent = exports.parent;
-    var language = exports.language;
+    var language = gcexports.language;
     var self = this;
     $.ajax({
       type: "POST",
@@ -19510,7 +19510,7 @@ var GraffContent = React.createClass({
       },
       dataType: "json",
       success: function success(data) {
-        exports.id = data.id;
+        gcexports.id = data.id;
         exports.gist_id = data.gist_id;
         window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
         self.setState({ id: data.id, postCode: false, data: undefined });
@@ -19521,10 +19521,10 @@ var GraffContent = React.createClass({
     });
   },
   postData: function postData(codeid, obj, label) {
-    var exports = window.exports;
+    var gcexports = window.gcexports;
     var user = $("#username").data("user");
     var parent = exports.parent;
-    var language = exports.language;
+    var language = gcexports.language;
     var updateHistory = this.state.updateHistory;
     // Append host language to label.
     label = label ? language + " " + label : language;
@@ -19547,7 +19547,7 @@ var GraffContent = React.createClass({
           // FIXME add to state
           if (codeid) {
             // Wait until we have a codeid to update URL.
-            exports.dataid = data.id;
+            gcexports.dataid = data.id;
             if (updateHistory) {
               window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
             }
@@ -19563,7 +19563,7 @@ var GraffContent = React.createClass({
     this.setState(data);
   },
   render: function render() {
-    var Viewer = window.exports.viewer.Viewer;
+    var Viewer = window.gcexports.viewer.Viewer;
     if (Viewer) {
       if (this.state && this.state.obj) {
         var obj = this.state && this.state.obj ? JSON.parse(this.state.obj) : {};
@@ -19725,8 +19725,8 @@ var CodeMirrorEditor = React.createClass({
         objectCode = JSON.stringify(obj, null, 2);
       }
       this.editor.setValue(objectCode);
-    } else if (data && !data.error && window.exports.viewer.getObjectCode) {
-      objectCode = window.exports.viewer.getObjectCode(data.obj);
+    } else if (data && !data.error && window.gcexports.viewer.getObjectCode) {
+      objectCode = window.gcexports.viewer.getObjectCode(data.obj);
       this.editor.setValue(objectCode);
     }
   },
@@ -19900,8 +19900,7 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function componentDidMount() {
-    var exports = window.exports;
-    var editor = window.exports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
+    var editor = window.gcexports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
       mode: 'graffiti',
       lineNumbers: this.props.lineNumbers,
       lineWrapping: true,
@@ -19915,7 +19914,7 @@ var CodeMirrorEditor = React.createClass({
       lint: true
     });
     var pieces = [];
-    var id = +exports.id;
+    var id = +window.gcexports.id;
     if (id) {
       $.get(location.origin + "/code/" + id, function (data) {
         updateSrc(data[0].id, data[0].src);
@@ -19923,7 +19922,7 @@ var CodeMirrorEditor = React.createClass({
     } else {
       $.ajax({
         type: "GET",
-        url: "/pieces/" + exports.language,
+        url: "/pieces/" + window.gcexports.language,
         data: {},
         dataType: "json",
         success: function success(data) {
@@ -19931,7 +19930,7 @@ var CodeMirrorEditor = React.createClass({
           for (var i = 0; i < data.length; i++) {
             pieces[i] = data[i].id;
           }
-          exports.pieces = pieces;
+          window.gcexports.pieces = pieces;
           $.get(location.origin + "/code/" + pieces[0], function (data) {
             updateSrc(data[0].id, data[0].src);
           });
@@ -19942,8 +19941,8 @@ var CodeMirrorEditor = React.createClass({
       });
     }
     function updateSrc(id, src) {
-      exports.parent = exports.id;
-      exports.id = id;
+      window.gcexports.parent = window.gcexports.id;
+      window.gcexports.id = id;
       if (src) {
         // Avoid adding newlines for commands that begin with \n
         src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless
@@ -20111,8 +20110,8 @@ var ToolContent = React.createClass({
     });
   },
   showItem: function showItem() {
-    var exports = window.exports;
-    var id = exports.id;
+    var gcexports = window.gcexports;
+    var id = gcexports.id;
     var el = React.findDOMNode(this);
     $.ajax({
       type: "PUT",

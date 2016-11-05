@@ -1,7 +1,7 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 CodeMirror.defineMode("graffiti", function() {
-  var parser = exports.parser;
+  var parser = gcexports.parser;
   function assert(b, str) {
     if (!b) {
       alert(str);
@@ -22,7 +22,7 @@ CodeMirror.defineMode("graffiti", function() {
         argcStack: [0],
         paramc: 0,
         paramcStack: [0],
-        env: [ {name: "global", lexicon: Object.assign({}, exports.keywords, exports.globalLexicon) } ],
+        env: [ {name: "global", lexicon: Object.assign({}, gcexports.keywords, gcexports.globalLexicon) } ],
         exprc: 0,
         exprcStack: [0],
         nodeStack: [],
