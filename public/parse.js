@@ -27,7 +27,8 @@ if (typeof CodeMirror === "undefined") {
 if (typeof window === "undefined") {
   window = {
     coords: {},
-    gcexports: []
+    gcexports: [],
+    isSynthetic: true,
   };
 }
 
@@ -1877,6 +1878,11 @@ window.gcexports.parser = (function () {
   }
 
   window.gcexports.parse = parser.parse
+  if (window.isSynthetic) {
+    // Export in node.
+    exports.parse = window.gcexports.parse;
+    exports.StringStream = window.gcexports.StringStream;
+  }
 
   return parser
 })(); // end parser
