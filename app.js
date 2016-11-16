@@ -976,8 +976,12 @@ app.get("/:lang/:path", function (req, res) {
 
 // This is the new way of loading pages
 app.get('/:lang', function (req, res) {
-  var lang = req.params.lang;
-  res.redirect('/lang?id=' + lang.substring(1));
+  var lang = req.params.lang.substring(1);
+  if (!isNaN(parseInt(lang))) {
+    res.redirect('/lang?id=' + lang.substring(1));
+  } else {
+    res.status(400).send("Page not found");
+  }
 });
 
 // Simple route middleware to ensure user is authenticated.

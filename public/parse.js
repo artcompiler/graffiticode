@@ -548,14 +548,8 @@ var Ast = (function () {
 
   function concat(ctx) {
     var n1 = node(ctx, pop(ctx));
-    var n2 = node(ctx, pop(ctx));
     var v1 = n1.elts[0];
-    var v2 = n2.elts[0];
-    if ((n1.tag !== "STR" && n1.tag !== "NUM") || (n2.tag !== "STR" && n2.tag !== "NUM")) {
-      push(ctx, {tag: "CONCAT", elts: [n1, n2]});
-    } else {
-      string(ctx, ""+v1+v2);
-    }
+    push(ctx, {tag: "CONCAT", elts: [n1]});
   }
 
   function orelse(ctx) {
@@ -1808,17 +1802,17 @@ window.gcexports.parser = (function () {
       return TK_NUM;
     }
 
+    // "abc" --> "abc"
+    // "a{{x}}c" --> concat ["a", x, "b"]
     function string(c) {
       var quoteChar = c
       lexeme += String.fromCharCode(c)
       c = (s = stream.next()) ? s.charCodeAt(0) : 0
-
       while (c !== quoteChar && c !== 0) {
         lexeme += String.fromCharCode(c);
         var s;
         c = (s = stream.next()) ? s.charCodeAt(0) : 0
       }
-
       if (c) {
         lexeme += String.fromCharCode(c)
         return TK_STR;
