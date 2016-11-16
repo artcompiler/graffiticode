@@ -978,7 +978,7 @@ app.get("/:lang/:path", function (req, res) {
 app.get('/:lang', function (req, res) {
   var lang = req.params.lang.substring(1);
   if (!isNaN(parseInt(lang))) {
-    res.redirect('/lang?id=' + lang.substring(1));
+    res.redirect('/lang?id=' + lang);
   } else {
     res.status(400).send("Page not found");
   }
