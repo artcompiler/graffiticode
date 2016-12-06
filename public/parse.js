@@ -284,8 +284,8 @@ var Ast = (function () {
         // used on the current function application.
         if (!id) continue;
         var word = JSON.parse(JSON.stringify(lexicon[id])); // Poorman's copy.
-        var index = word.offset;
-        if (index >= args.length) {
+        var index = args.length - word.offset - 1;
+        if (index < 0) {
           outerEnv[id] = word;
           // <x:x> => <x:x>
           // <x y: add x y> 10. => <y: add 10 y>.
@@ -295,7 +295,7 @@ var Ast = (function () {
         env.addWord(ctx, id, word);
       }
       folder.fold(ctx, fn.nid);
-      if (index >= args.length) {
+      if (index < 0) {
         lambda(ctx, {lexicon: outerEnv}, pop(ctx));
       }
     }
@@ -1458,7 +1458,7 @@ window.gcexports.parser = (function () {
   function program(ctx, cc) {
     return exprsStart(ctx, TK_DOT, function (ctx) {
       folder.fold(ctx, Ast.pop(ctx))  // fold the exprs on top
-      Ast.exprs(ctx, ctx.state.nodeStack.length);
+      Ast.exprs(ctx, ctx.state.nodeStack.length, true);
       Ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
       return cc
