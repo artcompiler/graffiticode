@@ -323,9 +323,10 @@ var Ast = (function () {
     var len = fn.elts[0].elts.length;
     var paramc = len;
     var elts = [];
-    var args = ctx.state.nodeStack;
+    var argc = ctx.state.nodeStack.length;
+    var argc = ctx.state.exprc;
     // While there are args on the stack, pop them.
-    while (args.length > 0 && paramc-- > 0) {
+    while (argc-- > 0 && paramc-- > 0) {
       var elt = pop(ctx);
       elts.unshift(elt);  // Get the order right.
     }
@@ -409,7 +410,6 @@ var Ast = (function () {
       coord: coord,
     });
   }
-
   function binaryExpr(ctx, name) {
     var elts = [];
     // args are in the order produced by the parser
@@ -575,7 +575,6 @@ var Ast = (function () {
     var v1 = +node(ctx, pop(ctx)).elts[0];
     bool(ctx, v1<=v2);
   }
-
   function ge(ctx) {
     var v2 = +node(ctx, pop(ctx)).elts[0];
     var v1 = +node(ctx, pop(ctx)).elts[0];
@@ -608,7 +607,7 @@ var Ast = (function () {
     }
     push(ctx, {
       tag: "RECORD",
-      elts: elts.reverse()
+      elts: elts
     });
   }
 
@@ -650,7 +649,7 @@ var Ast = (function () {
       for (var i = count; i > 0; i--) {
         var elt = pop(ctx);
         var n;
-        if ((n = node(ctx, elt)) && n.tag === "EXPRS") {
+        if (false && (n = node(ctx, elt)) && n.tag === "EXPRS") {
           elts = elts.concat(n.elts);
         } else {
           elts.push(elt);  // Reverse order.
@@ -660,7 +659,7 @@ var Ast = (function () {
       for (var i = count; i > 0; i--) {
         var elt = pop(ctx);
         var n;
-        if ((n = node(ctx, elt)) && n.tag === "EXPRS") {
+        if (false && (n = node(ctx, elt)) && n.tag === "EXPRS") {
           elts = elts.concat(n.elts);
         } else {
           elts.push(elt);  // Reverse order.
@@ -1092,7 +1091,6 @@ window.gcexports.parser = (function () {
       return ret;
     })
   }
-
   function lambda(ctx, cc) {
     eat(ctx, TK_LEFTANGLE);
     var ret = function (ctx) {
@@ -1120,12 +1118,12 @@ window.gcexports.parser = (function () {
     };
     return ret;
   }
-
   function parenExpr(ctx, cc) {
     eat(ctx, TK_LEFTPAREN);
     var ret = function(ctx) {
-      return condExpr(ctx, function (ctx) {
+      return exprsStart(ctx, TK_RIGHTPAREN, function (ctx) {
         eat(ctx, TK_RIGHTPAREN);
+        Ast.exprs(ctx, 1);
         cc.cls = "punc";
         return cc;
       })
@@ -1164,16 +1162,13 @@ window.gcexports.parser = (function () {
       return function (ctx) {
         return elements(ctx, resume);
       };
-    })
-  }
-
-  function element(ctx, resume) {
-    return expr(ctx, function(ctx) {
-      countCounter(ctx);
-      return resume;
     });
   }
-
+  function element(ctx, resume) {
+    return expr(ctx, function(ctx) {
+      return resume(ctx);
+    });
+  }
   function primaryExpr(ctx, cc) {
     if (match(ctx, TK_NUM)) {
       return number(ctx, cc);
@@ -1194,7 +1189,6 @@ window.gcexports.parser = (function () {
     }
     return name(ctx, cc);
   }
-
   function postfixExpr(ctx, cc) {
     return primaryExpr(ctx, function (ctx) {
       if (match(ctx, TK_POSTOP)) {
@@ -1408,8 +1402,8 @@ window.gcexports.parser = (function () {
   }
 
   function exprsStart(ctx, brk, cc) {
-    startCounter(ctx)
-    return exprs(ctx, brk, cc)
+    startCounter(ctx);
+    return exprs(ctx, brk, cc);
   }
 
   function exprsFinish(ctx, cc) {
@@ -1452,17 +1446,21 @@ window.gcexports.parser = (function () {
         return exprs(ctx, brk, cc);
       }
       return exprsFinish(ctx, cc);
-    })
+    });
   }
 
   function program(ctx, cc) {
     return exprsStart(ctx, TK_DOT, function (ctx) {
-      folder.fold(ctx, Ast.pop(ctx))  // fold the exprs on top
+      var nid;
+      while (Ast.peek(ctx) !== nid) {
+        var nid = Ast.pop(ctx);
+        folder.fold(ctx, nid)  // fold the exprs on top
+      }
       Ast.exprs(ctx, ctx.state.nodeStack.length, true);
       Ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
       return cc
-    })
+    });
   }
   window.gcexports.program = program;
 
@@ -2077,7 +2075,7 @@ var folder = function() {
     for (var i = node.elts.length - 1; i >= 0; i--) {
       visit(node.elts[i]);  // Keep original order.
     }
-//    Ast.exprs(ctx, ctx.state.nodeStack.length, true);
+    ctx.state.exprc = node.elts.length;
   }
 
   function lambda(node) {
@@ -2112,99 +2110,93 @@ var folder = function() {
     Ast.unaryExpr(ctx, node.tag);
   }
 
-  function visitArgs(args) {
-    for (var i = args.length - 1; i >= 0; i--) {
-      visit(args[i]);
-    }
-  }
-
   function add(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.add(ctx);
   }
 
   function sub(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.sub(ctx);
   }
 
   function mul(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.mul(ctx);
   }
 
   function div(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.div(ctx);
   }
 
   function pow(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.pow(ctx);
   }
 
   function concat(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.concat(ctx);
   }
 
   function mod(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.mod(ctx);
   }
 
   function orelse(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.orelse(ctx);
   }
 
   function andalso(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.andalso(ctx);
   }
 
   function eq(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.eq(ctx);
   }
 
   function ne(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.ne(ctx);
   }
 
   function lt(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.lt(ctx);
   }
 
   function gt(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.gt(ctx);
   }
 
   function le(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.le(ctx);
   }
 
   function ge(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.ge(ctx);
   }
 
