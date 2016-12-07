@@ -1166,6 +1166,7 @@ window.gcexports.parser = (function () {
   }
   function element(ctx, resume) {
     return expr(ctx, function(ctx) {
+      countCounter(ctx);
       return resume(ctx);
     });
   }
