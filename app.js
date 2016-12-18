@@ -101,9 +101,10 @@ app.engine('html', function (templateFile, options, callback) {
 
 // Routes
 
-app.get('/.well-known/acme-challenge/Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo', function(req, res) {
-  res.send("Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
-});
+// letsencript acme challenge
+// app.get('/.well-known/acme-challenge/Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo', function(req, res) {
+//   res.send("Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
+// });
 
 
 app.get('/', function(req, res) {
