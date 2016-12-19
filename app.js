@@ -752,6 +752,7 @@ app.put('/compile', function (req, res) {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
   }
+  console.log("PUT /compile query=" + query);
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
@@ -782,6 +783,7 @@ app.put('/code', function (req, response) {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
+  console.log("PUT /code query=" + query);
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
