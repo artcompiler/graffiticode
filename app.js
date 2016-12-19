@@ -47,7 +47,7 @@ var env = process.env.NODE_ENV || 'development';
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
-    console.log("app.all host=" + req.headers.host + " url=" + req.url);
+    console.log("app.all headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
     if (req.url === "/artcompiler") {
       res.redirect('https://www.graffiticode.com/form?id=471917');
     } else if (req.headers.host.match(/^www/) === null) {
@@ -756,8 +756,8 @@ app.put('/compile', function (req, res) {
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
       if (err) {
-        console.log("PUT /compile err=" + err);
       }
+      console.log("PUT /compile result=" + result);
       // See if there is already an item with the same source for the same language. If so, pass it on.
       compile(id, user, parent, language, src, ast, result, res);
     });
