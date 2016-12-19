@@ -2,25 +2,28 @@
   "name": "graffiticode",
   "version": "0.0.1",
   "dependencies": {
-    "express": "latest",
-    "stylus": "latest",
-    "pg": "0.6.x",
-    "underscore": "1.4.x",
-    "qs": "latest",
-    "morgan": "latest",
-    "cookie-parser": "latest",
     "body-parser": "latest",
-    "method-override": "latest",
-    "express-session": "latest",
+    "connect-timeout": "latest",
+    "cookie-parser": "latest",
     "errorhandler": "latest",
-    "connect-timeout": "latest"
+    "express": "latest",
+    "express-session": "latest",
+    "method-override": "latest",
+    "morgan": "latest",
+    "pg": "6.1.2",
+    "qs": "latest",
+    "stylus": "latest",
+    "underscore": "1.4.x"
   },
   "engines": {
     "node": "latest",
     "npm": "latest"
   },
   "babel": {
-    "presets": ["es2015", "react"]
+    "presets": [
+      "es2015",
+      "react"
+    ]
   },
   "devDependencies": {
     "babel": "^6.0.x",

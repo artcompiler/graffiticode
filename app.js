@@ -30,7 +30,7 @@ var conString = process.env.DATABASE_URL;
 
 console.log("conString=" + conString);
 //error handling omitted
-pg.defaults.ssl = true;
+//pg.defaults.ssl = true;
 pg.connect(conString, function(err, client) {
   client.query("SELECT NOW() as when", function(err, result) {
     console.log(result);
