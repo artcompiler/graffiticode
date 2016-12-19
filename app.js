@@ -25,7 +25,7 @@ var errorHandler = require("errorhandler");
 var timeout = require('connect-timeout');
 var main = require('./main.js');
 
-var pg = require('pg');
+var pg = require('pg').native;
 var conString = process.env.DATABASE_URL;
 
 console.log("conString=" + conString);
