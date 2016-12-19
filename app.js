@@ -769,6 +769,7 @@ app.put('/compile', function (req, res) {
 app.put('/code', function (req, response) {
   var id = req.body.id;
   var src = req.body.src;
+  console.log("PUT /code id=" + id + " src=" + src);
   var language = req.body.language;
   var ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
