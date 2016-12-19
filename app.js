@@ -168,6 +168,7 @@ app.get('/item', function(req, res) {
   console.log("GET /item ids=" + ids);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+      console.log("/item result=" + JSON.stringify(result));
       var rows;
       if (!result || result.rows.length===0) {
         rows = [{}];
