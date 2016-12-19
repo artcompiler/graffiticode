@@ -30,7 +30,9 @@ var conString = process.env.DATABASE_URL;
 
 console.log("conString=" + conString);
 //error handling omitted
-pg.defaults.ssl = true;
+if (conString.indexOf("localhost") < 0) {
+  pg.defaults.ssl = true;
+}
 pg.connect(conString, function(err, client) {
   client.query("SELECT NOW() as when", function(err, result) {
     console.log(result);
@@ -168,7 +170,7 @@ app.get('/item', function(req, res) {
   console.log("GET /item ids=" + ids);
   pg.connect(conString, function (err, client) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-      console.log("/item result=" + JSON.stringify(result));
+      console.log("/item id=" + id + " found");
       var rows;
       if (!result || result.rows.length===0) {
         rows = [{}];
