@@ -91,9 +91,9 @@ app.use(express.static(__dirname + '/public'));
 //app.use(session({ secret: 'keyboard cat' }));
 
 app.use(function (err, req, res, next) {
-  console.log("ERROR " + err.stack)
-  next(err)
-})
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+});
 
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
