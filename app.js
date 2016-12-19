@@ -589,6 +589,7 @@ function cleanAndTrimSrc(str) {
     return str;
   }
   str = str.replace(new RegExp("'","g"), "''");
+  str = str.replace(new RegExp("\n","g"), " ");
   while(str.charAt(0) === " ") {
     str = str.substring(1);
   }
@@ -755,6 +756,9 @@ app.put('/compile', function (req, res) {
   console.log("PUT /compile query=" + query);
   pg.connect(conString, function (err, client) {
     client.query(query, function(err, result) {
+      if (err) {
+        console.log("PUT /compile err=" + err);
+      }
       // See if there is already an item with the same source for the same language. If so, pass it on.
       compile(id, user, parent, language, src, ast, result, res);
     });
