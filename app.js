@@ -28,7 +28,7 @@ var main = require('./main.js');
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
 
-console.log(conString);
+console.log("conString=" + conString);
 //error handling omitted
 pg.defaults.ssl = true;
 pg.connect(conString, function(err, client) {
