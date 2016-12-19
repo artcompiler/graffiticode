@@ -589,7 +589,6 @@ function cleanAndTrimSrc(str) {
     return str;
   }
   str = str.replace(new RegExp("'","g"), "''");
-  str = str.replace(new RegExp("\n","g"), " ");
   while(str.charAt(0) === " ") {
     str = str.substring(1);
   }
