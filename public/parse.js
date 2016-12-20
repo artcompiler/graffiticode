@@ -1615,7 +1615,6 @@ window.gcexports.parser = (function () {
       while ((c = stream.peek()) && (c===' ' || c==='\t')) {
         stream.next()
       }
-      console.log("c=" + c);
       // if this is a blank line, treat it as a comment
       if (stream.peek()===void 0) {
         throw "comment"

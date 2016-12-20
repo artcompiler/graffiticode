@@ -254,7 +254,7 @@ app.get("/index", function (req, res) {
   res.sendFile("public/index.html");
 });
 
-// get the piece with :id
+// Get an item with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
   dbQuery("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
@@ -270,7 +270,7 @@ app.get('/code/:id', function (req, res) {
   });
 });
 
-// get the object code for piece with :id
+// Get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
   dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
@@ -833,4 +833,3 @@ if (!module.parent) {
     console.log("Listening on " + port);
   });
 }
-
