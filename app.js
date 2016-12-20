@@ -36,10 +36,10 @@ var dbQuery = function(query, resume) {
       console.log("[1] dbQuery() err=" + err);
       return resume(err);
     }
-    client.on('error', function(err) {
-      console.log("[2] dbQuery() err=" + err);
-      resume(err);
-    });
+    // client.on('error', function(err) {
+    //   console.log("[2] dbQuery() err=" + err);
+    //   resume(err);
+    // });
     try {
       client.query(query, function (err, result) {
         done();
