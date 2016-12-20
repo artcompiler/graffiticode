@@ -39,6 +39,24 @@ pg.connect(conString, function(err, client) {
   })
 });
 
+// Query Helper
+// https://github.com/brianc/node-postgres/issues/382
+var query = function(text, resume) {
+  pg.connect(conString, function (err, client, done) {
+    //if there is an error, client is null and done is a noop
+    if(err) return resume(err);
+    try{
+      client.query(text, values, function(err, result) {
+        done();
+        return resume(text, values);
+      });
+    } catch(e) {
+      done();
+      return resume(e);
+    }
+  });
+};
+
 // Configuration
 
 var env = process.env.NODE_ENV || 'development';
@@ -48,16 +66,15 @@ var env = process.env.NODE_ENV || 'development';
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
     console.log("app.all headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
-    // if (req.url === "/artcompiler") {
-    //   res.redirect('https://www.graffiticode.com/form?id=471917');
-    // } else if (req.headers.host.match(/^www/) === null) {
-    //   res.redirect('https://www.'+ req.headers.host + req.url);
-    // } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
-    //   res.redirect(['https://', req.headers.host, req.url].join(''));
-    // } else {
-    //   next();
-    // }
-    next();
+    if (req.url === "/artcompiler") {
+      res.redirect('https://www.graffiticode.com/form?id=471917');
+    } else if (req.headers.host.match(/^www/) === null) {
+      res.redirect('https://www.'+ req.headers.host + req.url);
+    } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
+      res.redirect(['https://', req.headers.host, req.url].join(''));
+    } else {
+      next();
+    }
   } else {
     next();
   }
@@ -124,7 +141,6 @@ app.get('/lang', function(req, res) {
   var src = req.query.src;
   var lang = "L" + id;
   var type = req.query.type;
-  console.log("GET /lang id=" + id);
   if (src) {
     get(lang, "lexicon.js", function (err, data) {
       var lstr = data.substring(data.indexOf("{"));
@@ -168,10 +184,8 @@ app.get('/lang', function(req, res) {
 app.get('/item', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
-  console.log("GET /item ids=" + ids);
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-      console.log("/item id=" + id + " found");
       var rows;
       if (!result || result.rows.length===0) {
         rows = [{}];
@@ -194,8 +208,10 @@ app.get('/item', function(req, res) {
           }
         });
       }
+      client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+        done();
+      });
     });
-    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
   });
 });
 
@@ -203,7 +219,7 @@ app.get('/form', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
   console.log("GET /form ids=" + ids);
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var rows;
       if (!result || result.rows.length===0) {
@@ -227,6 +243,7 @@ app.get('/form', function(req, res) {
           }
         });
       }
+      done();
     });
     client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
   });
@@ -236,11 +253,12 @@ app.get('/data', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
   console.log("GET /data ids=" + ids);
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
       var obj;
       if (err) {
         res.status(400).send(err);
+        done();
       } else {
         if (!result || result.rows.length===0) {
           obj = [{}];
@@ -248,7 +266,9 @@ app.get('/data', function(req, res) {
           obj = JSON.parse(result.rows[0].obj);
         }
         res.send(obj);
-        client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
+        client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+          done();
+        });
       }
     });
   });
@@ -337,7 +357,7 @@ app.get('/debug', function (req, res) {
 // get the piece with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
-   pg.connect(conString, function (err, client) {
+   pg.connect(conString, function (err, client, done) {
     client.query("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
       var rows;
       if (!result || result.rows.length===0) {
@@ -346,15 +366,17 @@ app.get('/code/:id', function (req, res) {
         rows = result.rows;
       }
       res.send(rows);
+      client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+        done();
+      });
     });
-    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
   });
 });
 
 // get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
       var ret;
       if (!result || result.rows.length === 0) {
@@ -367,32 +389,10 @@ app.get('/graffiti/:id', function (req, res) {
         }
       }
       res.send(ret);
+      client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+        done();
+      });
     });
-    client.query("UPDATE pieces SET views = views + 1 WHERE id = "+id);
-  });
-});
-
-// get the object code for piece with :id
-app.get('/graffiti/dr10/latest', function (req, res) {
-  req.setTimeout(10000);
-  req.on("timeout", function() {
-    console.log("socket timeout");
-  });
-  pg.connect(conString, function (err, client) {
-    var id, obj;
-    client.query("SELECT id, obj FROM pieces WHERE language='L101' ORDER BY id DESC LIMIT 1", function (err, result) {
-      var ret;
-      if (!result || result.rows.length === 0) {
-        obj = "";
-      } else {
-        obj = result.rows[0].obj;
-        id = result.rows[0].id;
-      }
-      res.send(obj);
-    });
-    if (id) {
-      client.query("UPDATE pieces SET views = views + 1 WHERE id = " + id);
-    }
   });
 });
 
@@ -401,7 +401,7 @@ app.get('/pieces/:lang', function (req, res) {
   var lang = req.params.lang;
   var search = req.query.src;
   var label = req.query.label === undefined ? "show" : req.query.label;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     var queryString, likeStr = "";
     if (search) {
       var ss = search.split(",");
@@ -436,10 +436,12 @@ app.get('/pieces/:lang', function (req, res) {
             return;
           }
           client.query(queryString, function (err, result) {
+            done();
             res.send(result.rows);
           });
         });
       } else {
+        done();
         res.send(result.rows);
       }
     });
@@ -452,7 +454,7 @@ app.get('/items', function(req, res) {
     data += chunk;
   });
   req.on('end', function () {
-    pg.connect(conString, function (err, client) {
+    pg.connect(conString, function (err, client, done) {
       var list = JSON.parse(data);
       var queryStr =
         "SELECT id, created, src, obj, img FROM pieces WHERE id" +
@@ -465,6 +467,7 @@ app.get('/items', function(req, res) {
           rows = result.rows;
         }
         res.send(rows)
+        done();
       });
     });
   });
@@ -480,7 +483,7 @@ app.get('/items/src', function(req, res) {
     data += chunk;
   });
   req.on('end', function () {
-    pg.connect(conString, function (err, client) {
+    pg.connect(conString, function (err, client, done) {
       var list = JSON.parse(data);
       var queryStr =
         "SELECT id, src FROM pieces WHERE id" +
@@ -492,19 +495,21 @@ app.get('/items/src', function(req, res) {
         } else {
           rows = result.rows;
         }
-        res.send(rows)
+        res.send(rows);
+        done();
       });
     });
   });
   req.on('error', function(e) {
     console.log(e);
     res.send(e);
+    done();
   });
 });
 
 // Get pieces
 app.get('/code', function (req, res) {
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     var list = req.query.list;
     var queryStr =
       "SELECT * FROM pieces WHERE pieces.id" +
@@ -517,6 +522,7 @@ app.get('/code', function (req, res) {
         rows = result.rows;
       }
       res.send(rows)
+      done();
     });
   });
 });
@@ -603,7 +609,7 @@ function cleanAndTrimSrc(str) {
 function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
     src = cleanAndTrimSrc(src);
@@ -617,12 +623,15 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
       if (err) {
         console.log("postItem() ERROR: " + err);
         resume(err);
+        done();
       } else {
         var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
         client.query(queryStr, function (err, result) {
           resume(err, result);
+          client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";", function () {
+            done();
+          });
         });
-        client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";");
       }
     });
   });
@@ -632,7 +641,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
 function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
   var views = 0;
   var forks = 0;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     obj = cleanAndTrimObj(obj);
     img = cleanAndTrimObj(img);
     src = cleanAndTrimSrc(src);
@@ -643,8 +652,10 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
       "ast='" + ast + "', " +
       "obj='" + obj + "' " +
       "WHERE id='" + id + "'";
-    client.query(query);
-    resume(err, []);
+    client.query(query, function () {
+      resume(err, []);
+      done();
+    });
   });
 };
 
@@ -745,22 +756,19 @@ app.put('/compile', function (req, res) {
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
-  var query;
+  var q;
   if (id) {
     // Prefer the given id if there is one.
-    query = "SELECT * FROM pieces WHERE id='" + id + "'";
+    q = "SELECT * FROM pieces WHERE id='" + id + "'";
   } else {
     // Otherwise look for an item with matching source.
-    query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
+    q = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
   }
-  console.log("PUT /compile query=" + query);
-  pg.connect(conString, function (err, client) {
-    client.query(query, function(err, result) {
-      if (err) {
-      }
-      console.log("PUT /compile result=" + result);
+  pg.connect(conString, function (err, client, done) {
+    client.query(q, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
       compile(id, user, parent, language, src, ast, result, res);
+      done();
     });
   });
 });
@@ -773,7 +781,6 @@ app.put('/compile', function (req, res) {
 app.put('/code', function (req, response) {
   var id = req.body.id;
   var src = req.body.src;
-  console.log("PUT /code id=" + id + " src=" + src);
   var language = req.body.language;
   var ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
@@ -788,8 +795,7 @@ app.put('/code', function (req, response) {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
-  console.log("PUT /code query=" + query);
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query(query, function(err, result) {
       // See if there is already an item with the same source for the same language. If so, pass it on.
       var row = result.rows[0];
@@ -834,6 +840,7 @@ app.put('/code', function (req, response) {
           }
         });
       }
+      done();
     });
   });
 });
@@ -875,7 +882,7 @@ app.post('/code', function (req, res){
   function commit() {
     var views = 0;
     var forks = 0;
-    pg.connect(conString, function (err, client) {
+    pg.connect(conString, function (err, client, done) {
       obj = cleanAndTrimObj(obj);
       img = cleanAndTrimObj(img);
       src = cleanAndTrimSrc(src);
@@ -889,6 +896,7 @@ app.post('/code', function (req, res){
         if (err) {
           console.log("commit() ERROR: " + err);
           res.status(400).send(err);
+          done();
           return;
         }
         var queryStr =
@@ -899,8 +907,10 @@ app.post('/code', function (req, res){
             return;
           }
           res.send(result.rows[0]);
+          client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";", function (err, result) {
+            done();
+          });
         })
-        client.query("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";");
       });
     });
   }
@@ -909,14 +919,15 @@ app.post('/code', function (req, res){
 // Get a label
 app.get('/label', function (req, res) {
   var id = req.body.id;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     var label = "";
     client.query("SELECT label FROM pieces WHERE id = '" + id + "'",  function (err, result) {
-      if (result || result.rows.length === 1) {
+       if (result || result.rows.length === 1) {
         label = result.rows[0].label;
       }
-    });
-    res.send(label)
+      res.send(label)
+      done();
+   });
   });
 });
 
@@ -924,18 +935,20 @@ app.get('/label', function (req, res) {
 app.put('/label', function (req, res) {
   var id = req.body.id;
   var label = req.body.label;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'");
     res.send(200)
+    done();
   });
 });
 
 // Delete the notes for a label
 app.delete('/code/:id', ensureAuthenticated, function (req, res) {
   var id = req.params.id;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query("DELETE FROM todos WHERE id='"+id+"'", function (err, result) {
       res.send(500);
+      done();
     });
   });
 });
@@ -943,18 +956,20 @@ app.delete('/code/:id', ensureAuthenticated, function (req, res) {
 // Update a note
 app.put('/code/:id', ensureAuthenticated, function (req, res) {
   var id = req.params.id;
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     client.query("UPDATE todos SET text='"+req.body.text+"' WHERE id="+id, function (err, result) {
       res.send(result.rows)
+      done();
     });
   })
 });
 
 // Post a note for a label
 app.post('/notes', ensureAuthenticated, function (req, res) {
-  pg.connect(conString, function(err, client) {
+  pg.connect(conString, function(err, client, done) {
     client.query("INSERT INTO todos (label, text) VALUES ('"+req.body.label+"', '"+req.body.text+"')");
     res.send(req.body);
+    done();
   });
 });
 
@@ -1063,7 +1078,7 @@ app.post('/login', function login (req, res) {
   vreq.end();
 
   function getUserName(email) {
-    pg.connect(conString, function (err, client) {
+    pg.connect(conString, function (err, client, done) {
       var queryStr = "SELECT * FROM users WHERE email = '" + email + "'";
       client.query(queryStr, function (err, result) {
         if (!result.rows.length) {
@@ -1075,10 +1090,12 @@ app.post('/login', function login (req, res) {
             var queryString = "SELECT * FROM users ORDER BY id DESC LIMIT 1"
             client.query(queryString, function (err, result) {
               res.send(result.rows[0])
+              done();
             });
           });
         } else {
           res.send(result.rows[0]);
+          done();
         }
       });
     });
