@@ -246,7 +246,7 @@ app.get('/form', function(req, res) {
       });
     }
   });
-  dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id);
+  dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
 });
 
 app.get('/data', function(req, res) {
@@ -891,7 +891,7 @@ app.get('/label', function (req, res) {
 app.put('/label', function (req, res) {
   var id = req.body.id;
   var label = req.body.label;
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'");
+  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'", ()=>{});
   res.send(200)
 });
 
