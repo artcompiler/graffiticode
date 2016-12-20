@@ -24,7 +24,6 @@ var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
 var timeout = require('connect-timeout');
 var main = require('./main.js');
-
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
 // Query Helper
@@ -36,25 +35,19 @@ var dbQuery = function(query, resume) {
       console.log("[1] dbQuery() err=" + err);
       return resume(err);
     }
-    // client.on('error', function(err) {
-    //   console.log("[2] dbQuery() err=" + err);
-    //   resume(err);
-    // });
     try {
       client.query(query, function (err, result) {
         done();
         return resume(err, result);
       });
     } catch (e) {
-      console.log("[3] dbQuery() e=" + e);
+      console.log("[2] dbQuery() e=" + e);
       done();
       return resume(e);
     }
   });
 };
 
-console.log("conString=" + conString);
-//error handling omitted
 if (conString.indexOf("localhost") < 0) {
   pg.defaults.ssl = true;
 }
@@ -91,34 +84,22 @@ app.set('public', __dirname + '/public');
 app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
-//app.use(cookieParser('S3CRE7'));
-//app.use(session({
-//  key: 'app.sess',
-//  secret: 'SUPERsekret'
-//}));
 
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }))
-
+app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }));
 // parse application/json
 app.use(bodyParser.json());
-
 // parse application/text
 app.use(bodyParser.text());
 app.use(bodyParser.raw());
-
 // parse application/vnd.api+json as json
-app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
-
+app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
-//app.use(session({ secret: 'keyboard cat' }));
-
 app.use(function (err, req, res, next) {
   console.error(err.stack)
   res.status(500).send('Something broke!')
 });
-
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
     var template = _.template(String(templateData));
@@ -132,7 +113,6 @@ app.engine('html', function (templateFile, options, callback) {
 // app.get('/.well-known/acme-challenge/Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo', function(req, res) {
 //   res.send("Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
 // });
-
 
 app.get('/', function(req, res) {
   res.redirect("/index");
@@ -272,82 +252,6 @@ app.get('/data', function(req, res) {
 
 app.get("/index", function (req, res) {
   res.sendFile("public/index.html");
-});
-
-app.get('/dr10', function (req, res) {
-  res.send("<html>This URL has been decprecated. Try '/L101'");
-});
-
-app.get('/L102', function (req, res) {
-  fs.readFile('views/L102.html', function (err, body) {
-    res.render('layout.html', {
-      title: 'Graffiti Code',
-      vocabulary: 'L102',
-      target: 'SVG',
-      login: 'Login',
-      body: body,
-    }, function (error, html) {
-      if (error) {
-        res.status(400).send(error);
-      } else {
-        res.send(html);
-      }
-    });
-  });
-});
-
-app.get('/L104', function (req, res) {
-  fs.readFile('views/L104.html', function (err, body) {
-    res.render('layout.html', {
-      title: 'Graffiti Code',
-      vocabulary: 'L104',
-      target: 'HTML',
-      login: 'Login',
-      body: body,
-    }, function (error, html) {
-      if (error) {
-        res.status(400).send(error);
-      } else {
-        res.send(html);
-      }
-    });
-  });
-});
-
-app.get('/math', function (req, res) {
-  fs.readFile('views/math.html', function (err, body) {
-    res.render('layout.html', {
-      title: 'Graffiti Code',
-      vocabulary: 'MATH',
-      target: 'SVG',
-      login: 'Login',
-      body: body,
-    }, function (error, html) {
-      if (error) {
-        res.status(400).send(error);
-      } else {
-        res.send(html);
-      }
-    });
-  });
-});
-
-app.get('/debug', function (req, res) {
-  fs.readFile('views/debug.html', function (err, body) {
-    res.render('layout.html', {
-      title: 'Graffiti Code',
-      vocabulary: 'DEBUG',
-      target: 'SVG',
-      login: 'Login',
-      body: body,
-    }, function (error, html) {
-      if (error) {
-        res.status(400).send(error);
-      } else {
-        res.send(html);
-      }
-    });
-  });
 });
 
 // get the piece with :id
@@ -895,55 +799,6 @@ app.put('/label', function (req, res) {
   res.send(200)
 });
 
-// Delete the notes for a label
-app.delete('/code/:id', ensureAuthenticated, function (req, res) {
-  var id = req.params.id;
-  dbQuery("DELETE FROM todos WHERE id='"+id+"'", function (err, result) {
-    res.send(500);
-  });
-});
-
-// Update a note
-app.put('/code/:id', ensureAuthenticated, function (req, res) {
-  var id = req.params.id;
-  dbQuery("UPDATE todos SET text='"+req.body.text+"' WHERE id="+id, function (err, result) {
-    res.send(result.rows)
-  });
-});
-
-// Post a note for a label
-app.post('/notes', ensureAuthenticated, function (req, res) {
-  dbQuery("INSERT INTO todos (label, text) VALUES ('"+req.body.label+"', '"+req.body.text+"')");
-  res.send(req.body);
-});
-
-app.get('/about', function (req, res) {
-  res.render('about', {
-    title: 'About',
-    user: req.user,
-  });
-});
-
-app.get('/contact', function (req, res) {
-  res.render('contact', {
-    title: 'Contact',
-    user: req.user,
-  });
-});
-
-app.get('/todos', function (req, res) {
-  var url = req.url;
-  var file = __dirname + "/public/svg/" + url.substring(url.indexOf("?")+1);
-  res.sendfile(file);
-});
-
-app.get('/archive', function (req, res) {
-  var url = req.url;
-  ensureAuthenticated(req, res, function () {
-    res.redirect("/todos.html");
-  });
-});
-
 app.get("/:lang/:path", function (req, res) {
   var language = req.params.lang;
   var path = req.params.path;
@@ -960,93 +815,6 @@ app.get('/:lang', function (req, res) {
   }
 });
 
-// Simple route middleware to ensure user is authenticated.
-//   Use this route middleware on any resource that needs to be protected.  If
-//   the request is authenticated (typically via a persistent login session),
-//   the request will proceed.  Otherwise, the user will be redirected to the
-//   login page.
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/login')
-}
-
-if (!module.parent) {
-  var port = process.env.PORT || 3000;
-  app.listen(port, function() {
-    console.log("Listening on " + port);
-  });
-}
-
-/*
- * GET home page.
- */
-
-app.post('/login', function login (req, res) {
-  var audience = process.env.AUDIENCE
-  var vreq = https.request({
-    host: "verifier.login.persona.org",
-    path: "/verify",
-    method: "POST",
-  }, function (vres) {
-    var body = "";
-    vres.on('data', function (chunk) {
-      body+=chunk;
-    }).on('end', function () {
-      try {
-        var verifierResp = JSON.parse(body);
-        var valid = verifierResp && verifierResp.status === "okay";
-        var email = valid ? verifierResp.email : null;
-        req.session.email = email;
-        if (valid) {
-          getUserName(email);
-        } else {
-          res.send(verifierResp.reason, 401);
-        }
-      } catch(e) {
-        console.log("non-JSON response from verifier");
-        // bogus response from verifier!
-        res.send("bogus response from verifier!", 401);
-      }
-    });
-  });
-
-  vreq.setHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-  var data = qs.stringify({
-    assertion: req.body.assertion,
-    audience: audience
-  });
-
-  vreq.setHeader('Content-Length', data.length);
-  vreq.write(data);
-  vreq.end();
-
-  function getUserName(email) {
-    var queryStr = "SELECT * FROM users WHERE email = '" + email + "'";
-    dbQuery(queryStr, function (err, result) {
-      if (!result.rows.length) {
-        var name = email.substring(0, email.indexOf("@"))
-        var queryStr =
-          "INSERT INTO users (email, name, created)" +
-          " VALUES ('" + email + "', '" + name + "', now())";
-        dbQuery(queryStr, function(err, result) {
-          var queryString = "SELECT * FROM users ORDER BY id DESC LIMIT 1"
-          dbQuery(queryString, function (err, result) {
-            res.send(result.rows[0])
-          });
-        });
-      } else {
-        res.send(result.rows[0]);
-      }
-    });
-  }
-});
-
-app.post("/logout", function (req, res) {
-  req.session.destroy()
-  res.send("okay")
-});
-
 if (process.env.NODE_ENV === 'development') {
   app.use(errorHandler({dumpExceptions: true, showStack: true}))
 }
@@ -1059,4 +827,10 @@ process.on('uncaughtException', function(err) {
   console.log('Caught exception: ' + err.stack);
 });
 
+if (!module.parent) {
+  var port = process.env.PORT || 3000;
+  app.listen(port, function() {
+    console.log("Listening on " + port);
+  });
+}
 
