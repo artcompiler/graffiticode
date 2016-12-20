@@ -48,15 +48,16 @@ var env = process.env.NODE_ENV || 'development';
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
     console.log("app.all headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
-    if (req.url === "/artcompiler") {
-      res.redirect('https://www.graffiticode.com/form?id=471917');
-    } else if (req.headers.host.match(/^www/) === null) {
-      res.redirect('https://www.'+ req.headers.host + req.url);
-    } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
-      res.redirect(['https://', req.headers.host, req.url].join(''));
-    } else {
-      next();
-    }
+    // if (req.url === "/artcompiler") {
+    //   res.redirect('https://www.graffiticode.com/form?id=471917');
+    // } else if (req.headers.host.match(/^www/) === null) {
+    //   res.redirect('https://www.'+ req.headers.host + req.url);
+    // } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
+    //   res.redirect(['https://', req.headers.host, req.url].join(''));
+    // } else {
+    //   next();
+    // }
+    next();
   } else {
     next();
   }
