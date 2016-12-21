@@ -11,17 +11,11 @@ var _ = require('underscore');
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-// var transformer = require('./static/transform.js');
-// var renderer = require('./static/render.js');
-// var qs = require("qs");
 var app = module.exports = express();
 var morgan = require("morgan");
 var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
-//var session = require("express-session");
 var errorHandler = require("errorhandler");
-// var timeout = require('connect-timeout');
-var main = require('./main.js');
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
 // Query Helper
@@ -108,55 +102,6 @@ app.engine('html', function (templateFile, options, callback) {
 
 app.get('/', function(req, res) {
   res.redirect("/index");
-});
-
-// lang?id=106
-// item?id=12304
-// data?author=dyer&sort=desc
-// lang?id=106&src=equivLiteral "1+2" "1+2" --> item id
-app.get('/lang', function(req, res) {
-  var id = req.query.id;
-  var src = req.query.src;
-  var lang = "L" + id;
-  var type = req.query.type;
-  if (src) {
-    get(lang, "lexicon.js", function (err, data) {
-      var lstr = data.substring(data.indexOf("{"));
-      var lexicon = JSON.parse(lstr);
-      var ast = main.parse(src, lexicon, function (err, ast) {
-        if (ast) {
-          compile(0, 0, 0, lang, src, ast, null, {
-            send: function (data) {
-              if (type === "data") {
-                res.redirect('/data?id=' + data.id);
-              } else {
-                res.redirect('/form?id=' + data.id);
-              }
-            }
-          });
-        } else {
-          res.status(400).send(err);
-        }
-      });
-      return;
-    });
-  } else {
-    res.render('views.html', {
-      title: 'Graffiti Code',
-      language: lang,
-      vocabulary: lang,
-      target: 'SVG',
-      login: 'Login',
-      item: 0,
-      data: 0,
-    }, function (error, html) {
-      if (error) {
-        res.status(400).send(error);
-      } else {
-        res.send(html);
-      }
-    });
-  }
 });
 
 app.get('/form', function(req, res) {
@@ -615,68 +560,10 @@ app.post('/code', function (req, res){
   }
 });
 
-// get list of piece ids
-app.get('/pieces/:lang', function (req, res) {
-  var lang = req.params.lang;
-  var search = req.query.src;
-  var label = req.query.label === undefined ? "show" : req.query.label;
-  var queryString, likeStr = "";
-  if (search) {
-    var ss = search.split(",");
-    ss.forEach(function (s) {
-      s = cleanAndTrimSrc(s);
-      if (likeStr) {
-        likeStr += " AND ";
-      } else {
-        likeStr += "(";
-      }
-      likeStr += "src like '%" + s + "%'";
-    });
-    if (likeStr) {
-      likeStr += ") AND ";
-    }
-  }
-  queryString = "SELECT id FROM pieces WHERE language='" + lang +
-    "' AND " + likeStr +
-    "label = '" + label + "' ORDER BY id DESC";
-  dbQuery(queryString, function (err, result) {
-    var rows;
-    if (!result || result.rows.length === 0) {
-      console.log("no rows");
-      var insertStr =
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-      dbQuery(insertStr, function(err, result) {
-        if (err) {
-          res.status(400).send(err);
-          return;
-        }
-        dbQuery(queryString, function (err, result) {
-          res.send(result.rows);
-        });
-      });
-    } else {
-      res.send(result.rows);
-    }
-  });
-});
-
 app.get("/:lang/:path", function (req, res) {
   var language = req.params.lang;
   var path = req.params.path;
   retrieve(language, path, res);
-});
-
-// This is the new way of loading pages
-app.get('/:lang', function (req, res) {
-  var lang = req.params.lang.substring(1);
-  if (!isNaN(parseInt(lang))) {
-    res.redirect('/lang?id=' + lang);
-  } else {
-    res.status(400).send("Page not found");
-  }
 });
 
 if (process.env.NODE_ENV === 'development') {
