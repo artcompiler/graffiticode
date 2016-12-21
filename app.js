@@ -7,22 +7,20 @@ function print(str) {
 }
 
 var express = require('express');
-var util = require('util');
 var _ = require('underscore');
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-var transformer = require('./static/transform.js');
-var renderer = require('./static/render.js');
-var qs = require("qs");
+// var transformer = require('./static/transform.js');
+// var renderer = require('./static/render.js');
+// var qs = require("qs");
 var app = module.exports = express();
 var morgan = require("morgan");
-var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
 //var session = require("express-session");
 var errorHandler = require("errorhandler");
-var timeout = require('connect-timeout');
+// var timeout = require('connect-timeout');
 var main = require('./main.js');
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
@@ -47,7 +45,6 @@ var dbQuery = function(query, resume) {
     }
   });
 };
-
 if (conString.indexOf("localhost") < 0) {
   pg.defaults.ssl = true;
 }
@@ -56,7 +53,6 @@ dbQuery("SELECT NOW() as when", function(err, result) {
 });
 
 // Configuration
-
 var env = process.env.NODE_ENV || 'development';
 
 // http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
@@ -85,14 +81,10 @@ app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
 
-// parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }));
-// parse application/json
 app.use(bodyParser.json());
-// parse application/text
 app.use(bodyParser.text());
 app.use(bodyParser.raw());
-// parse application/vnd.api+json as json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
@@ -167,37 +159,6 @@ app.get('/lang', function(req, res) {
   }
 });
 
-app.get('/item', function(req, res) {
-  var ids = req.query.id.split(" ");
-  var id = ids[0];  // First id is the item id.
-  dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
-    } else {
-      var lang = result.rows[0].language;
-      res.render('views.html', {
-        title: 'Graffiti Code',
-        language: lang,
-        vocabulary: lang,
-        target: 'SVG',
-        login: 'Login',
-        item: ids[0],
-        data: ids[1] ? ids[1] : 0,
-        view: "item",
-      }, function (error, html) {
-        if (error) {
-          res.status(400).send(error);
-        } else {
-          res.send(html);
-        }
-      });
-    }
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-    });
-  });
-});
-
 app.get('/form', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
@@ -209,11 +170,10 @@ app.get('/form', function(req, res) {
     } else {
       var lang = result.rows[0].language;
       res.render('form.html', {
-        title: 'Graffiti Code',
+        title: 'Acme',
         language: lang,
         vocabulary: lang,
         target: 'SVG',
-        login: 'Login',
         item: ids[0],
         data: ids[1] ? ids[1] : 0,
         view: "form",
@@ -250,10 +210,6 @@ app.get('/data', function(req, res) {
   });
 });
 
-app.get("/index", function (req, res) {
-  res.sendFile("public/index.html");
-});
-
 // Get an item with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
@@ -267,126 +223,6 @@ app.get('/code/:id', function (req, res) {
     res.send(rows);
     dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
     });
-  });
-});
-
-// Get the object code for piece with :id
-app.get('/graffiti/:id', function (req, res) {
-  var id = req.params.id;
-  dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
-    var ret;
-    if (!result || result.rows.length === 0) {
-      ret = "";
-    } else {
-      ret = result.rows[0].img;
-      if (!ret) {
-        // For backward compatibility
-        ret = result.rows[0].obj;
-      }
-    }
-    res.send(ret);
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-    });
-  });
-});
-
-// get list of piece ids
-app.get('/pieces/:lang', function (req, res) {
-  var lang = req.params.lang;
-  var search = req.query.src;
-  var label = req.query.label === undefined ? "show" : req.query.label;
-  var queryString, likeStr = "";
-  if (search) {
-    var ss = search.split(",");
-    ss.forEach(function (s) {
-      s = cleanAndTrimSrc(s);
-      if (likeStr) {
-        likeStr += " AND ";
-      } else {
-        likeStr += "(";
-      }
-      likeStr += "src like '%" + s + "%'";
-    });
-    if (likeStr) {
-      likeStr += ") AND ";
-    }
-  }
-  queryString = "SELECT id FROM pieces WHERE language='" + lang +
-    "' AND " + likeStr +
-    "label = '" + label + "' ORDER BY id DESC";
-  dbQuery(queryString, function (err, result) {
-    var rows;
-    if (!result || result.rows.length === 0) {
-      console.log("no rows");
-      var insertStr =
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-      dbQuery(insertStr, function(err, result) {
-        if (err) {
-          res.status(400).send(err);
-          return;
-        }
-        dbQuery(queryString, function (err, result) {
-          res.send(result.rows);
-        });
-      });
-    } else {
-      res.send(result.rows);
-    }
-  });
-});
-
-app.get('/items', function(req, res) {
-  var data = "";
-  req.on("data", function (chunk) {
-    data += chunk;
-  });
-  req.on('end', function () {
-    var list = JSON.parse(data);
-    var queryStr =
-      "SELECT id, created, src, obj, img FROM pieces WHERE id" +
-      " IN ("+list+") ORDER BY id DESC";
-    dbQuery(queryStr, function (err, result) {
-      var rows;
-      if (!result || result.rows.length === 0) {
-        rows = [{}];
-      } else {
-        rows = result.rows;
-      }
-      res.send(rows)
-    });
-  });
-  req.on('error', function(e) {
-    console.log(e);
-    res.send(e);
-  });
-});
-
-app.get('/items/src', function(req, res) {
-  var data = "";
-  req.on("data", function (chunk) {
-    data += chunk;
-  });
-  req.on('end', function () {
-    var list = JSON.parse(data);
-    var queryStr =
-      "SELECT id, src FROM pieces WHERE id" +
-      " IN ("+list+") ORDER BY id DESC";
-    dbQuery(queryStr, function (err, result) {
-      var rows;
-      if (!result || result.rows.length === 0) {
-        rows = [{}];
-      } else {
-        rows = result.rows;
-      }
-      res.send(rows);
-    });
-  });
-  req.on('error', function(e) {
-    console.log(e);
-    res.send(e);
   });
 });
 
@@ -779,24 +615,52 @@ app.post('/code', function (req, res){
   }
 });
 
-// Get a label
-app.get('/label', function (req, res) {
-  var id = req.body.id;
-  var label = "";
-  dbQuery("SELECT label FROM pieces WHERE id = '" + id + "'",  function (err, result) {
-    if (result || result.rows.length === 1) {
-      label = result.rows[0].label;
+// get list of piece ids
+app.get('/pieces/:lang', function (req, res) {
+  var lang = req.params.lang;
+  var search = req.query.src;
+  var label = req.query.label === undefined ? "show" : req.query.label;
+  var queryString, likeStr = "";
+  if (search) {
+    var ss = search.split(",");
+    ss.forEach(function (s) {
+      s = cleanAndTrimSrc(s);
+      if (likeStr) {
+        likeStr += " AND ";
+      } else {
+        likeStr += "(";
+      }
+      likeStr += "src like '%" + s + "%'";
+    });
+    if (likeStr) {
+      likeStr += ") AND ";
     }
-    res.send(label)
+  }
+  queryString = "SELECT id FROM pieces WHERE language='" + lang +
+    "' AND " + likeStr +
+    "label = '" + label + "' ORDER BY id DESC";
+  dbQuery(queryString, function (err, result) {
+    var rows;
+    if (!result || result.rows.length === 0) {
+      console.log("no rows");
+      var insertStr =
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+      dbQuery(insertStr, function(err, result) {
+        if (err) {
+          res.status(400).send(err);
+          return;
+        }
+        dbQuery(queryString, function (err, result) {
+          res.send(result.rows);
+        });
+      });
+    } else {
+      res.send(result.rows);
+    }
   });
-});
-
-// Update a label
-app.put('/label', function (req, res) {
-  var id = req.body.id;
-  var label = req.body.label;
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'", ()=>{});
-  res.send(200)
 });
 
 app.get("/:lang/:path", function (req, res) {
@@ -828,7 +692,7 @@ process.on('uncaughtException', function(err) {
 });
 
 if (!module.parent) {
-  var port = process.env.PORT || 3000;
+  var port = process.env.PORT || 3001;
   app.listen(port, function() {
     console.log("Listening on " + port);
   });
