@@ -206,6 +206,8 @@ function getCompilerPort(language) {
 function redirect(path, response) {
   var data = [];
   var options = {
+    host: "learnosity.artcompiler.com",
+    port: "443",
     path: path,
   };
   var req = http.get(options, function(res) {
