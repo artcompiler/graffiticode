@@ -96,7 +96,7 @@ app.engine('html', function (templateFile, options, callback) {
 // });
 
 app.get("/docs/spokenmathspec", (req, res) => {
-  res.redirect("/form?id=489970");  
+  redirect("/form?id=489970", res);  
 });
 
 app.get('/', function(req, res) {
@@ -201,6 +201,20 @@ function getCompilerPort(language) {
   } else {
     return "80";
   }
+}
+
+function redirect(path, response) {
+  var data = [];
+  var options = {
+    path: path,
+  };
+  var req = http.get(options, function(res) {
+    res.on("data", function (chunk) {
+      data.push(chunk);
+    }).on("end", function () {
+      response.send(data.join(""));
+    });
+  });
 }
 
 function retrieve(language, path, response) {
