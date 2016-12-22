@@ -95,9 +95,10 @@ app.engine('html', function (templateFile, options, callback) {
 //   res.send("1m10T3oPsyaWnJdFHk_OR5ro5GFqWQxCbvoRr5kfvm4.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
 // });
 
+// http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/docs/spokenmathspec", (req, res) => {
-  request("/form?id=489970").pipe(res);
+  request("https://learnosity.artcompiler.com/form?id=489970").pipe(res);
 });
 
 app.get('/', function(req, res) {
