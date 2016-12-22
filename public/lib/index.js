@@ -19911,10 +19911,7 @@ var CodeMirrorEditor = React.createClass({
       viewportMargin: Infinity,
       extraKeys: { "Ctrl-Space": "autocomplete" },
       gutters: ["CodeMirror-lint-markers"],
-      lint: true,
-      pollInterval: 2000,
-      workTime: 100,
-      workDelay: 1000
+      lint: true
     });
     var pieces = [];
     var id = +window.gcexports.id;
