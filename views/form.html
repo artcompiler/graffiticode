@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title><%=language%></title>
+    <title>Learnosity</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="normalize.css">
     <link rel="stylesheet" href="<%=language%>/style.css">
@@ -11,6 +11,13 @@
         data: "<%=data%>",
         view: "<%=view%>",
       };
+      switch (window.gcexports.language) {
+      case "L106":
+        document.title = "Math | " + document.title;
+        break;
+      default:
+        break;
+      }
     </script>
     <script src="jquery.js" charset="utf-8"></script>
     <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
