@@ -97,7 +97,7 @@ app.engine('html', function (templateFile, options, callback) {
 
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
-app.get("/docs/spokenmathspec", (req, res) => {
+app.get("/spokenmathspec", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=489970").pipe(res);
 });
 
@@ -203,22 +203,6 @@ function getCompilerPort(language) {
   } else {
     return "80";
   }
-}
-
-function redirect(path, response) {
-  var data = [];
-  var options = {
-    host: "learnosity.artcompiler.com",
-    port: "443",
-    path: path,
-  };
-  var req = http.get(options, function(res) {
-    res.on("data", function (chunk) {
-      data.push(chunk);
-    }).on("end", function () {
-      response.send(data.join(""));
-    });
-  });
 }
 
 function retrieve(language, path, response) {
