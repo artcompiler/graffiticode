@@ -95,6 +95,10 @@ app.engine('html', function (templateFile, options, callback) {
 //   res.send("1m10T3oPsyaWnJdFHk_OR5ro5GFqWQxCbvoRr5kfvm4.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
 // });
 
+app.get("/docs/spokenmathspec", (req, res) => {
+  res.redirect("/form?id=489970");  
+});
+
 app.get('/', function(req, res) {
   res.redirect("/index");
 });
