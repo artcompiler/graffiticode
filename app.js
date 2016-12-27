@@ -98,7 +98,7 @@ app.engine('html', function (templateFile, options, callback) {
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/spokenmathspec", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=490432").pipe(res);
+  request("https://learnosity.artcompiler.com/form?id=490474").pipe(res);
 });
 
 app.get('/', function(req, res) {
