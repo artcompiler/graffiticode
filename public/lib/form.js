@@ -19437,7 +19437,7 @@ var GraffContent = React.createClass({
     } else {
       return React.createElement(
         "svg",
-        { height: "0", width: "100%", style: { background: "white" } },
+        { height: "0", width: "100%", style: { background: "transparent" } },
         React.createElement(
           "g",
           null,
