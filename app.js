@@ -17,6 +17,8 @@ var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
 var pg = require('pg');
+var redis = require('redis');
+var cache = redis.createClient(process.env.REDIS_URL);
 var conString = process.env.DATABASE_URL;
 // Query Helper
 // https://github.com/brianc/node-postgres/issues/382
@@ -36,6 +38,32 @@ var dbQuery = function(query, resume) {
       console.log("[2] dbQuery() e=" + e);
       done();
       return resume(e);
+    }
+  });
+};
+var getItem = function (id, resume) {
+  cache.exists(id, (err, val) => {
+    console.log("getItem() exists id=" + id + " val=" + val);
+    if (val) {
+      cache.get(id, (err, val) => {
+        console.log("getItem() get id=" + id + " val=" + val);
+        resume(null, JSON.parse(val));
+      });
+    } else {
+      dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+        // Here we get the language associated with the id. The code is gotten by
+        // the view after it is loaded.
+        let val;
+        if (!result || result.rows.length === 0) {
+          val = {};
+        } else {
+          //assert(result.rows.length === 1);
+          val = result.rows[0];
+        }
+        cache.set(id, JSON.stringify(val), redis.print);
+        resume(err, val);
+      });
+      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
     }
   });
 };
@@ -109,17 +137,17 @@ app.get('/form', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
   console.log("GET /form ids=" + ids);
-  dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
+  getItem(id, (err, val) => {
+    if (err) {
+      res.status(400).send(err);
     } else {
-      var lang = result.rows[0].language;
+      var lang = val.language;
       res.render('form.html', {
-        title: 'Acme',
+        title: 'Graffiti Code',
         language: lang,
         vocabulary: lang,
         target: 'SVG',
+        login: 'Login',
         item: ids[0],
         data: ids[1] ? ids[1] : 0,
         view: "form",
@@ -132,26 +160,19 @@ app.get('/form', function(req, res) {
       });
     }
   });
-  dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
 });
 
 app.get('/data', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
   console.log("GET /data ids=" + ids);
-  dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+  getItem(id, (err, val) => {
     var obj;
     if (err) {
       res.status(400).send(err);
     } else {
-      if (!result || result.rows.length===0) {
-        obj = [{}];
-      } else {
-        obj = JSON.parse(result.rows[0].obj);
-      }
-      res.send(obj);
-      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-      });
+      res.send(val.obj);
+      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, () => {});
     }
   });
 });
