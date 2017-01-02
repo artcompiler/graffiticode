@@ -42,13 +42,9 @@ var dbQuery = function(query, resume) {
   });
 };
 var getItem = function (id, resume) {
-  cache.exists(id, (err, val) => {
-    console.log("getItem() exists id=" + id + " val=" + val);
+  cache.get(id, (err, val) => {
     if (val) {
-      cache.get(id, (err, val) => {
-        console.log("getItem() get id=" + id + " val=" + val);
-        resume(null, JSON.parse(val));
-      });
+      resume(null, JSON.parse(val));
     } else {
       dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
         // Here we get the language associated with the id. The code is gotten by
@@ -180,22 +176,23 @@ app.get('/data', function(req, res) {
 // Get an item with :id
 app.get('/code/:id', function (req, res) {
   var id = req.params.id;
-  dbQuery("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
+  console.log("GET /code id=" + id);
+  getItem(id, (err, val) => {
+    var obj;
+    if (err) {
+      res.status(400).send(err);
     } else {
-      rows = result.rows;
+      // FIXME return object, not array.
+      res.send([val]);
+      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, () => {});
     }
-    res.send(rows);
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-    });
   });
 });
 
 // Get pieces
 app.get('/code', function (req, res) {
   var list = req.query.list;
+  console.log("GET /code list=" + list);
   var queryStr =
     "SELECT * FROM pieces WHERE pieces.id" +
     " IN ("+list+") ORDER BY pieces.id DESC";
