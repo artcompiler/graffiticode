@@ -127,6 +127,9 @@ var request = require('request');
 app.get("/spokenmathspec", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=490914").pipe(res);
 });
+app.get("/mathcore2proposal", (req, res) => {
+  request("https://learnosity.artcompiler.com/form?id=479529").pipe(res);
+});
 
 app.get('/', function(req, res) {
   res.redirect("/index");
@@ -180,7 +183,6 @@ app.get('/code/:id', function (req, res) {
   var id = req.params.id;
   console.log("GET /code id=" + id);
   getItem(id, (err, val) => {
-    var obj;
     if (err) {
       res.status(400).send(err);
     } else {
