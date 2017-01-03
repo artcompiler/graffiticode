@@ -20,9 +20,9 @@ var pg = require('pg');
 var redis = require('redis');
 var cache = redis.createClient(process.env.REDIS_URL);
 var conString = process.env.DATABASE_URL;
-// Query Helper
-// https://github.com/brianc/node-postgres/issues/382
+
 var dbQuery = function(query, resume) {
+  // Query Helper -- https://github.com/brianc/node-postgres/issues/382
   pg.connect(conString, function (err, client, done) {
     // If there is an error, client is null and done is a noop
     if (err) {
@@ -41,7 +41,9 @@ var dbQuery = function(query, resume) {
     }
   });
 };
+
 var getItem = function (id, resume) {
+  // Get an item from the cache, or from the db and then cache it.
   cache.get(id, (err, val) => {
     if (val) {
       resume(null, JSON.parse(val));
@@ -56,13 +58,14 @@ var getItem = function (id, resume) {
           //assert(result.rows.length === 1);
           val = result.rows[0];
         }
-        cache.set(id, JSON.stringify(val), redis.print);
+        cache.set(id, JSON.stringify(val));
         resume(err, val);
       });
       dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
     }
   });
 };
+
 if (conString.indexOf("localhost") < 0) {
   pg.defaults.ssl = true;
 }
@@ -73,9 +76,9 @@ dbQuery("SELECT NOW() as when", function(err, result) {
 // Configuration
 var env = process.env.NODE_ENV || 'development';
 
-// http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
-// http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
+  // http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
+  // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
   if (req.headers.host.match(/^localhost/) === null) {
     if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
       console.log("app.all redirecting headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
@@ -168,7 +171,6 @@ app.get('/data', function(req, res) {
       res.status(400).send(err);
     } else {
       res.send(val.obj);
-      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, () => {});
     }
   });
 });
@@ -184,7 +186,6 @@ app.get('/code/:id', function (req, res) {
     } else {
       // FIXME return object, not array.
       res.send([val]);
-      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, () => {});
     }
   });
 });
@@ -235,24 +236,6 @@ function retrieve(language, path, response) {
       data.push(chunk);
     }).on("end", function () {
       response.send(data.join(""));
-    });
-  });
-}
-
-function get(language, path, resume) {
-  var data = [];
-  var options = {
-    host: getCompilerHost(language),
-    port: getCompilerPort(language),
-    path: "/" + path,
-  };
-  var req = http.get(options, function(res) {
-    res.on("data", function (chunk) {
-      data.push(chunk);
-    }).on("end", function () {
-      resume([], data.join(""));
-    }).on("error", function () {
-      resume(["ERROR"], "");
     });
   });
 }
