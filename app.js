@@ -472,7 +472,7 @@ function cleanAndTrimObj(str) {
   return str;
 }
 function cleanAndTrimSrc(str) {
-  if (!str) {
+  if (!str || typeof str !== "string") {
     return str;
   }
   str = str.replace(new RegExp("'","g"), "''");
@@ -487,17 +487,18 @@ function cleanAndTrimSrc(str) {
 
 // Commit and return commit id
 function postItem(language, src, ast, obj, user, parent, img, label, resume) {
+  // ast is a JSON object
   var views = 0;
   var forks = 0;
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
-  ast = cleanAndTrimSrc(ast);
+  ast = cleanAndTrimSrc(JSON.stringify(ast));
   var queryStr =
     "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + user + "', '" + parent + "', '" + views +
     " ', '" + forks + "', now(), '" + src + "', '" + obj +
-    " ', '" + language + "', '" + label + "', '" + img + "', '" + JSON.stringify(ast) + "');"
+    " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
       console.log("postItem() ERROR: " + err);
@@ -520,7 +521,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
-  ast = cleanAndTrimSrc(ast);
+  ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
     "src='" + src + "', " +
@@ -561,7 +562,6 @@ function compile(id, user, parent, language, src, ast, result, response) {
         var o = result.rows[0].obj;
       }
       var rows = result ? result.rows : [];
-      ast = JSON.stringify(ast);
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
         var img = "";
@@ -675,7 +675,7 @@ app.put('/code', function (req, response) {
       //        var language = req.body.language ? req.body.language : row.language;
       var language = row.language;
       var src = req.body.src ? req.body.src : row.src;
-      var ast = req.body.ast ? req.body.ast : row.ast;
+      var ast = req.body.ast ? JSON.parse(req.body.ast) : row.ast;
       var obj = req.body.obj ? req.body.obj : row.obj;
       //        var user = req.body.user_id ? req.body.user_id : row.user_id;
       var parent = req.body.parent_id ? req.body.parent_id : row.parent_id;
@@ -694,7 +694,7 @@ app.put('/code', function (req, response) {
       var id = req.body.id;
       var src = req.body.src;
       var language = req.body.language;
-      var ast = req.body.ast ? req.body.ast : "null";  // Possibly undefined.
+      var ast = req.body.ast ? req.body.ast : null;  // Possibly undefined.
       var obj = req.body.obj;
       var label = req.body.label;
       var parent = 0;
