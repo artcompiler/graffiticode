@@ -617,8 +617,6 @@ app.put('/compile', function (req, res) {
   // PUT /compile does two things:
   // -- compile the given AST.
   // -- updates the object code of any items whose object code differs from the result.
-  // FIXME this is the intent, but not the reality (because we don't currently store the AST.)
-  // NOTE there should be an item for each update.
   var id = req.body.id;
   var parent = req.body.parent;
   var src = req.body.src;
@@ -642,11 +640,6 @@ app.put('/compile', function (req, res) {
     compile(id, user, parent, language, src, ast, result, res);
   });
 });
-
-// FIXME there seem to be two different reasons to call this end point:
-// 1/to update the source that has changed whitespace.
-// 2/to update ast and obj that has changed because of system updates.
-// This seems like a problem.
 
 app.put('/code', function (req, response) {
   var id = req.body.id;
@@ -694,7 +687,7 @@ app.put('/code', function (req, response) {
       var id = req.body.id;
       var src = req.body.src;
       var language = req.body.language;
-      var ast = req.body.ast ? req.body.ast : null;  // Possibly undefined.
+      var ast = req.body.ast ? JSON.parse(req.body.ast) : {};  // Possibly undefined.
       var obj = req.body.obj;
       var label = req.body.label;
       var parent = 0;
@@ -728,56 +721,6 @@ function num2dot(num) {
     d = num%256 + '.' + d;}
   return d;
 }
-
-// Commit and return commit id
-app.post('/code', function (req, res){
-  var ip = req.headers['x-forwarded-for'] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress;
-  var user = dot2num(ip); //req.body.user;
-  var language = req.body.language;
-  var src = req.body.src;
-  var ast = req.body.ast !== "" ? req.body.ast : "{}";
-  var obj = req.body.obj;
-  var parent = req.body.parent;
-  var img = req.body.img;
-  var label = req.body.label;
-  parent = parent ? parent : 1;
-  user = user ?user : 1;
-  commit();
-  function commit() {
-    var views = 0;
-    var forks = 0;
-    obj = cleanAndTrimObj(obj);
-    img = cleanAndTrimObj(img);
-    src = cleanAndTrimSrc(src);
-    ast = cleanAndTrimSrc(ast);
-    var queryStr =
-      "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
-      " VALUES ('" + user + "', '" + parent + "', '" + views +
-      " ', '" + forks + "', now(), '" + src + "', '" + obj +
-      " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
-    dbQuery(queryStr, function(err, result) {
-      if (err) {
-        console.log("commit() ERROR: " + err);
-        res.status(400).send(err);
-        return;
-      }
-      var queryStr =
-        "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
-      dbQuery(queryStr, function (err, result) {
-        if (err) {
-          res.status(400).send(err);
-          return;
-        }
-        res.send(result.rows[0]);
-        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";", function (err, result) {
-        });
-      })
-    });
-  }
-});
 
 // Get a label
 app.get('/label', function (req, res) {

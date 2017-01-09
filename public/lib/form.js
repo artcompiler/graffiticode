@@ -19351,37 +19351,6 @@ var GraffContent = React.createClass({
       this.postData(id, data, label);
     }
   },
-  postCode: function postCode(ast, src, obj, img) {
-    var gcexports = window.gcexports;
-    var user = $("#username").data("user");
-    var parent = exports.parent;
-    var language = gcexports.language;
-    var self = this;
-    $.ajax({
-      type: "POST",
-      url: "/code",
-      data: {
-        src: src,
-        ast: ast,
-        obj: obj,
-        img: img ? img.replace(/\\/g, "\\\\") : "",
-        user: user ? user.id : 1,
-        parent: parent,
-        language: language,
-        label: "show"
-      },
-      dataType: "json",
-      success: function success(data) {
-        gcexports.id = data.id;
-        exports.gist_id = data.gist_id;
-        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
-        self.setState({ id: data.id, postCode: false, data: undefined });
-      },
-      error: function error(xhr, msg, err) {
-        console.log("Unable to submit code. Probably due to a SQL syntax error");
-      }
-    });
-  },
   postData: function postData(codeid, obj, label) {
     var gcexports = window.gcexports;
     var user = $("#username").data("user");
