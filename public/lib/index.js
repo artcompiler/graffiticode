@@ -19492,7 +19492,7 @@ var GraffContent = React.createClass({
   postData: function postData(codeid, obj, label) {
     var gcexports = window.gcexports;
     var user = $("#username").data("user");
-    var parent = exports.parent;
+    var parent = gcexports.parent;
     var language = gcexports.language;
     var updateHistory = this.state.updateHistory;
     // Append host language to label.
@@ -19518,7 +19518,7 @@ var GraffContent = React.createClass({
             // Wait until we have a codeid to update URL.
             gcexports.dataid = data.id;
             if (updateHistory) {
-              window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
+              window.history.pushState(codeid, language, "/" + gcexports.view + "?id=" + codeid + "+" + data.id);
             }
           }
         },
