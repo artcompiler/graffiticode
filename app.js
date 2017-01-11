@@ -19,6 +19,7 @@ var errorHandler = require("errorhandler");
 var pg = require('pg');
 var redis = require('redis');
 var cache = redis.createClient(process.env.REDIS_URL);
+var main = require('./main.js');
 var conString = process.env.DATABASE_URL;
 
 var dbQuery = function(query, resume) {
@@ -135,6 +136,56 @@ app.get('/', function(req, res) {
   res.redirect("/index");
 });
 
+// lang?id=106
+// item?id=12304
+// data?author=dyer&sort=desc
+// lang?id=106&src=equivLiteral "1+2" "1+2" --> item id
+app.get('/lang', function(req, res) {
+  var id = req.query.id;
+  var src = req.query.src;
+  var lang = "L" + id;
+  var type = req.query.type;
+  if (src) {
+    get(lang, "lexicon.js", function (err, data) {
+      var lstr = data.substring(data.indexOf("{"));
+      var lexicon = JSON.parse(lstr);
+      var ast = main.parse(src, lexicon, function (err, ast) {
+        if (ast) {
+          compile(0, 0, 0, lang, src, ast, null, {
+            send: function (data) {
+              if (type === "data") {
+                res.redirect('/data?id=' + data.id);
+              } else {
+                res.redirect('/form?id=' + data.id);
+              }
+            }
+          });
+        } else {
+          res.status(400).send(err);
+        }
+      });
+      return;
+    });
+  } else {
+    res.render('form.html', {
+      title: 'Graffiti Code',
+      language: lang,
+      vocabulary: lang,
+      target: 'SVG',
+      login: 'Login',
+      item: 0,
+      data: 0,
+      view: "form",
+    }, function (error, html) {
+      if (error) {
+        res.status(400).send(error);
+      } else {
+        res.send(html);
+      }
+    });
+  }
+});
+
 app.get('/form', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
@@ -211,19 +262,11 @@ app.get('/code', function (req, res) {
 });
 
 function getCompilerHost(language) {
-  if (port === 3000) {
-    return "localhost";
-  } else {
-    return language + ".artcompiler.com";
-  }
+  return language + ".artcompiler.com";
 }
 
 function getCompilerPort(language) {
-  if (port === 3000) {
-    return "5" + language.substring(1);  // e.g. L103 -> 5103
-  } else {
-    return "80";
-  }
+  return "80";
 }
 
 function retrieve(language, path, response) {
@@ -238,6 +281,24 @@ function retrieve(language, path, response) {
       data.push(chunk);
     }).on("end", function () {
       response.send(data.join(""));
+    });
+  });
+}
+
+function get(language, path, resume) {
+  var data = [];
+  var options = {
+    host: getCompilerHost(language),
+    port: getCompilerPort(language),
+    path: "/" + path,
+  };
+  var req = http.get(options, function(res) {
+    res.on("data", function (chunk) {
+      data.push(chunk);
+    }).on("end", function () {
+      resume([], data.join(""));
+    }).on("error", function () {
+      resume(["ERROR"], "");
     });
   });
 }
@@ -272,17 +333,18 @@ function cleanAndTrimSrc(str) {
 
 // Commit and return commit id
 function postItem(language, src, ast, obj, user, parent, img, label, resume) {
+  // ast is a JSON object
   var views = 0;
   var forks = 0;
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
-  ast = cleanAndTrimSrc(ast);
+  ast = cleanAndTrimSrc(JSON.stringify(ast));
   var queryStr =
     "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + user + "', '" + parent + "', '" + views +
     " ', '" + forks + "', now(), '" + src + "', '" + obj +
-    " ', '" + language + "', '" + label + "', '" + img + "', '" + JSON.stringify(ast) + "');"
+    " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
       console.log("postItem() ERROR: " + err);
@@ -305,7 +367,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
-  ast = cleanAndTrimSrc(ast);
+  ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
     "src='" + src + "', " +
@@ -346,7 +408,6 @@ function compile(id, user, parent, language, src, ast, result, response) {
         var o = result.rows[0].obj;
       }
       var rows = result ? result.rows : [];
-      ast = JSON.stringify(ast);
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
         var img = "";
@@ -402,8 +463,6 @@ app.put('/compile', function (req, res) {
   // PUT /compile does two things:
   // -- compile the given AST.
   // -- updates the object code of any items whose object code differs from the result.
-  // FIXME this is the intent, but not the reality (because we don't currently store the AST.)
-  // NOTE there should be an item for each update.
   var id = req.body.id;
   var parent = req.body.parent;
   var src = req.body.src;
@@ -427,11 +486,6 @@ app.put('/compile', function (req, res) {
     compile(id, user, parent, language, src, ast, result, res);
   });
 });
-
-// FIXME there seem to be two different reasons to call this end point:
-// 1/to update the source that has changed whitespace.
-// 2/to update ast and obj that has changed because of system updates.
-// This seems like a problem.
 
 app.put('/code', function (req, response) {
   var id = req.body.id;
@@ -460,7 +514,7 @@ app.put('/code', function (req, response) {
       //        var language = req.body.language ? req.body.language : row.language;
       var language = row.language;
       var src = req.body.src ? req.body.src : row.src;
-      var ast = req.body.ast ? req.body.ast : row.ast;
+      var ast = req.body.ast ? JSON.parse(req.body.ast) : row.ast;
       var obj = req.body.obj ? req.body.obj : row.obj;
       //        var user = req.body.user_id ? req.body.user_id : row.user_id;
       var parent = req.body.parent_id ? req.body.parent_id : row.parent_id;
@@ -479,7 +533,7 @@ app.put('/code', function (req, response) {
       var id = req.body.id;
       var src = req.body.src;
       var language = req.body.language;
-      var ast = req.body.ast ? req.body.ast : "null";  // Possibly undefined.
+      var ast = req.body.ast ? JSON.parse(req.body.ast) : {};  // Possibly undefined.
       var obj = req.body.obj;
       var label = req.body.label;
       var parent = 0;
@@ -513,56 +567,6 @@ function num2dot(num) {
     d = num%256 + '.' + d;}
   return d;
 }
-
-// Commit and return commit id
-app.post('/code', function (req, res){
-  var ip = req.headers['x-forwarded-for'] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress;
-  var user = dot2num(ip); //req.body.user;
-  var language = req.body.language;
-  var src = req.body.src;
-  var ast = req.body.ast !== "" ? req.body.ast : "{}";
-  var obj = req.body.obj;
-  var parent = req.body.parent;
-  var img = req.body.img;
-  var label = req.body.label;
-  parent = parent ? parent : 1;
-  user = user ?user : 1;
-  commit();
-  function commit() {
-    var views = 0;
-    var forks = 0;
-    obj = cleanAndTrimObj(obj);
-    img = cleanAndTrimObj(img);
-    src = cleanAndTrimSrc(src);
-    ast = cleanAndTrimSrc(ast);
-    var queryStr =
-      "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
-      " VALUES ('" + user + "', '" + parent + "', '" + views +
-      " ', '" + forks + "', now(), '" + src + "', '" + obj +
-      " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
-    dbQuery(queryStr, function(err, result) {
-      if (err) {
-        console.log("commit() ERROR: " + err);
-        res.status(400).send(err);
-        return;
-      }
-      var queryStr =
-        "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
-      dbQuery(queryStr, function (err, result) {
-        if (err) {
-          res.status(400).send(err);
-          return;
-        }
-        res.send(result.rows[0]);
-        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";", function (err, result) {
-        });
-      })
-    });
-  }
-});
 
 app.get("/:lang/:path", function (req, res) {
   var language = req.params.lang;

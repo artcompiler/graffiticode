@@ -72,45 +72,14 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      gcexports.id = id
+      gcexports.id = id;
       this.postData(id, data, label);
     }
-  },
-  postCode: function postCode(ast, src, obj, img) {
-    let gcexports = window.gcexports;
-    let user = $("#username").data("user");
-    let parent = exports.parent;
-    let language = gcexports.language;
-    let self = this;
-    $.ajax({
-      type: "POST",
-      url: "/code",
-      data: {
-        src: src,
-        ast: ast,
-        obj: obj,
-        img: img ? img.replace(/\\/g, "\\\\") : "",
-        user: user ? user.id : 1,
-        parent: parent,
-        language: language,
-        label: "show",
-      },
-      dataType: "json",
-      success: function(data) {
-        gcexports.id = data.id;
-        exports.gist_id = data.gist_id
-        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
-        self.setState({id: data.id, postCode: false, data: undefined});
-      },
-      error: function(xhr, msg, err) {
-        console.log("Unable to submit code. Probably due to a SQL syntax error");
-      }
-    });
   },
   postData: function postData(codeid, obj, label) {
     let gcexports = window.gcexports;
     let user = $("#username").data("user");
-    let parent = exports.parent;
+    let parent = gcexports.parent;
     let language = gcexports.language;
     let updateHistory = this.state.updateHistory;
     // Append host language to label.
@@ -136,7 +105,7 @@ var GraffContent = React.createClass({
             // Wait until we have a codeid to update URL.
             gcexports.dataid = data.id;
             if (updateHistory) {
-              window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
+              window.history.pushState(codeid, language, "/" + gcexports.view + "?id=" + codeid + "+" + data.id);
             }
           }
         },
