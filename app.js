@@ -152,7 +152,6 @@ app.get('/lang', function(req, res) {
   var lang = "L" + id;
   var type = req.query.type;
   if (src) {
-    console.log("GET /lang id=" + id + " src=" + src);
     get(lang, "lexicon.js", function (err, data) {
       var lstr = data.substring(data.indexOf("{"));
       var lexicon = JSON.parse(lstr);
@@ -174,20 +173,24 @@ app.get('/lang', function(req, res) {
       return;
     });
   } else {
-    res.render('views.html', {
-      title: 'Graffiti Code',
-      language: lang,
-      vocabulary: lang,
-      target: 'SVG',
-      login: 'Login',
-      item: 0,
-      data: 0,
-    }, function (error, html) {
-      if (error) {
-        res.status(400).send(error);
-      } else {
-        res.send(html);
-      }
+    getCompilerVersion(lang, (version) => {
+      console.log("GET /item version=" + version);
+      res.render('views.html', {
+        title: 'Graffiti Code',
+        language: lang,
+        vocabulary: lang,
+        target: 'SVG',
+        login: 'Login',
+        item: 0,
+        data: 0,
+        version: version,
+      }, function (error, html) {
+        if (error) {
+          res.status(400).send(error);
+        } else {
+          res.send(html);
+        }
+      });
     });
   }
 });
@@ -201,21 +204,25 @@ app.get('/item', function(req, res) {
       rows = [{}];
     } else {
       var lang = result.rows[0].language;
-      res.render('views.html', {
-        title: 'Graffiti Code',
-        language: lang,
-        vocabulary: lang,
-        target: 'SVG',
-        login: 'Login',
-        item: ids[0],
-        data: ids[1] ? ids[1] : 0,
-        view: "item",
-      }, function (error, html) {
-        if (error) {
-          res.status(400).send(error);
-        } else {
-          res.send(html);
-        }
+      getCompilerVersion(lang, (version) => {
+        console.log("GET /item version=" + version);
+        res.render('views.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          vocabulary: lang,
+          target: 'SVG',
+          login: 'Login',
+          item: ids[0],
+          data: ids[1] ? ids[1] : 0,
+          view: "item",
+          version: version,
+        }, function (error, html) {
+          if (error) {
+            res.status(400).send(error);
+          } else {
+            res.send(html);
+          }
+        });
       });
     }
     dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
@@ -233,21 +240,25 @@ app.get('/form', function(req, res) {
       rows = [{}];
     } else {
       var lang = result.rows[0].language;
-      res.render('form.html', {
-        title: 'Graffiti Code',
-        language: lang,
-        vocabulary: lang,
-        target: 'SVG',
-        login: 'Login',
-        item: ids[0],
-        data: ids[1] ? ids[1] : 0,
-        view: "form",
-      }, function (error, html) {
-        if (error) {
-          res.status(400).send(error);
-        } else {
-          res.send(html);
-        }
+      getCompilerVersion(lang, (version) => {
+        console.log("GET /item version=" + version);
+        res.render('form.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          vocabulary: lang,
+          target: 'SVG',
+          login: 'Login',
+          item: ids[0],
+          data: ids[1] ? ids[1] : 0,
+          view: "form",
+          version: version,
+        }, function (error, html) {
+          if (error) {
+            res.status(400).send(error);
+          } else {
+            res.send(html);
+          }
+        });
       });
     }
   });
@@ -462,6 +473,30 @@ function retrieve(language, path, response) {
       response.send(data.join(""));
     });
   });
+}
+
+let compilerVersions = {};
+function getCompilerVersion(language, resume) {
+  if (compilerVersions[language]) {
+    resume(compilerVersions[language]);
+  } else {
+    var data = [];
+    var options = {
+      host: getCompilerHost(language),
+      port: getCompilerPort(language),
+      path: "/version",
+    };
+    var req = http.get(options, function(res) {
+      res.on("data", function (chunk) {
+        data.push(chunk);
+      }).on("end", function () {
+        let str = data.join("");
+        let version = parseInt(str.substring(1));
+        compilerVersions[language] = version;
+        resume(version);
+      });
+    });
+  }
 }
 
 function get(language, path, resume) {
