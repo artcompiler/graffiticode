@@ -25,7 +25,7 @@ if (typeof CodeMirror === "undefined") {
 if (typeof window === "undefined") {
   window = {
     coords: {},
-    gcexports: [],
+    gcexports: {},
     isSynthetic: true,
   };
 }

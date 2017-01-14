@@ -19489,41 +19489,10 @@ var GraffContent = React.createClass({
       this.postData(id, data, label);
     }
   },
-  postCode: function postCode(ast, src, obj, img) {
-    var gcexports = window.gcexports;
-    var user = $("#username").data("user");
-    var parent = exports.parent;
-    var language = gcexports.language;
-    var self = this;
-    $.ajax({
-      type: "POST",
-      url: "/code",
-      data: {
-        src: src,
-        ast: ast,
-        obj: obj,
-        img: img ? img.replace(/\\/g, "\\\\") : "",
-        user: user ? user.id : 1,
-        parent: parent,
-        language: language,
-        label: "show"
-      },
-      dataType: "json",
-      success: function success(data) {
-        gcexports.id = data.id;
-        exports.gist_id = data.gist_id;
-        window.history.pushState("string", "title", "/" + exports.view + "?id=" + data.id);
-        self.setState({ id: data.id, postCode: false, data: undefined });
-      },
-      error: function error(xhr, msg, err) {
-        console.log("Unable to submit code. Probably due to a SQL syntax error");
-      }
-    });
-  },
   postData: function postData(codeid, obj, label) {
     var gcexports = window.gcexports;
     var user = $("#username").data("user");
-    var parent = exports.parent;
+    var parent = gcexports.parent;
     var language = gcexports.language;
     var updateHistory = this.state.updateHistory;
     // Append host language to label.
@@ -19549,7 +19518,7 @@ var GraffContent = React.createClass({
             // Wait until we have a codeid to update URL.
             gcexports.dataid = data.id;
             if (updateHistory) {
-              window.history.pushState(codeid, language, "/" + exports.view + "?id=" + codeid + "+" + data.id);
+              window.history.pushState(codeid, language, "/" + gcexports.view + "?id=" + codeid + "+" + data.id);
             }
           }
         },
@@ -19575,7 +19544,7 @@ var GraffContent = React.createClass({
     } else {
       return React.createElement(
         "svg",
-        { height: "0", width: "100%", style: { background: "white" } },
+        { height: "0", width: "100%", style: { background: "transparent" } },
         React.createElement(
           "g",
           null,
