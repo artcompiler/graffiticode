@@ -492,7 +492,7 @@ function getCompilerVersion(language, resume) {
       }).on("end", function () {
         let str = data.join("");
         let version = parseInt(str.substring(1));
-        compilerVersions[language] = version;
+        version = compilerVersions[language] = isNaN(version) ? 0 : version;
         resume(version);
       });
     });
