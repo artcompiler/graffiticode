@@ -1538,7 +1538,7 @@ window.gcexports.parser = (function () {
               severity : "error",
             });
           });
-          window.gcexports.lastErrors = window.exports.errors = errors;
+          window.gcexports.lastErrors = window.gcexports.errors = errors;
           window.gcexports.editor.performLint();
         } else if (data.id) {
           // We have a good id, so use it.
