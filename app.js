@@ -174,7 +174,6 @@ app.get('/lang', function(req, res) {
     });
   } else {
     getCompilerVersion(lang, (version) => {
-      console.log("GET /item version=" + version);
       res.render('views.html', {
         title: 'Graffiti Code',
         language: lang,
@@ -205,7 +204,6 @@ app.get('/item', function(req, res) {
     } else {
       var lang = result.rows[0].language;
       getCompilerVersion(lang, (version) => {
-        console.log("GET /item version=" + version);
         res.render('views.html', {
           title: 'Graffiti Code',
           language: lang,
@@ -233,7 +231,6 @@ app.get('/item', function(req, res) {
 app.get('/form', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
-  console.log("GET /form ids=" + ids);
   dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
     var rows;
     if (!result || result.rows.length===0) {
@@ -241,7 +238,6 @@ app.get('/form', function(req, res) {
     } else {
       var lang = result.rows[0].language;
       getCompilerVersion(lang, (version) => {
-        console.log("GET /item version=" + version);
         res.render('form.html', {
           title: 'Graffiti Code',
           language: lang,
