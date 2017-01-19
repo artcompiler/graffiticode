@@ -174,6 +174,9 @@ var Ast = (function () {
     }
     var elts = [];
     switch (n.tag) {
+    case "NULL":
+      elts[0] = "null";
+      break;
     case "NUM":
     case "STR":
     case "IDENT":
