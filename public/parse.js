@@ -175,7 +175,6 @@ var Ast = (function () {
     var elts = [];
     switch (n.tag) {
     case "NULL":
-      elts[0] = "null";
       break;
     case "NUM":
     case "STR":
@@ -285,7 +284,7 @@ var Ast = (function () {
   }
 
   function nul(ctx) {
-    push(ctx, {tag: "NULL", elts: [null]});
+    push(ctx, {tag: "NULL", elts: []});
   }
 
   function number(ctx, str, coord) {
