@@ -924,6 +924,13 @@ window.gcexports.parser = (function () {
   // Parsing functions -- each parsing function consumes a single token and
   // returns a continuation function for parsing the rest of the string.
 
+  function nul(ctx, cc) {
+    eat(ctx, TK_NULL);
+    cc.cls = "keyword";
+    Ast.nul(ctx);
+    return cc;
+  }
+
   function bool(ctx, cc) {
     eat(ctx, TK_BOOL);
     cc.cls = "number";
