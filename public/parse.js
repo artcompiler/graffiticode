@@ -99,6 +99,7 @@ var Ast = (function () {
     neg: neg,
     list: list,
     bool: bool,
+    nul: nul,
   };
 
   return new AstClass;
