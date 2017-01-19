@@ -282,7 +282,7 @@ var Ast = (function () {
   }
 
   function nul(ctx) {
-    push(ctx, {tag: "NULL", elts: []});
+    push(ctx, {tag: "NULL", elts: [null]});
   }
 
   function number(ctx, str, coord) {
@@ -927,7 +927,7 @@ window.gcexports.parser = (function () {
 
   function nul(ctx, cc) {
     eat(ctx, TK_NULL);
-    cc.cls = "keyword";
+    cc.cls = "number";
     Ast.nul(ctx);
     return cc;
   }
