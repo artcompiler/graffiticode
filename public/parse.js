@@ -98,6 +98,7 @@ var Ast = (function () {
     neg: neg,
     list: list,
     bool: bool,
+    nul: nul,
   };
 
   return new AstClass;
@@ -174,6 +175,8 @@ var Ast = (function () {
     }
     var elts = [];
     switch (n.tag) {
+    case "NULL":
+      break;
     case "NUM":
     case "STR":
     case "IDENT":
@@ -969,6 +972,13 @@ window.gcexports.parser = (function () {
   // Parsing functions -- each parsing function consumes a single token and
   // returns a continuation function for parsing the rest of the string.
 
+  function nul(ctx, cc) {
+    eat(ctx, TK_NULL);
+    cc.cls = "number";
+    Ast.nul(ctx);
+    return cc;
+  }
+
   function bool(ctx, cc) {
     eat(ctx, TK_BOOL);
     cc.cls = "number";
@@ -1561,8 +1571,8 @@ window.gcexports.parser = (function () {
       type: "PUT",
       url: "/compile",
       data: {
-        "id": !postCode ? window.gcexports.id : undefined,
-        "parent": postCode ? window.gcexports.id : undefined,
+        "id": !postCode ? window.gcexports.id : 0,
+        "parent": postCode ? window.gcexports.id : 0,
         "ast": ast,
         "type": window.gcexports.lexiconType,
         "language": window.gcexports.language,
@@ -1588,7 +1598,7 @@ window.gcexports.parser = (function () {
               severity : "error",
             });
           });
-          window.gcexports.lastErrors = window.exports.errors = errors;
+          window.gcexports.lastErrors = window.gcexports.errors = errors;
           window.gcexports.editor.performLint();
         } else if (data.id) {
           // We have a good id, so use it.
