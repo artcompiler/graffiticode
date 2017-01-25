@@ -570,21 +570,18 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
-  console.log("postItem user=" + user + " parent=" + parent);
   var queryStr =
     "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + user + "', '" + parent + "', '" + views +
     " ', '" + forks + "', now(), '" + src + "', '" + obj +
     " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
   dbQuery(queryStr, function(err, result) {
-    console.log("[1] postItem() result=" + JSON.stringify(result));
     if (err) {
       console.log("postItem() ERROR: " + err);
       resume(err);
     } else {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
       dbQuery(queryStr, function (err, result) {
-        console.log("[2] postItem() result=" + JSON.stringify(result));
         resume(err, result);
         dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
       });
@@ -637,7 +634,6 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
       obj += chunk;
     });
     res.on('end', function () {
-      console.log("compile() obj=" + obj);
       if (rows && rows.length === 1) {
         var o = rows[0].obj;
       }

@@ -327,8 +327,8 @@ var Ast = (function () {
     var len = fn.elts[0].elts.length;
     var paramc = len;
     var elts = [];
-    var argc = ctx.state.nodeStack.length;
-    var argc = ctx.state.exprc;
+//    var argc = ctx.state.nodeStack.length;
+//    var argc = ctx.state.exprc;
     // While there are args on the stack, pop them.
     while (argc-- > 0 && paramc-- > 0) {
       var elt = pop(ctx);
@@ -399,7 +399,7 @@ var Ast = (function () {
     });
   }
 
-  function list(ctx, count, coord) {
+  function list(ctx, count, coord, reverse) {
     // Ast.list
     var elts = [];
     for (var i = count; i > 0; i--) {
@@ -410,7 +410,7 @@ var Ast = (function () {
     }
     push(ctx, {
       tag: "LIST",
-      elts: elts.reverse(),
+      elts: reverse ? elts : elts.reverse(),
       coord: coord,
     });
   }
@@ -531,7 +531,6 @@ var Ast = (function () {
 
   function concat(ctx) {
     var n1 = node(ctx, pop(ctx));
-    var v1 = n1.elts[0];
     push(ctx, {
       tag: "CONCAT",
       elts: [n1]
@@ -693,6 +692,8 @@ var Ast = (function () {
       tag: "PROG",
       elts: elts
     });
+    console.log(dumpAll(ctx));
+    console.log(JSON.stringify(Ast.node(ctx, elts[0]), null, 2));
   }
 })();
 
@@ -2076,13 +2077,17 @@ var folder = function() {
 
   function list(node) {
     // Fold list
-    for (var i = 0; i < node.elts.length; i++) {
-      visit(node.elts[i]);
+    // for (var i = 0; i < node.elts.length; i++) {
+    //   visit(node.elts[i]);
+    // }
+    for (var i = node.elts.length - 1; i >= 0; i--) {
+      visit(node.elts[i]);  // Keep original order.
     }
-    Ast.list(ctx, node.elts.length);
+    Ast.list(ctx, node.elts.length, null, true);
   }
 
   function exprs(node) {
+    console.log(Ast.dumpAll(ctx));
     // Fold exprs in reverse order to get precedence right.
     for (var i = node.elts.length - 1; i >= 0; i--) {
       visit(node.elts[i]);  // Keep original order.
@@ -2092,7 +2097,8 @@ var folder = function() {
 
   function lambda(node) {
     var fnId = Ast.intern(ctx, node);
-    var argc = Ast.node(ctx, node.elts[0]).elts.length;
+//    var argc = Ast.node(ctx, node.elts[0]).elts.length;
+    var argc = ctx.state.nodeStack.length;
     Ast.apply(ctx, fnId, argc);
   }
 
@@ -2154,7 +2160,6 @@ var folder = function() {
 
   function concat(node) {
     visit(node.elts[0]);
-    visit(node.elts[1]);
     Ast.concat(ctx);
   }
 
