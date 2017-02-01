@@ -105,12 +105,6 @@ var Ast = (function () {
 
   // private implementation
 
-  function reset(ctx) {
-    ctx.state.nodePool = ["unused"];
-    ctx.state.nodeStack = [];
-    ctx.state.nodeMap = {};
-  }
-
   function push(ctx, node) {
     var nid;
     if (typeof node === "number") {   // if already interned
@@ -692,8 +686,6 @@ var Ast = (function () {
       tag: "PROG",
       elts: elts
     });
-    console.log(dumpAll(ctx));
-    console.log(JSON.stringify(Ast.node(ctx, elts[0]), null, 2));
   }
 })();
 
@@ -2074,20 +2066,29 @@ var folder = function() {
     }
     Ast.ofClause(ctx);
   }
+  function pushNodeStack(ctx) {
+    ctx.state.nodeStackStack.push(ctx.state.nodeStack);
+    ctx.state.nodeStack = [];
+  }
+  function popNodeStack(ctx) {
+    var stack = ctx.state.nodeStack;
+    ctx.state.nodeStack = ctx.state.nodeStackStack.pop().concat(stack);
+  }
 
   function list(node) {
     // Fold list
     // for (var i = 0; i < node.elts.length; i++) {
     //   visit(node.elts[i]);
     // }
+    pushNodeStack(ctx);
     for (var i = node.elts.length - 1; i >= 0; i--) {
       visit(node.elts[i]);  // Keep original order.
     }
-    Ast.list(ctx, node.elts.length, null, true);
+    Ast.list(ctx, ctx.state.nodeStack.length, null, true);
+    popNodeStack(ctx);
   }
 
   function exprs(node) {
-    console.log(Ast.dumpAll(ctx));
     // Fold exprs in reverse order to get precedence right.
     for (var i = node.elts.length - 1; i >= 0; i--) {
       visit(node.elts[i]);  // Keep original order.
