@@ -76,7 +76,6 @@ var Ast = (function () {
     exprs: exprs,
     program: program,
     pop: pop,
-    reset: reset,
     topNode: topNode,
     peek: peek,
     push: push,
