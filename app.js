@@ -131,8 +131,11 @@ app.get("/spokenmathplay", (req, res) => {
 app.get("/spokenmathspec", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=490914").pipe(res);
 });
+app.get("/mathgenproposal", (req, res) => {
+  request("https://learnosity.artcompiler.com/form?id=498328").pipe(res);
+});
 app.get("/mathcore2proposal", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=479529").pipe(res);
+  request("https://learnosity.artcompiler.com/form?id=498328").pipe(res);
 });
 
 app.get('/', function(req, res) {
