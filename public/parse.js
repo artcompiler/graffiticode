@@ -1,5 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /*
  * Copyright 2014, Art Compiler LLC
  *
@@ -41,7 +39,7 @@ function assert(b, str) {
 var Ast = (function () {
   var ASSERT = true;
   var assert = function (val, str) {
-    if ( !this.ASSERT ) {
+    if ( !ASSERT ) {
       return;
     }
     if ( str === void 0 ) {
@@ -63,13 +61,14 @@ var Ast = (function () {
     number: number,
     string: string,
     name: name,
-    funcApp: funcApp,
-    funcApp2: funcApp2,
-    call: call,
+    apply: apply,
+    fold: fold,
+    expr: expr,
     binaryExpr: binaryExpr,
     unaryExpr: unaryExpr,
     prefixExpr: prefixExpr,
-    letDefn: letDefn,
+    lambda: lambda,
+    letDef: letDef,
     caseExpr: caseExpr,
     ofClause: ofClause,
     record: record,
@@ -77,7 +76,6 @@ var Ast = (function () {
     exprs: exprs,
     program: program,
     pop: pop,
-    reset: reset,
     topNode: topNode,
     peek: peek,
     push: push,
@@ -99,17 +97,12 @@ var Ast = (function () {
     neg: neg,
     list: list,
     bool: bool,
+    nul: nul,
   };
 
   return new AstClass;
 
   // private implementation
-
-  function reset(ctx) {
-    ctx.state.nodePool = ["unused"];
-    ctx.state.nodeStack = [];
-    ctx.state.nodeMap = {};
-  }
 
   function push(ctx, node) {
     var nid;
@@ -131,12 +124,14 @@ var Ast = (function () {
     return nodeStack.pop();
   }
 
-  function peek(ctx) {
+  function peek(ctx, n) {
+    if (n === undefined) {
+      n = 0;
+    }
     var nodeStack = ctx.state.nodeStack;
-    return nodeStack[nodeStack.length-1];
+    return nodeStack[nodeStack.length - 1 - n];
   }
 
-  // deep
   function intern(ctx, n) {
     if (!n) {
       return 0;
@@ -173,9 +168,12 @@ var Ast = (function () {
     }
     var elts = [];
     switch (n.tag) {
+    case "NULL":
+      break;
     case "NUM":
     case "STR":
     case "IDENT":
+    case "BOOL":
       elts[0] = n.elts[0];
       break;
     default:
@@ -210,6 +208,7 @@ var Ast = (function () {
       obj[i] = nodeToJSON(n);
     }
     obj.root = (nodePool.length-1);
+    obj.version = window.gcexports.version;
     return obj;
   }
 
@@ -271,17 +270,85 @@ var Ast = (function () {
     return s;
   }
 
+  function fold(ctx, fn, args) {
+    env.enterEnv(ctx, fn.name);
+    if (fn.env) {
+      var lexicon = fn.env.lexicon;
+      // setup inner environment record (lexicon)
+      var outerEnv = {};
+      for (var id in lexicon) {
+        // For each parameter, get its definition assign the value of the argument
+        // used on the current function application.
+        if (!id) continue;
+        var word = JSON.parse(JSON.stringify(lexicon[id])); // Poorman's copy.
+        var index = args.length - word.offset - 1;
+        if (index < 0) {
+          outerEnv[id] = word;
+          // <x:x> => <x:x>
+          // <x y: add x y> 10. => <y: add 10 y>.
+        } else {
+          word.nid = args[index];  // offsets are from end of args
+        }
+        env.addWord(ctx, id, word);
+      }
+      folder.fold(ctx, fn.nid);
+      if (index < 0) {
+        lambda(ctx, {lexicon: outerEnv}, pop(ctx));
+      }
+    }
+    env.exitEnv(ctx);
+  }
+
+  function apply(ctx, fnId, argc) {
+    // Construct function and apply available arguments.
+    var fn = node(ctx, fnId);
+    // Construct a lexicon
+    var lexicon = {};
+    fn.elts[0].elts.forEach(function (n, i) {
+      var name = n.elts[0];
+      lexicon[name] = {
+        cls: "val",
+        name: name,
+        offset: i
+      };
+    });
+    var def = {
+      name: "lambda",
+      nid: Ast.intern(ctx, fn.elts[1]),
+      env: {lexicon: lexicon},
+    };
+    var len = fn.elts[0].elts.length;
+    var paramc = len;
+    var elts = [];
+//    var argc = ctx.state.nodeStack.length;
+//    var argc = ctx.state.exprc;
+    // While there are args on the stack, pop them.
+    while (argc-- > 0 && paramc-- > 0) {
+      var elt = pop(ctx);
+      elts.unshift(elt);  // Get the order right.
+    }
+    fold(ctx, def, elts);
+  }
+
+  // Node constructors
+
   function bool(ctx, val) {
     if (val) {
       var b = true;
     } else {
       var b = false;
     }
-    push(ctx, {tag: "BOOL", elts: [b]});
+    push(ctx, {
+      tag: "BOOL",
+      elts: [b]
+    });
   }
 
   function nul(ctx) {
-    push(ctx, {tag: "NULL", elts: []});
+    push(ctx, {
+      tag: "NULL",
+      elts: []
+    });
   }
 
   function number(ctx, str, coord) {
@@ -302,27 +369,14 @@ var Ast = (function () {
   }
 
   function name(ctx, str) {
-    push(ctx, {tag: "IDENT", elts: [str]});
+    push(ctx, {
+      tag: "IDENT",
+      elts: [str]
+    });
   }
 
-  // interpret a nid in the current environment
-
-  function fold(ctx, def, args) {
-    env.enterEnv(ctx, def.name);
-    var lexicon = def.env.lexicon;
-    // setup inner environment record (lexicon)
-    for (var id in lexicon) {
-      if (!id) continue;
-      var word = lexicon[id];
-      word.val = args[args.length-1-word.offset]  // offsets are from end of args
-      env.addWord(ctx, id, word);
-    }
-    // in line function body at call site
-    folder.fold(ctx, def.nid);
-    env.exitEnv(ctx);
-  }
-
-  function funcApp(ctx, argc) {
+  function expr(ctx, argc) {
+    // Ast.expr -- construct a expr node for the compiler.
     var elts = [];
     while (argc--) {
       var elt = pop(ctx);
@@ -330,102 +384,16 @@ var Ast = (function () {
     }
     var nameId = pop(ctx);
     var e = node(ctx, nameId).elts;
-    if (!e) {
-      return;
-    }
+    assert(e && e.length > 0, "Ill formed node.");
     var name = e[0];
-    var def = env.findWord(ctx, name);
-    // FIXME need to allow forward references
-    if (!def) {
-      throw new Error("def not found for " + JSON.stringify(name));
-    }
-
-    // If recursive call, then this callee does not have a nid yet.
-    if (def.nid) {
-      // recursion guard
-      if (ctx.state.nodeStack.length > 380) {
-        //return;  // just stop recursing
-        throw new Error("runaway recursion");
-      }
-      // we have a user def, so fold it.
-      //fold(ctx, def, elts);
-
-      // We have a user def so create a call node that gets folded bottom up.
-      elts.push(nameId);
-      push(ctx, {tag: "CALL", elts: elts});
-    } else if (def.nid === 0) {  // defer folding
-      elts.push(nameId);
-      push(ctx, {tag: "RECURSE", elts: elts});
-    } else {
-      if (def.val) {
-        push(ctx, def.val);
-      } else {
-        push(ctx, {tag: def.name, elts: elts});
-      }
-    }
+    push(ctx, {
+      tag: name,
+      elts: elts
+    });
   }
 
-  function call(ctx, argc) {
-    var underscore = Ast.intern(ctx, {tag: "IDENT", elts: ["_"]}); 
-    var elts = [];
-    while (argc--) {
-      var elt = pop(ctx);
-      if (elt === underscore) {
-        elts.push(0);
-      } else {
-        elts.push(elt);
-      }
-    }
-    var nameId = pop(ctx);
-    var e = node(ctx, nameId).elts;
-    if (!e) {
-      return;
-    }
-    var name = e[0];
-    var def = env.findWord(ctx, name);
-    // FIXME need to allow forward references
-    if (!def) {
-      throw "def not found for " + JSON.stringify(name);
-    }
-
-    // If recursive call, then this callee does not have a nid yet.
-    if (def.nid) {
-      // recursion guard
-      if (ctx.state.nodeStack.length > 380) {
-        //return;  // just stop recursing
-        throw new Error("runaway recursion");
-      }
-      // we have a user def, so fold it.
-      fold(ctx, def, elts);
-    } else if (def.nid === 0) {  // defer folding
-      elts.push(nameId);
-      push(ctx, {tag: "RECURSE", elts: elts});
-    } else {
-      if (def.val) {
-        push(ctx, def.val);
-      } else {
-        push(ctx, {tag: def.name, elts: elts});
-      }
-    }
-  }
-
-  // calling primitives
-  function funcApp2(ctx, argc) {
-    var elts = [];
-    while (argc--) {
-      var elt = pop(ctx);
-      elts.push(elt);
-    }
-    var nameId = pop(ctx);
-    var e = node(ctx, nameId).elts;
-    if (!e) {
-      return;
-    }
-    var name = e[0];
-    push(ctx, {tag: name, elts: elts});
-  }
-  function list(ctx, count, coord) {
-    // Ast list
+  function list(ctx, count, coord, reverse) {
+    // Ast.list
     var elts = [];
     for (var i = count; i > 0; i--) {
       var elt = pop(ctx);
@@ -435,7 +403,7 @@ var Ast = (function () {
     }
     push(ctx, {
       tag: "LIST",
-      elts: elts.reverse(),
+      elts: reverse ? elts : elts.reverse(),
       coord: coord,
     });
   }
@@ -444,19 +412,27 @@ var Ast = (function () {
     // args are in the order produced by the parser
     elts.push(pop(ctx)); 
     elts.push(pop(ctx));
-    push(ctx, {tag: name, elts: elts.reverse()});
+    push(ctx, {
+      tag: name,
+      elts: elts.reverse()
+    });
   }
-
   function unaryExpr(ctx, name) {
     var elts = [];
     elts.push(pop(ctx));
-    push(ctx, {tag: name, elts: elts});
+    push(ctx, {
+      tag: name,
+      elts: elts
+    });
   }
 
   function prefixExpr(ctx, name) {
     var elts = [];
     elts.push(pop(ctx));
-    push(ctx, {tag: name, elts: elts});
+    push(ctx, {
+      tag: name,
+      elts: elts
+    });
   }
 
   function neg(ctx) {
@@ -548,8 +524,10 @@ var Ast = (function () {
 
   function concat(ctx) {
     var n1 = node(ctx, pop(ctx));
-    var v1 = n1.elts[0];
-    push(ctx, {tag: "CONCAT", elts: [n1]});
+    push(ctx, {
+      tag: "CONCAT",
+      elts: [n1]
+    });
   }
 
   function orelse(ctx) {
@@ -593,7 +571,6 @@ var Ast = (function () {
     var v1 = +node(ctx, pop(ctx)).elts[0];
     bool(ctx, v1<=v2);
   }
-
   function ge(ctx) {
     var v2 = +node(ctx, pop(ctx)).elts[0];
     var v1 = +node(ctx, pop(ctx)).elts[0];
@@ -613,8 +590,9 @@ var Ast = (function () {
     elts.push(pop(ctx));
     push(ctx, {tag: "OF", elts: elts});
   }
+
   function record(ctx) {
-    // Ast record
+    // Ast.record
     var count = ctx.state.exprc;
     var elts = [];
     for (var i = count; i > 0; i--) {
@@ -623,37 +601,90 @@ var Ast = (function () {
         elts.push(elt);
       }
     }
-    push(ctx, {tag: "RECORD", elts: elts.reverse()});
+    push(ctx, {
+      tag: "RECORD",
+      elts: elts
+    });
   }
+
   function binding(ctx) {
-    // Ast binding
+    // Ast.binding
     var elts = [];
     elts.push(pop(ctx));
     elts.push(pop(ctx));
-    push(ctx, {tag: "BINDING", elts: elts.reverse()});
+    push(ctx, {
+      tag: "BINDING",
+      elts: elts.reverse()
+    });
   }
-  function exprs(ctx, count) {
+
+  function lambda(ctx, env, nid) {
+    // Ast.lambda
+    var names = [];
+    for (var id in env.lexicon) {
+      var word = env.lexicon[id];
+      names.push({
+        tag: "IDENT",
+        elts: [word.name]
+      });
+    }
+    push(ctx, {
+      tag: "LAMBDA",
+      elts: [{
+        tag: "LIST",
+        elts: names
+      }, nid]
+    });
+  }
+
+  function exprs(ctx, count, inReverse) {
     // Ast.exprs
     var elts = [];
-    for (var i = count; i > 0; i--) {
-      var elt = pop(ctx);
-      if (elt !== void 0) {
-        elts.push(elt);
+    assert(ctx.state.nodeStack.length >= count);
+    if (inReverse) {
+      for (var i = count; i > 0; i--) {
+        var elt = pop(ctx);
+        var n;
+        if (false && (n = node(ctx, elt)) && n.tag === "EXPRS") {
+          elts = elts.concat(n.elts);
+        } else {
+          elts.push(elt);  // Reverse order.
+        }
       }
+    } else {
+      for (var i = count; i > 0; i--) {
+        var elt = pop(ctx);
+        var n;
+        if (false && (n = node(ctx, elt)) && n.tag === "EXPRS") {
+          elts = elts.concat(n.elts);
+        } else {
+          elts.push(elt);  // Reverse order.
+        }
+      }
+      elts = elts.reverse();
     }
-    push(ctx, {tag: "EXPRS", elts: elts.reverse()});
+    push(ctx, {
+      tag: "EXPRS",
+      elts: elts
+    });
   }
-  function letDefn(ctx) {
+
+  function letDef(ctx) {
     pop(ctx)  // name
     pop(ctx)  // body
     for (var i = 0; i < ctx.state.paramc; i++) {
       pop(ctx) // params
     }
+    ctx.state.exprc--; // don't count as expr.
   }
+
   function program(ctx) {
     var elts = [];
     elts.push(pop(ctx));
-    push(ctx, {tag: "PROG", elts: elts});
+    push(ctx, {
+      tag: "PROG",
+      elts: elts
+    });
   }
 })();
 
@@ -753,6 +784,11 @@ var env = (function () {
   }
 
   function enterEnv(ctx, name) {
+    // recursion guard
+    if (ctx.state.env.length > 380) {
+      //return;  // just stop recursing
+      throw new Error("runaway recursion");
+    }
     ctx.state.env.push({name: name, lexicon: {}});
   }
 
@@ -845,6 +881,8 @@ window.gcexports.parser = (function () {
   var TK_COMMA    = 0xAB;
   var TK_BACKQUOTE  = 0xAC;
   var TK_COMMENT    = 0xAD;
+  var TK_LEFTANGLE  = 0xAE;
+  var TK_RIGHTANGLE = 0xAF;
 
   function tokenToLexeme(tk) {
     switch (tk) {
@@ -871,6 +909,8 @@ window.gcexports.parser = (function () {
     case TK_RIGHTBRACKET: return "a ']'";
     case TK_LEFTBRACE: return "a '{'";
     case TK_RIGHTBRACE: return "a '}'";
+    case TK_LEFTANGLE: return "a '<'";
+    case TK_RIGHTANGLE: return "a '>'";
     case TK_PLUS: return "a '+'";
     case TK_MINUS: return "a '-'";
     case TK_DOT: return "a '.'";
@@ -923,6 +963,13 @@ window.gcexports.parser = (function () {
 
   // Parsing functions -- each parsing function consumes a single token and
   // returns a continuation function for parsing the rest of the string.
+
+  function nul(ctx, cc) {
+    eat(ctx, TK_NULL);
+    cc.cls = "number";
+    Ast.nul(ctx);
+    return cc;
+  }
 
   function bool(ctx, cc) {
     eat(ctx, TK_BOOL);
@@ -1016,7 +1063,6 @@ window.gcexports.parser = (function () {
     ret.cls = "punc";
     return ret;
   }
-
   function bindings(ctx, cc) {
     if (match(ctx, TK_RIGHTBRACE)) {
       return cc;
@@ -1037,7 +1083,6 @@ window.gcexports.parser = (function () {
       };
     })
   }
-
   function binding(ctx, cc) {
     return identOrString(ctx, function(ctx) {
       eat(ctx, TK_COLON);
@@ -1049,12 +1094,39 @@ window.gcexports.parser = (function () {
       return ret;
     })
   }
-
+  function lambda(ctx, cc) {
+    eat(ctx, TK_LEFTANGLE);
+    var ret = function (ctx) {
+      ctx.state.paramc = 0;
+      env.enterEnv(ctx, "lambda");
+      return params(ctx, TK_COLON, function (ctx) {
+        eat(ctx, TK_COLON);
+        var ret = function(ctx) {
+          return exprsStart(ctx, TK_RIGHTANGLE, function (ctx) {
+            eat(ctx, TK_RIGHTANGLE);
+            var nid = Ast.peek(ctx)   // save node id for aliased code
+            // Clean up stack.
+            Ast.pop(ctx)  // body
+            for (var i = 0; i < ctx.state.paramc; i++) {
+              Ast.pop(ctx) // params
+            }
+            Ast.lambda(ctx, topEnv(ctx), nid);
+            env.exitEnv(ctx);
+            return cc
+          });
+        };
+        ret.cls = "punc"
+        return ret
+      })
+    };
+    return ret;
+  }
   function parenExpr(ctx, cc) {
     eat(ctx, TK_LEFTPAREN);
     var ret = function(ctx) {
-      return condExpr(ctx, function (ctx) {
+      return exprsStart(ctx, TK_RIGHTPAREN, function (ctx) {
         eat(ctx, TK_RIGHTPAREN);
+        Ast.exprs(ctx, 1);
         cc.cls = "punc";
         return cc;
       })
@@ -1062,7 +1134,6 @@ window.gcexports.parser = (function () {
     ret.cls = "punc";
     return ret;
   }
-
   function list(ctx, cc) {
     eat(ctx, TK_LEFTBRACKET);
     startCounter(ctx);
@@ -1078,7 +1149,6 @@ window.gcexports.parser = (function () {
     ret.cls = "punc";
     return ret;
   }
-
   function elements(ctx, resume) {
     if (match(ctx, TK_RIGHTBRACKET)) {
       return resume;
@@ -1095,16 +1165,14 @@ window.gcexports.parser = (function () {
       return function (ctx) {
         return elements(ctx, resume);
       };
-    })
+    });
   }
-
   function element(ctx, resume) {
     return expr(ctx, function(ctx) {
       countCounter(ctx);
-      return resume;
+      return resume(ctx);
     });
   }
-
   function primaryExpr(ctx, cc) {
     if (match(ctx, TK_NUM)) {
       return number(ctx, cc);
@@ -1120,65 +1188,13 @@ window.gcexports.parser = (function () {
       return parenExpr(ctx, cc);
     } else if (match(ctx, TK_LEFTBRACKET)) {
       return list(ctx, cc);
+    } else if (match(ctx, TK_LEFTANGLE)) {
+      return lambda(ctx, cc);
     }
     return name(ctx, cc);
   }
-
-  function funcApp(ctx, cc) {
-    return primaryExpr(ctx, function primaryExprCC(ctx) {
-      var node = Ast.node(ctx, Ast.topNode(ctx));
-      if (node.tag==="IDENT") {
-        var name = node.elts[0];
-        var word = env.findWord(ctx, name);
-        if (word && word.cls === "function") {
-          startArgs(word.length);
-          return args(ctx, cc);
-        }
-      }
-      return cc(ctx);
-      function startArgs(len) {
-        ctx.state.argcStack.push(ctx.state.argc);
-        ctx.state.paramcStack.push(ctx.state.paramc);
-        ctx.state.paramc = ctx.state.argc = len;
-      }
-    });
-  }
-
-  function args(ctx, cc) {
-    if (match(ctx, TK_COMMA)) {
-      eat(ctx, TK_COMMA);
-      Ast.funcApp(ctx, ctx.state.paramc - ctx.state.argc);
-      finishArgs(ctx);
-      cc.cls = "punc";
-      return cc;
-    }
-    else
-    if (ctx.state.argc === 0) {
-      Ast.funcApp(ctx, ctx.state.paramc);
-      finishArgs();
-      return cc(ctx);
-    }
-    if (match(ctx, TK_DOT)) {
-      addError(ctx, "Expecting " + ctx.state.argc +
-               " more " + (ctx.state.argc === 1 ? "argument" : "arguments") +
-               ".");
-    }
-    return arg(ctx, function (ctx) {
-      return args(ctx, cc);
-    })
-    function finishArgs() {
-      ctx.state.argc = ctx.state.argcStack.pop();
-      ctx.state.paramc = ctx.state.paramcStack.pop();
-    }
-  }
-
-  function arg(ctx, cc) {
-    ctx.state.argc--;
-    return expr(ctx, cc);
-  }
-
   function postfixExpr(ctx, cc) {
-    return funcApp(ctx, function (ctx) {
+    return primaryExpr(ctx, function (ctx) {
       if (match(ctx, TK_POSTOP)) {
         eat(ctx, TK_POSTOP);
         cc.cls = "operator";
@@ -1276,64 +1292,64 @@ window.gcexports.parser = (function () {
   }
 
   function caseExpr(ctx, cc) {
-    eat(ctx, TK_CASE)
+    eat(ctx, TK_CASE);
     var ret = function (ctx) {
       return expr(ctx, function (ctx) {
-        startCounter(ctx)
+        startCounter(ctx);
         return ofClauses(ctx, function (ctx) {
-          Ast.caseExpr(ctx, ctx.state.exprc)
-          stopCounter(ctx)
-          eat(ctx, TK_END)
-          cc.cls = "keyword"
-          return cc
+          Ast.caseExpr(ctx, ctx.state.exprc);
+          stopCounter(ctx);
+          eat(ctx, TK_END);
+          cc.cls = "keyword";
+          return cc;
         })
       })
     }
-    ret.cls = "keyword"
-    return ret
+    ret.cls = "keyword";
+    return ret;
   }
 
   function ofClauses(ctx, cc) {
     if (match(ctx, TK_OF)) {
       return ofClause(ctx, function (ctx) {
-        countCounter(ctx)
+        countCounter(ctx);
         if (match(ctx, TK_OF)) {
-          return ofClauses(ctx, cc)
+          return ofClauses(ctx, cc);
         }
-        return cc(ctx)
-      })
+        return cc(ctx);
+      });
     }
-    return cc(ctx)
+    return cc(ctx);
   }
 
   function ofClause (ctx, cc) {
-    eat(ctx, TK_OF)
+    eat(ctx, TK_OF);
     var ret = function (ctx) {
       return pattern(ctx, function (ctx) {
-        eat(ctx, TK_EQUAL)
+        eat(ctx, TK_COLON);
         var ret = function(ctx) {
-          return exprsStart(ctx, function(ctx) {
-            Ast.ofClause(ctx)
-            return cc(ctx)
-          })
+          return exprsStart(ctx, TK_OF, function(ctx) {
+            Ast.ofClause(ctx);
+            return cc(ctx);
+          });
         }
-        ret.cls = "punc"
-        return ret
-      })
+        ret.cls = "punc";
+        return ret;
+      });
     }
-    ret.cls = "keyword"
-    return ret
+    ret.cls = "keyword";
+    return ret;
   }
 
   function pattern(ctx, cc) {
     // FIXME only matches number literals for now
-    return primaryExpr(ctx, cc)
+    return primaryExpr(ctx, cc);
   }
 
   function thenClause(ctx, cc) {
     eat(ctx, TK_THEN)
     var ret = function (ctx) {
-      return exprsStart(ctx, function (ctx) {
+      return exprsStart(ctx, TK_ELSE, function (ctx) {
         if (match(ctx, TK_ELSE)) {
           return elseClause(ctx, cc)
         } else {
@@ -1348,7 +1364,7 @@ window.gcexports.parser = (function () {
   function elseClause(ctx, cc) {
     eat(ctx, TK_ELSE)
     var ret = function (ctx) {
-      return exprsStart(ctx, cc)
+      return exprsStart(ctx, TK_END, cc)
     }
     ret.cls = "keyword"
     return ret
@@ -1356,7 +1372,7 @@ window.gcexports.parser = (function () {
 
   function expr(ctx, cc) {
     if (match(ctx, TK_LET)) {
-      var ret = def(ctx, cc);
+      var ret = letDef(ctx, cc);
       return ret;
     }
     var ret = condExpr(ctx, cc);
@@ -1373,7 +1389,7 @@ window.gcexports.parser = (function () {
       || match(ctx, TK_ELSE)
       || match(ctx, TK_OR)
       || match(ctx, TK_END)
-      || match(ctx, TK_DOT)
+      || match(ctx, TK_DOT);
   }
 
   function countCounter(ctx) {
@@ -1389,9 +1405,9 @@ window.gcexports.parser = (function () {
     ctx.state.exprc = ctx.state.exprcStack.pop()
   }
 
-  function exprsStart(ctx, cc) {
-    startCounter(ctx)
-    return exprs(ctx, cc)
+  function exprsStart(ctx, brk, cc) {
+    startCounter(ctx);
+    return exprs(ctx, brk, cc);
   }
 
   function exprsFinish(ctx, cc) {
@@ -1400,7 +1416,7 @@ window.gcexports.parser = (function () {
     return cc(ctx)
   }
 
-  function exprs(ctx, cc) {
+  function exprs(ctx, brk, cc) {
     if (match(ctx, TK_DOT)) {   // second dot
       eat(ctx, TK_DOT);
       var ret = function(ctx) {
@@ -1417,47 +1433,75 @@ window.gcexports.parser = (function () {
           if (emptyInput(ctx) || emptyExpr(ctx)) {
             return exprsFinish(ctx, cc);
           }
-          return exprs(ctx, cc);
+          return exprs(ctx, brk, cc);
         }
         ret.cls = "punc";
         return ret;
+      } else if (match(ctx, brk)) {
+        var ret = function (ctx) {
+          return exprsFinish(ctx, cc);
+        }
+        ret.cls = "punc";
+        return ret;
+      } else {
+        if (emptyInput(ctx) || emptyExpr(ctx)) {
+          return exprsFinish(ctx, cc);
+        }
+        return exprs(ctx, brk, cc);
       }
       return exprsFinish(ctx, cc);
-    })
+    });
   }
 
   function program(ctx, cc) {
-    return exprsStart(ctx, function (ctx) {
-      folder.fold(ctx, Ast.pop(ctx))  // fold the exprs on top
+    return exprsStart(ctx, TK_DOT, function (ctx) {
+      var nid;
+      while (Ast.peek(ctx) !== nid) {
+        var nid = Ast.pop(ctx);
+        folder.fold(ctx, nid)  // fold the exprs on top
+      }
+      Ast.exprs(ctx, ctx.state.nodeStack.length, true);
       Ast.program(ctx)
       assert(cc===null, "internal error, expecting null continuation")
       return cc
-    })
+    });
   }
   window.gcexports.program = program;
 
-  function def(ctx, cc) {
+  /*
+
+    fn = { head, body }
+
+   */
+
+  function letDef(ctx, cc) {
     if (match(ctx, TK_LET)) {
       eat(ctx, TK_LET)
       var ret = function (ctx) {
         var ret = defName(ctx, function (ctx) {
           var name = Ast.node(ctx, Ast.topNode(ctx)).elts[0]
           // nid=0 means def not finished yet
-          env.addWord(ctx, name, { tk: TK_IDENT, cls: "function", length: 0, nid: 0, name: name })
+          env.addWord(ctx, name, {
+            tk: TK_IDENT,
+            cls: "function",
+            length: 0,
+            nid: 0,
+            name: name
+          });
           ctx.state.paramc = 0
           env.enterEnv(ctx, name)  // FIXME need to link to outer env
-          return params(ctx, function (ctx) {
+          return params(ctx, TK_EQUAL, function (ctx) {
             var func = env.findWord(ctx, topEnv(ctx).name)
             func.length = ctx.state.paramc
             func.env = topEnv(ctx)
             eat(ctx, TK_EQUAL)
             var ret = function(ctx) {
-              return exprsStart(ctx, function (ctx) {
+              return exprsStart(ctx, TK_DOT, function (ctx) {
                 var def = env.findWord(ctx, topEnv(ctx).name)
                 def.nid = Ast.peek(ctx)   // save node id for aliased code
                 env.exitEnv(ctx);
-                Ast.letDefn(ctx);
-                return cc
+                Ast.letDef(ctx);  // Clean up stack
+                return cc;
               })
             }
             ret.cls = "punc"
@@ -1473,16 +1517,24 @@ window.gcexports.parser = (function () {
     return name(ctx, cc)
   }
 
-  function params(ctx, cc) {
-    if (match(ctx, TK_EQUAL)) {
+  // TODO add argument for specifying the break token.
+  // e.g. TK_EQUAL | TK_VERTICALBAR
+  // params(ctx, brk, resume) {..}
+  function params(ctx, brk, cc) {
+    if (match(ctx, brk)) {
       return cc
     }
     var ret = function (ctx) {
       var ret = defName(ctx, function (ctx) {
-        env.addWord(ctx, lexeme, { tk: TK_IDENT, cls: "val", offset: ctx.state.paramc })
-        ctx.state.paramc++
-        return params(ctx, cc)
-      })
+        env.addWord(ctx, lexeme, {
+          tk: TK_IDENT,
+          cls: "val",
+          name: lexeme,
+          offset: ctx.state.paramc
+        });
+        ctx.state.paramc++;
+        return params(ctx, brk, cc);
+      });
       ret.cls = "param"
       return ret
     }
@@ -1511,8 +1563,8 @@ window.gcexports.parser = (function () {
       type: "PUT",
       url: "/compile",
       data: {
-        "id": !postCode ? window.gcexports.id : undefined,
-        "parent": postCode ? window.gcexports.id : undefined,
+        "id": !postCode ? window.gcexports.id : 0,
+        "parent": postCode ? window.gcexports.id : 0,
         "ast": ast,
         "type": window.gcexports.lexiconType,
         "language": window.gcexports.language,
@@ -1538,7 +1590,7 @@ window.gcexports.parser = (function () {
               severity : "error",
             });
           });
-          window.gcexports.lastErrors = window.exports.errors = errors;
+          window.gcexports.lastErrors = window.gcexports.errors = errors;
           window.gcexports.editor.performLint();
         } else if (data.id) {
           // We have a good id, so use it.
@@ -1672,7 +1724,7 @@ window.gcexports.parser = (function () {
       }
     } catch (x) {
       console.log(x.stack);
-      //console.log(Ast.dumpAll(ctx));
+//      console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
         addError(ctx, x.message);
@@ -1740,6 +1792,12 @@ window.gcexports.parser = (function () {
         case 45:  // dash
           lexeme += String.fromCharCode(c);
           return TK_MINUS
+        case 60: // left angle
+          lexeme += String.fromCharCode(c);
+          return TK_LEFTANGLE
+        case 62: // right angle
+          lexeme += String.fromCharCode(c);
+          return TK_RIGHTANGLE
         case 91:  // left bracket
           lexeme += String.fromCharCode(c);
           return TK_LEFTBRACKET
@@ -1892,14 +1950,13 @@ var folder = function() {
   var table = {
     "PROG" : program,
     "EXPRS" : exprs,
-    "RECURSE" : recurse,
     "IDENT" : ident,
     "BOOL" : bool,
     "NUM" : num,
     "STR" : str,
     "PARENS" : unaryExpr,
-    "MAP": map,
-    "CALL" : call,
+    "APPLY" : apply,
+    "LAMBDA" : lambda,
     "MUL": mul,
     "DIV": div,
     "SUB": sub,
@@ -1950,10 +2007,11 @@ var folder = function() {
     if (node.tag === void 0) {
       return [ ]  // clean up stubs;
     } else if (isFunction(table[node.tag])) {
+      // Have a primitive operation so apply it to construct a new node.
       var ret = table[node.tag](node);
       return ret;
     }
-    funcApp2(node);
+    expr(node);
   }
 
   function isArray(v) {
@@ -2007,51 +2065,57 @@ var folder = function() {
     }
     Ast.ofClause(ctx);
   }
+  function pushNodeStack(ctx) {
+    ctx.state.nodeStackStack.push(ctx.state.nodeStack);
+    ctx.state.nodeStack = [];
+  }
+  function popNodeStack(ctx) {
+    var stack = ctx.state.nodeStack;
+    ctx.state.nodeStack = ctx.state.nodeStackStack.pop().concat(stack);
+  }
 
   function list(node) {
     // Fold list
-    for (var i = 0; i < node.elts.length; i++) {
-      visit(node.elts[i]);
+    // for (var i = 0; i < node.elts.length; i++) {
+    //   visit(node.elts[i]);
+    // }
+    pushNodeStack(ctx);
+    for (var i = node.elts.length - 1; i >= 0; i--) {
+      visit(node.elts[i]);  // Keep original order.
     }
-    Ast.list(ctx, node.elts.length)
+    Ast.list(ctx, ctx.state.nodeStack.length, null, true);
+    popNodeStack(ctx);
   }
 
   function exprs(node) {
-    // Fold exprs
-    for (var i = 0; i < node.elts.length; i++) {
-      visit(node.elts[i]);
+    // Fold exprs in reverse order to get precedence right.
+    for (var i = node.elts.length - 1; i >= 0; i--) {
+      visit(node.elts[i]);  // Keep original order.
     }
-    Ast.exprs(ctx, node.elts.length);
+    ctx.state.exprc = node.elts.length;
   }
 
-  function recurse(node) {
+  function lambda(node) {
+    var fnId = Ast.intern(ctx, node);
+//    var argc = Ast.node(ctx, node.elts[0]).elts.length;
+    var argc = ctx.state.nodeStack.length;
+    Ast.apply(ctx, fnId, argc);
+  }
+
+  function apply(node) {
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    Ast.call(ctx, node.elts.length-1) // func name is the +1
+    Ast.apply(ctx, node.elts[node.elts.length - 1], node.elts.length - 1);
   }
 
-  function map(node) {
-    Ast.name(ctx, "map");
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    Ast.funcApp(ctx, node.elts.length);
-  }
-
-  function call(node) {
-    for (var i = node.elts.length-1; i >= 0; i--) {
-      visit(node.elts[i]);
-    }
-    Ast.call(ctx, node.elts.length-1);
-  }
-
-  function funcApp2(node) {
+  function expr(node) {
+    // Construc an expression node for the compiler.
     Ast.name(ctx, node.tag);
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    Ast.funcApp2(ctx, node.elts.length);
+    Ast.expr(ctx, node.elts.length);
   }
 
   function neg(node) {
@@ -2064,106 +2128,94 @@ var folder = function() {
     Ast.unaryExpr(ctx, node.tag);
   }
 
-  function visitArgs(args) {
-    for (var i = args.length - 1; i >= 0; i--) {
-      visit(args[i]);
-    }
-  }
-
   function add(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.add(ctx);
   }
 
   function sub(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.sub(ctx);
   }
 
   function mul(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.mul(ctx);
   }
 
   function div(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.div(ctx);
   }
 
   function pow(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.pow(ctx);
   }
 
   function concat(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
     Ast.concat(ctx);
   }
 
   function mod(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.mod(ctx);
   }
 
   function orelse(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.orelse(ctx);
   }
 
   function andalso(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.andalso(ctx);
   }
 
   function eq(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.eq(ctx);
   }
 
   function ne(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.ne(ctx);
   }
 
   function lt(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.lt(ctx);
   }
 
   function gt(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.gt(ctx);
   }
 
   function le(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.le(ctx);
   }
 
   function ge(node) {
-    visit(node.elts[1]);
     visit(node.elts[0]);
+    visit(node.elts[1]);
     Ast.ge(ctx);
   }
-
-  // when folding identifiers we encounter three cases:
-  // -- the identifier is a function name, so we create a funcApp node
-  // -- the identifier has a value, so we replace it with the value
-  // -- the identifier is a reference to a local without a value, so we keep the identifier
 
   function ident(node) {
     var name = node.elts[0];
@@ -2173,21 +2225,38 @@ var folder = function() {
         if (word.val) {
           Ast.push(ctx, word.val);
           visit(Ast.pop(ctx));      // reduce the val expr
+        } else if (word.nid) {
+          var wrd;
+          if ((wrd = Ast.node(ctx, word.nid)).tag === "LAMBDA") {
+            var argc = wrd.elts[0].elts.length;
+            Ast.apply(ctx, word.nid, argc);
+          } else {
+            Ast.push(ctx, word.nid);
+          }
         } else if (word.name) {
-          Ast.push(ctx, {tag: word.name, elts: []});  // create a node from the word entry
+          Ast.push(ctx, node);
         } else {
           // push the original node to be resolved later.
           Ast.push(ctx, node);
         }
+      } else if (word.cls==="function") {
+        var elts = [];
+        for (var i = 0; i < word.length; i++) {
+          var elt = Ast.pop(ctx);
+          elts.push(elt);
+        }
+        if (word.nid) {
+          Ast.fold(ctx, word, elts);
+        } else {
+          Ast.push(ctx, {
+            tag: word.name,
+            elts: elts
+          });
+          folder.fold(ctx, Ast.pop(ctx));
+        }
       } else {
-        // push the original node to be resolved later.
-        Ast.push(ctx, node);
+        assert(false);
       }
-// FIXME need to implement this
-//      else
-//      if (word.cls==="function") {
-//        assert(false, "implement forward references to functions")
-//      }
     } else {
       //assert(false, "unresolved ident "+name);
       Ast.push(ctx, node);
