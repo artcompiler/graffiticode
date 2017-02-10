@@ -20,7 +20,6 @@ var morgan = require("morgan");
 var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
-//var session = require("express-session");
 var errorHandler = require("errorhandler");
 var timeout = require('connect-timeout');
 var main = require('./main.js');
@@ -183,7 +182,7 @@ app.get('/lang', function(req, res) {
         target: 'SVG',
         login: 'Login',
         item: 0,
-        data: 0,
+        data: undefined,
         version: version,
       }, function (error, html) {
         if (error) {
@@ -213,7 +212,7 @@ app.get('/item', function(req, res) {
           target: 'SVG',
           login: 'Login',
           item: ids[0],
-          data: ids[1] ? ids[1] : 0,
+          data: ids[1] ? ids[1] : undefined,
           view: "item",
           version: version,
         }, function (error, html) {
@@ -247,7 +246,7 @@ app.get('/form', function(req, res) {
           target: 'SVG',
           login: 'Login',
           item: ids[0],
-          data: ids[1] ? ids[1] : 0,
+          data: ids[1] ? ids[1] : undefined,
           view: "form",
           version: version,
         }, function (error, html) {
@@ -292,7 +291,10 @@ app.get('/data', function(req, res) {
         } else {
           // No data provided, so return previous object code.
           obj = JSON.parse(row.obj);
-          res.send(obj);
+          if (typeof obj === "string") {
+            obj = [obj]; // FIXME http treats scalar as error code.
+          }
+          res.json(obj);
         }
         dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+codeId, () => {});
       }
@@ -645,7 +647,7 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
           if (err) {
             response.status(400).send(err);
           } else {
-            response.send({
+            response.json({
               obj: obj,
               id: data.rows[0].id
             });
@@ -664,13 +666,13 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
           }
         });
         // Don't wait for update. We have what we need to respond.
-        response.send({
+        response.json({
           obj: obj,
           id: id
         });
       } else {
         // No update needed. Just return the item.
-        response.send({
+        response.json({
           obj: rows[0].obj,
           id: rows[0].id
         });
@@ -685,13 +687,13 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
   });
 }
 
-// Compile code (idempotent)
+// Compile code
 app.put('/compile', function (req, res) {
-  // The AST is the key and the compiler is the map to the object code (OBJ).
   // PUT /compile does two things:
   // -- compile the given AST.
   // -- updates the object code of any items whose object code differs from the result.
   var id = req.body.id;
+  var dataId = req.body.dataId;
   var parent = req.body.parent;
   var src = req.body.src;
   var ast = JSON.parse(req.body.ast);
@@ -711,7 +713,22 @@ app.put('/compile', function (req, res) {
   }
   dbQuery(q, function(err, result) {
     // See if there is already an item with the same source for the same language. If so, pass it on.
-    compile(id, user, parent, language, src, ast, null, result.rows, res);
+    var obj;
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      let rows = result.rows;
+      if (dataId) {
+        // We have data so recompile with that data.
+        dbQuery("SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
+          let data = JSON.parse(result.rows[0].obj)
+          compile(id, user, parent, language, src, ast, data, rows, res);
+        });
+      } else {
+        // No data provided.
+        compile(id, user, parent, language, src, ast, null, rows, res);
+      }
+    }
   });
 });
 
@@ -754,7 +771,7 @@ app.put('/code', function (req, response) {
         }
       });
       // Don't wait for update. We have what we need to respond.
-      response.send({
+      response.json({
         id: id
       });
     } else {
@@ -770,7 +787,7 @@ app.put('/code', function (req, response) {
         if (err) {
           response.status(400).send(err);
         } else {
-          response.send({
+          response.json({
             id: data.rows[0].id
           });
         }

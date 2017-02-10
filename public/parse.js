@@ -1564,6 +1564,7 @@ window.gcexports.parser = (function () {
       url: "/compile",
       data: {
         "id": !postCode ? window.gcexports.id : 0,
+        "dataId": !postCode ? window.gcexports.data : undefined,
         "parent": postCode ? window.gcexports.id : 0,
         "ast": ast,
         "type": window.gcexports.lexiconType,
