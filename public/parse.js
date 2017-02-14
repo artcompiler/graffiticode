@@ -274,8 +274,13 @@ var Ast = (function () {
     env.enterEnv(ctx, fn.name);
     if (fn.env) {
       var lexicon = fn.env.lexicon;
+      var pattern = fn.env.pattern;
       // setup inner environment record (lexicon)
       var outerEnv = {};
+      if (pattern && pattern.tag === "LIST") {
+        // Deconstruct list argument.
+        args = Ast.node(ctx, args[0]).elts.reverse();
+      }
       for (var id in lexicon) {
         // For each parameter, get its definition assign the value of the argument
         // used on the current function application.
@@ -315,7 +320,10 @@ var Ast = (function () {
     var def = {
       name: "lambda",
       nid: Ast.intern(ctx, fn.elts[1]),
-      env: {lexicon: lexicon},
+      env: {
+        lexicon: lexicon,
+        pattern: fn.elts[2],
+      },
     };
     var len = fn.elts[0].elts.length;
     var paramc = len;
@@ -628,12 +636,13 @@ var Ast = (function () {
         elts: [word.name]
       });
     }
+    var pattern = env.patterns[0];
     push(ctx, {
       tag: "LAMBDA",
       elts: [{
         tag: "LIST",
         elts: names
-      }, nid]
+      }, nid, pattern]
     });
   }
 
@@ -763,6 +772,7 @@ var env = (function () {
     addWord: addWord,
     enterEnv: enterEnv,
     exitEnv: exitEnv,
+    addPattern: addPattern,
   };
 
   // private functions
@@ -783,13 +793,21 @@ var env = (function () {
     return null;
   }
 
+  function addPattern(ctx, pattern) {
+    window.gcexports.topEnv(ctx).patterns.push(pattern);
+  }
+
   function enterEnv(ctx, name) {
     // recursion guard
     if (ctx.state.env.length > 380) {
       //return;  // just stop recursing
       throw new Error("runaway recursion");
     }
-    ctx.state.env.push({name: name, lexicon: {}});
+    ctx.state.env.push({
+      name: name,
+      lexicon: {},
+      patterns: [],
+    });
   }
 
   function exitEnv(ctx) {
@@ -1006,21 +1024,42 @@ window.gcexports.parser = (function () {
     cc.cls = "variable";
     return cc;
   }
-
   function identOrString(ctx, cc) {
     if (match(ctx, TK_IDENT)) {
       return ident(ctx, cc);
     }
     return string(ctx, cc);
   }
-
-  function defName(ctx, cc) {
-    eat(ctx, TK_IDENT);
-    Ast.name(ctx, lexeme);
-    cc.cls = "val";
-    return cc;
+  function defList(ctx, resume) {
+    eat(ctx, TK_LEFTBRACKET);
+    var ret = (ctx) => {
+      return params(ctx, TK_RIGHTBRACKET, (ctx) => {
+        eat(ctx, TK_RIGHTBRACKET);
+        Ast.list(ctx, ctx.state.paramc, null, true);
+        ctx.state.paramc = 1;
+        return resume;
+      });
+    };
+    ret.cls = "punc";
+    return ret;
   }
-
+  function defName(ctx, cc) {
+    if (match(ctx, TK_LEFTBRACKET)) {
+      return defList(ctx, cc);
+    } else {
+      eat(ctx, TK_IDENT);
+      env.addWord(ctx, lexeme, {
+        tk: TK_IDENT,
+        cls: "val",
+        name: lexeme,
+        offset: ctx.state.paramc,
+      });
+      ctx.state.paramc++;
+      Ast.name(ctx, lexeme);
+      cc.cls = "val";
+      return cc;
+    }
+  }
   function name(ctx, cc) {
     eat(ctx, TK_IDENT);
     var word = env.findWord(ctx, lexeme);
@@ -1046,7 +1085,6 @@ window.gcexports.parser = (function () {
     assert(cc, "name");
     return cc;
   }
-
   function record(ctx, cc) {
     // Parse record
     eat(ctx, TK_LEFTBRACE);
@@ -1108,7 +1146,7 @@ window.gcexports.parser = (function () {
             // Clean up stack.
             Ast.pop(ctx)  // body
             for (var i = 0; i < ctx.state.paramc; i++) {
-              Ast.pop(ctx) // params
+              env.addPattern(ctx, Ast.pop(ctx)); // params
             }
             Ast.lambda(ctx, topEnv(ctx), nid);
             env.exitEnv(ctx);
@@ -1525,18 +1563,11 @@ window.gcexports.parser = (function () {
       return cc
     }
     var ret = function (ctx) {
-      var ret = defName(ctx, function (ctx) {
-        env.addWord(ctx, lexeme, {
-          tk: TK_IDENT,
-          cls: "val",
-          name: lexeme,
-          offset: ctx.state.paramc
-        });
-        ctx.state.paramc++;
+      var ret = defName(ctx, (ctx) => {
         return params(ctx, brk, cc);
       });
-      ret.cls = "param"
-      return ret
+      ret.cls = "param";
+      return ret;
     }
     ret.cls = "param";
     return ret;
@@ -1564,7 +1595,7 @@ window.gcexports.parser = (function () {
       url: "/compile",
       data: {
         "id": !postCode ? window.gcexports.id : 0,
-        "dataId": !postCode ? window.gcexports.data : undefined,
+        "dataId": window.gcexports.data,
         "parent": postCode ? window.gcexports.id : 0,
         "ast": ast,
         "type": window.gcexports.lexiconType,
