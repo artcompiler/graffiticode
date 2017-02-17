@@ -62,10 +62,12 @@ var Ast = (function () {
     string: string,
     name: name,
     apply: apply,
+    applyLate: applyLate,
     fold: fold,
     expr: expr,
     binaryExpr: binaryExpr,
     unaryExpr: unaryExpr,
+    parenExpr: parenExpr,
     prefixExpr: prefixExpr,
     lambda: lambda,
     letDef: letDef,
@@ -271,15 +273,21 @@ var Ast = (function () {
   }
 
   function fold(ctx, fn, args) {
+    // Three cases:
+    // -- full application, all args are available at parse time
+    // -- partial application, only some args are available at parse time
+    // -- late application, args are available at compile time
+    //        apply <[x y]: add x y> data..
+    //    x: val 0 data
+    //    y: val 1 data
     env.enterEnv(ctx, fn.name);
     if (fn.env) {
       var lexicon = fn.env.lexicon;
-      var pattern = fn.env.pattern;
+      var pattern = Ast.node(ctx, fn.env.pattern);
       // setup inner environment record (lexicon)
       var outerEnv = {};
-      if (pattern && pattern.tag === "LIST") {
-        // Deconstruct list argument.
-        args = Ast.node(ctx, args[0]).elts.reverse();
+      if (args.length > 0 && pattern && pattern.tag === "LIST") {
+        var isListPattern = true;
       }
       for (var id in lexicon) {
         // For each parameter, get its definition assign the value of the argument
@@ -287,7 +295,17 @@ var Ast = (function () {
         if (!id) continue;
         var word = JSON.parse(JSON.stringify(lexicon[id])); // Poorman's copy.
         var index = args.length - word.offset - 1;
-        if (index < 0) {
+        if (isListPattern) {
+          word.nid = Ast.intern(ctx, {
+            tag: "VAL",
+            elts: [{
+              tag: "NUM",
+              elts: [
+                String(word.offset)
+              ]
+            }, args[0]]
+          });
+        } else if (index < 0) {
           outerEnv[id] = word;
           // <x:x> => <x:x>
           // <x y: add x y> 10. => <y: add 10 y>.
@@ -298,7 +316,10 @@ var Ast = (function () {
       }
       folder.fold(ctx, fn.nid);
       if (index < 0) {
-        lambda(ctx, {lexicon: outerEnv}, pop(ctx));
+        lambda(ctx, {
+          lexicon: outerEnv,
+          pattern: pattern,  // FIXME need to trim pattern if some args where applied.
+        }, pop(ctx));
       }
     }
     env.exitEnv(ctx);
@@ -307,6 +328,15 @@ var Ast = (function () {
   function apply(ctx, fnId, argc) {
     // Construct function and apply available arguments.
     var fn = node(ctx, fnId);
+    // if (fn.tag !== "LAMBDA") {
+    //   // Construct an APPLY node for compiling later.
+    //   return {
+    //     tag: "APPLY",
+    //     elts: [
+    //       fnId,
+    //     ]
+    //   };
+    // }
     // Construct a lexicon
     var lexicon = {};
     fn.elts[0].elts.forEach(function (n, i) {
@@ -322,20 +352,31 @@ var Ast = (function () {
       nid: Ast.intern(ctx, fn.elts[1]),
       env: {
         lexicon: lexicon,
-        pattern: fn.elts[2],
+        pattern: Ast.intern(ctx, fn.elts[2]),
       },
     };
     var len = fn.elts[0].elts.length;
     var paramc = len;
     var elts = [];
-//    var argc = ctx.state.nodeStack.length;
-//    var argc = ctx.state.exprc;
     // While there are args on the stack, pop them.
     while (argc-- > 0 && paramc-- > 0) {
       var elt = pop(ctx);
       elts.unshift(elt);  // Get the order right.
     }
     fold(ctx, def, elts);
+  }
+
+  function applyLate(ctx, count) {
+    // Ast.applyLate
+    var elts = [];
+    for (var i = 0; i < count; i++) {
+      var elt = pop(ctx);
+      elts.push(elt);
+    }
+    push(ctx, {
+      tag: "APPLY",
+      elts: elts,
+    });
   }
 
   // Node constructors
@@ -396,6 +437,17 @@ var Ast = (function () {
     var name = e[0];
     push(ctx, {
       tag: name,
+      elts: elts
+    });
+  }
+
+  function parenExpr(ctx) {
+    // Ast.parenExpr
+    var elts = [];
+    var elt = pop(ctx);
+    elts.push(elt);
+    push(ctx, {
+      tag: "PAREN",
       elts: elts
     });
   }
@@ -636,13 +688,16 @@ var Ast = (function () {
         elts: [word.name]
       });
     }
-    var pattern = env.patterns[0];
+    var pattern = env.pattern;
     push(ctx, {
       tag: "LAMBDA",
       elts: [{
         tag: "LIST",
         elts: names
-      }, nid, pattern]
+      }, nid, {
+        tag: "LIST",
+        elts: pattern
+      }]
     });
   }
 
@@ -794,7 +849,7 @@ var env = (function () {
   }
 
   function addPattern(ctx, pattern) {
-    window.gcexports.topEnv(ctx).patterns.push(pattern);
+    window.gcexports.topEnv(ctx).pattern.push(pattern);
   }
 
   function enterEnv(ctx, name) {
@@ -806,7 +861,7 @@ var env = (function () {
     ctx.state.env.push({
       name: name,
       lexicon: {},
-      patterns: [],
+      pattern: [],
     });
   }
 
@@ -1164,7 +1219,7 @@ window.gcexports.parser = (function () {
     var ret = function(ctx) {
       return exprsStart(ctx, TK_RIGHTPAREN, function (ctx) {
         eat(ctx, TK_RIGHTPAREN);
-        Ast.exprs(ctx, 1);
+        Ast.parenExpr(ctx);
         cc.cls = "punc";
         return cc;
       })
@@ -1982,6 +2037,7 @@ var folder = function() {
   var table = {
     "PROG" : program,
     "EXPRS" : exprs,
+    "PAREN" : parenExpr,
     "IDENT" : ident,
     "BOOL" : bool,
     "NUM" : num,
@@ -2138,7 +2194,7 @@ var folder = function() {
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    Ast.apply(ctx, node.elts[node.elts.length - 1], node.elts.length - 1);
+    Ast.applyLate(ctx, node.elts.length);
   }
 
   function expr(node) {
@@ -2153,6 +2209,13 @@ var folder = function() {
   function neg(node) {
     visit(node.elts[0]);
     Ast.neg(ctx);
+  }
+
+  function parenExpr(node) {
+    pushNodeStack(ctx);
+    visit(node.elts[0]);
+    Ast.parenExpr(ctx);
+    popNodeStack(ctx);
   }
 
   function unaryExpr(node) {
