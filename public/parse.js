@@ -62,7 +62,6 @@ var Ast = (function () {
     string: string,
     name: name,
     apply: apply,
-    applyLate: applyLate,
     fold: fold,
     expr: expr,
     binaryExpr: binaryExpr,
@@ -364,19 +363,6 @@ var Ast = (function () {
       elts.unshift(elt);  // Get the order right.
     }
     fold(ctx, def, elts);
-  }
-
-  function applyLate(ctx, count) {
-    // Ast.applyLate
-    var elts = [];
-    for (var i = 0; i < count; i++) {
-      var elt = pop(ctx);
-      elts.push(elt);
-    }
-    push(ctx, {
-      tag: "APPLY",
-      elts: elts,
-    });
   }
 
   // Node constructors
@@ -2191,10 +2177,17 @@ var folder = function() {
   }
 
   function apply(node) {
-    for (var i = node.elts.length-1; i >= 0; i--) {
+    for (var i = node.elts.length-1; i > 0; i--) {
       visit(node.elts[i]);
     }
-    Ast.applyLate(ctx, node.elts.length);
+    var fnId = node.elts[0];
+    var fn = Ast.node(ctx, fnId);
+    // FIXME rather than check for PAREN, just construct an APPLY node and
+    // send to the compiler with whatever args are available.
+    if (fn.tag === "PAREN" && fn.elts.length === 1 && fn.elts[0].tag === "LAMBDA") {
+      fnId = Ast.intern(ctx, fn.elts[0]);
+    }
+    Ast.apply(ctx, fnId, node.elts.length - 1);
   }
 
   function expr(node) {
