@@ -611,13 +611,12 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
 function compile(id, user, parent, language, src, ast, data, rows, response) {
   // Compile ast to obj.
   var path = "/compile";
-  var data = {
+  var encodedData = JSON.stringify({
     "description": "graffiticode",
     "language": language,
     "src": ast,
     "data": data,
-  };
-  var encodedData = JSON.stringify(data);
+  });
   var options = {
     host: getCompilerHost(language),
     port: getCompilerPort(language),
@@ -637,7 +636,7 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
       if (rows && rows.length === 1) {
         var o = rows[0].obj;
       }
-      var rows = rows ? rows : [];
+      rows = rows ? rows : [];
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
         var img = "";
