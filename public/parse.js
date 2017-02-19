@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+/*
+ TODO
+ -- Fold expressions until fully applied or there are no more arguments:
+    (<x y: add x y> 10) 20..
+ */
+
 if (typeof CodeMirror === "undefined") {
   CodeMirror = {
     Pos: function () {
@@ -286,7 +292,10 @@ var Ast = (function () {
       var pattern = Ast.node(ctx, fn.env.pattern);
       // setup inner environment record (lexicon)
       var outerEnv = {};
-      if (pattern && pattern.tag === "LIST") {
+      if (pattern && pattern.elts &&
+          pattern.elts.length === 1 &&
+          pattern.elts[0].tag === "LIST") {
+        // For now we only support one pattern per param list.
         var isListPattern = true;
       }
       for (var id in lexicon) {
@@ -296,6 +305,7 @@ var Ast = (function () {
         var word = JSON.parse(JSON.stringify(lexicon[id])); // Poorman's copy.
         var index = args.length - word.offset - 1;
         if (isListPattern) {
+          // <[x y]: ...> foo..
           word.nid = Ast.intern(ctx, {
             tag: "VAL",
             elts: [{
@@ -310,15 +320,13 @@ var Ast = (function () {
                 }]
               }]
           });
-          if (index < 0) {
-            outerEnv[id] = word;
-          }
-        } else if (index < 0) {
-          outerEnv[id] = word;
-          // <x:x> => <x:x>
-          // <x y: add x y> 10. => <y: add 10 y>.
         } else {
           word.nid = args[index];  // offsets are from end of args
+        }
+        if (index < 0) {
+          // <x:x> => <x:x>
+          // <x y: add x y> 10. => <y: add 10 y>.
+          outerEnv[id] = word;
         }
         env.addWord(ctx, id, word);
       }
@@ -478,7 +486,7 @@ var Ast = (function () {
   function binaryExpr(ctx, name) {
     var elts = [];
     // args are in the order produced by the parser
-    elts.push(pop(ctx)); 
+    elts.push(pop(ctx));
     elts.push(pop(ctx));
     push(ctx, {
       tag: name,
