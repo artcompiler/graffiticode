@@ -16,6 +16,7 @@ var parse = exports.parse = function(src, lexicon, resume) {
     exprc: 0,
     exprcStack: [0],
     nodeStack: [],
+    nodeStackStack: [],
     nodePool: ["unused"],
     nodeMap: {},
     nextToken: -1,

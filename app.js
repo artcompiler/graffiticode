@@ -108,14 +108,10 @@ app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
 
-// parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }));
-// parse application/json
 app.use(bodyParser.json());
-// parse application/text
 app.use(bodyParser.text());
 app.use(bodyParser.raw());
-// parse application/vnd.api+json as json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
@@ -157,9 +153,9 @@ app.get('/lang', function(req, res) {
       var ast = main.parse(src, lexicon, function (err, ast) {
         if (ast) {
           compile(0, 0, 0, lang, src, ast, null, null, {
-            send: function (data) {
+            json: function (data) {
               if (type === "id") {
-                res.send(data);
+                res.json(data);
               } else if (type === "data") {
                 res.redirect('/data?id=' + data.id);
               } else {
@@ -232,34 +228,28 @@ app.get('/item', function(req, res) {
 app.get('/form', function(req, res) {
   var ids = req.query.id.split(" ");
   var id = ids[0];  // First id is the item id.
-  dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
-    } else {
-      var lang = result.rows[0].language;
-      getCompilerVersion(lang, (version) => {
-        res.render('form.html', {
-          title: 'Graffiti Code',
-          language: lang,
-          vocabulary: lang,
-          target: 'SVG',
-          login: 'Login',
-          item: ids[0],
-          data: ids[1] ? ids[1] : undefined,
-          view: "form",
-          version: version,
-        }, function (error, html) {
-          if (error) {
-            res.status(400).send(error);
-          } else {
-            res.send(html);
-          }
-        });
+  getItem(id, function(err, row) {
+    var lang = row.language;
+    getCompilerVersion(lang, (version) => {
+      res.render('form.html', {
+        title: 'Graffiti Code',
+        language: lang,
+        vocabulary: lang,
+        target: 'SVG',
+        login: 'Login',
+        item: ids[0],
+        data: ids[1] ? ids[1] : undefined,
+        view: "form",
+        version: version,
+      }, function (error, html) {
+        if (error) {
+          res.status(400).send(error);
+        } else {
+          res.send(html);
+        }
       });
-    }
+    });
   });
-  dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
 });
 
 app.get('/data', function(req, res) {
@@ -268,35 +258,32 @@ app.get('/data', function(req, res) {
   let codeId = ids[0];  // First id is the item id.
   let dataId = ids[1];
   console.log("GET /data ids=" + ids);
-  dbQuery("SELECT * FROM pieces WHERE id = " + codeId, function(err, result) {
+  getItem(codeId, function(err, row) {
     var obj;
     if (err) {
       res.status(400).send(err);
     } else {
-      if (!result || result.rows.length===0) {
-        obj = [{}];
+      if (dataId) {
+        // We have data so recompile with that data.
+        let user = row.user_id;
+        let parent = row.parent_id;
+        let language = row.language;
+        let src = row.src;
+        let ast = row.ast;
+        getItem(dataId, (err, row) => {
+          let data = JSON.parse(row.obj);
+          compile(codeId, user, parent, language, src, ast, data, null, res);
+        });
       } else {
-        let row = result.rows[0];
-        if (dataId) {
-          // We have data so recompile with that data.
-          let user = row.user_id;
-          let parent = row.parent_id;
-          let language = row.language;
-          let src = row.src;
-          let ast = row.ast;
-          dbQuery("SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
-            let data = JSON.parse(result.rows[0].obj)
-            compile(codeId, user, parent, language, src, ast, data, null, res);
-          });
-        } else {
-          // No data provided, so return previous object code.
-          obj = JSON.parse(row.obj);
-          if (typeof obj === "string") {
-            obj = [obj]; // FIXME http treats scalar as error code.
-          }
-          res.json(obj);
-        }
-        dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+codeId, () => {});
+        // No data provided, so return previous object code.
+        // obj = JSON.parse(row.obj);
+        // if (typeof obj === "string") {
+        //   obj = [obj]; // FIXME http treats scalar as error code.
+        // }
+        res.json({
+          id: codeId,
+          obj: row.obj,
+        });
       }
     }
   });
@@ -308,17 +295,25 @@ app.get("/index", function (req, res) {
 
 // Get an item with :id
 app.get('/code/:id', function (req, res) {
-  var id = req.params.id;
-  dbQuery("SELECT * FROM pieces WHERE id = "+id, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
+  var ids = req.params.id.split("+");
+  var codeId = ids[0];
+  var dataId = ids[1];
+  getItem(codeId, (err, row) => {
+    if (dataId) {
+      // We have data so recompile with that data.
+      var src = row.src;
+      var ast = row.ast;
+      var parent = row.parent_id;
+      var user = row.user_id;
+      var language = row.language;
+      getItem(dataId, (err, row) => {
+        let data = JSON.parse(row.obj)
+        compile(codeId, user, parent, language, src, ast, data, [row], res);
+      });
     } else {
-      rows = result.rows;
+      // No data provided.
+      res.send(row);
     }
-    res.send(rows);
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-    });
   });
 });
 
@@ -570,6 +565,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
+  parent = typeof parent === "string" ? parent.split("+")[0] : 0;
   var queryStr =
     "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + user + "', '" + parent + "', '" + views +
@@ -577,7 +573,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
     " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
-      console.log("postItem() ERROR: " + err);
+      console.log("postItem() ERROR: " + queryStr);
       resume(err);
     } else {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
@@ -633,9 +629,6 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
       obj += chunk;
     });
     res.on('end', function () {
-      if (rows && rows.length === 1) {
-        var o = rows[0].obj;
-      }
       rows = rows ? rows : [];
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
@@ -647,12 +640,12 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
             response.status(400).send(err);
           } else {
             response.json({
+              id: data.rows[0].id,
               obj: obj,
-              id: data.rows[0].id
             });
           }
         });
-      } else if (o !== obj || ast !== rows[0].ast) {
+      } else if (rows.length === 1 && (rows[0].obj !== obj || rows[0].ast !== ast)) {
         var row = rows[0];
         id = id ? id : row.id;
         user = row.user_id;
@@ -742,6 +735,7 @@ app.put('/code', function (req, response) {
   var user = dot2num(ip); //req.body.user;
   var query;
   if (id) {
+    id = id.split("+")[0];  // Get codeId.
     // Prefer the given id if there is one.
     query = "SELECT * FROM pieces WHERE id='" + id + "'";
   } else {
@@ -754,7 +748,7 @@ app.put('/code', function (req, response) {
     var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
     if (id) {
       // Prefer the request values of existing row values.
-      var id = req.body.id ? req.body.id : row.id;
+      //var id = req.body.id ? req.body.id : row.id;
       //        var language = req.body.language ? req.body.language : row.language;
       var language = row.language;
       var src = req.body.src ? req.body.src : row.src;
@@ -774,7 +768,7 @@ app.put('/code', function (req, response) {
         id: id
       });
     } else {
-      var id = req.body.id;
+      //var id = req.body.id;
       var src = req.body.src;
       var language = req.body.language;
       var ast = req.body.ast ? JSON.parse(req.body.ast) : {};  // Possibly undefined.

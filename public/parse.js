@@ -1707,7 +1707,7 @@ window.gcexports.parser = (function () {
               dispatcher.dispatch({
                 id: codeData.id,
                 src: src,
-                obj: codeData.obj,
+                obj: obj,
                 ast: ast,
                 postCode: postCode,
                 errors: errors,
@@ -1721,7 +1721,7 @@ window.gcexports.parser = (function () {
             dispatcher.dispatch({
               id: codeData.id,
               src: src,
-              obj: codeData.obj,
+              obj: obj,
               ast: ast,
               postCode: postCode,
               errors: errors,
