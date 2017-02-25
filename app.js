@@ -45,10 +45,10 @@ var dbQuery = function(query, resume) {
 
 var getItem = function (id, resume) {
   // Get an item from the cache, or from the db and then cache it.
-  cache.get(id, (err, val) => {
-    if (val) {
-      resume(null, JSON.parse(val));
-    } else {
+  // cache.get(id, (err, val) => {
+  //   if (val) {
+  //     resume(null, JSON.parse(val));
+  //   } else {
       dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
         // Here we get the language associated with the id. The code is gotten by
         // the view after it is loaded.
@@ -59,12 +59,12 @@ var getItem = function (id, resume) {
           //assert(result.rows.length === 1);
           val = result.rows[0];
         }
-        cache.set(id, JSON.stringify(val));
+        // cache.set(id, JSON.stringify(val));
         resume(err, val);
       });
       dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
-    }
-  });
+  //   }
+  // });
 };
 
 if (conString.indexOf("localhost") < 0) {
@@ -157,9 +157,11 @@ app.get('/lang', function(req, res) {
       var lexicon = JSON.parse(lstr);
       var ast = main.parse(src, lexicon, function (err, ast) {
         if (ast) {
-          compile(0, 0, 0, lang, src, ast, null, {
+          compile(0, 0, 0, lang, src, ast, null, null, {
             send: function (data) {
-              if (type === "data") {
+              if (type === "id") {
+                res.send(data);
+              } else if (type === "data") {
                 res.redirect('/data?id=' + data.id);
               } else {
                 res.redirect('/form?id=' + data.id);
@@ -173,43 +175,16 @@ app.get('/lang', function(req, res) {
       return;
     });
   } else {
-    res.render('form.html', {
-      title: 'Graffiti Code',
-      language: lang,
-      vocabulary: lang,
-      target: 'SVG',
-      login: 'Login',
-      item: 0,
-      data: 0,
-      view: "form",
-    }, function (error, html) {
-      if (error) {
-        res.status(400).send(error);
-      } else {
-        res.send(html);
-      }
-    });
-  }
-});
-
-app.get('/form', function(req, res) {
-  var ids = req.query.id.split(" ");
-  var id = ids[0];  // First id is the item id.
-  console.log("GET /form ids=" + ids);
-  getItem(id, (err, val) => {
-    if (err) {
-      res.status(400).send(err);
-    } else {
-      var lang = val.language;
-      res.render('form.html', {
+    getCompilerVersion(lang, (version) => {
+      res.render('views.html', {
         title: 'Graffiti Code',
         language: lang,
         vocabulary: lang,
         target: 'SVG',
         login: 'Login',
-        item: ids[0],
-        data: ids[1] ? ids[1] : 0,
-        view: "form",
+        item: 0,
+        data: undefined,
+        version: version,
       }, function (error, html) {
         if (error) {
           res.status(400).send(error);
@@ -217,40 +192,97 @@ app.get('/form', function(req, res) {
           res.send(html);
         }
       });
-    }
+    });
+  }
+});
+
+app.get('/form', function(req, res) {
+  var ids = req.query.id.split(" ");
+  var id = ids[0];  // First id is the item id.
+  getItem(id, function(err, row) {
+    var lang = row.language;
+    getCompilerVersion(lang, (version) => {
+      res.render('form.html', {
+        title: 'Graffiti Code',
+        language: lang,
+        vocabulary: lang,
+        target: 'SVG',
+        login: 'Login',
+        item: ids[0],
+        data: ids[1] ? ids[1] : undefined,
+        view: "form",
+        version: version,
+      }, function (error, html) {
+        if (error) {
+          res.status(400).send(error);
+        } else {
+          res.send(html);
+        }
+      });
+    });
   });
 });
 
 app.get('/data', function(req, res) {
-  var ids = req.query.id.split(" ");
-  var id = ids[0];  // First id is the item id.
+  // If data id is supplied, then recompile with that data.
+  let ids = req.query.id.split(" ");
+  let codeId = ids[0];  // First id is the item id.
+  let dataId = ids[1];
   console.log("GET /data ids=" + ids);
-  getItem(id, (err, val) => {
+  getItem(codeId, function(err, row) {
     var obj;
     if (err) {
       res.status(400).send(err);
     } else {
-      res.send(val.obj);
+      if (dataId) {
+        // We have data so recompile with that data.
+        let user = row.user_id;
+        let parent = row.parent_id;
+        let language = row.language;
+        let src = row.src;
+        let ast = row.ast;
+        getItem(dataId, (err, row) => {
+          let data = JSON.parse(row.obj)
+          compile(codeId, user, parent, language, src, ast, data, null, res);
+        });
+      } else {
+        // No data provided, so return previous object code.
+        obj = JSON.parse(row.obj);
+        if (typeof obj === "string") {
+          obj = [obj]; // FIXME http treats scalar as error code.
+        }
+        res.json(obj);
+      }
     }
   });
 });
 
 // Get an item with :id
 app.get('/code/:id', function (req, res) {
-  var id = req.params.id;
-  console.log("GET /code id=" + id);
-  getItem(id, (err, val) => {
-    if (err) {
-      res.status(400).send(err);
+  var ids = req.params.id.split("+");
+  var codeId = ids[0];
+  var dataId = ids[1];
+  getItem(codeId, (err, row) => {
+    if (dataId) {
+      // We have data so recompile with that data.
+      var src = row.src;
+      var ast = row.ast;
+      var parent = row.parent_id;
+      var user = row.user_id;
+      var language = row.language;
+      getItem(dataId, (err, row) => {
+        let data = JSON.parse(row.obj)
+        compile(codeId, user, parent, language, src, ast, data, [row], res);
+      });
     } else {
-      // FIXME return object, not array.
-      res.send([val]);
+      // No data provided.
+      res.send(row);
     }
   });
 });
 
 // Get pieces
-app.get('/code', function (req, res) {
+app.get('/code', (req, res) => {
   var list = req.query.list;
   console.log("GET /code list=" + list);
   var queryStr =
@@ -289,6 +321,30 @@ function retrieve(language, path, response) {
       response.send(data.join(""));
     });
   });
+}
+
+let compilerVersions = {};
+function getCompilerVersion(language, resume) {
+  if (compilerVersions[language]) {
+    resume(compilerVersions[language]);
+  } else {
+    var data = [];
+    var options = {
+      host: getCompilerHost(language),
+      port: getCompilerPort(language),
+      path: "/version",
+    };
+    var req = http.get(options, function(res) {
+      res.on("data", function (chunk) {
+        data.push(chunk);
+      }).on("end", function () {
+        let str = data.join("");
+        let version = parseInt(str.substring(1));
+        version = compilerVersions[language] = isNaN(version) ? 0 : version;
+        resume(version);
+      });
+    });
+  }
 }
 
 function get(language, path, resume) {
@@ -346,6 +402,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
+  parent = typeof parent === "string" ? parent.split("+")[0] : 0;
   var queryStr =
     "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + user + "', '" + parent + "', '" + views +
@@ -353,14 +410,13 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
     " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
-      console.log("postItem() ERROR: " + err);
+      console.log("postItem() ERROR: " + queryStr);
       resume(err);
     } else {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
       dbQuery(queryStr, function (err, result) {
         resume(err, result);
-        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = "+parent+";", function () {
-        });
+        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
       });
     }
   });
@@ -385,15 +441,15 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   });
 };
 
-function compile(id, user, parent, language, src, ast, result, response) {
+function compile(id, user, parent, language, src, ast, data, rows, response) {
   // Compile ast to obj.
   var path = "/compile";
-  var data = {
+  var encodedData = JSON.stringify({
     "description": "graffiticode",
     "language": language,
     "src": ast,
-  };
-  var encodedData = JSON.stringify(data);
+    "data": data,
+  });
   var options = {
     host: getCompilerHost(language),
     port: getCompilerPort(language),
@@ -410,10 +466,10 @@ function compile(id, user, parent, language, src, ast, result, response) {
       obj += chunk;
     });
     res.on('end', function () {
-      if (result && result.rows.length === 1) {
-        var o = result.rows[0].obj;
+      if (rows && rows.length === 1) {
+        var o = rows[0].obj;
       }
-      var rows = result ? result.rows : [];
+      rows = rows ? rows : [];
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
         var img = "";
@@ -423,14 +479,14 @@ function compile(id, user, parent, language, src, ast, result, response) {
           if (err) {
             response.status(400).send(err);
           } else {
-            response.send({
+            response.json({
               obj: obj,
               id: data.rows[0].id
             });
           }
         });
-      } else if (o !== obj || ast !== result.rows[0].ast) {
-        var row = result.rows[0];
+      } else if (o !== obj || ast !== rows[0].ast) {
+        var row = rows[0];
         id = id ? id : row.id;
         user = row.user_id;
         parent = row.parent_id;
@@ -442,13 +498,13 @@ function compile(id, user, parent, language, src, ast, result, response) {
           }
         });
         // Don't wait for update. We have what we need to respond.
-        response.send({
+        response.json({
           obj: obj,
           id: id
         });
       } else {
         // No update needed. Just return the item.
-        response.send({
+        response.json({
           obj: rows[0].obj,
           id: rows[0].id
         });
@@ -463,13 +519,13 @@ function compile(id, user, parent, language, src, ast, result, response) {
   });
 }
 
-// Compile code (idempotent)
+// Compile code
 app.put('/compile', function (req, res) {
-  // The AST is the key and the compiler is the map to the object code (OBJ).
   // PUT /compile does two things:
   // -- compile the given AST.
   // -- updates the object code of any items whose object code differs from the result.
   var id = req.body.id;
+  var dataId = req.body.dataId;
   var parent = req.body.parent;
   var src = req.body.src;
   var ast = JSON.parse(req.body.ast);
@@ -489,7 +545,22 @@ app.put('/compile', function (req, res) {
   }
   dbQuery(q, function(err, result) {
     // See if there is already an item with the same source for the same language. If so, pass it on.
-    compile(id, user, parent, language, src, ast, result, res);
+    var obj;
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      let rows = result.rows;
+      if (dataId) {
+        // We have data so recompile with that data.
+        dbQuery("SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
+          let data = JSON.parse(result.rows[0].obj)
+          compile(id, user, parent, language, src, ast, data, rows, res);
+        });
+      } else {
+        // No data provided.
+        compile(id, user, parent, language, src, ast, null, rows, res);
+      }
+    }
   });
 });
 
@@ -504,6 +575,7 @@ app.put('/code', function (req, response) {
   var user = dot2num(ip); //req.body.user;
   var query;
   if (id) {
+    id = id.split("+")[0];  // Get codeId.
     // Prefer the given id if there is one.
     query = "SELECT * FROM pieces WHERE id='" + id + "'";
   } else {
@@ -516,7 +588,7 @@ app.put('/code', function (req, response) {
     var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
     if (id) {
       // Prefer the request values of existing row values.
-      var id = req.body.id ? req.body.id : row.id;
+      //var id = req.body.id ? req.body.id : row.id;
       //        var language = req.body.language ? req.body.language : row.language;
       var language = row.language;
       var src = req.body.src ? req.body.src : row.src;
@@ -532,11 +604,11 @@ app.put('/code', function (req, response) {
         }
       });
       // Don't wait for update. We have what we need to respond.
-      response.send({
+      response.json({
         id: id
       });
     } else {
-      var id = req.body.id;
+      //var id = req.body.id;
       var src = req.body.src;
       var language = req.body.language;
       var ast = req.body.ast ? JSON.parse(req.body.ast) : {};  // Possibly undefined.
@@ -548,7 +620,7 @@ app.put('/code', function (req, response) {
         if (err) {
           response.status(400).send(err);
         } else {
-          response.send({
+          response.json({
             id: data.rows[0].id
           });
         }

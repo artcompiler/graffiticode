@@ -37,15 +37,12 @@ var CodeMirrorEditor = React.createClass({
       extraKeys: {"Ctrl-Space": "autocomplete"},
       gutters: ["CodeMirror-lint-markers"],
       lint: true,
-      pollInterval: 2000,
-      workTime: 100,
-      workDelay: 1000,
     });
     let pieces = [];
     let id = +window.gcexports.id;
     if (id) {
       $.get(location.origin + "/code/" + id, function (data) {
-        updateSrc(data[0].id, data[0].src);
+        updateSrc(data.id, data.src);
       });
     } else {
       $.ajax({
@@ -60,7 +57,7 @@ var CodeMirrorEditor = React.createClass({
           }
           window.gcexports.pieces = pieces;
           $.get(location.origin + "/code/"+pieces[0], function (data) {
-            updateSrc(data[0].id, data[0].src);
+            updateSrc(data.id, data.src);
           });
         },
         error: function(xhr, msg, err) {

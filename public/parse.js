@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+/*
+ TODO
+ -- Fold expressions until fully applied or there are no more arguments:
+    (<x y: add x y> 10) 20..
+ */
+
 if (typeof CodeMirror === "undefined") {
   CodeMirror = {
     Pos: function () {
@@ -66,8 +72,10 @@ var Ast = (function () {
     expr: expr,
     binaryExpr: binaryExpr,
     unaryExpr: unaryExpr,
+    parenExpr: parenExpr,
     prefixExpr: prefixExpr,
     lambda: lambda,
+    applyLate: applyLate,
     letDef: letDef,
     caseExpr: caseExpr,
     ofClause: ofClause,
@@ -271,37 +279,92 @@ var Ast = (function () {
   }
 
   function fold(ctx, fn, args) {
+    // Three cases:
+    // -- full application, all args are available at parse time
+    // -- partial application, only some args are available at parse time
+    // -- late application, args are available at compile time
+    //        apply <[x y]: add x y> data..
+    //    x: val 0 data
+    //    y: val 1 data
     env.enterEnv(ctx, fn.name);
     if (fn.env) {
       var lexicon = fn.env.lexicon;
+      var pattern = Ast.node(ctx, fn.env.pattern);
       // setup inner environment record (lexicon)
       var outerEnv = {};
+      if (pattern && pattern.elts &&
+          pattern.elts.length === 1 &&
+          pattern.elts[0].tag === "LIST") {
+        // For now we only support one pattern per param list.
+        var isListPattern = true;
+      }
       for (var id in lexicon) {
         // For each parameter, get its definition assign the value of the argument
         // used on the current function application.
         if (!id) continue;
         var word = JSON.parse(JSON.stringify(lexicon[id])); // Poorman's copy.
         var index = args.length - word.offset - 1;
-        if (index < 0) {
-          outerEnv[id] = word;
-          // <x:x> => <x:x>
-          // <x y: add x y> 10. => <y: add 10 y>.
+        if (isListPattern) {
+          // <[x y]: ...> foo..
+          word.nid = Ast.intern(ctx, {
+            tag: "VAL",
+            elts: [{
+              tag: "NUM",
+              elts: [
+                String(word.offset),
+              ]}, {
+                tag: "ARG",
+                elts: [{
+                  tag: "NUM",
+                  elts: ["0"]
+                }]
+              }]
+          });
         } else {
           word.nid = args[index];  // offsets are from end of args
+        }
+        if (index < 0) {
+          // <x:x> => <x:x>
+          // <x y: add x y> 10. => <y: add 10 y>.
+          outerEnv[id] = word;
         }
         env.addWord(ctx, id, word);
       }
       folder.fold(ctx, fn.nid);
       if (index < 0) {
-        lambda(ctx, {lexicon: outerEnv}, pop(ctx));
+        lambda(ctx, {
+          lexicon: outerEnv,
+          pattern: pattern,  // FIXME need to trim pattern if some args where applied.
+        }, pop(ctx));
       }
     }
     env.exitEnv(ctx);
   }
 
+  function applyLate(ctx, count) {
+    // Ast.applyLate
+    var elts = [];
+    for (var i = count; i > 0; i--) {
+      elts.push(pop(ctx));
+    }
+    push(ctx, {
+      tag: "APPLY",
+      elts: elts,
+    });
+  }
+
   function apply(ctx, fnId, argc) {
     // Construct function and apply available arguments.
     var fn = node(ctx, fnId);
+    // if (fn.tag !== "LAMBDA") {
+    //   // Construct an APPLY node for compiling later.
+    //   return {
+    //     tag: "APPLY",
+    //     elts: [
+    //       fnId,
+    //     ]
+    //   };
+    // }
     // Construct a lexicon
     var lexicon = {};
     fn.elts[0].elts.forEach(function (n, i) {
@@ -315,13 +378,14 @@ var Ast = (function () {
     var def = {
       name: "lambda",
       nid: Ast.intern(ctx, fn.elts[1]),
-      env: {lexicon: lexicon},
+      env: {
+        lexicon: lexicon,
+        pattern: Ast.intern(ctx, fn.elts[2]),
+      },
     };
     var len = fn.elts[0].elts.length;
     var paramc = len;
     var elts = [];
-//    var argc = ctx.state.nodeStack.length;
-//    var argc = ctx.state.exprc;
     // While there are args on the stack, pop them.
     while (argc-- > 0 && paramc-- > 0) {
       var elt = pop(ctx);
@@ -392,6 +456,17 @@ var Ast = (function () {
     });
   }
 
+  function parenExpr(ctx) {
+    // Ast.parenExpr
+    var elts = [];
+    var elt = pop(ctx);
+    elts.push(elt);
+    push(ctx, {
+      tag: "PAREN",
+      elts: elts
+    });
+  }
+
   function list(ctx, count, coord, reverse) {
     // Ast.list
     var elts = [];
@@ -407,10 +482,11 @@ var Ast = (function () {
       coord: coord,
     });
   }
+
   function binaryExpr(ctx, name) {
     var elts = [];
     // args are in the order produced by the parser
-    elts.push(pop(ctx)); 
+    elts.push(pop(ctx));
     elts.push(pop(ctx));
     push(ctx, {
       tag: name,
@@ -628,12 +704,16 @@ var Ast = (function () {
         elts: [word.name]
       });
     }
+    var pattern = env.pattern;
     push(ctx, {
       tag: "LAMBDA",
       elts: [{
         tag: "LIST",
         elts: names
-      }, nid]
+      }, nid, {
+        tag: "LIST",
+        elts: pattern
+      }]
     });
   }
 
@@ -763,6 +843,7 @@ var env = (function () {
     addWord: addWord,
     enterEnv: enterEnv,
     exitEnv: exitEnv,
+    addPattern: addPattern,
   };
 
   // private functions
@@ -783,13 +864,21 @@ var env = (function () {
     return null;
   }
 
+  function addPattern(ctx, pattern) {
+    window.gcexports.topEnv(ctx).pattern.push(pattern);
+  }
+
   function enterEnv(ctx, name) {
     // recursion guard
     if (ctx.state.env.length > 380) {
       //return;  // just stop recursing
       throw new Error("runaway recursion");
     }
-    ctx.state.env.push({name: name, lexicon: {}});
+    ctx.state.env.push({
+      name: name,
+      lexicon: {},
+      pattern: [],
+    });
   }
 
   function exitEnv(ctx) {
@@ -1006,21 +1095,42 @@ window.gcexports.parser = (function () {
     cc.cls = "variable";
     return cc;
   }
-
   function identOrString(ctx, cc) {
     if (match(ctx, TK_IDENT)) {
       return ident(ctx, cc);
     }
     return string(ctx, cc);
   }
-
-  function defName(ctx, cc) {
-    eat(ctx, TK_IDENT);
-    Ast.name(ctx, lexeme);
-    cc.cls = "val";
-    return cc;
+  function defList(ctx, resume) {
+    eat(ctx, TK_LEFTBRACKET);
+    var ret = (ctx) => {
+      return params(ctx, TK_RIGHTBRACKET, (ctx) => {
+        eat(ctx, TK_RIGHTBRACKET);
+        Ast.list(ctx, ctx.state.paramc, null, true);
+        ctx.state.paramc = 1;
+        return resume;
+      });
+    };
+    ret.cls = "punc";
+    return ret;
   }
-
+  function defName(ctx, cc) {
+    if (match(ctx, TK_LEFTBRACKET)) {
+      return defList(ctx, cc);
+    } else {
+      eat(ctx, TK_IDENT);
+      env.addWord(ctx, lexeme, {
+        tk: TK_IDENT,
+        cls: "val",
+        name: lexeme,
+        offset: ctx.state.paramc,
+      });
+      ctx.state.paramc++;
+      Ast.name(ctx, lexeme);
+      cc.cls = "val";
+      return cc;
+    }
+  }
   function name(ctx, cc) {
     eat(ctx, TK_IDENT);
     var word = env.findWord(ctx, lexeme);
@@ -1046,7 +1156,6 @@ window.gcexports.parser = (function () {
     assert(cc, "name");
     return cc;
   }
-
   function record(ctx, cc) {
     // Parse record
     eat(ctx, TK_LEFTBRACE);
@@ -1108,7 +1217,7 @@ window.gcexports.parser = (function () {
             // Clean up stack.
             Ast.pop(ctx)  // body
             for (var i = 0; i < ctx.state.paramc; i++) {
-              Ast.pop(ctx) // params
+              env.addPattern(ctx, Ast.pop(ctx)); // params
             }
             Ast.lambda(ctx, topEnv(ctx), nid);
             env.exitEnv(ctx);
@@ -1126,7 +1235,7 @@ window.gcexports.parser = (function () {
     var ret = function(ctx) {
       return exprsStart(ctx, TK_RIGHTPAREN, function (ctx) {
         eat(ctx, TK_RIGHTPAREN);
-        Ast.exprs(ctx, 1);
+        Ast.parenExpr(ctx);
         cc.cls = "punc";
         return cc;
       })
@@ -1525,18 +1634,11 @@ window.gcexports.parser = (function () {
       return cc
     }
     var ret = function (ctx) {
-      var ret = defName(ctx, function (ctx) {
-        env.addWord(ctx, lexeme, {
-          tk: TK_IDENT,
-          cls: "val",
-          name: lexeme,
-          offset: ctx.state.paramc
-        });
-        ctx.state.paramc++;
+      var ret = defName(ctx, (ctx) => {
         return params(ctx, brk, cc);
       });
-      ret.cls = "param"
-      return ret
+      ret.cls = "param";
+      return ret;
     }
     ret.cls = "param";
     return ret;
@@ -1564,6 +1666,7 @@ window.gcexports.parser = (function () {
       url: "/compile",
       data: {
         "id": !postCode ? window.gcexports.id : 0,
+        "dataId": window.gcexports.data,
         "parent": postCode ? window.gcexports.id : 0,
         "ast": ast,
         "type": window.gcexports.lexiconType,
@@ -1950,6 +2053,7 @@ var folder = function() {
   var table = {
     "PROG" : program,
     "EXPRS" : exprs,
+    "PAREN" : parenExpr,
     "IDENT" : ident,
     "BOOL" : bool,
     "NUM" : num,
@@ -2106,7 +2210,7 @@ var folder = function() {
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
-    Ast.apply(ctx, node.elts[node.elts.length - 1], node.elts.length - 1);
+    Ast.applyLate(ctx, node.elts.length);
   }
 
   function expr(node) {
@@ -2121,6 +2225,13 @@ var folder = function() {
   function neg(node) {
     visit(node.elts[0]);
     Ast.neg(ctx);
+  }
+
+  function parenExpr(node) {
+    pushNodeStack(ctx);
+    visit(node.elts[0]);
+    Ast.parenExpr(ctx);
+    popNodeStack(ctx);
   }
 
   function unaryExpr(node) {

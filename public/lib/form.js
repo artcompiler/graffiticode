@@ -19307,16 +19307,17 @@ var GraffContent = React.createClass({
     var pieces = [];
     var id = +gcexports.id;
     if (id) {
-      $.get(location.origin + "/code/" + id, function (data) {
-        var obj = data[0].obj;
-        var src = data[0].src;
-        var ast = data[0].ast;
+      var dataId = "";
+      if (gcexports.data) {
+        // If there is a dataId, include it when getting the code.
+        id += "+" + gcexports.data;
+      }
+      $.get(location.origin + "/data?id=" + id, function (data) {
+        var obj = typeof data === "string" ? JSON.parse(data) : JSON.parse(data.obj);
         if (+gcexports.data) {
           $.get(location.origin + "/data?id=" + gcexports.data, function (data) {
             dispatcher.dispatch({
               id: id,
-              src: src,
-              ast: ast,
               obj: obj,
               data: data
             });
@@ -19324,8 +19325,6 @@ var GraffContent = React.createClass({
         } else {
           dispatcher.dispatch({
             id: id,
-            src: src,
-            ast: ast,
             obj: obj,
             data: {} });
         }
@@ -19397,8 +19396,8 @@ var GraffContent = React.createClass({
     var Viewer = window.gcexports.viewer.Viewer;
     if (Viewer) {
       if (this.state && this.state.obj) {
-        var obj = this.state && this.state.obj ? JSON.parse(this.state.obj) : {};
-        var data = this.state && this.state.data ? this.state.data : {};
+        var obj = this.state.obj;
+        var data = this.state.data;
         return React.createElement(Viewer, _extends({ className: "viewer" }, obj, data));
       } else {
         return React.createElement("div", null);
