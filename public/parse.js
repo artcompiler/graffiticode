@@ -1675,7 +1675,7 @@ window.gcexports.parser = (function () {
       },
       dataType: "json",
       success: function(data) {
-        var obj = JSON.parse(data.obj);
+        var obj = data.obj;
         var errors;
         if (obj.error && obj.error.length) {
           errors = [];
