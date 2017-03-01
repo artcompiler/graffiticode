@@ -22,58 +22,9 @@ var cache = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var conString = process.env.DATABASE_URL;
 
-var dbQuery = function(query, resume) {
-  // Query Helper -- https://github.com/brianc/node-postgres/issues/382
-  pg.connect(conString, function (err, client, done) {
-    // If there is an error, client is null and done is a noop
-    if (err) {
-      console.log("[1] dbQuery() err=" + err);
-      return resume(err);
-    }
-    try {
-      client.query(query, function (err, result) {
-        done();
-        return resume(err, result);
-      });
-    } catch (e) {
-      console.log("[2] dbQuery() e=" + e);
-      done();
-      return resume(e);
-    }
-  });
-};
-
-var getItem = function (id, resume) {
-  // Get an item from the cache, or from the db and then cache it.
-  // cache.get(id, (err, val) => {
-  //   if (val) {
-  //     resume(null, JSON.parse(val));
-  //   } else {
-      dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-        // Here we get the language associated with the id. The code is gotten by
-        // the view after it is loaded.
-        let val;
-        if (!result || result.rows.length === 0) {
-          val = {};
-        } else {
-          //assert(result.rows.length === 1);
-          val = result.rows[0];
-        }
-        // cache.set(id, JSON.stringify(val));
-        resume(err, val);
-      });
-      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
-  //   }
-  // });
-};
-
 if (conString.indexOf("localhost") < 0) {
   pg.defaults.ssl = true;
 }
-dbQuery("SELECT NOW() as when", function(err, result) {
-  console.log(result);
-});
-
 // Configuration
 var env = process.env.NODE_ENV || 'development';
 
@@ -142,6 +93,53 @@ app.get('/', function(req, res) {
   res.redirect("/index");
 });
 
+// BEGIN REUSE
+
+var dbQuery = function(query, resume) {
+  // Query Helper -- https://github.com/brianc/node-postgres/issues/382
+  pg.connect(conString, function (err, client, done) {
+    // If there is an error, client is null and done is a noop
+    if (err) {
+      console.log("[1] dbQuery() err=" + err);
+      return resume(err);
+    }
+    try {
+      client.query(query, function (err, result) {
+        done();
+        return resume(err, result);
+      });
+    } catch (e) {
+      console.log("[2] dbQuery() e=" + e);
+      done();
+      return resume(e);
+    }
+  });
+};
+
+var getItem = function (id, resume) {
+  // Get an item from the cache, or from the db and then cache it.
+  cache.get(id, (err, val) => {
+    if (val) {
+      resume(null, JSON.parse(val));
+    } else {
+      dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+        // Here we get the language associated with the id. The code is gotten by
+        // the view after it is loaded.
+        let val;
+        if (!result || result.rows.length === 0) {
+          val = {};
+        } else {
+          //assert(result.rows.length === 1);
+          val = result.rows[0];
+        }
+        // cache.set(id, JSON.stringify(val));
+        resume(err, val);
+      });
+      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
+    }
+  });
+};
+
 // lang?id=106
 // item?id=12304
 // data?author=dyer&sort=desc
@@ -158,9 +156,9 @@ app.get('/lang', function(req, res) {
       var ast = main.parse(src, lexicon, function (err, ast) {
         if (ast) {
           compile(0, 0, 0, lang, src, ast, null, null, {
-            send: function (data) {
+            json: function (data) {
               if (type === "id") {
-                res.send(data);
+                res.json(data);
               } else if (type === "data") {
                 res.redirect('/data?id=' + data.id);
               } else {
@@ -242,23 +240,26 @@ app.get('/data', function(req, res) {
         let src = row.src;
         let ast = row.ast;
         getItem(dataId, (err, row) => {
-          let data = JSON.parse(row.obj)
+          let data = JSON.parse(row.obj);
           compile(codeId, user, parent, language, src, ast, data, null, res);
         });
       } else {
         // No data provided, so return previous object code.
-        obj = JSON.parse(row.obj);
-        if (typeof obj === "string") {
-          obj = [obj]; // FIXME http treats scalar as error code.
-        }
-        res.json(obj);
+        // obj = JSON.parse(row.obj);
+        // if (typeof obj === "string") {
+        //   obj = [obj]; // FIXME http treats scalar as error code.
+        // }
+        res.json({
+          id: codeId,
+          obj: row.obj,
+        });
       }
     }
   });
 });
 
 // Get an item with :id
-app.get('/code/:id', function (req, res) {
+app.get('/code/:id', (req, res) => {
   var ids = req.params.id.split("+");
   var codeId = ids[0];
   var dataId = ids[1];
@@ -284,7 +285,6 @@ app.get('/code/:id', function (req, res) {
 // Get pieces
 app.get('/code', (req, res) => {
   var list = req.query.list;
-  console.log("GET /code list=" + list);
   var queryStr =
     "SELECT * FROM pieces WHERE pieces.id" +
     " IN ("+list+") ORDER BY pieces.id DESC";
@@ -298,14 +298,6 @@ app.get('/code', (req, res) => {
     res.send(rows)
   });
 });
-
-function getCompilerHost(language) {
-  return language + ".artcompiler.com";
-}
-
-function getCompilerPort(language) {
-  return "80";
-}
 
 function retrieve(language, path, response) {
   var data = [];
@@ -380,7 +372,7 @@ function cleanAndTrimObj(str) {
   return str;
 }
 function cleanAndTrimSrc(str) {
-  if (!str) {
+  if (!str || typeof str !== "string") {
     return str;
   }
   str = str.replace(new RegExp("'","g"), "''");
@@ -466,9 +458,6 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
       obj += chunk;
     });
     res.on('end', function () {
-      if (rows && rows.length === 1) {
-        var o = rows[0].obj;
-      }
       rows = rows ? rows : [];
       if (rows.length === 0) {
         // We don't have an existing item with the same source, so add one.
@@ -480,12 +469,12 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
             response.status(400).send(err);
           } else {
             response.json({
+              id: data.rows[0].id,
               obj: obj,
-              id: data.rows[0].id
             });
           }
         });
-      } else if (o !== obj || ast !== rows[0].ast) {
+      } else if (rows.length === 1 && (rows[0].obj !== obj || rows[0].ast !== ast)) {
         var row = rows[0];
         id = id ? id : row.id;
         user = row.user_id;
@@ -564,7 +553,7 @@ app.put('/compile', function (req, res) {
   });
 });
 
-app.put('/code', function (req, response) {
+app.put('/code', (req, response) => {
   var id = req.body.id;
   var src = req.body.src;
   var language = req.body.language;
@@ -650,6 +639,20 @@ app.get("/:lang/:path", function (req, res) {
   var language = req.params.lang;
   var path = req.params.path;
   retrieve(language, path, res);
+});
+
+// END REUSE
+
+function getCompilerHost(language) {
+  return language + ".artcompiler.com";
+}
+
+function getCompilerPort(language) {
+  return "80";
+}
+
+dbQuery("SELECT NOW() as when", function(err, result) {
+  console.log(result);
 });
 
 if (process.env.NODE_ENV === 'development') {
