@@ -25,59 +25,9 @@ var timeout = require('connect-timeout');
 var main = require('./main.js');
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
-// Query Helper
-// https://github.com/brianc/node-postgres/issues/382
-var dbQuery = function(query, resume) {
-  pg.connect(conString, function (err, client, done) {
-    // If there is an error, client is null and done is a noop
-    if (err) {
-      console.log("[1] dbQuery() err=" + err);
-      return resume(err);
-    }
-    try {
-      client.query(query, function (err, result) {
-        done();
-        return resume(err, result);
-      });
-    } catch (e) {
-      console.log("[2] dbQuery() e=" + e);
-      done();
-      return resume(e);
-    }
-  });
-};
-
-var getItem = function (id, resume) {
-  // Get an item from the cache, or from the db and then cache it.
-  // cache.get(id, (err, val) => {
-  //   if (val) {
-  //     resume(null, JSON.parse(val));
-  //   } else {
-      dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-        // Here we get the language associated with the id. The code is gotten by
-        // the view after it is loaded.
-        let val;
-        if (!result || result.rows.length === 0) {
-          val = {};
-        } else {
-          //assert(result.rows.length === 1);
-          val = result.rows[0];
-        }
-        // cache.set(id, JSON.stringify(val));
-        resume(err, val);
-      });
-      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
-  //   }
-  // });
-};
-
 if (conString.indexOf("localhost") < 0) {
   pg.defaults.ssl = true;
 }
-dbQuery("SELECT NOW() as when", function(err, result) {
-  console.log(result);
-});
-
 // Configuration
 
 var env = process.env.NODE_ENV || 'development';
@@ -137,6 +87,53 @@ app.get('/', function(req, res) {
   res.redirect("/index");
 });
 
+// BEGIN REUSE ORIGINAL
+
+var dbQuery = function(query, resume) {
+  // Query Helper -- https://github.com/brianc/node-postgres/issues/382
+  pg.connect(conString, function (err, client, done) {
+    // If there is an error, client is null and done is a noop
+    if (err) {
+      console.log("[1] dbQuery() err=" + err);
+      return resume(err);
+    }
+    try {
+      client.query(query, function (err, result) {
+        done();
+        return resume(err, result);
+      });
+    } catch (e) {
+      console.log("[2] dbQuery() e=" + e);
+      done();
+      return resume(e);
+    }
+  });
+};
+
+var getItem = function (id, resume) {
+  // Get an item from the cache, or from the db and then cache it.
+  // cache.get(id, (err, val) => {
+  //   if (val) {
+  //     resume(null, JSON.parse(val));
+  //   } else {
+      dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+        // Here we get the language associated with the id. The code is gotten by
+        // the view after it is loaded.
+        let val;
+        if (!result || result.rows.length === 0) {
+          val = {};
+        } else {
+          //assert(result.rows.length === 1);
+          val = result.rows[0];
+        }
+        // cache.set(id, JSON.stringify(val));
+        resume(err, val);
+      });
+      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
+  //   }
+  // });
+};
+
 // lang?id=106
 // item?id=12304
 // data?author=dyer&sort=desc
@@ -189,40 +186,6 @@ app.get('/lang', function(req, res) {
       });
     });
   }
-});
-
-app.get('/item', function(req, res) {
-  var ids = req.query.id.split(" ");
-  var id = ids[0];  // First id is the item id.
-  dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
-    } else {
-      var lang = result.rows[0].language;
-      getCompilerVersion(lang, (version) => {
-        res.render('views.html', {
-          title: 'Graffiti Code',
-          language: lang,
-          vocabulary: lang,
-          target: 'SVG',
-          login: 'Login',
-          item: ids[0],
-          data: ids[1] ? ids[1] : undefined,
-          view: "item",
-          version: version,
-        }, function (error, html) {
-          if (error) {
-            res.status(400).send(error);
-          } else {
-            res.send(html);
-          }
-        });
-      });
-    }
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-    });
-  });
 });
 
 app.get('/form', function(req, res) {
@@ -289,12 +252,8 @@ app.get('/data', function(req, res) {
   });
 });
 
-app.get("/index", function (req, res) {
-  res.sendFile("public/index.html");
-});
-
 // Get an item with :id
-app.get('/code/:id', function (req, res) {
+app.get('/code/:id', (req, res) => {
   var ids = req.params.id.split("+");
   var codeId = ids[0];
   var dataId = ids[1];
@@ -317,128 +276,8 @@ app.get('/code/:id', function (req, res) {
   });
 });
 
-// Get the object code for piece with :id
-app.get('/graffiti/:id', function (req, res) {
-  var id = req.params.id;
-  dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
-    var ret;
-    if (!result || result.rows.length === 0) {
-      ret = "";
-    } else {
-      ret = result.rows[0].img;
-      if (!ret) {
-        // For backward compatibility
-        ret = result.rows[0].obj;
-      }
-    }
-    res.send(ret);
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-    });
-  });
-});
-
-// get list of piece ids
-app.get('/pieces/:lang', function (req, res) {
-  var lang = req.params.lang;
-  var search = req.query.src;
-  var label = req.query.label === undefined ? "show" : req.query.label;
-  var queryString, likeStr = "";
-  if (search) {
-    var ss = search.split(",");
-    ss.forEach(function (s) {
-      s = cleanAndTrimSrc(s);
-      if (likeStr) {
-        likeStr += " AND ";
-      } else {
-        likeStr += "(";
-      }
-      likeStr += "src like '%" + s + "%'";
-    });
-    if (likeStr) {
-      likeStr += ") AND ";
-    }
-  }
-  queryString = "SELECT id FROM pieces WHERE language='" + lang +
-    "' AND " + likeStr +
-    "label = '" + label + "' ORDER BY id DESC";
-  dbQuery(queryString, function (err, result) {
-    var rows;
-    if (!result || result.rows.length === 0) {
-      console.log("no rows");
-      var insertStr =
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-      dbQuery(insertStr, function(err, result) {
-        if (err) {
-          res.status(400).send(err);
-          return;
-        }
-        dbQuery(queryString, function (err, result) {
-          res.send(result.rows);
-        });
-      });
-    } else {
-      res.send(result.rows);
-    }
-  });
-});
-
-app.get('/items', function(req, res) {
-  var data = "";
-  req.on("data", function (chunk) {
-    data += chunk;
-  });
-  req.on('end', function () {
-    var list = JSON.parse(data);
-    var queryStr =
-      "SELECT id, created, src, obj, img FROM pieces WHERE id" +
-      " IN ("+list+") ORDER BY id DESC";
-    dbQuery(queryStr, function (err, result) {
-      var rows;
-      if (!result || result.rows.length === 0) {
-        rows = [{}];
-      } else {
-        rows = result.rows;
-      }
-      res.send(rows)
-    });
-  });
-  req.on('error', function(e) {
-    console.log(e);
-    res.send(e);
-  });
-});
-
-app.get('/items/src', function(req, res) {
-  var data = "";
-  req.on("data", function (chunk) {
-    data += chunk;
-  });
-  req.on('end', function () {
-    var list = JSON.parse(data);
-    var queryStr =
-      "SELECT id, src FROM pieces WHERE id" +
-      " IN ("+list+") ORDER BY id DESC";
-    dbQuery(queryStr, function (err, result) {
-      var rows;
-      if (!result || result.rows.length === 0) {
-        rows = [{}];
-      } else {
-        rows = result.rows;
-      }
-      res.send(rows);
-    });
-  });
-  req.on('error', function(e) {
-    console.log(e);
-    res.send(e);
-  });
-});
-
 // Get pieces
-app.get('/code', function (req, res) {
+app.get('/code', (req, res) => {
   var list = req.query.list;
   var queryStr =
     "SELECT * FROM pieces WHERE pieces.id" +
@@ -453,22 +292,6 @@ app.get('/code', function (req, res) {
     res.send(rows)
   });
 });
-
-function getCompilerHost(language) {
-  if (port === 3000) {
-    return "localhost";
-  } else {
-    return language + ".artcompiler.com";
-  }
-}
-
-function getCompilerPort(language) {
-  if (port === 3000) {
-    return "5" + language.substring(1);  // e.g. L103 -> 5103
-  } else {
-    return "80";
-  }
-}
 
 function retrieve(language, path, response) {
   var data = [];
@@ -724,7 +547,7 @@ app.put('/compile', function (req, res) {
   });
 });
 
-app.put('/code', function (req, response) {
+app.put('/code', (req, response) => {
   var id = req.body.id;
   var src = req.body.src;
   var language = req.body.language;
@@ -806,6 +629,188 @@ function num2dot(num) {
   return d;
 }
 
+app.get("/:lang/:path", function (req, res) {
+  var language = req.params.lang;
+  var path = req.params.path;
+  retrieve(language, path, res);
+});
+
+// END REUSE ORIGINAL
+
+function getCompilerHost(language) {
+  if (port === 3000) {
+    return "localhost";
+  } else {
+    return language + ".artcompiler.com";
+  }
+}
+
+function getCompilerPort(language) {
+  if (port === 3000) {
+    return "5" + language.substring(1);  // e.g. L103 -> 5103
+  } else {
+    return "80";
+  }
+}
+
+app.get("/index", function (req, res) {
+  res.sendFile("public/index.html");
+});
+
+// Get the object code for piece with :id
+app.get('/graffiti/:id', function (req, res) {
+  var id = req.params.id;
+  dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
+    var ret;
+    if (!result || result.rows.length === 0) {
+      ret = "";
+    } else {
+      ret = result.rows[0].img;
+      if (!ret) {
+        // For backward compatibility
+        ret = result.rows[0].obj;
+      }
+    }
+    res.send(ret);
+    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+    });
+  });
+});
+
+// get list of piece ids
+app.get('/pieces/:lang', function (req, res) {
+  var lang = req.params.lang;
+  var search = req.query.src;
+  var label = req.query.label === undefined ? "show" : req.query.label;
+  var queryString, likeStr = "";
+  if (search) {
+    var ss = search.split(",");
+    ss.forEach(function (s) {
+      s = cleanAndTrimSrc(s);
+      if (likeStr) {
+        likeStr += " AND ";
+      } else {
+        likeStr += "(";
+      }
+      likeStr += "src like '%" + s + "%'";
+    });
+    if (likeStr) {
+      likeStr += ") AND ";
+    }
+  }
+  queryString = "SELECT id FROM pieces WHERE language='" + lang +
+    "' AND " + likeStr +
+    "label = '" + label + "' ORDER BY id DESC";
+  dbQuery(queryString, function (err, result) {
+    var rows;
+    if (!result || result.rows.length === 0) {
+      console.log("no rows");
+      var insertStr =
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+      dbQuery(insertStr, function(err, result) {
+        if (err) {
+          res.status(400).send(err);
+          return;
+        }
+        dbQuery(queryString, function (err, result) {
+          res.send(result.rows);
+        });
+      });
+    } else {
+      res.send(result.rows);
+    }
+  });
+});
+
+app.get('/items', function(req, res) {
+  var data = "";
+  req.on("data", function (chunk) {
+    data += chunk;
+  });
+  req.on('end', function () {
+    var list = JSON.parse(data);
+    var queryStr =
+      "SELECT id, created, src, obj, img FROM pieces WHERE id" +
+      " IN ("+list+") ORDER BY id DESC";
+    dbQuery(queryStr, function (err, result) {
+      var rows;
+      if (!result || result.rows.length === 0) {
+        rows = [{}];
+      } else {
+        rows = result.rows;
+      }
+      res.send(rows)
+    });
+  });
+  req.on('error', function(e) {
+    console.log(e);
+    res.send(e);
+  });
+});
+
+app.get('/items/src', function(req, res) {
+  var data = "";
+  req.on("data", function (chunk) {
+    data += chunk;
+  });
+  req.on('end', function () {
+    var list = JSON.parse(data);
+    var queryStr =
+      "SELECT id, src FROM pieces WHERE id" +
+      " IN ("+list+") ORDER BY id DESC";
+    dbQuery(queryStr, function (err, result) {
+      var rows;
+      if (!result || result.rows.length === 0) {
+        rows = [{}];
+      } else {
+        rows = result.rows;
+      }
+      res.send(rows);
+    });
+  });
+  req.on('error', function(e) {
+    console.log(e);
+    res.send(e);
+  });
+});
+
+app.get('/item', function(req, res) {
+  var ids = req.query.id.split(" ");
+  var id = ids[0];  // First id is the item id.
+  dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+    var rows;
+    if (!result || result.rows.length===0) {
+      rows = [{}];
+    } else {
+      var lang = result.rows[0].language;
+      getCompilerVersion(lang, (version) => {
+        res.render('views.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          vocabulary: lang,
+          target: 'SVG',
+          login: 'Login',
+          item: ids[0],
+          data: ids[1] ? ids[1] : undefined,
+          view: "item",
+          version: version,
+        }, function (error, html) {
+          if (error) {
+            res.status(400).send(error);
+          } else {
+            res.send(html);
+          }
+        });
+      });
+    }
+    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+    });
+  });
+});
+
 // Get a label
 app.get('/label', function (req, res) {
   var id = req.body.id;
@@ -826,12 +831,6 @@ app.put('/label', function (req, res) {
   res.send(200)
 });
 
-app.get("/:lang/:path", function (req, res) {
-  var language = req.params.lang;
-  var path = req.params.path;
-  retrieve(language, path, res);
-});
-
 // This is the new way of loading pages
 app.get('/:lang', function (req, res) {
   var lang = req.params.lang.substring(1);
@@ -840,6 +839,10 @@ app.get('/:lang', function (req, res) {
   } else {
     res.status(400).send("Page not found");
   }
+});
+
+dbQuery("SELECT NOW() as when", function(err, result) {
+  console.log(result);
 });
 
 if (process.env.NODE_ENV === 'development') {
@@ -860,3 +863,4 @@ if (!module.parent) {
     console.log("Listening on " + port);
   });
 }
+
