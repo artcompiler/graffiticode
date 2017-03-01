@@ -140,6 +140,15 @@ var getItem = function (id, resume) {
   });
 };
 
+function parseJSON(str) {
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    console.log("ERROR parsing JSON: " + str);
+    return null;
+  }
+}
+
 // lang?id=106
 // item?id=12304
 // data?author=dyer&sort=desc
@@ -158,7 +167,7 @@ app.get('/lang', function(req, res) {
           compile(0, 0, 0, lang, src, ast, null, null, {
             json: function (data) {
               if (type === "id") {
-                res.json(data);
+                res.json(parseJSON(data));
               } else if (type === "data") {
                 res.redirect('/data?id=' + data.id);
               } else {
@@ -223,10 +232,10 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
+  console.log("GET /data id=" + req.query.id);
   let ids = req.query.id.split(" ");
   let codeId = ids[0];  // First id is the item id.
   let dataId = ids[1];
-  console.log("GET /data ids=" + ids);
   getItem(codeId, function(err, row) {
     var obj;
     if (err) {
@@ -251,7 +260,7 @@ app.get('/data', function(req, res) {
         // }
         res.json({
           id: codeId,
-          obj: row.obj,
+          obj: parseJSON(row.obj),
         });
       }
     }
@@ -260,6 +269,7 @@ app.get('/data', function(req, res) {
 
 // Get an item with :id
 app.get('/code/:id', (req, res) => {
+  console.log("GET /code id=" + req.params.id);
   var ids = req.params.id.split("+");
   var codeId = ids[0];
   var dataId = ids[1];
@@ -470,7 +480,7 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
           } else {
             response.json({
               id: data.rows[0].id,
-              obj: obj,
+              obj: parseJSON(obj),
             });
           }
         });
@@ -488,14 +498,14 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
         });
         // Don't wait for update. We have what we need to respond.
         response.json({
-          obj: obj,
-          id: id
+          id: id,
+          obj: parseJSON(obj),
         });
       } else {
         // No update needed. Just return the item.
         response.json({
-          obj: rows[0].obj,
-          id: rows[0].id
+          id: rows[0].id,
+          obj: parseJSON(rows[0].obj),
         });
       }
     });
@@ -594,7 +604,7 @@ app.put('/code', (req, response) => {
       });
       // Don't wait for update. We have what we need to respond.
       response.json({
-        id: id
+        id: id,
       });
     } else {
       //var id = req.body.id;
@@ -610,7 +620,7 @@ app.put('/code', (req, response) => {
           response.status(400).send(err);
         } else {
           response.json({
-            id: data.rows[0].id
+            id: data.rows[0].id,
           });
         }
       });
