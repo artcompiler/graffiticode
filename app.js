@@ -93,6 +93,17 @@ app.get('/', function(req, res) {
   res.redirect("/index");
 });
 
+app.get('/item', function(req, res) {
+  let protocol;
+  if (req.headers.host.match(/^localhost/) === null) {
+    protocol = "https://";
+  } else {
+    protocol = "http://";
+  }
+  let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
+  res.redirect(url);
+});
+
 // BEGIN REUSE
 
 var dbQuery = function(query, resume) {
@@ -651,15 +662,23 @@ app.get("/:lang/:path", function (req, res) {
   retrieve(language, path, res);
 });
 
-// END REUSE
-
 function getCompilerHost(language) {
-  return language + ".artcompiler.com";
+  if (port === 3001) {
+    return "localhost";
+  } else {
+    return language + ".artcompiler.com";
+  }
 }
 
 function getCompilerPort(language) {
-  return "80";
+  if (port === 3001) {
+    return "5" + language.substring(1);  // e.g. L103 -> 5103
+  } else {
+    return "80";
+  }
 }
+
+// END REUSE
 
 dbQuery("SELECT NOW() as when", function(err, result) {
   console.log(result);
