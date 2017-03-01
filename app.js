@@ -135,24 +135,18 @@ app.get('/pieces/:lang', function (req, res) {
 });
 
 app.get('/items', function(req, res) {
-  var data = "";
-  req.on("data", function (chunk) {
-    data += chunk;
-  });
-  req.on('end', function () {
-    var list = JSON.parse(data);
-    var queryStr =
-      "SELECT id, created, src, obj, img FROM pieces WHERE id" +
-      " IN ("+list+") ORDER BY id DESC";
-    dbQuery(queryStr, function (err, result) {
-      var rows;
-      if (!result || result.rows.length === 0) {
-        rows = [{}];
-      } else {
-        rows = result.rows;
-      }
-      res.send(rows)
-    });
+  var list = req.query.list;
+  var queryStr =
+    "SELECT * FROM pieces WHERE pieces.id" +
+    " IN ("+list+") ORDER BY pieces.id DESC";
+  dbQuery(queryStr, function (err, result) {
+    var rows;
+    if (!result || result.rows.length === 0) {
+      rows = [{}];
+    } else {
+      rows = result.rows;
+    }
+    res.send(rows)
   });
   req.on('error', function(e) {
     console.log(e);
