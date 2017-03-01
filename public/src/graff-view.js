@@ -36,9 +36,8 @@ var GraffContent = React.createClass({
         // If there is a dataId, include it when getting the code.
         id += "+" + gcexports.data;
       }
-//      $.get(location.origin + "/data?id=" + id, function (data) {
       d3.json(location.origin + "/data?id=" + id, function (err, data) {
-        let obj = typeof data.obj === "string" ? JSON.parse(data.obj) : data.obj;
+        let obj = data.obj;
         if (+gcexports.data) {
           $.get(location.origin + "/data?id=" + gcexports.data, function (data) {
             dispatcher.dispatch({
