@@ -36,10 +36,9 @@ var GraffContent = React.createClass({
         // If there is a dataId, include it when getting the code.
         id += "+" + gcexports.data;
       }
-      d3.json(location.origin + "/data?id=" + id, function (err, data) {
-        let obj = data.obj;
+      d3.json(location.origin + "/data?id=" + id, (err, obj) => {
         if (+gcexports.data) {
-          $.get(location.origin + "/data?id=" + gcexports.data, function (data) {
+          d3.json(location.origin + "/data?id=" + gcexports.data, (err, data) => {
             dispatcher.dispatch({
               id: id,
               obj: obj,
@@ -124,7 +123,7 @@ var GraffContent = React.createClass({
         var obj = this.state.obj;
         var data = this.state.data;
         return (
-            <Viewer className="viewer" {...obj} {...data} />
+            <Viewer className="viewer" data={obj} {...data} />
         );
       } else {
         return <div/>;

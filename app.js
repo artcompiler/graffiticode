@@ -264,6 +264,7 @@ var dbQuery = function(query, resume) {
 };
 
 var getItem = function (id, resume) {
+  // TODO Support compound ids like 12345 43523 93845
   // Get an item from the cache, or from the db and then cache it.
   // cache.get(id, (err, val) => {
   //   if (val) {
@@ -291,7 +292,8 @@ function parseJSON(str) {
   try {
     return JSON.parse(str);
   } catch (e) {
-    console.log("ERROR parsing JSON: " + str);
+    console.log("ERROR parsing JSON: " + JSON.stringify(str));
+    console.log(e.stack);
     return null;
   }
 }
@@ -383,76 +385,38 @@ app.get('/data', function(req, res) {
   let ids = req.query.id.split(" ");
   let codeId = ids[0];  // First id is the item id.
   let dataId = ids[1];
-  getItem(codeId, function(err, row) {
-    var obj;
+  getItem(codeId, function(err, item) {
     if (err) {
       res.status(400).send(err);
     } else {
       if (dataId) {
         // We have data so recompile with that data.
-        let user = row.user_id;
-        let parent = row.parent_id;
-        let language = row.language;
-        let src = row.src;
-        let ast = row.ast;
-        getItem(dataId, (err, row) => {
-          let data = JSON.parse(row.obj);
-          compile(codeId, user, parent, language, src, ast, data, null, res);
+        let language = item.language;
+        let ast = item.ast;
+        getItem(dataId, (err, item) => {
+          let data = JSON.parse(item.obj);
+          comp(language, ast, data, (err, obj) => {
+            res.json(obj);
+          });
         });
       } else {
-        // No data provided, so return previous object code.
-        // obj = JSON.parse(row.obj);
-        // if (typeof obj === "string") {
-        //   obj = [obj]; // FIXME http treats scalar as error code.
-        // }
-        res.json({
-          id: codeId,
-          obj: parseJSON(row.obj),
-        });
+        res.json(item.obj);
       }
     }
   });
 });
 
-// Get an item with :id
-app.get('/code/:id', (req, res) => {
-  console.log("GET /code id=" + req.params.id);
-  var ids = req.params.id.split("+");
-  var codeId = ids[0];
-  var dataId = ids[1];
-  getItem(codeId, (err, row) => {
-    if (dataId) {
-      // We have data so recompile with that data.
-      var src = row.src;
-      var ast = row.ast;
-      var parent = row.parent_id;
-      var user = row.user_id;
-      var language = row.language;
-      getItem(dataId, (err, row) => {
-        let data = JSON.parse(row.obj)
-        compile(codeId, user, parent, language, src, ast, data, [row], res);
-      });
-    } else {
-      // No data provided.
-      res.send(row);
-    }
-  });
-});
-
-// Get pieces
 app.get('/code', (req, res) => {
-  var list = req.query.list;
-  var queryStr =
-    "SELECT * FROM pieces WHERE pieces.id" +
-    " IN ("+list+") ORDER BY pieces.id DESC";
-  dbQuery(queryStr, function (err, result) {
-    var rows;
-    if (!result || result.rows.length === 0) {
-      rows = [{}];
-    } else {
-      rows = result.rows;
-    }
-    res.send(rows)
+  // Get the source code for an item.
+  console.log("GET /code id=" + JSON.stringify(req.query.id));
+  var ids = req.query.id.split(" ");
+  var codeId = ids[0];
+  getItem(codeId, (err, row) => {
+    // No data provided, so obj code won't change.
+    res.send({
+      id: codeId,
+      src: row.src,
+    });
   });
 });
 
@@ -463,6 +427,7 @@ function retrieve(language, path, response) {
     port: getCompilerPort(language),
     path: "/" + path,
   };
+  console.log("retrieve() options=" + JSON.stringify(options));
   var req = http.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
@@ -590,6 +555,45 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   });
 };
 
+function comp(language, code, data, resume) {
+  // Compile ast to obj.
+  var path = "/compile";
+  var encodedData = JSON.stringify({
+    "description": "graffiticode",
+    "language": language,
+    "src": code,
+    "data": data,
+  });
+  var options = {
+    host: getCompilerHost(language),
+    port: getCompilerPort(language),
+    path: path,
+    method: 'GET',
+    headers: {
+      'Content-Type': 'text/plain',
+      'Content-Length': encodedData.length
+    },
+  };
+  var req = http.request(options, function(res) {
+    var data = "";
+    res.on('data', function (chunk) {
+      data += chunk;
+    });
+    res.on('end', function () {
+      resume(null, parseJSON(data));
+    });
+    res.on('error', function (err) {
+      resume(err);
+    });
+  });
+  req.write(encodedData);
+  req.end();
+  req.on('error', function(err) {
+    console.log("ERROR " + err);
+    resume(err);
+  });
+}
+
 function compile(id, user, parent, language, src, ast, data, rows, response) {
   // Compile ast to obj.
   var path = "/compile";
@@ -690,7 +694,8 @@ app.put('/compile', function (req, res) {
     q = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
   }
   dbQuery(q, function(err, result) {
-    // See if there is already an item with the same source for the same language. If so, pass it on.
+    // See if there is already an item with the same source for the same
+    // language. If so, pass it on.
     var obj;
     if (err) {
       res.status(400).send(err);
@@ -798,8 +803,6 @@ app.get("/:lang/:path", function (req, res) {
   retrieve(language, path, res);
 });
 
-// END REUSE ORIGINAL
-
 function getCompilerHost(language) {
   if (port === 3000) {
     return "localhost";
@@ -815,6 +818,33 @@ function getCompilerPort(language) {
     return "80";
   }
 }
+
+// END REUSE ORIGINAL
+
+// Get an item with :id
+app.get('/code/:id', (req, res) => {
+  console.log("DEPRECATED GET /code/:id id=" + req.params.id);
+  var ids = req.params.id.split("+");
+  var codeId = ids[0];
+  var dataId = ids[1];
+  getItem(codeId, (err, row) => {
+    if (dataId) {
+      // We have data so recompile with that data.
+      var src = row.src;
+      var ast = row.ast;
+      var parent = row.parent_id;
+      var user = row.user_id;
+      var language = row.language;
+      getItem(dataId, (err, row) => {
+        let data = JSON.parse(row.obj)
+        compile(codeId, user, parent, language, src, ast, data, [row], res);
+      });
+    } else {
+      // No data provided.
+      res.send(row);
+    }
+  });
+});
 
 app.get("/index", function (req, res) {
   res.sendFile("public/index.html");
