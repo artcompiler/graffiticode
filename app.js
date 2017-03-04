@@ -134,26 +134,6 @@ app.get('/pieces/:lang', function (req, res) {
   });
 });
 
-app.get('/items', function(req, res) {
-  var list = req.query.list;
-  var queryStr =
-    "SELECT * FROM pieces WHERE pieces.id" +
-    " IN ("+list+") ORDER BY pieces.id DESC";
-  dbQuery(queryStr, function (err, result) {
-    var rows;
-    if (!result || result.rows.length === 0) {
-      rows = [{}];
-    } else {
-      rows = result.rows;
-    }
-    res.send(rows)
-  });
-  req.on('error', function(e) {
-    console.log(e);
-    res.status(400).send(e);
-  });
-});
-
 app.get('/items/src', function(req, res) {
   var data = "";
   req.on("data", function (chunk) {
@@ -772,6 +752,26 @@ app.put('/code', (req, response) => {
   });
 });
 
+app.get('/items', function(req, res) {
+  var list = req.query.list;
+  var queryStr =
+    "SELECT * FROM pieces WHERE pieces.id" +
+    " IN ("+list+") ORDER BY pieces.id DESC";
+  dbQuery(queryStr, function (err, result) {
+    var rows;
+    if (!result || result.rows.length === 0) {
+      rows = [{}];
+    } else {
+      rows = result.rows;
+    }
+    res.send(rows)
+  });
+  req.on('error', function(e) {
+    console.log(e);
+    res.status(400).send(e);
+  });
+});
+
 // From http://javascript.about.com/library/blipconvert.htm
 function dot2num(dot) {
   var d = dot.split('.');
@@ -795,6 +795,8 @@ app.get("/:lang/:path", function (req, res) {
   retrieve(language, path, res);
 });
 
+// END REUSE ORIGINAL
+
 function getCompilerHost(language) {
   if (port === 3000) {
     return "localhost";
@@ -810,8 +812,6 @@ function getCompilerPort(language) {
     return "80";
   }
 }
-
-// END REUSE ORIGINAL
 
 // Get an item with :id
 app.get('/code/:id', (req, res) => {
