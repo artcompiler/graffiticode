@@ -29,7 +29,7 @@ var GraffContent = React.createClass({
     let gcexports = window.gcexports;
     let self = this;
     let pieces = [];
-    let id = +gcexports.id;
+    let id = gcexports.id;
     if (id) {
       let dataId = "";
       if (gcexports.data) {
@@ -70,11 +70,12 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      gcexports.id = id;
-      this.postData(id, data, label);
+      let codeId = id.split("+")[0];
+      gcexports.id = codeId;
+      this.postData(codeId, data, label);
     }
   },
-  postData: function postData(codeid, obj, label) {
+  postData: function postData(codeId, obj, label) {
     let gcexports = window.gcexports;
     let user = $("#username").data("user");
     let parent = gcexports.parent;
@@ -99,11 +100,11 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function(data) {
           // FIXME add to state
-          if (codeid) {
-            // Wait until we have a codeid to update URL.
+          if (codeId) {
+            // Wait until we have a codeId to update URL.
             gcexports.dataid = data.id;
             if (updateHistory) {
-              window.history.pushState(codeid, language, "/" + gcexports.view + "?id=" + codeid + "+" + data.id);
+              window.history.pushState(codeId, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
             }
           }
         },
