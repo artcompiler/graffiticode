@@ -642,6 +642,26 @@ app.put('/code', (req, response) => {
   });
 });
 
+app.get('/items', function(req, res) {
+  var list = req.query.list;
+  var queryStr =
+    "SELECT * FROM pieces WHERE pieces.id" +
+    " IN ("+list+") ORDER BY pieces.id DESC";
+  dbQuery(queryStr, function (err, result) {
+    var rows;
+    if (!result || result.rows.length === 0) {
+      rows = [{}];
+    } else {
+      rows = result.rows;
+    }
+    res.send(rows)
+  });
+  req.on('error', function(e) {
+    console.log(e);
+    res.status(400).send(e);
+  });
+});
+
 // From http://javascript.about.com/library/blipconvert.htm
 function dot2num(dot) {
   var d = dot.split('.');
