@@ -19443,17 +19443,16 @@ var GraffContent = React.createClass({
     var gcexports = window.gcexports;
     var self = this;
     var pieces = [];
-    var id = +gcexports.id;
+    var id = gcexports.id;
     if (id) {
       var dataId = "";
       if (gcexports.data) {
         // If there is a dataId, include it when getting the code.
         id += "+" + gcexports.data;
       }
-      d3.json(location.origin + "/data?id=" + id, function (err, data) {
-        var obj = data.obj;
+      d3.json(location.origin + "/data?id=" + id, function (err, obj) {
         if (+gcexports.data) {
-          $.get(location.origin + "/data?id=" + gcexports.data, function (data) {
+          d3.json(location.origin + "/data?id=" + gcexports.data, function (err, data) {
             dispatcher.dispatch({
               id: id,
               obj: obj,
@@ -19484,11 +19483,12 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      gcexports.id = id;
-      this.postData(id, data, label);
+      var codeId = id.split("+")[0];
+      gcexports.id = codeId;
+      this.postData(codeId, data, label);
     }
   },
-  postData: function postData(codeid, obj, label) {
+  postData: function postData(codeId, obj, label) {
     var gcexports = window.gcexports;
     var user = $("#username").data("user");
     var parent = gcexports.parent;
@@ -19513,11 +19513,11 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function success(data) {
           // FIXME add to state
-          if (codeid) {
-            // Wait until we have a codeid to update URL.
+          if (codeId) {
+            // Wait until we have a codeId to update URL.
             gcexports.dataid = data.id;
             if (updateHistory) {
-              window.history.pushState(codeid, language, "/" + gcexports.view + "?id=" + codeid + "+" + data.id);
+              window.history.pushState(codeId, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
             }
           }
         },
@@ -19536,7 +19536,7 @@ var GraffContent = React.createClass({
       if (this.state && this.state.obj) {
         var obj = this.state.obj;
         var data = this.state.data;
-        return React.createElement(Viewer, _extends({ className: "viewer" }, obj, data));
+        return React.createElement(Viewer, _extends({ className: "viewer", data: obj }, data));
       } else {
         return React.createElement("div", null);
       }
@@ -19685,7 +19685,7 @@ var CodeMirrorEditor = React.createClass({
   },
   onChange: function onChange(data) {
     var objectCode = "";
-    var obj = data.obj ? JSON.parse(data.obj) : null;
+    var obj = data.obj;
     if (obj) {
       if (obj.objectCode) {
         objectCode = JSON.stringify(obj.objectCode, null, 2);
@@ -19884,7 +19884,7 @@ var CodeMirrorEditor = React.createClass({
     var pieces = [];
     var id = +window.gcexports.id;
     if (id) {
-      $.get(location.origin + "/code/" + id, function (data) {
+      $.get(location.origin + "/code?id=" + id, function (data) {
         updateSrc(data.id, data.src);
       });
     } else {
@@ -19899,7 +19899,7 @@ var CodeMirrorEditor = React.createClass({
             pieces[i] = data[i].id;
           }
           window.gcexports.pieces = pieces;
-          $.get(location.origin + "/code/" + pieces[0], function (data) {
+          $.get(location.origin + "/code?id=" + pieces[0], function (data) {
             updateSrc(data.id, data.src);
           });
         },

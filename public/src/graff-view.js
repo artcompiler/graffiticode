@@ -29,17 +29,16 @@ var GraffContent = React.createClass({
     let gcexports = window.gcexports;
     let self = this;
     let pieces = [];
-    let id = +gcexports.id;
+    let id = gcexports.id;
     if (id) {
       let dataId = "";
       if (gcexports.data) {
         // If there is a dataId, include it when getting the code.
         id += "+" + gcexports.data;
       }
-      d3.json(location.origin + "/data?id=" + id, function (err, data) {
-        let obj = data.obj;
+      d3.json(location.origin + "/data?id=" + id, (err, obj) => {
         if (+gcexports.data) {
-          $.get(location.origin + "/data?id=" + gcexports.data, function (data) {
+          d3.json(location.origin + "/data?id=" + gcexports.data, (err, data) => {
             dispatcher.dispatch({
               id: id,
               obj: obj,
@@ -71,11 +70,12 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      gcexports.id = id;
-      this.postData(id, data, label);
+      let codeId = id.split("+")[0];
+      gcexports.id = codeId;
+      this.postData(codeId, data, label);
     }
   },
-  postData: function postData(codeid, obj, label) {
+  postData: function postData(codeId, obj, label) {
     let gcexports = window.gcexports;
     let user = $("#username").data("user");
     let parent = gcexports.parent;
@@ -100,11 +100,11 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function(data) {
           // FIXME add to state
-          if (codeid) {
-            // Wait until we have a codeid to update URL.
+          if (codeId) {
+            // Wait until we have a codeId to update URL.
             gcexports.dataid = data.id;
             if (updateHistory) {
-              window.history.pushState(codeid, language, "/" + gcexports.view + "?id=" + codeid + "+" + data.id);
+              window.history.pushState(codeId, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
             }
           }
         },
@@ -124,7 +124,7 @@ var GraffContent = React.createClass({
         var obj = this.state.obj;
         var data = this.state.data;
         return (
-            <Viewer className="viewer" {...obj} {...data} />
+            <Viewer className="viewer" data={obj} {...data} />
         );
       } else {
         return <div/>;
