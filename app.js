@@ -375,7 +375,6 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
-  console.log("GET /data id=" + req.query.id);
   let ids = req.query.id.split(" ");
   let codeId = ids[0];  // First id is the item id.
   let dataId = ids[1];
@@ -394,7 +393,7 @@ app.get('/data', function(req, res) {
           });
         });
       } else {
-        res.json(item.obj);
+        res.json(JSON.parse(item.obj));
       }
     }
   });
@@ -407,7 +406,7 @@ app.get('/code', (req, res) => {
   var codeId = ids[0];
   getItem(codeId, (err, row) => {
     // No data provided, so obj code won't change.
-    res.send({
+    res.json({
       id: codeId,
       src: row.src,
     });
@@ -421,7 +420,6 @@ function retrieve(language, path, response) {
     port: getCompilerPort(language),
     path: "/" + path,
   };
-  console.log("retrieve() options=" + JSON.stringify(options));
   var req = http.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
