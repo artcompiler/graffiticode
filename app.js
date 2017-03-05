@@ -135,10 +135,10 @@ var dbQuery = function(query, resume) {
 var getItem = function (id, resume) {
   // TODO Support compound ids like 12345 43523 93845
   // Get an item from the cache, or from the db and then cache it.
-  cache.get(id, (err, val) => {
-    if (val) {
-      resume(null, JSON.parse(val));
-    } else {
+  // cache.get(id, (err, val) => {
+  //   if (val) {
+  //     resume(null, JSON.parse(val));
+  //   } else {
       dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
         // Here we get the language associated with the id. The code is gotten by
         // the view after it is loaded.
@@ -149,12 +149,12 @@ var getItem = function (id, resume) {
           //assert(result.rows.length === 1);
           val = result.rows[0];
         }
-        cache.set(id, JSON.stringify(val));
+        // cache.set(id, JSON.stringify(val));
         resume(err, val);
       });
       dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
-    }
-  });
+  //   }
+  // });
 };
 
 function parseJSON(str) {
