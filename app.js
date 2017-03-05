@@ -227,6 +227,11 @@ var dbQuery = function(query, resume) {
     try {
       client.query(query, function (err, result) {
         done();
+        if (!result) {
+          result = {
+            rows: [],
+          };
+        }
         return resume(err, result);
       });
     } catch (e) {
