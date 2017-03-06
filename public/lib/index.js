@@ -19483,7 +19483,7 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      var codeId = id.split("+")[0];
+      var codeId = String(id).split("+")[0];
       gcexports.id = codeId;
       this.postData(codeId, data, label);
     }
@@ -19536,7 +19536,7 @@ var GraffContent = React.createClass({
       if (this.state && this.state.obj) {
         var obj = this.state.obj;
         var data = this.state.data;
-        return React.createElement(Viewer, _extends({ className: "viewer", data: obj }, data));
+        return React.createElement(Viewer, _extends({ className: "viewer", obj: obj }, data));
       } else {
         return React.createElement("div", null);
       }

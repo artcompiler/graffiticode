@@ -254,7 +254,7 @@ var getItem = function (id, resume) {
         // the view after it is loaded.
         let val;
         if (!result || result.rows.length === 0) {
-          val = {};
+          val = "{}";
         } else {
           //assert(result.rows.length === 1);
           val = result.rows[0];
