@@ -70,7 +70,7 @@ var GraffContent = React.createClass({
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      let codeId = id.split("+")[0];
+      let codeId = String(id).split("+")[0];
       gcexports.id = codeId;
       this.postData(codeId, data, label);
     }
@@ -124,7 +124,7 @@ var GraffContent = React.createClass({
         var obj = this.state.obj;
         var data = this.state.data;
         return (
-            <Viewer className="viewer" data={obj} {...data} />
+            <Viewer className="viewer" obj={obj} {...data} />
         );
       } else {
         return <div/>;

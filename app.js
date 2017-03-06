@@ -250,6 +250,7 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
+  console.log("GET /data id=" + JSON.stringify(req.query.id));
   let ids = req.query.id.split(" ");
   let codeId = ids[0];  // First id is the item id.
   let dataId = ids[1];
