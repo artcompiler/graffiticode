@@ -19516,8 +19516,16 @@ var GraffContent = React.createClass({
           if (codeId) {
             // Wait until we have a codeId to update URL.
             gcexports.dataid = data.id;
+            var history = {
+              language: language,
+              view: gcexports.view,
+              codeId: codeId,
+              dataId: data.id
+            };
             if (updateHistory) {
-              window.history.pushState(codeId, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
+              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
+            } else {
+              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
             }
           }
         },

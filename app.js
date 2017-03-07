@@ -207,7 +207,7 @@ app.get('/lang', function(req, res) {
         vocabulary: lang,
         target: 'SVG',
         login: 'Login',
-        item: 0,
+        item: undefined,
         data: undefined,
         version: version,
       }, function (error, html) {
