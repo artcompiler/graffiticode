@@ -106,6 +106,7 @@ var Ast = (function () {
     list: list,
     bool: bool,
     nul: nul,
+    inData: inData,
   };
 
   return new AstClass;
@@ -413,6 +414,17 @@ var Ast = (function () {
       tag: "NULL",
       elts: []
     });
+  }
+
+  function inData(ctx) {
+    if (gcexports.data) {
+      push(ctx, {
+        tag: "IN",
+        elts: [number(gcexports.data)]
+      });
+    } else {
+      nul(ctx);
+    }
   }
 
   function number(ctx, str, coord) {
@@ -926,6 +938,7 @@ window.gcexports.parser = (function () {
     "true" : { "tk": 0x14, "cls": "val", "length": 0 },
     "false" : { "tk": 0x14, "cls": "val", "length": 0 },
     "null" : { "tk": 0x15, "cls": "val", "length": 0 },
+    "in" : { "tk": 0x16, "cls": "val", "length": 0 },
   };
   function addError(ctx, str) {
     ctx.state.errors.push({
@@ -956,6 +969,7 @@ window.gcexports.parser = (function () {
   var TK_OR   = 0x13;
   var TK_BOOL   = 0x14;
   var TK_NULL   = 0x15;
+  var TK_IN     = 0x16;
 
   var TK_LEFTPAREN  = 0xA1;
   var TK_RIGHTPAREN   = 0xA2;
@@ -1057,6 +1071,13 @@ window.gcexports.parser = (function () {
     eat(ctx, TK_NULL);
     cc.cls = "number";
     Ast.nul(ctx);
+    return cc;
+  }
+
+  function inData(ctx, cc) {
+    eat(ctx, TK_IN);
+    cc.cls = "keyword";
+    Ast.inData(ctx);
     return cc;
   }
 
@@ -1291,6 +1312,8 @@ window.gcexports.parser = (function () {
       return bool(ctx, cc);
     } else if (match(ctx, TK_NULL)) {
       return nul(ctx, cc);
+    } else if (match(ctx, TK_IN)) {
+      return inData(ctx, cc);
     } else if (match(ctx, TK_LEFTBRACE)) {
       return record(ctx, cc);
     } else if (match(ctx, TK_LEFTPAREN)) {
@@ -2156,7 +2179,7 @@ var folder = function() {
       var patternNode = ofNode.elts[1];
       visit(patternNode);
       var pattern = Ast.pop(ctx);
-      if (expr === pattern) {
+      if (Ast.intern(expr) === Ast.intern(pattern)) {
         visit(ofNode.elts[0]);
         return;
       }
@@ -2388,6 +2411,10 @@ var folder = function() {
 
   function nul(node) {
     Ast.nul(ctx);
+  }
+
+  function inData(node) {
+    Ast.inData(ctx);
   }
 
   function stub(node) {

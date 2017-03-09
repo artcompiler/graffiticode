@@ -295,7 +295,8 @@ app.get('/lang', function(req, res) {
           compile(0, 0, 0, lang, src, ast, null, null, {
             json: function (data) {
               if (type === "id") {
-                res.json(parseJSON(data));
+                console.log("GET /lang data=" + JSON.stringify(data));
+                res.json(data);
               } else if (type === "data") {
                 res.redirect('/data?id=' + data.id);
               } else {
