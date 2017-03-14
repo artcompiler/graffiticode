@@ -956,6 +956,7 @@ window.gcexports.parser = (function () {
   var TK_OR   = 0x13;
   var TK_BOOL   = 0x14;
   var TK_NULL   = 0x15;
+  var TK_IN     = 0x16;
 
   var TK_LEFTPAREN  = 0xA1;
   var TK_RIGHTPAREN   = 0xA2;
@@ -1570,9 +1571,9 @@ window.gcexports.parser = (function () {
         folder.fold(ctx, nid)  // fold the exprs on top
       }
       Ast.exprs(ctx, ctx.state.nodeStack.length, true);
-      Ast.program(ctx)
-      assert(cc===null, "internal error, expecting null continuation")
-      return cc
+      Ast.program(ctx);
+      assert(cc===null, "internal error, expecting null continuation");
+      return cc;
     });
   }
   window.gcexports.program = program;
@@ -2156,7 +2157,7 @@ var folder = function() {
       var patternNode = ofNode.elts[1];
       visit(patternNode);
       var pattern = Ast.pop(ctx);
-      if (expr === pattern) {
+      if (Ast.intern(expr) === Ast.intern(pattern)) {
         visit(ofNode.elts[0]);
         return;
       }
