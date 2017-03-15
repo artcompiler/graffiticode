@@ -93,6 +93,7 @@ app.get('/pieces/:lang', function (req, res) {
   var label = req.query.label === undefined ? "show" : req.query.label;
   var queryString, likeStr = "";
   if (search) {
+    console.log("GET /pieces search=" + search);
     var ss = search.split(",");
     ss.forEach(function (s) {
       s = cleanAndTrimSrc(s);
