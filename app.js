@@ -88,7 +88,6 @@ app.get('/', function(req, res) {
 
 // get list of piece ids
 app.get('/pieces/:lang', function (req, res) {
-  console.log("GET /pieces query=" + JSON.stringify(req.query));
   var lang = req.params.lang;
   var search = req.query.src;
   var label = req.query.label === undefined ? "show" : req.query.label;
@@ -112,6 +111,7 @@ app.get('/pieces/:lang', function (req, res) {
   queryString = "SELECT id FROM pieces WHERE language='" + lang +
     "' AND " + likeStr +
     "label = '" + label + "' ORDER BY id DESC";
+  console.log("GET /pieces queryString=" + JSON.stringify(queryString));
   dbQuery(queryString, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
