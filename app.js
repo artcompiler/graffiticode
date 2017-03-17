@@ -70,7 +70,7 @@ app.engine('html', function (templateFile, options, callback) {
 // Routes
 
 // letsencript acme challenge
-app.get('/.well-known/acme-challenge/AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI', function(req, res) {
+app.get("/.well-known/acme-challenge/AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI", function(req, res) {
   res.send("AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
 });
 
