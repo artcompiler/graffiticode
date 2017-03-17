@@ -78,9 +78,9 @@ app.engine('html', function (templateFile, options, callback) {
 // Routes
 
 // letsencript acme challenge
-// app.get('/.well-known/acme-challenge/Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo', function(req, res) {
-//   res.send("Fat9s216-BheFxzOVTCk2BpbQqDEnE_Jh49sAZFAxgo.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
-// });
+app.get("http://www.graffiticode.com/.well-known/acme-challenge/IhUIiOWlRJrq0EqhxwJuLWK6dDfCWItmSOJX68T-Vrs", function(req, res) {
+  res.send("IhUIiOWlRJrq0EqhxwJuLWK6dDfCWItmSOJX68T-Vrs.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
+});
 
 app.get('/', function(req, res) {
   res.redirect("/index");
