@@ -70,9 +70,9 @@ app.engine('html', function (templateFile, options, callback) {
 // Routes
 
 // letsencript acme challenge
-// app.get('/.well-known/acme-challenge/1m10T3oPsyaWnJdFHk_OR5ro5GFqWQxCbvoRr5kfvm4', function(req, res) {
-//   res.send("1m10T3oPsyaWnJdFHk_OR5ro5GFqWQxCbvoRr5kfvm4.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
-// });
+app.get('/.well-known/acme-challenge/AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI', function(req, res) {
+  res.send("AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
+});
 
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
