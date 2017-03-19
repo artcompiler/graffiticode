@@ -26,6 +26,10 @@ var GraffContent = React.createClass({
   compileCode: function(codeID, dataID) {
     let gcexports = window.gcexports;
     let self = this;
+    if (!this.state) {
+      this.state = {};
+    }
+    this.state.recompileCode = false;
     let pieces = [];
     if (codeID) {
       let id = "" + codeID;
@@ -106,8 +110,8 @@ var GraffContent = React.createClass({
           // FIXME add to state
           if (codeID) {
             // Wait until we have a codeId to update URL.
-            let dataID = data.id;
-            if (gcexports.dataid !== dataID) {
+            let dataID = "" + data.id;
+            if (gcexports.dataid !== dataID && self.state.recompileCode) {
               self.compileCode(codeID, dataID);
               gcexports.dataid = dataID;
             }
