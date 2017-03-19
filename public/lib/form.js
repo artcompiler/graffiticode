@@ -19299,36 +19299,45 @@ var GraffContent = React.createClass({
   displayName: "GraffContent",
 
   componentWillUnmount: function componentWillUnmount() {},
-  componentDidMount: function componentDidMount() {
-    GraffView.dispatchToken = window.dispatcher.register(this.onChange);
-    this.isDirty = false;
+  compileCode: function compileCode(codeID, dataID) {
     var gcexports = window.gcexports;
     var self = this;
+    if (!this.state) {
+      this.state = {};
+    }
+    this.state.recompileCode = false;
     var pieces = [];
-    var id = gcexports.id;
-    if (id) {
-      var dataId = "";
-      if (gcexports.data) {
-        // If there is a dataId, include it when getting the code.
-        id += "+" + gcexports.data;
-      }
-      d3.json(location.origin + "/data?id=" + id, function (err, obj) {
-        if (+gcexports.data) {
-          d3.json(location.origin + "/data?id=" + gcexports.data, function (err, data) {
+    if (codeID) {
+      (function () {
+        var id = "" + codeID;
+        if (dataID) {
+          // If there is a dataId, include it when getting the code.
+          id += "+" + dataID;
+        }
+        d3.json(location.origin + "/data?id=" + id, function (err, obj) {
+          if (dataID) {
+            d3.json(location.origin + "/data?id=" + dataID, function (err, data) {
+              dispatcher.dispatch({
+                id: id,
+                obj: obj,
+                data: data
+              });
+            });
+          } else {
             dispatcher.dispatch({
               id: id,
               obj: obj,
-              data: data
-            });
-          });
-        } else {
-          dispatcher.dispatch({
-            id: id,
-            obj: obj,
-            data: {} });
-        }
-      });
+              data: {} });
+          }
+        });
+      })();
     }
+  },
+  componentDidMount: function componentDidMount() {
+    GraffView.dispatchToken = window.dispatcher.register(this.onChange);
+    var codeID = window.gcexports.id;
+    var dataID = window.gcexports.data;
+    this.compileCode(codeID, dataID);
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;
@@ -19350,12 +19359,13 @@ var GraffContent = React.createClass({
       this.postData(codeId, data, label);
     }
   },
-  postData: function postData(codeId, obj, label) {
+  postData: function postData(codeID, obj, label) {
     var gcexports = window.gcexports;
     var user = $("#username").data("user");
     var parent = gcexports.parent;
     var language = gcexports.language;
     var updateHistory = this.state.updateHistory;
+    var self = this;
     // Append host language to label.
     label = label ? language + " " + label : language;
     if (Object.keys(obj).length > 0) {
@@ -19375,19 +19385,23 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function success(data) {
           // FIXME add to state
-          if (codeId) {
+          if (codeID) {
             // Wait until we have a codeId to update URL.
-            gcexports.dataid = data.id;
+            var dataID = "" + data.id;
+            if (gcexports.dataid !== dataID && self.state.recompileCode) {
+              self.compileCode(codeID, dataID);
+              gcexports.dataid = dataID;
+            }
             var history = {
               language: language,
               view: gcexports.view,
-              codeId: codeId,
-              dataId: data.id
+              codeId: codeID,
+              dataId: dataID
             };
             if (updateHistory) {
-              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
+              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + codeID + "+" + dataID);
             } else {
-              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
+              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + codeID + "+" + dataID);
             }
           }
         },

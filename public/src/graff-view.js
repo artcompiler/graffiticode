@@ -23,22 +23,23 @@ var selfCleaningTimeout = {
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
-  componentDidMount: function() {
-    GraffView.dispatchToken = window.dispatcher.register(this.onChange);
-    this.isDirty = false;
+  compileCode: function(codeID, dataID) {
     let gcexports = window.gcexports;
     let self = this;
+    if (!this.state) {
+      this.state = {};
+    }
+    this.state.recompileCode = false;
     let pieces = [];
-    let id = gcexports.id;
-    if (id) {
-      let dataId = "";
-      if (gcexports.data) {
+    if (codeID) {
+      let id = "" + codeID;
+      if (dataID) {
         // If there is a dataId, include it when getting the code.
-        id += "+" + gcexports.data;
+        id += "+" + dataID;
       }
       d3.json(location.origin + "/data?id=" + id, (err, obj) => {
-        if (+gcexports.data) {
-          d3.json(location.origin + "/data?id=" + gcexports.data, (err, data) => {
+        if (dataID) {
+          d3.json(location.origin + "/data?id=" + dataID, (err, data) => {
             dispatcher.dispatch({
               id: id,
               obj: obj,
@@ -54,6 +55,12 @@ var GraffContent = React.createClass({
         }
       });
     }
+  },
+  componentDidMount: function() {
+    GraffView.dispatchToken = window.dispatcher.register(this.onChange);
+    let codeID = window.gcexports.id;
+    let dataID = window.gcexports.data;
+    this.compileCode(codeID, dataID);
   },
   componentDidUpdate: function() {
     let gcexports = window.gcexports;
@@ -75,12 +82,13 @@ var GraffContent = React.createClass({
       this.postData(codeId, data, label);
     }
   },
-  postData: function postData(codeId, obj, label) {
+  postData: function postData(codeID, obj, label) {
     let gcexports = window.gcexports;
     let user = $("#username").data("user");
     let parent = gcexports.parent;
     let language = gcexports.language;
     let updateHistory = this.state.updateHistory;
+    let self = this;
     // Append host language to label.
     label = label ? language + " " + label : language;
     if (Object.keys(obj).length > 0) {
@@ -100,19 +108,23 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function(data) {
           // FIXME add to state
-          if (codeId) {
+          if (codeID) {
             // Wait until we have a codeId to update URL.
-            gcexports.dataid = data.id;
+            let dataID = "" + data.id;
+            if (gcexports.dataid !== dataID && self.state.recompileCode) {
+              self.compileCode(codeID, dataID);
+              gcexports.dataid = dataID;
+            }
             let history = {
               language: language,
               view: gcexports.view,
-              codeId: codeId,
-              dataId: data.id,
+              codeId: codeID,
+              dataId: dataID,
             };
             if (updateHistory) {
-              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
+              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + codeID + "+" + dataID);
             } else {
-              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + codeId + "+" + data.id);
+              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + codeID + "+" + dataID);
             }
           }
         },
