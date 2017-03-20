@@ -77,7 +77,7 @@ app.get("/.well-known/acme-challenge/AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/mathgenplay", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=503275").pipe(res);
+  request("https://learnosity.artcompiler.com/form?id=504070").pipe(res);
 });
 app.get("/spokenmathplay", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=501888").pipe(res);
