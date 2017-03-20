@@ -561,6 +561,7 @@ function comp(language, code, data, resume) {
       data += chunk;
     });
     res.on('end', function () {
+      console.log("comp() data=" + data);
       resume(null, parseJSON(data));
     });
     res.on('error', function (err) {
