@@ -555,6 +555,7 @@ function comp(language, code, data, resume) {
       'Content-Length': encodedData.length
     },
   };
+  console.log("comp() options=" + JSON.stringify(options));
   var req = http.request(options, function(res) {
     var data = "";
     res.on('data', function (chunk) {
