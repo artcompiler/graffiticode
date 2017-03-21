@@ -80,7 +80,7 @@ app.get("/mathgenplay", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=504155").pipe(res);
 });
 app.get("/spokenmathplay", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=501888").pipe(res);
+  request("https://learnosity.artcompiler.com/form?id=504569").pipe(res);
 });
 app.get("/spokenmathspec", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=490914").pipe(res);
