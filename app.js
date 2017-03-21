@@ -86,7 +86,7 @@ app.get("/spokenmathspec", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=490914").pipe(res);
 });
 app.get("/mathgenproposal", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=504658").pipe(res);
+  request("https://learnosity.artcompiler.com/form?id=504664").pipe(res);
 });
 app.get("/mathcore2proposal", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=498441").pipe(res);
