@@ -86,7 +86,7 @@ app.get("/spokenmathspec", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=490914").pipe(res);
 });
 app.get("/mathgenproposal", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=504582").pipe(res);
+  request("https://learnosity.artcompiler.com/form?id=504658").pipe(res);
 });
 app.get("/mathcore2proposal", (req, res) => {
   request("https://learnosity.artcompiler.com/form?id=498441").pipe(res);
@@ -225,9 +225,10 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  var ids = req.query.id.split(" ");
+  let key = req.query.id;
+  var ids = key.split(" ");
   var id = ids[0];  // First id is the item id.
-  getItem(id, function(err, row) {
+  getItem(key, function(err, row) {
     var lang = row.language;
     getCompilerVersion(lang, (version) => {
       res.render('form.html', {
