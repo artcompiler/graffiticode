@@ -409,6 +409,7 @@ function retrieve(language, path, response) {
     port: getCompilerPort(language),
     path: "/" + path,
   };
+  console.log("retrieve() options=" + JSON.stringify(options));
   var req = http.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
@@ -800,10 +801,18 @@ function num2dot(num) {
   return d;
 }
 
-app.get("/:lang/:path", function (req, res) {
-  var language = req.params.lang;
-  var path = req.params.path;
-  retrieve(language, path, res);
+// app.get("/:lang/:path", function (req, res) {
+//   var language = req.params.lang;
+//   var path = req.params.path;
+//   console.log("GET /:lang/:path path=" + path);
+//   retrieve(language, path, res);
+// });
+
+app.get("/:lang/*", function (req, res) {
+  var lang = req.params.lang;
+  let url = req.url;
+  let path = url.substring(url.indexOf(lang) + lang.length + 1);
+  retrieve(lang, path, res);
 });
 
 // END REUSE ORIGINAL
