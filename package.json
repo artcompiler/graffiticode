@@ -8,6 +8,7 @@
     "errorhandler": "latest",
     "express": "4.14.0",
     "express-session": "1.14.2",
+    "hashids": "1.1.1",
     "method-override": "latest",
     "morgan": "latest",
     "pg": "6.1.2",
