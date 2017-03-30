@@ -93,7 +93,6 @@ app.get('/pieces/:lang', function (req, res) {
   var label = req.query.label === undefined ? "show" : req.query.label;
   var queryString, likeStr = "";
   if (search) {
-    console.log("GET /pieces search=" + search);
     var ss = search.split(",");
     ss.forEach(function (s) {
       s = cleanAndTrimSrc(s);
@@ -111,7 +110,6 @@ app.get('/pieces/:lang', function (req, res) {
   queryString = "SELECT id FROM pieces WHERE language='" + lang +
     "' AND " + likeStr +
     "label = '" + label + "' ORDER BY id DESC";
-  console.log("GET /pieces queryString=" + JSON.stringify(queryString));
   dbQuery(queryString, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
@@ -297,7 +295,6 @@ app.get('/lang', function(req, res) {
           compile(0, 0, 0, lang, src, ast, null, null, {
             json: function (data) {
               if (type === "id") {
-                console.log("GET /lang data=" + JSON.stringify(data));
                 res.json(data);
               } else if (type === "data") {
                 res.redirect('/data?id=' + data.id);
@@ -409,7 +406,6 @@ function retrieve(language, path, response) {
     port: getCompilerPort(language),
     path: "/" + path,
   };
-  console.log("retrieve() options=" + JSON.stringify(options));
   var req = http.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
@@ -556,14 +552,12 @@ function comp(language, code, data, resume) {
       'Content-Length': encodedData.length
     },
   };
-  console.log("comp() options=" + JSON.stringify(options));
   var req = http.request(options, function(res) {
     var data = "";
     res.on('data', function (chunk) {
       data += chunk;
     });
     res.on('end', function () {
-      console.log("comp() data=" + data);
       resume(null, parseJSON(data));
     });
     res.on('error', function (err) {
