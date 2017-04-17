@@ -19360,6 +19360,8 @@ var GraffContent = React.createClass({
     }
   },
   postData: function postData(codeID, obj, label) {
+    // Save the data and recompile code with data if the viewer requests it by
+    // setting recompileCode=true. See L121 for an example.
     var gcexports = window.gcexports;
     var user = $("#username").data("user");
     var parent = gcexports.parent;
@@ -19420,7 +19422,7 @@ var GraffContent = React.createClass({
       if (this.state && this.state.obj) {
         var obj = this.state.obj;
         var data = this.state.data;
-        return React.createElement(Viewer, _extends({ className: "viewer", obj: obj }, data));
+        return React.createElement(Viewer, _extends({ className: "viewer", obj: obj, data: data }, data));
       } else {
         return React.createElement("div", null);
       }
