@@ -138,7 +138,8 @@ var dbQuery = function(query, resume) {
 var getItem = function (id, resume) {
   // TODO Support compound ids like 12345 43523 93845
   // Get an item from the cache, or from the db and then cache it.
-  cache.get(id, (err, val) => {
+  let codeID = id.split(" ");
+  cache.get(codeID, (err, val) => {
     if (val) {
       resume(null, JSON.parse(val));
     } else {
@@ -228,7 +229,7 @@ app.get('/form', function(req, res) {
   let key = req.query.id;
   var ids = key.split(" ");
   var id = ids[0];  // First id is the item id.
-  getItem(key, function(err, row) {
+  getItem(id, function(err, row) {
     var lang = row.language;
     getCompilerVersion(lang, (version) => {
       res.render('form.html', {
