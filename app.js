@@ -77,7 +77,7 @@ app.get("/.well-known/acme-challenge/AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=520048").pipe(res);
+  request("https://www.graffiticode.com/form?id=520048").pipe(res);
 });
 
 app.get('/item', function(req, res) {
