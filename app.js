@@ -69,15 +69,10 @@ app.engine('html', function (templateFile, options, callback) {
 
 // Routes
 
-// letsencript acme challenge
-app.get("/.well-known/acme-challenge/AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI", function(req, res) {
-  res.send("AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
-});
-
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
-  request("https://www.graffiticode.com/form?id=520048").pipe(res);
+  request("https://www.graffiticode.com/form?id=520117").pipe(res);
 });
 
 app.get('/item', function(req, res) {
