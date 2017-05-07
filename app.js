@@ -76,33 +76,8 @@ app.get("/.well-known/acme-challenge/AW6bCjR8Qi3HwiKD5emcP-HiFa1zBrtr4DVu8xLRKwI
 
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
-app.get("/spokenmathdemo", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=519580").pipe(res);
-});
-app.get("/mathgeng5demo", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=519423+518560").pipe(res);
-});
-app.get("/mathgenhsademo", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=519439+519353").pipe(res);
-});
-app.get("/mathgenplay", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=504155").pipe(res);
-});
-app.get("/spokenmathplay", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=519628").pipe(res);
-});
-app.get("/spokenmathspec", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=490914").pipe(res);
-});
-app.get("/mathgenproposal", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=504664").pipe(res);
-});
-app.get("/mathcore2proposal", (req, res) => {
-  request("https://learnosity.artcompiler.com/form?id=498441").pipe(res);
-});
-
-app.get('/', function(req, res) {
-  res.redirect("/index");
+app.get("/", (req, res) => {
+  request("https://learnosity.artcompiler.com/form?id=520048").pipe(res);
 });
 
 app.get('/item', function(req, res) {
@@ -709,7 +684,7 @@ app.get("/:lang/*", function (req, res) {
 // END REUSE
 
 function getCompilerHost(language) {
-  if (port === 3001) {
+  if (port === 3002) {
     return "localhost";
   } else {
     return language + ".artcompiler.com";
@@ -717,7 +692,7 @@ function getCompilerHost(language) {
 }
 
 function getCompilerPort(language) {
-  if (port === 3001) {
+  if (port === 3002) {
     return "5" + language.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
@@ -741,7 +716,7 @@ process.on('uncaughtException', function(err) {
 });
 
 if (!module.parent) {
-  var port = process.env.PORT || 3001;
+  var port = process.env.PORT || 3002;
   app.listen(port, function() {
     console.log("Listening on " + port);
   });
