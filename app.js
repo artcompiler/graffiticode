@@ -72,7 +72,7 @@ app.engine('html', function (templateFile, options, callback) {
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
-  request("https://www.graffiticode.com/form?id=520426").pipe(res);
+  request("https://www.graffiticode.com/form?id=520428").pipe(res);
 });
 
 app.get('/item', function(req, res) {
