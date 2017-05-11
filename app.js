@@ -24,11 +24,22 @@ var errorHandler = require("errorhandler");
 var timeout = require('connect-timeout');
 var main = require('./main.js');
 var pg = require('pg');
-var conString = process.env.DATABASE_URL;
-if (conString.indexOf("localhost") < 0) {
-  pg.defaults.ssl = true;
-}
+var Hashids = require("hashids");
+pg.defaults.ssl = true;
+
 // Configuration
+
+let conStrs = [
+//  process.env.DATABASE_URL_LOCAL,
+  process.env.DATABASE_URL,
+];
+
+function getConStr(id) {
+  if (conStrs[+id]) {
+    return conStrs[+id];
+  }
+  return process.env.DATABASE_URL;
+}
 
 var env = process.env.NODE_ENV || 'development';
 
@@ -110,7 +121,7 @@ app.get('/pieces/:lang', function (req, res) {
   queryString = "SELECT id FROM pieces WHERE language='" + lang +
     "' AND " + likeStr +
     "label = '" + label + "' ORDER BY id DESC";
-  dbQuery(queryString, function (err, result) {
+  dbQuery(0, queryString, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
       console.log("no rows");
@@ -119,12 +130,12 @@ app.get('/pieces/:lang', function (req, res) {
         " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
         " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
         " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-      dbQuery(insertStr, function(err, result) {
+      dbQuery(0, insertStr, function(err, result) {
         if (err) {
           res.status(400).send(err);
           return;
         }
-        dbQuery(queryString, function (err, result) {
+        dbQuery(0, queryString, function (err, result) {
           res.send(result.rows);
         });
       });
@@ -144,7 +155,7 @@ app.get('/items/src', function(req, res) {
     var queryStr =
       "SELECT id, src FROM pieces WHERE id" +
       " IN ("+list+") ORDER BY id DESC";
-    dbQuery(queryStr, function (err, result) {
+    dbQuery(0, queryStr, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
@@ -161,9 +172,12 @@ app.get('/items/src', function(req, res) {
 });
 
 app.get('/item', function(req, res) {
-  var ids = req.query.id.split(" ");
-  var id = ids[0];  // First id is the item id.
-  dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
+  console.log("GET /item id=" + req.query.id);
+  var ids = decodeID(req.query.id);
+  var baseID = ids[0];
+  var codeID = ids[1];
+  var dataID = ids[2];
+  dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + codeID, function(err, result) {
     var rows;
     if (!result || result.rows.length===0) {
       rows = [{}];
@@ -176,8 +190,8 @@ app.get('/item', function(req, res) {
           vocabulary: lang,
           target: 'SVG',
           login: 'Login',
-          item: ids[0],
-          data: ids[1] ? ids[1] : undefined,
+          item: codeID,
+          data: dataID ? dataID : undefined,
           view: "item",
           version: version,
         }, function (error, html) {
@@ -189,16 +203,18 @@ app.get('/item', function(req, res) {
         });
       });
     }
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+    dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + codeID, function () {
     });
   });
 });
 
 // Get a label
 app.get('/label', function (req, res) {
-  var id = req.body.id;
+  let ids = decodeID(req.body.id);
+  var baseID = ids[0];
+  let itemID = ids[1];
   var label = "";
-  dbQuery("SELECT label FROM pieces WHERE id = '" + id + "'",  function (err, result) {
+  dbQuery(baseID, "SELECT label FROM pieces WHERE id = '" + itemID + "'",  function (err, result) {
     if (result || result.rows.length === 1) {
       label = result.rows[0].label;
     }
@@ -208,15 +224,18 @@ app.get('/label', function (req, res) {
 
 // Update a label
 app.put('/label', function (req, res) {
-  var id = req.body.id;
+  let ids = decodeID(req.body.id);
+  var baseID = ids[0];
+  let itemID = ids[1];
   var label = req.body.label;
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'", ()=>{});
+  dbQuery(baseID, "UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", ()=>{});
   res.send(200)
 });
 
 // BEGIN REUSE ORIGINAL
 
-var dbQuery = function(query, resume) {
+var dbQuery = function(baseID, query, resume) {
+  let conString = getConStr(baseID);
   // Query Helper -- https://github.com/brianc/node-postgres/issues/382
   pg.connect(conString, function (err, client, done) {
     // If there is an error, client is null and done is a noop
@@ -242,29 +261,36 @@ var dbQuery = function(query, resume) {
   });
 };
 
-var getItem = function (id, resume) {
-  // TODO Support compound ids like 12345 43523 93845
-  // Get an item from the cache, or from the db and then cache it.
-  // cache.get(id, (err, val) => {
-  //   if (val) {
-  //     resume(null, JSON.parse(val));
-  //   } else {
-      dbQuery("SELECT * FROM pieces WHERE id = " + id, function(err, result) {
-        // Here we get the language associated with the id. The code is gotten by
-        // the view after it is loaded.
-        let val;
-        if (!result || result.rows.length === 0) {
-          val = {};
-        } else {
-          //assert(result.rows.length === 1);
-          val = result.rows[0];
-        }
-        // cache.set(id, JSON.stringify(val));
-        resume(err, val);
-      });
-      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
-  //   }
-  // });
+var getItem = function (baseID, id, resume) {
+  dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + id, (err, result) => {
+    // Here we get the language associated with the id. The code is gotten by
+    // the view after it is loaded.
+    let val;
+    if (!result || result.rows.length === 0) {
+      val = {};
+    } else {
+      //assert(result.rows.length === 1);
+      val = result.rows[0];
+    }
+    resume(err, val);
+  });
+  dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
+};
+
+const getCache = function (id, resume) {
+  if (window.cache) {
+    cache.get(id, (err, val) => {
+      resume(null, parseJSON(val));
+    });
+  } else {
+    resume(null, null);
+  }
+};
+
+const setCache = function (id, val) {
+  if (window.cache) {
+    cache.set(id, JSON.stringify(val));
+  }
 };
 
 function parseJSON(str) {
@@ -332,19 +358,24 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  var ids = req.query.id.split(" ");
-  var id = ids[0];  // First id is the item id.
-  getItem(id, function(err, row) {
+  console.log("GET /form id=" + JSON.stringify(req.query.id));
+  let ids = decodeID(req.query.id);
+  let baseID = ids[0];
+  let codeID = ids[1];
+  let dataID = ids[2];
+  if (!/[a-zA-Z]/.test(req.query.id)) {
+    res.redirect("/form?id=" + encodeID(baseID, codeID, dataID));
+    return;
+  }
+  getItem(baseID, codeID, function(err, row) {
     var lang = row.language;
     getCompilerVersion(lang, (version) => {
       res.render('form.html', {
         title: 'Graffiti Code',
         language: lang,
         vocabulary: lang,
-        target: 'SVG',
-        login: 'Login',
-        item: ids[0],
-        data: ids[1] ? ids[1] : undefined,
+        item: req.query.id,
+        data: undefined,
         view: "form",
         version: version,
       }, function (error, html) {
@@ -361,39 +392,85 @@ app.get('/form', function(req, res) {
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
   console.log("GET /data id=" + JSON.stringify(req.query.id));
-  let ids = req.query.id.split(" ");
-  let codeId = ids[0];  // First id is the item id.
-  let dataId = ids[1];
-  getItem(codeId, function(err, item) {
-    if (err) {
-      res.status(400).send(err);
+  let ids = decodeID(req.query.id);
+  let baseID = ids[0];
+  let codeID = ids[1];
+  let dataID = ids[2];
+  let hashID = encodeID(baseID, codeID, dataID);
+  if (!/[a-zA-Z]/.test(req.query.id)) {
+    res.redirect("/data?id=" + hashID);
+    return;
+  }
+  getCache(hashID, (err, val) => {
+    if (val) {
+      res.json(val);
     } else {
-      if (dataId) {
-        // We have data so recompile with that data.
-        let language = item.language;
-        let ast = item.ast;
-        getItem(dataId, (err, item) => {
-          let data = JSON.parse(item.obj);
-          comp(language, ast, data, (err, obj) => {
-            res.json(obj);
-          });
-        });
-      } else {
-        res.json(JSON.parse(item.obj));
-      }
+      getItem(baseID, codeID, function(err, item) {
+        if (err) {
+          res.status(400).send(err);
+        } else {
+          if (dataID) {
+            // We have data so recompile with that data.
+            let language = item.language;
+            let ast = item.ast;
+            getItem(baseID, dataID, (err, item) => {
+              let data = JSON.parse(item.obj);
+              comp(language, ast, data, (err, obj) => {
+                res.json(obj);
+                setCache(hashID, obj);
+              });
+            });
+          } else {
+            res.json(JSON.parse(item.obj));
+            setCache(hashID, item.obj);
+          }
+        }
+      });
     }
   });
 });
 
+
+let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
+function decodeID(id) {
+  // Return the three parts of an ID. Takes bare and hashed IDs.
+  let ids;
+  if (+id || id.split(" ").length > 1) {
+    let a = id.split(" ");
+    if (a.length === 1) {
+      ids = [0, a[0], 0];
+    } else if (a.length === 2) {
+      ids = [0, a[0], a[1]];
+    } else if (a.length === 3) {
+      ids = [a[0], a[1], a[2]];
+    } else {
+      console.log("ERROR bad id: " + id);
+      ids = [0, 0, 0];
+    }
+  } else {
+    ids = hashids.decode(id);
+  }
+  return ids;
+}
+
+function encodeID(baseID, codeID, dataID) {
+  baseID = +baseID ? baseID : 0;
+  codeID = +codeID ? codeID : 0;
+  dataID = +dataID ? dataID : 0;
+  let hashid = hashids.encode([baseID, codeID, dataID]);
+  return hashid;
+}
+
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   console.log("GET /code id=" + JSON.stringify(req.query.id));
-  var ids = req.query.id.split(" ");
-  var codeId = ids[0];
-  getItem(codeId, (err, row) => {
+  var ids = decodeID(req.query.id); //req.query.id.split(" ");
+  var baseID = ids[0];
+  var codeID = ids[1];
+  getItem(baseID, codeID, (err, row) => {
     // No data provided, so obj code won't change.
     res.json({
-      id: codeId,
+      id: codeID,
       src: row.src,
     });
   });
@@ -500,15 +577,15 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
     " VALUES ('" + user + "', '" + parent + "', '" + views +
     " ', '" + forks + "', now(), '" + src + "', '" + obj +
     " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
-  dbQuery(queryStr, function(err, result) {
+  dbQuery(0, queryStr, function(err, result) {
     if (err) {
       console.log("postItem() ERROR: " + queryStr);
       resume(err);
     } else {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
-      dbQuery(queryStr, function (err, result) {
+      dbQuery(0, queryStr, function (err, result) {
         resume(err, result);
-        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
+        dbQuery(0, "UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
       });
     }
   });
@@ -528,7 +605,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
     "ast='" + ast + "', " +
     "obj='" + obj + "' " +
     "WHERE id='" + id + "'";
-  dbQuery(query, function (err) {
+  dbQuery(0, query, function (err) {
     resume(err, []);
   });
 };
@@ -671,7 +748,7 @@ app.put('/compile', function (req, res) {
     // Otherwise look for an item with matching source.
     q = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
   }
-  dbQuery(q, function(err, result) {
+  dbQuery(0, q, function(err, result) {
     // See if there is already an item with the same source for the same
     // language. If so, pass it on.
     var obj;
@@ -681,7 +758,7 @@ app.put('/compile', function (req, res) {
       let rows = result.rows;
       if (dataId) {
         // We have data so recompile with that data.
-        dbQuery("SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
+        dbQuery(0, "SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
           let data = JSON.parse(result.rows[0].obj)
           compile(id, user, parent, language, src, ast, data, rows, res);
         });
@@ -711,7 +788,7 @@ app.put('/code', (req, response) => {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
-  dbQuery(query, function(err, result) {
+  dbQuery(0, query, function(err, result) {
     // See if there is already an item with the same source for the same language. If so, pass it on.
     var row = result.rows[0];
     var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
@@ -763,7 +840,7 @@ app.get('/items', function(req, res) {
   var queryStr =
     "SELECT * FROM pieces WHERE pieces.id" +
     " IN ("+list+") ORDER BY pieces.id DESC";
-  dbQuery(queryStr, function (err, result) {
+  dbQuery(0, queryStr, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
       rows = [{}];
@@ -830,20 +907,21 @@ function getCompilerPort(language) {
 // Get an item with :id
 app.get('/code/:id', (req, res) => {
   console.log("DEPRECATED GET /code/:id id=" + req.params.id);
-  var ids = req.params.id.split("+");
-  var codeId = ids[0];
-  var dataId = ids[1];
-  getItem(codeId, (err, row) => {
-    if (dataId) {
+  var ids = decodeID(req.params.id);
+  var baseID = ids[0];
+  var codeID = ids[1];
+  var dataID = ids[2];
+  getItem(baseID, codeID, (err, row) => {
+    if (dataID) {
       // We have data so recompile with that data.
       var src = row.src;
       var ast = row.ast;
       var parent = row.parent_id;
       var user = row.user_id;
       var language = row.language;
-      getItem(dataId, (err, row) => {
-        let data = JSON.parse(row.obj)
-        compile(codeId, user, parent, language, src, ast, data, [row], res);
+      getItem(baseID, dataID, (err, row) => {
+        let data = JSON.parse(row.obj);
+        compile(codeID, user, parent, language, src, ast, data, [row], res);
       });
     } else {
       // No data provided.
@@ -859,7 +937,7 @@ app.get("/index", function (req, res) {
 // Get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
-  dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
+  dbQuery(0, "SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
     var ret;
     if (!result || result.rows.length === 0) {
       ret = "";
@@ -871,7 +949,7 @@ app.get('/graffiti/:id', function (req, res) {
       }
     }
     res.send(ret);
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+    dbQuery(0, "UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
     });
   });
 });
@@ -886,7 +964,7 @@ app.get('/:lang', function (req, res) {
   }
 });
 
-dbQuery("SELECT NOW() as when", function(err, result) {
+dbQuery(0, "SELECT NOW() as when", function(err, result) {
   console.log(result);
 });
 

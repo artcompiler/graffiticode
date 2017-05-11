@@ -1,6 +1,7 @@
 import Dispatcher from "./Dispatcher";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import Hashids from "hashids";
 window.gcexports.ReactDOM = ReactDOM;
 var IS_MOBILE = (
   navigator.userAgent.match(/Android/i)
@@ -20,10 +21,50 @@ var selfCleaningTimeout = {
     this.timeoutID = setTimeout.apply(null, arguments);
   },
 };
+let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
+function decodeID(id) {
+  // Return the three parts of an ID. Takes bare and hashed IDs.
+  let ids;
+  if (+id || id.split(" ").length > 1) {
+    let a = id.split(" ");
+    if (a.length === 1) {
+      ids = [0, a[0], 0];
+    } else if (a.length === 2) {
+      ids = [0, a[0], a[1]];
+    } else if (a.length === 3) {
+      ids = [a[0], a[1], a[2]];
+    } else {
+      console.log("ERROR bad id: " + id);
+      ids = [0, 0, 0];
+    }
+  } else {
+    ids = hashids.decode(id);
+  }
+  console.log("decodeID() ids=" + ids);
+  return ids;
+}
+function encodeID(baseID, codeID, dataID) {
+  console.log("encodeID() baseID=" + baseID + " codeID=" + codeID + " dataID=" + dataID);
+  baseID = +baseID ? baseID : 0;
+  codeID = +codeID ? codeID : 0;
+  dataID = +dataID ? dataID : 0;
+  console.log("encodeID() baseID=" + baseID + " codeID=" + codeID + " dataID=" + dataID);
+  let hashid = hashids.encode([baseID, codeID, dataID]);
+  console.log("encodeID() hashid=" + hashid);
+  return hashid;
+}
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
   compileCode: function(codeID, dataID) {
+    let baseID;
+    if (/[a-zA-Z]/.test(codeID)) {
+      // We have a hashid, so decode it.
+      let ids = decodeID(codeID);
+      baseID = ids[0];
+      codeID = ids[1];
+      dataID = dataID ? dataID : ids[2];
+    }
     let gcexports = window.gcexports;
     let self = this;
     if (!this.state) {
@@ -37,18 +78,19 @@ var GraffContent = React.createClass({
         // If there is a dataId, include it when getting the code.
         id += "+" + dataID;
       }
-      d3.json(location.origin + "/data?id=" + id, (err, obj) => {
+      let hashID = encodeID(baseID, codeID, dataID);
+      d3.json(location.origin + "/data?id=" + hashID, (err, obj) => {
         if (dataID) {
-          d3.json(location.origin + "/data?id=" + dataID, (err, data) => {
+          d3.json(location.origin + "/data?id=" + encodeID(baseID, dataID), (err, data) => {
             dispatcher.dispatch({
-              id: id,
+              id: hashID,
               obj: obj,
               data: data,
             });
           });
         } else {
           dispatcher.dispatch({
-            id: id,
+            id: hashID,
             obj: obj,
             data: {}, // Clear state
           });
@@ -115,7 +157,17 @@ var GraffContent = React.createClass({
             let dataID = "" + data.id;
             if (gcexports.dataid !== dataID && self.state.recompileCode) {
               self.compileCode(codeID, dataID);
-              gcexports.dataid = dataID;
+            }
+            gcexports.dataid = dataID;
+            let id;
+            if (gcexports.view === "form") {
+              // We have a hashid, so update it.
+              let ids = decodeID(codeID);
+              ids[2] = dataID;
+              id = encodeID(...ids);
+            } else {
+              // Keep bare id.
+              id = codeID + "+" + dataID;
             }
             let history = {
               language: language,
@@ -124,9 +176,9 @@ var GraffContent = React.createClass({
               dataId: dataID,
             };
             if (updateHistory) {
-              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + codeID + "+" + dataID);
+              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
             } else {
-              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + codeID + "+" + dataID);
+              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + id);
             }
           }
         },
