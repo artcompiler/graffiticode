@@ -1662,6 +1662,7 @@ window.gcexports.parser = (function () {
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
     var src = window.gcexports.editor.getValue();
+    console.log("compileCode() codeID=" + window.gcexports.id + " dataID=" + window.gcexports.data);
     $.ajax({
       type: "PUT",
       url: "/compile",

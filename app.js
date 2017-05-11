@@ -20,12 +20,23 @@ var pg = require('pg');
 var redis = require('redis');
 //var cache = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
-var conString = process.env.DATABASE_URL;
+var Hashids = require("hashids");
+pg.defaults.ssl = true;
 
-if (conString.indexOf("localhost") < 0) {
-  pg.defaults.ssl = true;
-}
 // Configuration
+
+let conStrs = [
+//  process.env.DATABASE_URL_LOCAL,
+  process.env.DATABASE_URL,
+];
+
+function getConStr(id) {
+  if (conStrs[+id]) {
+    return conStrs[+id];
+  }
+  return process.env.DATABASE_URL;
+}
+
 var env = process.env.NODE_ENV || 'development';
 
 app.all('*', function (req, res, next) {
@@ -86,9 +97,10 @@ app.get('/item', function(req, res) {
   res.redirect(url);
 });
 
-// BEGIN REUSE
+// BEGIN REUSE ORIGINAL
 
-var dbQuery = function(query, resume) {
+var dbQuery = function(baseID, query, resume) {
+  let conString = getConStr(baseID);
   // Query Helper -- https://github.com/brianc/node-postgres/issues/382
   pg.connect(conString, function (err, client, done) {
     // If there is an error, client is null and done is a noop
@@ -114,15 +126,14 @@ var dbQuery = function(query, resume) {
   });
 };
 
-var getItem = function (id, resume) {
+var getItem = function (baseID, id, resume) {
   // TODO Support compound ids like 12345 43523 93845
   // Get an item from the cache, or from the db and then cache it.
-  let codeID = id.split(" ");
-  // cache.get(codeID, (err, val) => {
+  // cache.get(id, (err, val) => {
   //   if (val) {
   //     resume(null, JSON.parse(val));
   //   } else {
-      dbQuery("SELECT * FROM pieces WHERE id = " + codeID, function(err, result) {
+      dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + id, (err, result) => {
         // Here we get the language associated with the id. The code is gotten by
         // the view after it is loaded.
         let val;
@@ -135,7 +146,7 @@ var getItem = function (id, resume) {
         // cache.set(id, JSON.stringify(val));
         resume(err, val);
       });
-      dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
+      dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
   //   }
   // });
 };
@@ -205,10 +216,15 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  let key = req.query.id;
-  var ids = key.split(" ");
-  var id = ids[0];  // First id is the item id.
-  getItem(id, function(err, row) {
+  var ids = decodeID(req.query.id);
+  var baseID = ids[0];
+  var codeID = ids[1];
+  var dataID = ids[2];
+  if (!/[a-zA-Z]/.test(req.query.id)) {
+    res.redirect("/form?id=" + encodeID(baseID, codeID, dataID));
+    return;
+  }
+  getItem(baseID, codeID, function(err, row) {
     var lang = row.language;
     getCompilerVersion(lang, (version) => {
       res.render('form.html', {
@@ -217,8 +233,8 @@ app.get('/form', function(req, res) {
         vocabulary: lang,
         target: 'SVG',
         login: 'Login',
-        item: ids[0],
-        data: ids[1] ? ids[1] : undefined,
+        item: req.query.id,
+        data: undefined, //dataID ? dataID : undefined,
         view: "form",
         version: version,
       }, function (error, html) {
@@ -235,18 +251,23 @@ app.get('/form', function(req, res) {
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
   console.log("GET /data id=" + JSON.stringify(req.query.id));
-  let ids = req.query.id.split(" ");
-  let codeId = ids[0];  // First id is the item id.
-  let dataId = ids[1];
-  getItem(codeId, function(err, item) {
+  let ids = decodeID(req.query.id);
+  let baseID = ids[0];
+  let codeID = ids[1];
+  let dataID = ids[2];
+  if (!/[a-zA-Z]/.test(req.query.id)) {
+    res.redirect("/data?id=" + encodeID(baseID, codeID, dataID));
+    return;
+  }
+  getItem(baseID, codeID, function(err, item) {
     if (err) {
       res.status(400).send(err);
     } else {
-      if (dataId) {
+      if (dataID) {
         // We have data so recompile with that data.
         let language = item.language;
         let ast = item.ast;
-        getItem(dataId, (err, item) => {
+        getItem(baseID, dataID, (err, item) => {
           let data = JSON.parse(item.obj);
           comp(language, ast, data, (err, obj) => {
             res.json(obj);
@@ -259,15 +280,47 @@ app.get('/data', function(req, res) {
   });
 });
 
+
+let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
+function decodeID(id) {
+  // Return the three parts of an ID. Takes bare and hashed IDs.
+  let ids;
+  if (+id || id.split(" ").length > 1) {
+    let a = id.split(" ");
+    if (a.length === 1) {
+      ids = [0, a[0], 0];
+    } else if (a.length === 2) {
+      ids = [0, a[0], a[1]];
+    } else if (a.length === 3) {
+      ids = [a[0], a[1], a[2]];
+    } else {
+      console.log("ERROR bad id: " + id);
+      ids = [0, 0, 0];
+    }
+  } else {
+    ids = hashids.decode(id);
+  }
+  return ids;
+}
+
+function encodeID(baseID, codeID, dataID) {
+  baseID = +baseID ? baseID : 0;
+  codeID = +codeID ? codeID : 0;
+  dataID = +dataID ? dataID : 0;
+  let hashid = hashids.encode([baseID, codeID, dataID]);
+  return hashid;
+}
+
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   console.log("GET /code id=" + JSON.stringify(req.query.id));
-  var ids = req.query.id.split(" ");
-  var codeId = ids[0];
-  getItem(codeId, (err, row) => {
+  var ids = decodeID(req.query.id); //req.query.id.split(" ");
+  var baseID = ids[0];
+  var codeID = ids[1];
+  getItem(baseID, codeID, (err, row) => {
     // No data provided, so obj code won't change.
     res.json({
-      id: codeId,
+      id: codeID,
       src: row.src,
     });
   });
@@ -374,15 +427,15 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
     " VALUES ('" + user + "', '" + parent + "', '" + views +
     " ', '" + forks + "', now(), '" + src + "', '" + obj +
     " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
-  dbQuery(queryStr, function(err, result) {
+  dbQuery(0, queryStr, function(err, result) {
     if (err) {
       console.log("postItem() ERROR: " + queryStr);
       resume(err);
     } else {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
-      dbQuery(queryStr, function (err, result) {
+      dbQuery(0, queryStr, function (err, result) {
         resume(err, result);
-        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
+        dbQuery(0, "UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
       });
     }
   });
@@ -402,7 +455,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
     "ast='" + ast + "', " +
     "obj='" + obj + "' " +
     "WHERE id='" + id + "'";
-  dbQuery(query, function (err) {
+  dbQuery(0, query, function (err) {
     resume(err, []);
   });
 };
@@ -545,7 +598,7 @@ app.put('/compile', function (req, res) {
     // Otherwise look for an item with matching source.
     q = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
   }
-  dbQuery(q, function(err, result) {
+  dbQuery(0, q, function(err, result) {
     // See if there is already an item with the same source for the same
     // language. If so, pass it on.
     var obj;
@@ -555,7 +608,7 @@ app.put('/compile', function (req, res) {
       let rows = result.rows;
       if (dataId) {
         // We have data so recompile with that data.
-        dbQuery("SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
+        dbQuery(0, "SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
           let data = JSON.parse(result.rows[0].obj)
           compile(id, user, parent, language, src, ast, data, rows, res);
         });
@@ -585,7 +638,7 @@ app.put('/code', (req, response) => {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
-  dbQuery(query, function(err, result) {
+  dbQuery(0, query, function(err, result) {
     // See if there is already an item with the same source for the same language. If so, pass it on.
     var row = result.rows[0];
     var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
@@ -637,7 +690,7 @@ app.get('/items', function(req, res) {
   var queryStr =
     "SELECT * FROM pieces WHERE pieces.id" +
     " IN ("+list+") ORDER BY pieces.id DESC";
-  dbQuery(queryStr, function (err, result) {
+  dbQuery(0, queryStr, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
       rows = [{}];
@@ -669,6 +722,13 @@ function num2dot(num) {
   return d;
 }
 
+// app.get("/:lang/:path", function (req, res) {
+//   var language = req.params.lang;
+//   var path = req.params.path;
+//   console.log("GET /:lang/:path path=" + path);
+//   retrieve(language, path, res);
+// });
+
 app.get("/:lang/*", function (req, res) {
   var lang = req.params.lang;
   let url = req.url;
@@ -676,7 +736,7 @@ app.get("/:lang/*", function (req, res) {
   retrieve(lang, path, res);
 });
 
-// END REUSE
+// END REUSE ORIGINAL
 
 function getCompilerHost(language) {
   if (port === 3002) {
@@ -694,7 +754,7 @@ function getCompilerPort(language) {
   }
 }
 
-dbQuery("SELECT NOW() as when", function(err, result) {
+dbQuery(0, "SELECT NOW() as when", function(err, result) {
   console.log(result);
 });
 
