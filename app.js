@@ -127,28 +127,35 @@ var dbQuery = function(baseID, query, resume) {
 };
 
 var getItem = function (baseID, id, resume) {
-  // TODO Support compound ids like 12345 43523 93845
-  // Get an item from the cache, or from the db and then cache it.
-  // cache.get(id, (err, val) => {
-  //   if (val) {
-  //     resume(null, JSON.parse(val));
-  //   } else {
-      dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + id, (err, result) => {
-        // Here we get the language associated with the id. The code is gotten by
-        // the view after it is loaded.
-        let val;
-        if (!result || result.rows.length === 0) {
-          val = {};
-        } else {
-          //assert(result.rows.length === 1);
-          val = result.rows[0];
-        }
-        // cache.set(id, JSON.stringify(val));
-        resume(err, val);
-      });
-      dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
-  //   }
-  // });
+  dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + id, (err, result) => {
+    // Here we get the language associated with the id. The code is gotten by
+    // the view after it is loaded.
+    let val;
+    if (!result || result.rows.length === 0) {
+      val = {};
+    } else {
+      //assert(result.rows.length === 1);
+      val = result.rows[0];
+    }
+    resume(err, val);
+  });
+  dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
+};
+
+const getCache = function (id, resume) {
+  if (window.cache) {
+    cache.get(id, (err, val) => {
+      resume(null, parseJSON(val));
+    });
+  } else {
+    resume(null, null);
+  }
+};
+
+const setCache = function (id, val) {
+  if (window.cache) {
+    cache.set(id, JSON.stringify(val));
+  }
 };
 
 function parseJSON(str) {
@@ -216,10 +223,11 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  var ids = decodeID(req.query.id);
-  var baseID = ids[0];
-  var codeID = ids[1];
-  var dataID = ids[2];
+  console.log("GET /form id=" + JSON.stringify(req.query.id));
+  let ids = decodeID(req.query.id);
+  let baseID = ids[0];
+  let codeID = ids[1];
+  let dataID = ids[2];
   if (!/[a-zA-Z]/.test(req.query.id)) {
     res.redirect("/form?id=" + encodeID(baseID, codeID, dataID));
     return;
@@ -231,10 +239,8 @@ app.get('/form', function(req, res) {
         title: 'Graffiti Code',
         language: lang,
         vocabulary: lang,
-        target: 'SVG',
-        login: 'Login',
         item: req.query.id,
-        data: undefined, //dataID ? dataID : undefined,
+        data: undefined,
         view: "form",
         version: version,
       }, function (error, html) {
@@ -255,31 +261,39 @@ app.get('/data', function(req, res) {
   let baseID = ids[0];
   let codeID = ids[1];
   let dataID = ids[2];
+  let hashID = encodeID(baseID, codeID, dataID);
   if (!/[a-zA-Z]/.test(req.query.id)) {
-    res.redirect("/data?id=" + encodeID(baseID, codeID, dataID));
+    res.redirect("/data?id=" + hashID);
     return;
   }
-  getItem(baseID, codeID, function(err, item) {
-    if (err) {
-      res.status(400).send(err);
+  getCache(hashID, (err, val) => {
+    if (val) {
+      res.json(val);
     } else {
-      if (dataID) {
-        // We have data so recompile with that data.
-        let language = item.language;
-        let ast = item.ast;
-        getItem(baseID, dataID, (err, item) => {
-          let data = JSON.parse(item.obj);
-          comp(language, ast, data, (err, obj) => {
-            res.json(obj);
-          });
-        });
-      } else {
-        res.json(JSON.parse(item.obj));
-      }
+      getItem(baseID, codeID, function(err, item) {
+        if (err) {
+          res.status(400).send(err);
+        } else {
+          if (dataID) {
+            // We have data so recompile with that data.
+            let language = item.language;
+            let ast = item.ast;
+            getItem(baseID, dataID, (err, item) => {
+              let data = JSON.parse(item.obj);
+              comp(language, ast, data, (err, obj) => {
+                res.json(obj);
+                setCache(hashID, obj);
+              });
+            });
+          } else {
+            res.json(JSON.parse(item.obj));
+            setCache(hashID, item.obj);
+          }
+        }
+      });
     }
   });
 });
-
 
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
