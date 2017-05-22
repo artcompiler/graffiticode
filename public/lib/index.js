@@ -19835,18 +19835,19 @@ function decodeID(id) {
   } else {
     ids = hashids.decode(id);
   }
-  console.log("decodeID() ids=" + ids);
   return ids;
 }
 function encodeID(baseID, codeID, dataID) {
-  console.log("encodeID() baseID=" + baseID + " codeID=" + codeID + " dataID=" + dataID);
   baseID = +baseID ? baseID : 0;
   codeID = +codeID ? codeID : 0;
   dataID = +dataID ? dataID : 0;
-  console.log("encodeID() baseID=" + baseID + " codeID=" + codeID + " dataID=" + dataID);
-  var hashid = hashids.encode([baseID, codeID, dataID]);
-  console.log("encodeID() hashid=" + hashid);
-  return hashid;
+  if (gcexports.view === "form") {
+    var hashid = hashids.encode([baseID, codeID, dataID]);
+    return hashid;
+  } else {
+    // If not "form" view, then return raw id.
+    return codeID + "+" + dataID;
+  }
 }
 var GraffContent = React.createClass({
   displayName: "GraffContent",
