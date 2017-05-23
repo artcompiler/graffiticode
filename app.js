@@ -915,10 +915,6 @@ app.get('/code/:id', (req, res) => {
   });
 });
 
-app.get("/index", function (req, res) {
-  res.sendFile("public/index.html");
-});
-
 // Get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
