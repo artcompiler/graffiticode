@@ -86,15 +86,152 @@ app.get("/", (req, res) => {
   request("https://www.graffiticode.com/form?id=z3iWYlaTO").pipe(res);
 });
 
-app.get('/item', function(req, res) {
-  let protocol;
-  if (req.headers.host.match(/^localhost/) === null) {
-    protocol = "https://";
-  } else {
-    protocol = "http://";
+// get list of piece ids
+app.get('/pieces/:lang', function (req, res) {
+  var lang = req.params.lang;
+  var search = req.query.src;
+  var label = req.query.label === undefined ? "show" : req.query.label;
+  var queryString, likeStr = "";
+  if (search) {
+    var ss = search.split(",");
+    ss.forEach(function (s) {
+      s = cleanAndTrimSrc(s);
+      if (likeStr) {
+        likeStr += " AND ";
+      } else {
+        likeStr += "(";
+      }
+      likeStr += "src like '%" + s + "%'";
+    });
+    if (likeStr) {
+      likeStr += ") AND ";
+    }
   }
-  let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
-  res.redirect(url);
+  queryString = "SELECT id FROM pieces WHERE language='" + lang +
+    "' AND " + likeStr +
+    "label = '" + label + "' ORDER BY id DESC";
+  dbQuery(0, queryString, function (err, result) {
+    var rows;
+    if (!result || result.rows.length === 0) {
+      console.log("no rows");
+      var insertStr =
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+      dbQuery(0, insertStr, function(err, result) {
+        if (err) {
+          res.status(400).send(err);
+        } else {
+          if (dataID) {
+            // We have data so recompile with that data.
+            let language = item.language;
+            let ast = item.ast;
+            getItem(baseID, dataID, (err, item) => {
+              let data = JSON.parse(item.obj);
+              comp(language, ast, data, (err, obj) => {
+                res.json(obj);
+                setCache(hashID, obj);
+              });
+            });
+          } else {
+            res.json(JSON.parse(item.obj));
+            setCache(hashID, item.obj);
+          }
+        }
+        dbQuery(0, queryString, function (err, result) {
+          res.send(result.rows);
+        });
+      });
+    }
+  });
+});
+
+app.get('/items/src', function(req, res) {
+  var data = "";
+  req.on("data", function (chunk) {
+    data += chunk;
+  });
+  req.on('end', function () {
+    var list = JSON.parse(data);
+    var queryStr =
+      "SELECT id, src FROM pieces WHERE id" +
+      " IN ("+list+") ORDER BY id DESC";
+    dbQuery(0, queryStr, function (err, result) {
+      var rows;
+      if (!result || result.rows.length === 0) {
+        rows = [{}];
+      } else {
+        rows = result.rows;
+      }
+      res.send(rows);
+    });
+  });
+  req.on('error', function(e) {
+    console.log(e);
+    res.status(400).send(e);
+  });
+});
+
+app.get('/item', function(req, res) {
+  console.log("GET /item id=" + req.query.id);
+  var ids = decodeID(req.query.id);
+  var baseID = ids[0];
+  var codeID = ids[1];
+  var dataID = ids[2];
+  dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + codeID, function(err, result) {
+    var rows;
+    if (!result || result.rows.length===0) {
+      rows = [{}];
+    } else {
+      var lang = result.rows[0].language;
+      getCompilerVersion(lang, (version) => {
+        res.render('views.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          vocabulary: lang,
+          target: 'SVG',
+          login: 'Login',
+          item: codeID,
+          data: dataID ? dataID : undefined,
+          view: "item",
+          version: version,
+        }, function (error, html) {
+          if (error) {
+            res.status(400).send(error);
+          } else {
+            res.send(html);
+          }
+        });
+      });
+    }
+    dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + codeID, function () {
+    });
+  });
+});
+
+// Get a label
+app.get('/label', function (req, res) {
+  let ids = decodeID(req.body.id);
+  var baseID = ids[0];
+  let itemID = ids[1];
+  var label = "";
+  dbQuery(baseID, "SELECT label FROM pieces WHERE id = '" + itemID + "'",  function (err, result) {
+    if (result || result.rows.length === 1) {
+      label = result.rows[0].label;
+    }
+    res.send(label)
+  });
+});
+
+// Update a label
+app.put('/label', function (req, res) {
+  let ids = decodeID(req.body.id);
+  var baseID = ids[0];
+  let itemID = ids[1];
+  var label = req.body.label;
+  dbQuery(baseID, "UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", ()=>{});
+  res.send(200)
 });
 
 // BEGIN REUSE ORIGINAL
@@ -166,6 +303,7 @@ function parseJSON(str) {
     console.log(e.stack);
     return null;
   }
+  return ids;
 }
 
 // lang?id=106
@@ -223,7 +361,7 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  console.log("GET /form id=" + JSON.stringify(req.query.id));
+  console.log("GET /form id=" + req.query.id);
   let ids = decodeID(req.query.id);
   let baseID = ids[0];
   let codeID = ids[1];
@@ -256,7 +394,7 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
-  console.log("GET /data id=" + JSON.stringify(req.query.id));
+  console.log("GET /data id=" + req.query.id);
   let ids = decodeID(req.query.id);
   let baseID = ids[0];
   let codeID = ids[1];
@@ -295,6 +433,7 @@ app.get('/data', function(req, res) {
   });
 });
 
+
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
   // Return the three parts of an ID. Takes bare and hashed IDs.
@@ -327,7 +466,7 @@ function encodeID(baseID, codeID, dataID) {
 
 app.get('/code', (req, res) => {
   // Get the source code for an item.
-  console.log("GET /code id=" + JSON.stringify(req.query.id));
+  console.log("GET /code id=" + req.query.id);
   var ids = decodeID(req.query.id); //req.query.id.split(" ");
   var baseID = ids[0];
   var codeID = ids[1];
@@ -768,6 +907,64 @@ function getCompilerPort(language) {
   }
 }
 
+// Get an item with :id
+app.get('/code/:id', (req, res) => {
+  console.log("DEPRECATED GET /code/:id id=" + req.params.id);
+  var ids = decodeID(req.params.id);
+  var baseID = ids[0];
+  var codeID = ids[1];
+  var dataID = ids[2];
+  getItem(baseID, codeID, (err, row) => {
+    if (dataID) {
+      // We have data so recompile with that data.
+      var src = row.src;
+      var ast = row.ast;
+      var parent = row.parent_id;
+      var user = row.user_id;
+      var language = row.language;
+      getItem(baseID, dataID, (err, row) => {
+        let data = JSON.parse(row.obj);
+        compile(codeID, user, parent, language, src, ast, data, [row], res);
+      });
+    } else {
+      // No data provided.
+      res.send(row);
+    }
+  });
+});
+
+app.get("/index", function (req, res) {
+  res.sendFile("public/index.html");
+});
+
+// Get the object code for piece with :id
+app.get('/graffiti/:id', function (req, res) {
+  var id = req.params.id;
+  dbQuery(0, "SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
+    var ret;
+    if (!result || result.rows.length === 0) {
+      ret = "";
+    } else {
+      ret = result.rows[0].img;
+      if (!ret) {
+        // For backward compatibility
+        ret = result.rows[0].obj;
+      }
+    }
+    res.send(ret);
+    dbQuery(0, "UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+    });
+  });
+});
+
+function getCompilerPort(language) {
+  if (port === 3002) {
+    return "5" + language.substring(1);  // e.g. L103 -> 5103
+  } else {
+    return "80";
+  }
+}
+
 dbQuery(0, "SELECT NOW() as when", function(err, result) {
   console.log(result);
 });
@@ -790,3 +987,4 @@ if (!module.parent) {
     console.log("Listening on " + port);
   });
 }
+

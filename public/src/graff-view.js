@@ -40,30 +40,32 @@ function decodeID(id) {
   } else {
     ids = hashids.decode(id);
   }
-  console.log("decodeID() ids=" + ids);
   return ids;
 }
 function encodeID(baseID, codeID, dataID) {
-  console.log("encodeID() baseID=" + baseID + " codeID=" + codeID + " dataID=" + dataID);
   baseID = +baseID ? baseID : 0;
   codeID = +codeID ? codeID : 0;
   dataID = +dataID ? dataID : 0;
-  console.log("encodeID() baseID=" + baseID + " codeID=" + codeID + " dataID=" + dataID);
-  let hashid = hashids.encode([baseID, codeID, dataID]);
-  console.log("encodeID() hashid=" + hashid);
-  return hashid;
+  if (gcexports.view === "form") {
+    let hashid = hashids.encode([baseID, codeID, dataID]);
+    return hashid;
+  } else {
+    // If not "form" view, then return raw id.
+    return codeID + "+" + dataID;
+  }
 }
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
   compileCode: function(codeID, dataID) {
+    let baseID;
     if (/[a-zA-Z]/.test(codeID)) {
       // We have a hashid, so decode it.
       let ids = decodeID(codeID);
+      baseID = ids[0];
       codeID = ids[1];
       dataID = dataID ? dataID : ids[2];
     }
-    console.log("compileCode() codeID=" + codeID + " dataID=" + dataID);
     let gcexports = window.gcexports;
     let self = this;
     if (!this.state) {
@@ -77,18 +79,19 @@ var GraffContent = React.createClass({
         // If there is a dataId, include it when getting the code.
         id += "+" + dataID;
       }
-      d3.json(location.origin + "/data?id=" + id, (err, obj) => {
+      let hashID = encodeID(baseID, codeID, dataID);
+      d3.json(location.origin + "/data?id=" + hashID, (err, obj) => {
         if (dataID) {
-          d3.json(location.origin + "/data?id=" + dataID, (err, data) => {
+          d3.json(location.origin + "/data?id=" + encodeID(baseID, dataID), (err, data) => {
             dispatcher.dispatch({
-              id: id,
+              id: hashID,
               obj: obj,
               data: data,
             });
           });
         } else {
           dispatcher.dispatch({
-            id: id,
+            id: hashID,
             obj: obj,
             data: {}, // Clear state
           });

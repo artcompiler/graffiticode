@@ -1662,7 +1662,9 @@ window.gcexports.parser = (function () {
     var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
     var src = window.gcexports.editor.getValue();
-    console.log("compileCode() codeID=" + window.gcexports.id + " dataID=" + window.gcexports.data);
+    // HACK need general support for unicode.
+    src = src.replace(/[\u2212]/g, "-");
+    ast = ast.replace(/[\u2212]/g, "-");
     $.ajax({
       type: "PUT",
       url: "/compile",
