@@ -889,24 +889,6 @@ app.get("/:lang/*", function (req, res) {
   retrieve(lang, path, res);
 });
 
-// END REUSE ORIGINAL
-
-function getCompilerHost(language) {
-  if (port === 3002) {
-    return "localhost";
-  } else {
-    return language + ".artcompiler.com";
-  }
-}
-
-function getCompilerPort(language) {
-  if (port === 3002) {
-    return "5" + language.substring(1);  // e.g. L103 -> 5103
-  } else {
-    return "80";
-  }
-}
-
 // Get an item with :id
 app.get('/code/:id', (req, res) => {
   console.log("DEPRECATED GET /code/:id id=" + req.params.id);
@@ -956,6 +938,14 @@ app.get('/graffiti/:id', function (req, res) {
     });
   });
 });
+
+function getCompilerHost(language) {
+  if (port === 3002) {
+    return "localhost";
+  } else {
+    return language + ".artcompiler.com";
+  }
+}
 
 function getCompilerPort(language) {
   if (port === 3002) {
