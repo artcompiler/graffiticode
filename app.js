@@ -175,39 +175,51 @@ app.get('/items/src', function(req, res) {
 
 app.get('/item', function(req, res) {
   console.log("GET /item id=" + req.query.id);
-  var ids = decodeID(req.query.id);
-  var baseID = ids[0];
-  var codeID = ids[1];
-  var dataID = ids[2];
-  dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + codeID, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
-    } else {
-      var lang = result.rows[0].language;
-      getCompilerVersion(lang, (version) => {
-        res.render('views.html', {
-          title: 'Graffiti Code',
-          language: lang,
-          vocabulary: lang,
-          target: 'SVG',
-          login: 'Login',
-          item: codeID,
-          data: dataID ? dataID : undefined,
-          view: "item",
-          version: version,
-        }, function (error, html) {
-          if (error) {
-            res.status(400).send(error);
-          } else {
-            res.send(html);
-          }
+  const hasEditingRights = false;   // Compute based on authorization.
+  if (hasEditingRights) {
+    var ids = decodeID(req.query.id);
+    var baseID = ids[0];
+    var codeID = ids[1];
+    var dataID = ids[2];
+    dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + codeID, function(err, result) {
+      var rows;
+      if (!result || result.rows.length===0) {
+        rows = [{}];
+      } else {
+        var lang = result.rows[0].language;
+        getCompilerVersion(lang, (version) => {
+          res.render('views.html', {
+            title: 'Graffiti Code',
+            language: lang,
+            vocabulary: lang,
+            target: 'SVG',
+            login: 'Login',
+            item: codeID,
+            data: dataID ? dataID : undefined,
+            view: "item",
+            version: version,
+          }, function (error, html) {
+            if (error) {
+              res.status(400).send(error);
+            } else {
+              res.send(html);
+            }
+          });
         });
-      });
-    }
-    dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + codeID, function () {
+      }
+      dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + codeID, () => {});
     });
-  });
+  } else {
+    // Redirect to form view.
+    let protocol;
+    if (req.headers.host.match(/^localhost/) === null) {
+      protocol = "https://";
+    } else {
+      protocol = "http://";
+    }
+    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
+    res.redirect(url);
+  }
 });
 
 // Get a label
