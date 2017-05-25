@@ -43,6 +43,8 @@ function getConStr(id) {
 
 var env = process.env.NODE_ENV || 'development';
 
+let protocol = https; // Default. Set to http if localhost.
+
 // http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
@@ -59,6 +61,7 @@ app.all('*', function (req, res, next) {
       next();
     }
   } else {
+    protocol = http;
     next();
   }
 });
@@ -483,7 +486,7 @@ function retrieve(language, path, response) {
     port: getCompilerPort(language),
     path: "/" + path,
   };
-  var req = http.get(options, function(res) {
+  var req = protocol.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
     }).on("end", function () {
@@ -503,7 +506,7 @@ function getCompilerVersion(language, resume) {
       port: getCompilerPort(language),
       path: "/version",
     };
-    var req = http.get(options, function(res) {
+    var req = protocol.get(options, function(res) {
       res.on("data", function (chunk) {
         data.push(chunk);
       }).on("end", function () {
@@ -523,7 +526,7 @@ function get(language, path, resume) {
     port: getCompilerPort(language),
     path: "/" + path,
   };
-  var req = http.get(options, function(res) {
+  var req = protocol.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
     }).on("end", function () {
@@ -629,7 +632,7 @@ function comp(language, code, data, resume) {
       'Content-Length': encodedData.length
     },
   };
-  var req = http.request(options, function(res) {
+  var req = protocol.request(options, function(res) {
     var data = "";
     res.on('data', function (chunk) {
       data += chunk;
@@ -668,7 +671,7 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
       'Content-Length': encodedData.length
     },
   };
-  var req = http.request(options, function(res) {
+  var req = protocol.request(options, function(res) {
     var obj = "";
     res.on('data', function (chunk) {
       obj += chunk;
