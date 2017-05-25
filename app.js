@@ -91,11 +91,6 @@ app.engine('html', function (templateFile, options, callback) {
 
 // Routes
 
-// letsencript acme challenge
-app.get("/.well-known/acme-challenge/IxLvA8Qj9Ce6jHcPuYFbRvwMraVZR2h-g9O1kFko4QY", (req, res) => {
-  res.send("IxLvA8Qj9Ce6jHcPuYFbRvwMraVZR2h-g9O1kFko4QY.Fzpon67yOJjoArf9Yosy2tR5vF2zLd5fJ3tSglCuLoI");
-});
-
 app.get('/', function(req, res) {
   res.redirect("/index");
 });
@@ -903,7 +898,7 @@ function getCompilerPort(language) {
   if (port === 3000) {
     return "5" + language.substring(1);  // e.g. L103 -> 5103
   } else {
-    return "80";
+    return "443";
   }
 }
 
