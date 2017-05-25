@@ -43,7 +43,7 @@ function getConStr(id) {
 
 var env = process.env.NODE_ENV || 'development';
 
-let protocol = https; // Default. Set to http if localhost.
+let protocol = http; // Default. Set to http if localhost.
 
 // http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
@@ -898,7 +898,7 @@ function getCompilerPort(language) {
   if (port === 3000) {
     return "5" + language.substring(1);  // e.g. L103 -> 5103
   } else {
-    return "443";
+    return "80";
   }
 }
 
