@@ -36,10 +36,7 @@ let conStrs = [
 ];
 
 function getConStr(id) {
-  if (conStrs[+id]) {
-    return conStrs[+id];
-  }
-  return process.env.DATABASE_URL;
+  return conStrs[0];
 }
 
 var env = process.env.NODE_ENV || 'development';
@@ -120,7 +117,7 @@ app.get('/pieces/:lang', function (req, res) {
   queryString = "SELECT id FROM pieces WHERE language='" + lang +
     "' AND " + likeStr +
     "label = '" + label + "' ORDER BY id DESC";
-  dbQuery(0, queryString, function (err, result) {
+  dbQuery(queryString, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
       console.log("no rows");
@@ -129,12 +126,12 @@ app.get('/pieces/:lang', function (req, res) {
         " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
         " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
         " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-      dbQuery(0, insertStr, function(err, result) {
+      dbQuery(insertStr, function(err, result) {
         if (err) {
           res.status(400).send(err);
           return;
         }
-        dbQuery(0, queryString, function (err, result) {
+        dbQuery(queryString, function (err, result) {
           res.send(result.rows);
         });
       });
@@ -154,7 +151,7 @@ app.get('/items/src', function(req, res) {
     var queryStr =
       "SELECT id, src FROM pieces WHERE id" +
       " IN ("+list+") ORDER BY id DESC";
-    dbQuery(0, queryStr, function (err, result) {
+    dbQuery(queryStr, function (err, result) {
       var rows;
       if (!result || result.rows.length === 0) {
         rows = [{}];
@@ -174,23 +171,36 @@ app.get('/item', function(req, res) {
   console.log("GET /item id=" + req.query.id);
   var ids = decodeID(req.query.id);
   console.log("GET /item ids=" + ids);
-  var baseID = ids[0];
+  var langID = ids[0];
   var codeID = ids[1];
   var dataID = ids[2];
-  dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + codeID, function(err, result) {
-    var rows;
-    if (!result || result.rows.length===0) {
-      rows = [{}];
-    } else {
-      var lang = result.rows[0].language;
+  if (+langID !== 0) {
+    let lang = "L" + langID;
+    getCompilerVersion(lang, (version) => {
+      res.render('views.html', {
+        title: 'Graffiti Code',
+        language: lang,
+        item: encodeID([langID, codeID, dataID]),
+        view: "item",
+        version: version,
+      }, function (error, html) {
+        if (error) {
+          res.status(400).send(error);
+        } else {
+          res.send(html);
+        }
+      });
+    });
+  } else {
+    getItem(codeID, (err, row) => {
+      var rows;
+      var lang = row.language;
       getCompilerVersion(lang, (version) => {
+        langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
         res.render('views.html', {
           title: 'Graffiti Code',
           language: lang,
-          vocabulary: lang,
-          target: 'SVG',
-          login: 'Login',
-          item: encodeID([baseID, codeID, dataID]),
+          item: encodeID([langID, codeID, dataID]),
           view: "item",
           version: version,
         }, function (error, html) {
@@ -201,19 +211,17 @@ app.get('/item', function(req, res) {
           }
         });
       });
-    }
-    dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + codeID, function () {
     });
-  });
+  }
 });
 
 // Get a label
 app.get('/label', function (req, res) {
   let ids = decodeID(req.body.id);
-  var baseID = ids[0];
+  var langID = ids[0];
   let itemID = ids[1];
   var label = "";
-  dbQuery(baseID, "SELECT label FROM pieces WHERE id = '" + itemID + "'",  function (err, result) {
+  dbQuery("SELECT label FROM pieces WHERE id = '" + itemID + "'",  function (err, result) {
     if (result || result.rows.length === 1) {
       label = result.rows[0].label;
     }
@@ -224,17 +232,17 @@ app.get('/label', function (req, res) {
 // Update a label
 app.put('/label', function (req, res) {
   let ids = decodeID(req.body.id);
-  var baseID = ids[0];
+  var langID = ids[0];
   let itemID = ids[1];
   var label = req.body.label;
-  dbQuery(baseID, "UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", ()=>{});
+  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", ()=>{});
   res.send(200)
 });
 
 // BEGIN REUSE ORIGINAL
 
-var dbQuery = function(baseID, query, resume) {
-  let conString = getConStr(baseID);
+var dbQuery = function(query, resume) {
+  let conString = getConStr(0);
   // Query Helper -- https://github.com/brianc/node-postgres/issues/382
   pg.connect(conString, function (err, client, done) {
     // If there is an error, client is null and done is a noop
@@ -260,8 +268,8 @@ var dbQuery = function(baseID, query, resume) {
   });
 };
 
-var getItem = function (baseID, id, resume) {
-  dbQuery(baseID, "SELECT * FROM pieces WHERE id = " + id, (err, result) => {
+var getItem = function (itemID, resume) {
+  dbQuery("SELECT * FROM pieces WHERE id = " + itemID, (err, result) => {
     // Here we get the language associated with the id. The code is gotten by
     // the view after it is loaded.
     let val;
@@ -273,7 +281,7 @@ var getItem = function (baseID, id, resume) {
     }
     resume(err, val);
   });
-  dbQuery(baseID, "UPDATE pieces SET views = views + 1 WHERE id = " + id, ()=>{});
+  dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + itemID, ()=>{});
 };
 
 const getCache = function (id, resume) {
@@ -308,6 +316,7 @@ function parseJSON(str) {
 // lang?id=106&src=equivLiteral "1+2" "1+2" --> item id
 app.get('/lang', function(req, res) {
   var id = req.query.id;
+  console.log("GET /lang id=" + id);
   var src = req.query.src;
   var lang = "L" + id;
   var type = req.query.type;
@@ -359,23 +368,20 @@ app.get('/lang', function(req, res) {
 app.get('/form', function(req, res) {
   console.log("GET /form id=" + req.query.id);
   let ids = decodeID(req.query.id);
-  let baseID = ids[0] ? ids[0] : 0;
+  let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
   if (!/[a-zA-Z]/.test(req.query.id)) {
-    res.redirect("/form?id=" + encodeID([baseID, codeID, dataID]));
+    res.redirect("/form?id=" + encodeID([langID, codeID, dataID]));
     return;
   }
-  getItem(baseID, codeID, function(err, row) {
-    var lang = row.language;
+  if (langID !== 0) {
     getCompilerVersion(lang, (version) => {
-      res.render('form.html', {
+      res.render('views.html', {
         title: 'Graffiti Code',
-        language: lang,
-        vocabulary: lang,
-        item: req.query.id,
-        data: undefined,
-        view: "form",
+        language: "L" + langID,
+        item: encodeID([langID, codeID, dataID]),
+        view: "item",
         version: version,
       }, function (error, html) {
         if (error) {
@@ -385,17 +391,37 @@ app.get('/form', function(req, res) {
         }
       });
     });
-  });
+  } else {
+    getItem(codeID, function(err, row) {
+      var lang = row.language;
+      getCompilerVersion(lang, (version) => {
+        langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+        res.render('form.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          item: encodeID([langID, codeID, dataID]),
+          view: "form",
+          version: version,
+        }, function (error, html) {
+          if (error) {
+            res.status(400).send(error);
+          } else {
+            res.send(html);
+          }
+        });
+      });
+    });
+  }
 });
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
   console.log("GET /data id=" + req.query.id);
   let ids = decodeID(req.query.id);
-  let baseID = ids[0] ? ids[0] : 0;
+  let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
-  let hashID = encodeID([baseID, codeID, dataID]);
+  let hashID = encodeID([langID, codeID, dataID]);
   if (!/[a-zA-Z]/.test(req.query.id)) {
     res.redirect("/data?id=" + hashID);
     return;
@@ -404,7 +430,7 @@ app.get('/data', function(req, res) {
     if (val) {
       res.json(val);
     } else {
-      getItem(baseID, codeID, function(err, item) {
+      getItem(codeID, function(err, item) {
         if (err) {
           res.status(400).send(err);
         } else {
@@ -412,7 +438,7 @@ app.get('/data', function(req, res) {
             // We have data so recompile with that data.
             let language = item.language;
             let ast = item.ast;
-            getItem(baseID, dataID, (err, item) => {
+            getItem(dataID, (err, item) => {
               let data = JSON.parse(item.obj);
               comp(language, ast, data, (err, obj) => {
                 res.json(obj);
@@ -420,6 +446,7 @@ app.get('/data', function(req, res) {
               });
             });
           } else {
+            console.log("GET /data item=" + JSON.stringify(item));
             res.json(JSON.parse(item.obj));
             setCache(hashID, item.obj);
           }
@@ -462,9 +489,9 @@ app.get('/code', (req, res) => {
   // Get the source code for an item.
   console.log("GET /code id=" + req.query.id);
   var ids = decodeID(req.query.id);
-  var baseID = ids[0];
+  var langID = ids[0];
   var codeID = ids[1];
-  getItem(baseID, codeID, (err, row) => {
+  getItem(codeID, (err, row) => {
     // No data provided, so obj code won't change.
     res.json({
       id: codeID,
@@ -574,15 +601,15 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
     " VALUES ('" + user + "', '" + parent + "', '" + views +
     " ', '" + forks + "', now(), '" + src + "', '" + obj +
     " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
-  dbQuery(0, queryStr, function(err, result) {
+  dbQuery(queryStr, function(err, result) {
     if (err) {
       console.log("postItem() ERROR: " + queryStr);
       resume(err);
     } else {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
-      dbQuery(0, queryStr, function (err, result) {
+      dbQuery(queryStr, function (err, result) {
         resume(err, result);
-        dbQuery(0, "UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
+        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
       });
     }
   });
@@ -602,7 +629,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
     "ast='" + ast + "', " +
     "obj='" + obj + "' " +
     "WHERE id='" + id + "'";
-  dbQuery(0, query, function (err) {
+  dbQuery(query, function (err) {
     resume(err, []);
   });
 };
@@ -745,7 +772,7 @@ app.put('/compile', function (req, res) {
     // Otherwise look for an item with matching source.
     q = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + cleanAndTrimSrc(src) + "' ORDER BY id";
   }
-  dbQuery(0, q, function(err, result) {
+  dbQuery(q, function(err, result) {
     // See if there is already an item with the same source for the same
     // language. If so, pass it on.
     var obj;
@@ -755,7 +782,7 @@ app.put('/compile', function (req, res) {
       let rows = result.rows;
       if (dataId) {
         // We have data so recompile with that data.
-        dbQuery(0, "SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
+        dbQuery("SELECT * FROM pieces WHERE id = " + dataId, (err, result) => {
           let data = JSON.parse(result.rows[0].obj)
           compile(id, user, parent, language, src, ast, data, rows, res);
         });
@@ -785,7 +812,7 @@ app.put('/code', (req, response) => {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
-  dbQuery(0, query, function(err, result) {
+  dbQuery(query, function(err, result) {
     // See if there is already an item with the same source for the same language. If so, pass it on.
     var row = result.rows[0];
     var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
@@ -837,7 +864,7 @@ app.get('/items', function(req, res) {
   var queryStr =
     "SELECT * FROM pieces WHERE pieces.id" +
     " IN ("+list+") ORDER BY pieces.id DESC";
-  dbQuery(0, queryStr, function (err, result) {
+  dbQuery(queryStr, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
       rows = [{}];
@@ -905,10 +932,10 @@ function getCompilerPort(language) {
 app.get('/code/:id', (req, res) => {
   console.log("DEPRECATED GET /code/:id id=" + req.params.id);
   var ids = decodeID(req.params.id);
-  var baseID = ids[0];
+  var langID = ids[0];
   var codeID = ids[1];
   var dataID = ids[2];
-  getItem(baseID, codeID, (err, row) => {
+  getItem(codeID, (err, row) => {
     if (dataID) {
       // We have data so recompile with that data.
       var src = row.src;
@@ -916,7 +943,7 @@ app.get('/code/:id', (req, res) => {
       var parent = row.parent_id;
       var user = row.user_id;
       var language = row.language;
-      getItem(baseID, dataID, (err, row) => {
+      getItem(dataID, (err, row) => {
         let data = JSON.parse(row.obj);
         compile(codeID, user, parent, language, src, ast, data, [row], res);
       });
@@ -934,7 +961,7 @@ app.get("/index", function (req, res) {
 // Get the object code for piece with :id
 app.get('/graffiti/:id', function (req, res) {
   var id = req.params.id;
-  dbQuery(0, "SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
+  dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
     var ret;
     if (!result || result.rows.length === 0) {
       ret = "";
@@ -946,7 +973,7 @@ app.get('/graffiti/:id', function (req, res) {
       }
     }
     res.send(ret);
-    dbQuery(0, "UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
     });
   });
 });
@@ -961,7 +988,7 @@ app.get('/:lang', function (req, res) {
   }
 });
 
-dbQuery(0, "SELECT NOW() as when", function(err, result) {
+dbQuery("SELECT NOW() as when", function(err, result) {
   console.log(result);
 });
 

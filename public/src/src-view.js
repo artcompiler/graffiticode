@@ -39,9 +39,9 @@ var CodeMirrorEditor = React.createClass({
       lint: true,
     });
     let pieces = [];
-    let id = +window.gcexports.id;
+    let id = window.gcexports.id;
     if (id) {
-      $.get(location.origin + "/code?id=" + "0+" + id + "+0", function (data) {
+      $.get(location.origin + "/code?id=" + id, function (data) {
         updateSrc(data.id, data.src);
       });
     } else {

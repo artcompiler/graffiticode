@@ -1670,7 +1670,6 @@ window.gcexports.parser = (function () {
       url: "/compile",
       data: {
         "id": !postCode ? window.gcexports.id : 0,
-        "dataId": window.gcexports.data,
         "parent": postCode ? window.gcexports.id : 0,
         "ast": ast,
         "type": window.gcexports.lexiconType,
@@ -1702,36 +1701,18 @@ window.gcexports.parser = (function () {
         } else if (data.id) {
           // We have a good id, so use it.
           var codeData = data;
-          if (+window.gcexports.data) {
-            $.get(location.origin + "/data?id=" + "0+" + window.gcexports.data + "+0", function (data) {
-              window.gcexports.id = codeData.id;
-              window.gcexports.lastErrors = [];
-              window.gcexports.dataid = window.gcexports.data;
-              window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id + "+" + window.gcexports.data);
-              dispatcher.dispatch({
-                id: codeData.id,
-                src: src,
-                obj: obj,
-                ast: ast,
-                postCode: postCode,
-                errors: errors,
-                data: data,
-              });
-            });
-          } else {
-            window.gcexports.id = codeData.id;
-            window.gcexports.lastErrors = [];
-            window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id);
-            dispatcher.dispatch({
-              id: codeData.id,
-              src: src,
-              obj: obj,
-              ast: ast,
-              postCode: postCode,
-              errors: errors,
-              data: {}, // Clear state
-            });
-          }
+          window.gcexports.id = codeData.id;
+          window.gcexports.lastErrors = [];
+          window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id);
+          dispatcher.dispatch({
+            id: codeData.id,
+            src: src,
+            obj: obj,
+            ast: ast,
+            postCode: postCode,
+            errors: errors,
+            data: {}, // Clear state
+          });
         }
       },
       error: function(xhr, msg, err) {

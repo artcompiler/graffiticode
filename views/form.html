@@ -8,10 +8,10 @@
       window.gcexports = {
         language: "<%=language%>",
         id: "<%=item%>",
-        data: "<%=data%>",
         view: "<%=view%>",
         version: "<%=version%>",
       };
+      console.log("form.html gcexport=" + JSON.stringify(window.gcexports));
     </script>
     <style>
     .branding {
