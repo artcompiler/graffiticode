@@ -1703,7 +1703,7 @@ window.gcexports.parser = (function () {
           // We have a good id, so use it.
           var codeData = data;
           if (+window.gcexports.data) {
-            $.get(location.origin + "/data?id=" + window.gcexports.data, function (data) {
+            $.get(location.origin + "/data?id=" + "0+" + window.gcexports.data + "+0", function (data) {
               window.gcexports.id = codeData.id;
               window.gcexports.lastErrors = [];
               window.gcexports.dataid = window.gcexports.data;

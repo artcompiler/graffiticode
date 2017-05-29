@@ -24,6 +24,7 @@ var selfCleaningTimeout = {
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
   // Return the three parts of an ID. Takes bare and hashed IDs.
+  console.log("decodeID() id=" + id);
   let ids;
   if (+id || id.split(" ").length > 1) {
     let a = id.split(" ");
@@ -31,38 +32,40 @@ function decodeID(id) {
       ids = [0, a[0], 0];
     } else if (a.length === 2) {
       ids = [0, a[0], a[1]];
-    } else if (a.length === 3) {
-      ids = [a[0], a[1], a[2]];
     } else {
-      console.log("ERROR bad id: " + id);
-      ids = [0, 0, 0];
+      ids = a;
     }
   } else {
     ids = hashids.decode(id);
   }
+  console.log("decodeID() ids=" + ids);
   return ids;
 }
-function encodeID(baseID, codeID, dataID) {
-  baseID = +baseID ? baseID : 0;
-  codeID = +codeID ? codeID : 0;
-  dataID = +dataID ? dataID : 0;
+function encodeID(ids) {
+  let langID, codeID, dataID;
+  if (ids.length < 3) {
+    ids.unshift(0);  // langID
+  }
+  console.log("encodeID() ids=" + ids);
+  let id;
   if (gcexports.view === "form") {
-    let hashid = hashids.encode([baseID, codeID, dataID]);
-    return hashid;
+    id = hashids.encode(ids);
   } else {
     // If not "form" view, then return raw id.
-    return codeID + "+" + dataID;
+    id = ids.join("+");
   }
+  console.log("encodeID() id=" + id);
+  return id;
 }
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
   compileCode: function(codeID, dataID) {
-    let baseID;
+    let langID;
     if (/[a-zA-Z]/.test(codeID)) {
       // We have a hashid, so decode it.
       let ids = decodeID(codeID);
-      baseID = ids[0];
+      langID = ids[0];
       codeID = ids[1];
       dataID = dataID ? dataID : ids[2];
     }
@@ -72,17 +75,13 @@ var GraffContent = React.createClass({
       this.state = {};
     }
     this.state.recompileCode = false;
-    let pieces = [];
+    langID = langID ? langID : 0;
+    dataID = dataID ? dataID : 0;
     if (codeID) {
-      let id = "" + codeID;
-      if (dataID) {
-        // If there is a dataId, include it when getting the code.
-        id += "+" + dataID;
-      }
-      let hashID = encodeID(baseID, codeID, dataID);
+      let hashID = encodeID([langID, codeID, dataID]);
       d3.json(location.origin + "/data?id=" + hashID, (err, obj) => {
         if (dataID) {
-          d3.json(location.origin + "/data?id=" + encodeID(baseID, dataID), (err, data) => {
+          d3.json(location.origin + "/data?id=" + encodeID([langID, dataID, 0]), (err, data) => {
             dispatcher.dispatch({
               id: hashID,
               obj: obj,
@@ -161,11 +160,11 @@ var GraffContent = React.createClass({
             }
             gcexports.dataid = dataID;
             let id;
-            if (gcexports.view === "form") {
+            if (true || gcexports.view === "form") {
               // We have a hashid, so update it.
               let ids = decodeID(codeID);
               ids[2] = dataID;
-              id = encodeID(...ids);
+              id = encodeID(ids);
             } else {
               // Keep bare id.
               id = codeID + "+" + dataID;

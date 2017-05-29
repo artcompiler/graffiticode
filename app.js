@@ -25,13 +25,14 @@ var timeout = require('connect-timeout');
 var main = require('./main.js');
 var pg = require('pg');
 var Hashids = require("hashids");
-pg.defaults.ssl = true;
+
 
 // Configuration
 
+//pg.defaults.ssl = true;
 let conStrs = [
-//  process.env.DATABASE_URL_LOCAL,
-  process.env.DATABASE_URL,
+  process.env.DATABASE_URL_LOCAL,
+//  process.env.DATABASE_URL,
 ];
 
 function getConStr(id) {
@@ -172,6 +173,7 @@ app.get('/items/src', function(req, res) {
 app.get('/item', function(req, res) {
   console.log("GET /item id=" + req.query.id);
   var ids = decodeID(req.query.id);
+  console.log("GET /item ids=" + ids);
   var baseID = ids[0];
   var codeID = ids[1];
   var dataID = ids[2];
@@ -188,8 +190,7 @@ app.get('/item', function(req, res) {
           vocabulary: lang,
           target: 'SVG',
           login: 'Login',
-          item: codeID,
-          data: dataID ? dataID : undefined,
+          item: encodeID([baseID, codeID, dataID]),
           view: "item",
           version: version,
         }, function (error, html) {
@@ -356,13 +357,13 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  console.log("GET /form id=" + JSON.stringify(req.query.id));
+  console.log("GET /form id=" + req.query.id);
   let ids = decodeID(req.query.id);
-  let baseID = ids[0];
-  let codeID = ids[1];
-  let dataID = ids[2];
+  let baseID = ids[0] ? ids[0] : 0;
+  let codeID = ids[1] ? ids[1] : 0;
+  let dataID = ids[2] ? ids[2] : 0;
   if (!/[a-zA-Z]/.test(req.query.id)) {
-    res.redirect("/form?id=" + encodeID(baseID, codeID, dataID));
+    res.redirect("/form?id=" + encodeID([baseID, codeID, dataID]));
     return;
   }
   getItem(baseID, codeID, function(err, row) {
@@ -389,12 +390,12 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
-  console.log("GET /data id=" + JSON.stringify(req.query.id));
+  console.log("GET /data id=" + req.query.id);
   let ids = decodeID(req.query.id);
-  let baseID = ids[0];
-  let codeID = ids[1];
-  let dataID = ids[2];
-  let hashID = encodeID(baseID, codeID, dataID);
+  let baseID = ids[0] ? ids[0] : 0;
+  let codeID = ids[1] ? ids[1] : 0;
+  let dataID = ids[2] ? ids[2] : 0;
+  let hashID = encodeID([baseID, codeID, dataID]);
   if (!/[a-zA-Z]/.test(req.query.id)) {
     res.redirect("/data?id=" + hashID);
     return;
@@ -432,6 +433,7 @@ app.get('/data', function(req, res) {
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
   // Return the three parts of an ID. Takes bare and hashed IDs.
+  console.log("decodeID() id=" + id);
   let ids;
   if (+id || id.split(" ").length > 1) {
     let a = id.split(" ");
@@ -439,30 +441,27 @@ function decodeID(id) {
       ids = [0, a[0], 0];
     } else if (a.length === 2) {
       ids = [0, a[0], a[1]];
-    } else if (a.length === 3) {
-      ids = [a[0], a[1], a[2]];
     } else {
-      console.log("ERROR bad id: " + id);
-      ids = [0, 0, 0];
+      ids = a;
     }
   } else {
     ids = hashids.decode(id);
   }
+  console.log("decodeID() ids=" + ids);
   return ids;
 }
-
-function encodeID(baseID, codeID, dataID) {
-  baseID = +baseID ? baseID : 0;
-  codeID = +codeID ? codeID : 0;
-  dataID = +dataID ? dataID : 0;
-  let hashid = hashids.encode([baseID, codeID, dataID]);
-  return hashid;
+function encodeID(ids) {
+  let langID, codeID, dataID;
+  console.log("encodeID() ids=" + ids);
+  let id = hashids.encode(ids);
+  console.log("encodeID() id=" + id);
+  return id;
 }
 
 app.get('/code', (req, res) => {
   // Get the source code for an item.
-  console.log("GET /code id=" + JSON.stringify(req.query.id));
-  var ids = decodeID(req.query.id); //req.query.id.split(" ");
+  console.log("GET /code id=" + req.query.id);
+  var ids = decodeID(req.query.id);
   var baseID = ids[0];
   var codeID = ids[1];
   getItem(baseID, codeID, (err, row) => {
