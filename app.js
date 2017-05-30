@@ -29,10 +29,10 @@ var Hashids = require("hashids");
 
 // Configuration
 
-//pg.defaults.ssl = true;
+pg.defaults.ssl = true;
 let conStrs = [
-  process.env.DATABASE_URL_LOCAL,
-//  process.env.DATABASE_URL,
+//  process.env.DATABASE_URL_LOCAL,
+  process.env.DATABASE_URL,
 ];
 
 function getConStr(id) {
