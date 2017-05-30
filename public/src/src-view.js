@@ -42,7 +42,7 @@ var CodeMirrorEditor = React.createClass({
     let id = window.gcexports.id;
     if (id) {
       $.get(location.origin + "/code?id=" + id, function (data) {
-        updateSrc(data.id, data.src);
+        updateSrc(id, data.src);
       });
     } else {
       $.ajax({

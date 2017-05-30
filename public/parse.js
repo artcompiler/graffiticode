@@ -1699,13 +1699,16 @@ window.gcexports.parser = (function () {
           window.gcexports.lastErrors = window.gcexports.errors = errors;
           window.gcexports.editor.performLint();
         } else if (data.id) {
-          // We have a good id, so use it.
-          var codeData = data;
-          window.gcexports.id = codeData.id;
           window.gcexports.lastErrors = [];
-          window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id);
+          // We have a good id, so use it.
+          let codeID = "" + data.id;
+          let ids = gcexports.decodeID(gcexports.id);
+          ids[1] = codeID;
+          let itemID = gcexports.encodeID(ids);
+          gcexports.id = itemID;
+          window.history.pushState(itemID, window.gcexports.language, "/" + window.gcexports.view + "?id=" + itemID);
           dispatcher.dispatch({
-            id: codeData.id,
+            id: itemID,
             src: src,
             obj: obj,
             ast: ast,

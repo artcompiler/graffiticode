@@ -168,9 +168,8 @@ app.get('/items/src', function(req, res) {
 });
 
 app.get('/item', function(req, res) {
-  console.log("GET /item id=" + req.query.id);
+  console.log("GET /item?id=" + req.query.id);
   var ids = decodeID(req.query.id);
-  console.log("GET /item ids=" + ids);
   var langID = ids[0];
   var codeID = ids[1];
   var dataID = ids[2];
@@ -348,11 +347,7 @@ app.get('/lang', function(req, res) {
       res.render('views.html', {
         title: 'Graffiti Code',
         language: lang,
-        vocabulary: lang,
-        target: 'SVG',
-        login: 'Login',
         item: undefined,
-        data: undefined,
         version: version,
       }, function (error, html) {
         if (error) {
@@ -366,7 +361,7 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  console.log("GET /form id=" + req.query.id);
+  console.log("GET /form?id=" + req.query.id);
   let ids = decodeID(req.query.id);
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
@@ -376,12 +371,13 @@ app.get('/form', function(req, res) {
     return;
   }
   if (langID !== 0) {
+    let lang = "L" + langID;
     getCompilerVersion(lang, (version) => {
-      res.render('views.html', {
+      res.render('form.html', {
         title: 'Graffiti Code',
-        language: "L" + langID,
+        language: lang,
         item: encodeID([langID, codeID, dataID]),
-        view: "item",
+        view: "form",
         version: version,
       }, function (error, html) {
         if (error) {
@@ -416,7 +412,7 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
-  console.log("GET /data id=" + req.query.id);
+  console.log("GET /data?id=" + req.query.id);
   let ids = decodeID(req.query.id);
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
@@ -446,7 +442,6 @@ app.get('/data', function(req, res) {
               });
             });
           } else {
-            console.log("GET /data item=" + JSON.stringify(item));
             res.json(JSON.parse(item.obj));
             setCache(hashID, item.obj);
           }
@@ -459,8 +454,9 @@ app.get('/data', function(req, res) {
 
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
-  // Return the three parts of an ID. Takes bare and hashed IDs.
+  id = id.replace(/\+/g, " ");
   console.log("decodeID() id=" + id);
+  // Return the three parts of an ID. Takes bare and hashed IDs.
   let ids;
   if (+id || id.split(" ").length > 1) {
     let a = id.split(" ");
@@ -478,16 +474,18 @@ function decodeID(id) {
   return ids;
 }
 function encodeID(ids) {
-  let langID, codeID, dataID;
   console.log("encodeID() ids=" + ids);
+  let langID, codeID, dataID;
+  if (ids.length < 3) {
+    ids.unshift(0);  // langID
+  }
   let id = hashids.encode(ids);
   console.log("encodeID() id=" + id);
   return id;
 }
-
 app.get('/code', (req, res) => {
   // Get the source code for an item.
-  console.log("GET /code id=" + req.query.id);
+  console.log("GET /code?id=" + req.query.id);
   var ids = decodeID(req.query.id);
   var langID = ids[0];
   var codeID = ids[1];
@@ -595,7 +593,6 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
-  parent = typeof parent === "string" ? parent.split("+")[0] : 0;
   var queryStr =
     "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + user + "', '" + parent + "', '" + views +
@@ -673,18 +670,18 @@ function comp(language, code, data, resume) {
   });
 }
 
-function compile(id, user, parent, language, src, ast, data, rows, response) {
+function compile(id, user, parent, lang, src, ast, data, rows, response) {
   // Compile ast to obj.
   var path = "/compile";
   var encodedData = JSON.stringify({
     "description": "graffiticode",
-    "language": language,
+    "language": lang,
     "src": ast,
     "data": data,
   });
   var options = {
-    host: getCompilerHost(language),
-    port: getCompilerPort(language),
+    host: getCompilerHost(lang),
+    port: getCompilerPort(lang),
     path: path,
     method: 'GET',
     headers: {
@@ -704,12 +701,13 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
         var img = "";
         var label = "show";
         // New item.
-        postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
+        let ids = decodeID(parent);
+        postItem(lang, src, ast, obj, user, ids[1], img, label, function (err, data) {
           if (err) {
             response.status(400).send(err);
           } else {
             response.json({
-              id: data.rows[0].id,
+              id: data.rows[0].id,  // only return the codeID
               obj: parseJSON(obj),
             });
           }
@@ -721,7 +719,7 @@ function compile(id, user, parent, language, src, ast, data, rows, response) {
         parent = row.parent_id;
         var img = row.img;
         var label = row.label;
-        updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
+        updateItem(id, lang, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
             console.log(err);
           }
@@ -846,7 +844,8 @@ app.put('/code', (req, response) => {
       var label = req.body.label;
       var parent = 0;
       var img = "";
-      postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
+      let ids = decodeID(parent);
+      postItem(language, src, ast, obj, user, ids[0], img, label, function (err, data) {
         if (err) {
           response.status(400).send(err);
         } else {

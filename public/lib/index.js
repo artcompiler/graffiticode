@@ -19834,7 +19834,12 @@ function decodeID(id) {
   console.log("decodeID() ids=" + ids);
   return ids;
 }
-function encodeID(ids) {
+function encodeID(ids, force) {
+  try {
+    throw new Error();
+  } catch (x) {
+    console.log(x.stack);
+  }
   var langID = void 0,
       codeID = void 0,
       dataID = void 0;
@@ -19843,7 +19848,7 @@ function encodeID(ids) {
   }
   console.log("encodeID() ids=" + ids);
   var id = void 0;
-  if (gcexports.view === "form") {
+  if (force || gcexports.view === "form") {
     id = hashids.encode(ids);
   } else {
     // If not "form" view, then return raw id.
@@ -19852,6 +19857,9 @@ function encodeID(ids) {
   console.log("encodeID() id=" + id);
   return id;
 }
+window.gcexports.decodeID = decodeID;
+window.gcexports.encodeID = encodeID;
+
 var GraffContent = React.createClass({
   displayName: "GraffContent",
 
@@ -19860,38 +19868,37 @@ var GraffContent = React.createClass({
     var langID = void 0,
         codeID = void 0,
         dataID = void 0;
-    console.log("compilerCode() itemID=" + itemID);
-    if (/[a-zA-Z]/.test(itemID)) {
-      // We have a hashid, so decode it.
-      var ids = decodeID(itemID);
-      console.log("compilerCode() ids=" + ids);
-      langID = ids[0];
-      codeID = ids[1];
-      dataID = dataID ? dataID : ids[2];
-    }
-    var gcexports = window.gcexports;
+    //if (/[a-zA-Z]/.test(itemID)) {
+    // We have a hashid, so decode it.
+    var ids = decodeID(itemID);
+    console.log("compilerCode() ids=" + ids);
+    langID = ids[0];
+    codeID = ids[1];
+    dataID = dataID ? dataID : ids[2];
+    //}
     var self = this;
     if (!this.state) {
       this.state = {};
     }
     this.state.recompileCode = false;
-    langID = langID ? langID : 0;
-    dataID = dataID ? dataID : 0;
+    //langID = langID ? langID : 0;
+    //dataID = dataID ? dataID : 0;
     if (codeID) {
       (function () {
-        var hashID = encodeID([langID, codeID, dataID]);
-        d3.json(location.origin + "/data?id=" + hashID, function (err, obj) {
+        var itemID = encodeID([langID, codeID, dataID], true);
+        d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
           if (dataID) {
-            d3.json(location.origin + "/data?id=" + encodeID([langID, dataID, 0]), function (err, data) {
+            // TODO support languages as data sources.
+            d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), function (err, data) {
               dispatcher.dispatch({
-                id: hashID,
+                id: itemID,
                 obj: obj,
                 data: data
               });
             });
           } else {
             dispatcher.dispatch({
-              id: hashID,
+              id: itemID,
               obj: obj,
               data: {} });
           }
@@ -19954,15 +19961,14 @@ var GraffContent = React.createClass({
           if (itemID) {
             // Wait until we have an itemID to update URL.
             var dataID = "" + data.id;
-            if (gcexports.dataid !== dataID && self.state.recompileCode) {
-              self.compileCode(itemID);
-            }
-            gcexports.dataid = dataID;
-            var id = void 0;
-            // We have a hashid, so update it.
             var ids = decodeID(itemID);
+            var lastDataID = ids[2];
             ids[2] = dataID;
             itemID = encodeID(ids);
+            gcexports.id = itemID;
+            if (dataID !== lastDataID && self.state.recompileCode) {
+              self.compileCode(itemID);
+            }
             var history = {
               language: language,
               view: gcexports.view,
@@ -20339,7 +20345,7 @@ var CodeMirrorEditor = React.createClass({
     var id = window.gcexports.id;
     if (id) {
       $.get(location.origin + "/code?id=" + id, function (data) {
-        updateSrc(data.id, data.src);
+        updateSrc(id, data.src);
       });
     } else {
       $.ajax({
