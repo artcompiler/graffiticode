@@ -168,8 +168,8 @@ app.get('/items/src', function(req, res) {
 });
 
 app.get('/item', function(req, res) {
-  console.log("GET /item?id=" + req.query.id);
   var ids = decodeID(req.query.id);
+  console.log("GET /item?id=" + ids.join("+"));
   var langID = ids[0];
   var codeID = ids[1];
   var dataID = ids[2];
@@ -315,7 +315,7 @@ function parseJSON(str) {
 // lang?id=106&src=equivLiteral "1+2" "1+2" --> item id
 app.get('/lang', function(req, res) {
   var id = req.query.id;
-  console.log("GET /lang id=" + id);
+  console.log("GET /lang?id=" + id);
   var src = req.query.src;
   var lang = "L" + id;
   var type = req.query.type;
@@ -361,8 +361,8 @@ app.get('/lang', function(req, res) {
 });
 
 app.get('/form', function(req, res) {
-  console.log("GET /form?id=" + req.query.id);
   let ids = decodeID(req.query.id);
+  console.log("GET /form?id=" + ids.join("+"));
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
@@ -412,8 +412,8 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
-  console.log("GET /data?id=" + req.query.id);
   let ids = decodeID(req.query.id);
+  console.log("GET /data?id=" + ids.join("+"));
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
@@ -481,8 +481,8 @@ function encodeID(ids) {
 }
 app.get('/code', (req, res) => {
   // Get the source code for an item.
-  console.log("GET /code?id=" + req.query.id);
   var ids = decodeID(req.query.id);
+  console.log("GET /code?id=" + ids.join("+"));
   var langID = ids[0];
   var codeID = ids[1];
   getItem(codeID, (err, row) => {
