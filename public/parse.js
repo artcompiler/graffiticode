@@ -1670,7 +1670,6 @@ window.gcexports.parser = (function () {
       url: "/compile",
       data: {
         "id": !postCode ? window.gcexports.id : 0,
-        "dataId": window.gcexports.data,
         "parent": postCode ? window.gcexports.id : 0,
         "ast": ast,
         "type": window.gcexports.lexiconType,
@@ -1700,38 +1699,23 @@ window.gcexports.parser = (function () {
           window.gcexports.lastErrors = window.gcexports.errors = errors;
           window.gcexports.editor.performLint();
         } else if (data.id) {
+          window.gcexports.lastErrors = [];
           // We have a good id, so use it.
-          var codeData = data;
-          if (+window.gcexports.data) {
-            $.get(location.origin + "/data?id=" + window.gcexports.data, function (data) {
-              window.gcexports.id = codeData.id;
-              window.gcexports.lastErrors = [];
-              window.gcexports.dataid = window.gcexports.data;
-              window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id + "+" + window.gcexports.data);
-              dispatcher.dispatch({
-                id: codeData.id,
-                src: src,
-                obj: obj,
-                ast: ast,
-                postCode: postCode,
-                errors: errors,
-                data: data,
-              });
-            });
-          } else {
-            window.gcexports.id = codeData.id;
-            window.gcexports.lastErrors = [];
-            window.history.pushState(codeData.id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + codeData.id);
-            dispatcher.dispatch({
-              id: codeData.id,
-              src: src,
-              obj: obj,
-              ast: ast,
-              postCode: postCode,
-              errors: errors,
-              data: {}, // Clear state
-            });
-          }
+          let codeID = "" + data.id;
+          let ids = gcexports.decodeID(gcexports.id);
+          ids[1] = codeID;
+          let itemID = gcexports.encodeID(ids);
+          gcexports.id = itemID;
+          window.history.pushState(itemID, window.gcexports.language, "/" + window.gcexports.view + "?id=" + itemID);
+          dispatcher.dispatch({
+            id: itemID,
+            src: src,
+            obj: obj,
+            ast: ast,
+            postCode: postCode,
+            errors: errors,
+            data: {}, // Clear state
+          });
         }
       },
       error: function(xhr, msg, err) {

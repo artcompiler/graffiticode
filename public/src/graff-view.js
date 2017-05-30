@@ -24,74 +24,72 @@ var selfCleaningTimeout = {
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
   // Return the three parts of an ID. Takes bare and hashed IDs.
+  console.log("decodeID() id=" + id);
   let ids;
-  if (+id || id.split(" ").length > 1) {
-    let a = id.split(" ");
+  if (+id || id.split("+").length > 1) {
+    let a = id.split("+");
     if (a.length === 1) {
       ids = [0, a[0], 0];
     } else if (a.length === 2) {
       ids = [0, a[0], a[1]];
-    } else if (a.length === 3) {
-      ids = [a[0], a[1], a[2]];
     } else {
-      console.log("ERROR bad id: " + id);
-      ids = [0, 0, 0];
+      ids = a;
     }
   } else {
     ids = hashids.decode(id);
   }
+  console.log("decodeID() ids=" + ids);
   return ids;
 }
-function encodeID(baseID, codeID, dataID) {
-  baseID = +baseID ? baseID : 0;
-  codeID = +codeID ? codeID : 0;
-  dataID = +dataID ? dataID : 0;
-  if (gcexports.view === "form") {
-    let hashid = hashids.encode([baseID, codeID, dataID]);
-    return hashid;
+function encodeID(ids, force) {
+  let langID, codeID, dataID;
+  if (ids.length < 3) {
+    ids.unshift(0);  // langID
+  }
+  console.log("encodeID() ids=" + ids);
+  let id;
+  if (force || gcexports.view === "form") {
+    id = hashids.encode(ids);
   } else {
     // If not "form" view, then return raw id.
-    return codeID + "+" + dataID;
+    id = ids.join("+");
   }
+  console.log("encodeID() id=" + id);
+  return id;
 }
+window.gcexports.decodeID = decodeID;
+window.gcexports.encodeID = encodeID;
+
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
-  compileCode: function(codeID, dataID) {
-    let baseID;
-    if (/[a-zA-Z]/.test(codeID)) {
-      // We have a hashid, so decode it.
-      let ids = decodeID(codeID);
-      baseID = ids[0];
-      codeID = ids[1];
-      dataID = dataID ? dataID : ids[2];
-    }
-    let gcexports = window.gcexports;
+  compileCode: function(itemID) {
+    let langID, codeID, dataID;
+    let ids = decodeID(itemID);
+    console.log("compilerCode() ids=" + ids);
+    langID = ids[0];
+    codeID = ids[1];
+    dataID = ids[2];
     let self = this;
     if (!this.state) {
       this.state = {};
     }
     this.state.recompileCode = false;
-    let pieces = [];
     if (codeID) {
-      let id = "" + codeID;
-      if (dataID) {
-        // If there is a dataId, include it when getting the code.
-        id += "+" + dataID;
-      }
-      let hashID = encodeID(baseID, codeID, dataID);
-      d3.json(location.origin + "/data?id=" + hashID, (err, obj) => {
-        if (dataID) {
-          d3.json(location.origin + "/data?id=" + encodeID(baseID, dataID), (err, data) => {
+      let itemID = encodeID([langID, codeID, dataID], true);
+      d3.json(location.origin + "/data?id=" + itemID, (err, obj) => {
+        if (dataID && dataID !== "0") {
+          // TODO support languages as data sources.
+          d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), (err, data) => {
             dispatcher.dispatch({
-              id: hashID,
+              id: itemID,
               obj: obj,
               data: data,
             });
           });
         } else {
           dispatcher.dispatch({
-            id: hashID,
+            id: itemID,
             obj: obj,
             data: {}, // Clear state
           });
@@ -101,9 +99,15 @@ var GraffContent = React.createClass({
   },
   componentDidMount: function() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
-    let codeID = window.gcexports.id;
-    let dataID = window.gcexports.data;
-    this.compileCode(codeID, dataID);
+    let itemID = window.gcexports.id;
+    this.compileCode(itemID);
+    let language = window.gcexports.language;
+    let history = {
+      language: language,
+      view: gcexports.view,
+      itemID: itemID,
+    };
+    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
   },
   componentDidUpdate: function() {
     let gcexports = window.gcexports;
@@ -113,19 +117,18 @@ var GraffContent = React.createClass({
       let ast = this.state.ast;
       let src = this.state.src;
       let obj = this.state.obj;
-      let id = this.state.id;
+      let itemID = this.state.id;
       let data = this.state.data;
       let label = this.state.label;
       if (!viewer.Viewer && obj) {
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      let codeId = String(id).split("+")[0];
-      gcexports.id = codeId;
-      this.postData(codeId, data, label);
+      gcexports.id = itemID;
+      this.postData(itemID, data, label);
     }
   },
-  postData: function postData(codeID, obj, label) {
+  postData: function postData(itemID, obj, label) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
     let gcexports = window.gcexports;
@@ -153,33 +156,26 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function(data) {
           // FIXME add to state
-          if (codeID) {
-            // Wait until we have a codeId to update URL.
+          if (itemID) {
+            // Wait until we have an itemID to update URL.
             let dataID = "" + data.id;
-            if (gcexports.dataid !== dataID && self.state.recompileCode) {
-              self.compileCode(codeID, dataID);
-            }
-            gcexports.dataid = dataID;
-            let id;
-            if (gcexports.view === "form") {
-              // We have a hashid, so update it.
-              let ids = decodeID(codeID);
-              ids[2] = dataID;
-              id = encodeID(...ids);
-            } else {
-              // Keep bare id.
-              id = codeID + "+" + dataID;
+            let ids = decodeID(itemID);
+            let lastDataID = ids[2];
+            ids[2] = dataID;
+            itemID = encodeID(ids);
+            gcexports.id = itemID;
+            if (dataID !== lastDataID && self.state.recompileCode) {
+              self.compileCode(itemID);
             }
             let history = {
               language: language,
               view: gcexports.view,
-              codeId: codeID,
-              dataId: dataID,
+              itemID: itemID,
             };
             if (updateHistory) {
-              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
+              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
             } else {
-              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + id);
+              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
             }
           }
         },

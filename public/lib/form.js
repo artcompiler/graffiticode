@@ -19655,8 +19655,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 window.gcexports.ReactDOM = ReactDOM;
 var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
 var selfCleaningTimeout = {
@@ -19681,75 +19679,77 @@ var selfCleaningTimeout = {
 var hashids = new _hashids2.default("Art Compiler LLC"); // This string shall never change!
 function decodeID(id) {
   // Return the three parts of an ID. Takes bare and hashed IDs.
+  console.log("decodeID() id=" + id);
   var ids = void 0;
-  if (+id || id.split(" ").length > 1) {
-    var a = id.split(" ");
+  if (+id || id.split("+").length > 1) {
+    var a = id.split("+");
     if (a.length === 1) {
       ids = [0, a[0], 0];
     } else if (a.length === 2) {
       ids = [0, a[0], a[1]];
-    } else if (a.length === 3) {
-      ids = [a[0], a[1], a[2]];
     } else {
-      console.log("ERROR bad id: " + id);
-      ids = [0, 0, 0];
+      ids = a;
     }
   } else {
     ids = hashids.decode(id);
   }
+  console.log("decodeID() ids=" + ids);
   return ids;
 }
-function encodeID(baseID, codeID, dataID) {
-  baseID = +baseID ? baseID : 0;
-  codeID = +codeID ? codeID : 0;
-  dataID = +dataID ? dataID : 0;
-  if (gcexports.view === "form") {
-    var hashid = hashids.encode([baseID, codeID, dataID]);
-    return hashid;
+function encodeID(ids, force) {
+  var langID = void 0,
+      codeID = void 0,
+      dataID = void 0;
+  if (ids.length < 3) {
+    ids.unshift(0); // langID
+  }
+  console.log("encodeID() ids=" + ids);
+  var id = void 0;
+  if (force || gcexports.view === "form") {
+    id = hashids.encode(ids);
   } else {
     // If not "form" view, then return raw id.
-    return codeID + "+" + dataID;
+    id = ids.join("+");
   }
+  console.log("encodeID() id=" + id);
+  return id;
 }
+window.gcexports.decodeID = decodeID;
+window.gcexports.encodeID = encodeID;
+
 var GraffContent = React.createClass({
   displayName: "GraffContent",
 
   componentWillUnmount: function componentWillUnmount() {},
-  compileCode: function compileCode(codeID, dataID) {
-    var baseID = void 0;
-    if (/[a-zA-Z]/.test(codeID)) {
-      // We have a hashid, so decode it.
-      var ids = decodeID(codeID);
-      baseID = ids[0];
-      codeID = ids[1];
-      dataID = dataID ? dataID : ids[2];
-    }
-    var gcexports = window.gcexports;
+  compileCode: function compileCode(itemID) {
+    var langID = void 0,
+        codeID = void 0,
+        dataID = void 0;
+    var ids = decodeID(itemID);
+    console.log("compilerCode() ids=" + ids);
+    langID = ids[0];
+    codeID = ids[1];
+    dataID = ids[2];
     var self = this;
     if (!this.state) {
       this.state = {};
     }
     this.state.recompileCode = false;
-    var pieces = [];
     if (codeID) {
-      var id = "" + codeID;
-      if (dataID) {
-        // If there is a dataId, include it when getting the code.
-        id += "+" + dataID;
-      }
-      var hashID = encodeID(baseID, codeID, dataID);
-      d3.json(location.origin + "/data?id=" + hashID, function (err, obj) {
-        if (dataID) {
-          d3.json(location.origin + "/data?id=" + encodeID(baseID, dataID), function (err, data) {
+      var _itemID = encodeID([langID, codeID, dataID], true);
+      d3.json(location.origin + "/data?id=" + _itemID, function (err, obj) {
+        if (dataID && dataID !== "0") {
+          // TODO support languages as data sources.
+          d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), function (err, data) {
             dispatcher.dispatch({
-              id: hashID,
+              id: _itemID,
               obj: obj,
               data: data
             });
           });
         } else {
           dispatcher.dispatch({
-            id: hashID,
+            id: _itemID,
             obj: obj,
             data: {} });
         }
@@ -19758,9 +19758,15 @@ var GraffContent = React.createClass({
   },
   componentDidMount: function componentDidMount() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
-    var codeID = window.gcexports.id;
-    var dataID = window.gcexports.data;
-    this.compileCode(codeID, dataID);
+    var itemID = window.gcexports.id;
+    this.compileCode(itemID);
+    var language = window.gcexports.language;
+    var history = {
+      language: language,
+      view: gcexports.view,
+      itemID: itemID
+    };
+    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;
@@ -19770,19 +19776,18 @@ var GraffContent = React.createClass({
       var ast = this.state.ast;
       var src = this.state.src;
       var obj = this.state.obj;
-      var id = this.state.id;
+      var itemID = this.state.id;
       var data = this.state.data;
       var label = this.state.label;
       if (!viewer.Viewer && obj) {
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
-      var codeId = String(id).split("+")[0];
-      gcexports.id = codeId;
-      this.postData(codeId, data, label);
+      gcexports.id = itemID;
+      this.postData(itemID, data, label);
     }
   },
-  postData: function postData(codeID, obj, label) {
+  postData: function postData(itemID, obj, label) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
     var gcexports = window.gcexports;
@@ -19810,33 +19815,26 @@ var GraffContent = React.createClass({
         dataType: "json",
         success: function success(data) {
           // FIXME add to state
-          if (codeID) {
-            // Wait until we have a codeId to update URL.
+          if (itemID) {
+            // Wait until we have an itemID to update URL.
             var dataID = "" + data.id;
-            if (gcexports.dataid !== dataID && self.state.recompileCode) {
-              self.compileCode(codeID, dataID);
-            }
-            gcexports.dataid = dataID;
-            var id = void 0;
-            if (gcexports.view === "form") {
-              // We have a hashid, so update it.
-              var ids = decodeID(codeID);
-              ids[2] = dataID;
-              id = encodeID.apply(undefined, _toConsumableArray(ids));
-            } else {
-              // Keep bare id.
-              id = codeID + "+" + dataID;
+            var ids = decodeID(itemID);
+            var lastDataID = ids[2];
+            ids[2] = dataID;
+            itemID = encodeID(ids);
+            gcexports.id = itemID;
+            if (dataID !== lastDataID && self.state.recompileCode) {
+              self.compileCode(itemID);
             }
             var history = {
               language: language,
               view: gcexports.view,
-              codeId: codeID,
-              dataId: dataID
+              itemID: itemID
             };
             if (updateHistory) {
-              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
+              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
             } else {
-              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + id);
+              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
             }
           }
         },
