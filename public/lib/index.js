@@ -19835,11 +19835,6 @@ function decodeID(id) {
   return ids;
 }
 function encodeID(ids, force) {
-  try {
-    throw new Error();
-  } catch (x) {
-    console.log(x.stack);
-  }
   var langID = void 0,
       codeID = void 0,
       dataID = void 0;
@@ -19868,26 +19863,21 @@ var GraffContent = React.createClass({
     var langID = void 0,
         codeID = void 0,
         dataID = void 0;
-    //if (/[a-zA-Z]/.test(itemID)) {
-    // We have a hashid, so decode it.
     var ids = decodeID(itemID);
     console.log("compilerCode() ids=" + ids);
     langID = ids[0];
     codeID = ids[1];
-    dataID = dataID ? dataID : ids[2];
-    //}
+    dataID = ids[2];
     var self = this;
     if (!this.state) {
       this.state = {};
     }
     this.state.recompileCode = false;
-    //langID = langID ? langID : 0;
-    //dataID = dataID ? dataID : 0;
     if (codeID) {
       (function () {
         var itemID = encodeID([langID, codeID, dataID], true);
         d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
-          if (dataID) {
+          if (dataID && dataID !== "0") {
             // TODO support languages as data sources.
             d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), function (err, data) {
               dispatcher.dispatch({
@@ -19910,6 +19900,13 @@ var GraffContent = React.createClass({
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     var itemID = window.gcexports.id;
     this.compileCode(itemID);
+    var language = window.gcexports.language;
+    var history = {
+      language: language,
+      view: gcexports.view,
+      itemID: itemID
+    };
+    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;
@@ -20342,7 +20339,7 @@ var CodeMirrorEditor = React.createClass({
       lint: true
     });
     var pieces = [];
-    var id = window.gcexports.id;
+    var id = window.gcexports.encodeID(window.gcexports.decodeID(window.gcexports.id), true); // hash it
     if (id) {
       $.get(location.origin + "/code?id=" + id, function (data) {
         updateSrc(id, data.src);

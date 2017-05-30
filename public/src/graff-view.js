@@ -65,25 +65,20 @@ var GraffContent = React.createClass({
   },
   compileCode: function(itemID) {
     let langID, codeID, dataID;
-    //if (/[a-zA-Z]/.test(itemID)) {
-      // We have a hashid, so decode it.
-      let ids = decodeID(itemID);
-      console.log("compilerCode() ids=" + ids);
-      langID = ids[0];
-      codeID = ids[1];
-      dataID = dataID ? dataID : ids[2];
-    //}
+    let ids = decodeID(itemID);
+    console.log("compilerCode() ids=" + ids);
+    langID = ids[0];
+    codeID = ids[1];
+    dataID = ids[2];
     let self = this;
     if (!this.state) {
       this.state = {};
     }
     this.state.recompileCode = false;
-    //langID = langID ? langID : 0;
-    //dataID = dataID ? dataID : 0;
     if (codeID) {
       let itemID = encodeID([langID, codeID, dataID], true);
       d3.json(location.origin + "/data?id=" + itemID, (err, obj) => {
-        if (dataID) {
+        if (dataID && dataID !== "0") {
           // TODO support languages as data sources.
           d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), (err, data) => {
             dispatcher.dispatch({
@@ -106,6 +101,13 @@ var GraffContent = React.createClass({
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     let itemID = window.gcexports.id;
     this.compileCode(itemID);
+    let language = window.gcexports.language;
+    let history = {
+      language: language,
+      view: gcexports.view,
+      itemID: itemID,
+    };
+    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
   },
   componentDidUpdate: function() {
     let gcexports = window.gcexports;

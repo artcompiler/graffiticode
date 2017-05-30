@@ -179,7 +179,7 @@ app.get('/item', function(req, res) {
       res.render('views.html', {
         title: 'Graffiti Code',
         language: lang,
-        item: encodeID([langID, codeID, dataID]),
+        item: [langID, codeID, dataID].join("+"),
         view: "item",
         version: version,
       }, function (error, html) {
@@ -199,7 +199,7 @@ app.get('/item', function(req, res) {
         res.render('views.html', {
           title: 'Graffiti Code',
           language: lang,
-          item: encodeID([langID, codeID, dataID]),
+          item: [langID, codeID, dataID].join("+"),
           view: "item",
           version: version,
         }, function (error, html) {
@@ -455,7 +455,6 @@ app.get('/data', function(req, res) {
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
   id = id.replace(/\+/g, " ");
-  console.log("decodeID() id=" + id);
   // Return the three parts of an ID. Takes bare and hashed IDs.
   let ids;
   if (+id || id.split(" ").length > 1) {
@@ -470,17 +469,14 @@ function decodeID(id) {
   } else {
     ids = hashids.decode(id);
   }
-  console.log("decodeID() ids=" + ids);
   return ids;
 }
 function encodeID(ids) {
-  console.log("encodeID() ids=" + ids);
   let langID, codeID, dataID;
   if (ids.length < 3) {
     ids.unshift(0);  // langID
   }
   let id = hashids.encode(ids);
-  console.log("encodeID() id=" + id);
   return id;
 }
 app.get('/code', (req, res) => {
@@ -844,8 +840,7 @@ app.put('/code', (req, response) => {
       var label = req.body.label;
       var parent = 0;
       var img = "";
-      let ids = decodeID(parent);
-      postItem(language, src, ast, obj, user, ids[0], img, label, function (err, data) {
+      postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
         if (err) {
           response.status(400).send(err);
         } else {

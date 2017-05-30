@@ -39,7 +39,7 @@ var CodeMirrorEditor = React.createClass({
       lint: true,
     });
     let pieces = [];
-    let id = window.gcexports.id;
+    let id = window.gcexports.encodeID(window.gcexports.decodeID(window.gcexports.id), true); // hash it
     if (id) {
       $.get(location.origin + "/code?id=" + id, function (data) {
         updateSrc(id, data.src);
