@@ -20339,31 +20339,38 @@ var CodeMirrorEditor = React.createClass({
       lint: true
     });
     var pieces = [];
-    var id = window.gcexports.encodeID(window.gcexports.decodeID(window.gcexports.id), true); // hash it
+    var id = window.gcexports.id;
     if (id) {
+      id = window.gcexports.encodeID(window.gcexports.decodeID(id), true); // hash it
       $.get(location.origin + "/code?id=" + id, function (data) {
         updateSrc(id, data.src);
       });
     } else {
-      $.ajax({
-        type: "GET",
-        url: "/pieces/" + window.gcexports.language,
-        data: {},
-        dataType: "json",
-        success: function success(data) {
-          var pieces = [];
-          for (var i = 0; i < data.length; i++) {
-            pieces[i] = data[i].id;
+      (function () {
+        var lang = window.gcexports.language;
+        $.ajax({
+          type: "GET",
+          url: "/pieces/" + lang,
+          data: {},
+          dataType: "json",
+          success: function success(data) {
+            var pieces = [];
+            for (var i = 0; i < data.length; i++) {
+              pieces[i] = data[i].id;
+            }
+            var langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+            var codeID = pieces[0];
+            window.gcexports.pieces = pieces;
+            window.gcexports.id = window.gcexports.encodeID([langID, codeID, 0]);
+            $.get(location.origin + "/code?id=" + window.gcexports.id, function (data) {
+              updateSrc(data.id, data.src);
+            });
+          },
+          error: function error(xhr, msg, err) {
+            console.log(msg + " " + err);
           }
-          window.gcexports.pieces = pieces;
-          $.get(location.origin + "/code?id=" + "0+" + pieces[0] + "+0", function (data) {
-            updateSrc(data.id, data.src);
-          });
-        },
-        error: function error(xhr, msg, err) {
-          console.log(msg + " " + err);
-        }
-      });
+        });
+      })();
     }
     function updateSrc(id, src) {
       window.gcexports.parent = window.gcexports.id;
