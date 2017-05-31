@@ -19679,9 +19679,9 @@ var selfCleaningTimeout = {
 var hashids = new _hashids2.default("Art Compiler LLC"); // This string shall never change!
 function decodeID(id) {
   // Return the three parts of an ID. Takes bare and hashed IDs.
-  console.log("decodeID() id=" + id);
   var ids = void 0;
-  if (+id || id.split("+").length > 1) {
+  id = "" + id;
+  if (!isNaN(+id) || id.split("+").length > 1) {
     var a = id.split("+");
     if (a.length === 1) {
       ids = [0, a[0], 0];
@@ -19693,17 +19693,12 @@ function decodeID(id) {
   } else {
     ids = hashids.decode(id);
   }
-  console.log("decodeID() ids=" + ids);
   return ids;
 }
 function encodeID(ids, force) {
   var langID = void 0,
       codeID = void 0,
       dataID = void 0;
-  if (ids.length < 3) {
-    ids.unshift(0); // langID
-  }
-  console.log("encodeID() ids=" + ids);
   var id = void 0;
   if (force || gcexports.view === "form") {
     id = hashids.encode(ids);
@@ -19711,7 +19706,6 @@ function encodeID(ids, force) {
     // If not "form" view, then return raw id.
     id = ids.join("+");
   }
-  console.log("encodeID() id=" + id);
   return id;
 }
 window.gcexports.decodeID = decodeID;
@@ -19726,10 +19720,9 @@ var GraffContent = React.createClass({
         codeID = void 0,
         dataID = void 0;
     var ids = decodeID(itemID);
-    console.log("compilerCode() ids=" + ids);
     langID = ids[0];
     codeID = ids[1];
-    dataID = ids[2];
+    dataID = ids.slice(2);
     var self = this;
     if (!this.state) {
       this.state = {};
@@ -19737,11 +19730,10 @@ var GraffContent = React.createClass({
     this.state.recompileCode = false;
     if (codeID) {
       (function () {
-        var itemID = encodeID([langID, codeID, dataID], true);
+        var itemID = encodeID(ids, true);
         d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
-          if (dataID && dataID !== "0") {
-            // TODO support languages as data sources.
-            d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), function (err, data) {
+          if (dataID && +dataID !== 0) {
+            d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
               dispatcher.dispatch({
                 id: itemID,
                 obj: obj,

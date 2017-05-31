@@ -24,9 +24,9 @@ var selfCleaningTimeout = {
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
   // Return the three parts of an ID. Takes bare and hashed IDs.
-  console.log("decodeID() id=" + id);
   let ids;
-  if (+id || id.split("+").length > 1) {
+  id = "" + id;
+  if (!isNaN(+id) || id.split("+").length > 1) {
     let a = id.split("+");
     if (a.length === 1) {
       ids = [0, a[0], 0];
@@ -38,15 +38,10 @@ function decodeID(id) {
   } else {
     ids = hashids.decode(id);
   }
-  console.log("decodeID() ids=" + ids);
   return ids;
 }
 function encodeID(ids, force) {
   let langID, codeID, dataID;
-  if (ids.length < 3) {
-    ids.unshift(0);  // langID
-  }
-  console.log("encodeID() ids=" + ids);
   let id;
   if (force || gcexports.view === "form") {
     id = hashids.encode(ids);
@@ -54,7 +49,6 @@ function encodeID(ids, force) {
     // If not "form" view, then return raw id.
     id = ids.join("+");
   }
-  console.log("encodeID() id=" + id);
   return id;
 }
 window.gcexports.decodeID = decodeID;
@@ -66,21 +60,19 @@ var GraffContent = React.createClass({
   compileCode: function(itemID) {
     let langID, codeID, dataID;
     let ids = decodeID(itemID);
-    console.log("compilerCode() ids=" + ids);
     langID = ids[0];
     codeID = ids[1];
-    dataID = ids[2];
+    dataID = ids.slice(2);
     let self = this;
     if (!this.state) {
       this.state = {};
     }
     this.state.recompileCode = false;
     if (codeID) {
-      let itemID = encodeID([langID, codeID, dataID], true);
+      let itemID = encodeID(ids, true);
       d3.json(location.origin + "/data?id=" + itemID, (err, obj) => {
-        if (dataID && dataID !== "0") {
-          // TODO support languages as data sources.
-          d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), (err, data) => {
+        if (dataID && +dataID !== 0) {
+          d3.json(location.origin + "/data?id=" + encodeID(dataID, true), (err, data) => {
             dispatcher.dispatch({
               id: itemID,
               obj: obj,
