@@ -433,33 +433,6 @@ app.get('/data', function(req, res) {
       res.json(obj);
     }
   });
-  // getCache(hashID, (err, val) => {
-  //   if (val) {
-  //     res.json(val);
-  //   } else {
-  //     getItem(codeID, function(err, item) {
-  //       if (err) {
-  //         res.status(400).send(err);
-  //       } else {
-  //         if (dataID) {
-  //           // We have data so recompile with that data.
-  //           let language = item.language;
-  //           let ast = item.ast;
-  //           getItem(dataID, (err, item) => {
-  //             let data = JSON.parse(item.obj);
-  //             comp(language, ast, data, (err, obj) => {
-  //               res.json(obj);
-  //               setCache(hashID, obj);
-  //             });
-  //           });
-  //         } else {
-  //           res.json(JSON.parse(item.obj));
-  //           setCache(hashID, item.obj);
-  //         }
-  //       }
-  //     });
-  //   }
-  // });
 });
 
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
@@ -858,32 +831,6 @@ app.put('/compile', function (req, res) {
       }
     });
   }
-  // dbQuery(q, function(err, result) {
-  //   // See if there is already an item with the same source for the same
-  //   // language. If so, pass it on.
-  //   var obj;
-  //   if (err) {
-  //     res.status(400).send(err);
-  //   } else {
-  //     compileID(id, (err, obj) => {
-  //       res.json({
-  //         id: id,
-  //         obj: obj,
-  //       });
-  //     });
-  //     // let rows = result.rows;
-  //     // if (dataID && dataID !== "0") {
-  //     //   // We have data so recompile with that data.
-  //     //   dbQuery("SELECT * FROM pieces WHERE id = " + dataID, (err, result) => {
-  //     //     let data = JSON.parse(result.rows[0].obj)
-  //     //     compile(id, user, parent, language, src, ast, data, rows, res);
-  //     //   });
-  //     // } else {
-  //     //   // No data provided.
-  //     //   compile(id, user, parent, language, src, ast, null, rows, res);
-  //     // }
-  //   }
-  // });
 });
 
 app.put('/code', (req, response) => {
@@ -986,13 +933,6 @@ function num2dot(num) {
   return d;
 }
 
-// app.get("/:lang/:path", function (req, res) {
-//   var language = req.params.lang;
-//   var path = req.params.path;
-//   console.log("GET /:lang/:path path=" + path);
-//   retrieve(language, path, res);
-// });
-
 app.get("/:lang/*", function (req, res) {
   var lang = req.params.lang;
   let url = req.url;
@@ -1015,32 +955,6 @@ function getCompilerPort(language) {
     return "80";
   }
 }
-
-// // Get an item with :id
-// app.get('/code/:id', (req, res) => {
-//   console.log("DEPRECATED GET /code/:id id=" + req.params.id);
-//   var ids = decodeID(req.params.id);
-//   var langID = ids[0];
-//   var codeID = ids[1];
-//   var dataID = ids[2];
-//   getItem(codeID, (err, row) => {
-//     if (dataID) {
-//       // We have data so recompile with that data.
-//       var src = row.src;
-//       var ast = row.ast;
-//       var parent = row.parent_id;
-//       var user = row.user_id;
-//       var language = row.language;
-//       getItem(dataID, (err, row) => {
-//         let data = JSON.parse(row.obj);
-//         compile(codeID, user, parent, language, src, ast, data, [row], res);
-//       });
-//     } else {
-//       // No data provided.
-//       res.send(row);
-//     }
-//   });
-// });
 
 app.get("/index", function (req, res) {
   res.sendFile("public/index.html");
