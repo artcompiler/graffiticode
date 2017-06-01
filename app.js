@@ -70,7 +70,6 @@ app.use(morgan('combined', {
 }));
 
 app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }));
-app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use(bodyParser.raw());
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
@@ -167,27 +166,14 @@ app.get('/pieces/:lang', function (req, res) {
       dbQuery(insertStr, function(err, result) {
         if (err) {
           res.status(400).send(err);
-        } else {
-          if (dataID) {
-            // We have data so recompile with that data.
-            let language = item.language;
-            let ast = item.ast;
-            getItem(baseID, dataID, (err, item) => {
-              let data = JSON.parse(item.obj);
-              comp(language, ast, data, (err, obj) => {
-                res.json(obj);
-                setCache(hashID, obj);
-              });
-            });
-          } else {
-            res.json(JSON.parse(item.obj));
-            setCache(hashID, item.obj);
-          }
+          return;
         }
         dbQuery(queryString, function (err, result) {
           res.send(result.rows);
         });
       });
+    } else {
+      res.send(result.rows);
     }
   });
 });
@@ -371,7 +357,6 @@ function parseJSON(str) {
     console.log(e.stack);
     return null;
   }
-  return ids;
 }
 
 // lang?id=106
