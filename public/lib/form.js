@@ -19678,34 +19678,39 @@ var selfCleaningTimeout = {
 };
 var hashids = new _hashids2.default("Art Compiler LLC"); // This string shall never change!
 function decodeID(id) {
+  console.log("decodeID() id=" + id);
   // Return the three parts of an ID. Takes bare and hashed IDs.
   var ids = void 0;
-  id = "" + id;
   if (!isNaN(+id) || id.split("+").length > 1) {
     var a = id.split("+");
     if (a.length === 1) {
       ids = [0, a[0], 0];
     } else if (a.length === 2) {
-      ids = [0, a[0], a[1]];
+      ids = [0, a[0], 113, a[1]];
     } else {
       ids = a;
     }
   } else {
     ids = hashids.decode(id);
   }
+  console.log("decodeID() ids=" + ids);
   return ids;
 }
 function encodeID(ids, force) {
-  var langID = void 0,
-      codeID = void 0,
-      dataID = void 0;
+  console.log("encodeID() ids=" + JSON.stringify(ids));
   var id = void 0;
+  if (ids.length === 1) {
+    ids = [0, +ids[0], 0];
+  } else if (ids.length === 2) {
+    ids = [0, +ids[0], +ids[1]];
+  }
   if (force || gcexports.view === "form") {
     id = hashids.encode(ids);
   } else {
     // If not "form" view, then return raw id.
     id = ids.join("+");
   }
+  console.log("encodeID() id=" + id);
   return id;
 }
 window.gcexports.decodeID = decodeID;

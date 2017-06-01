@@ -93,6 +93,42 @@ app.engine('html', function (templateFile, options, callback) {
   });
 });
 
+let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
+function decodeID(id) {
+  // Return the three parts of an ID. Takes bare and hashed IDs.
+  let ids;
+  id = typeof id === "string" ? id.replace(/\+/g, " ") : "" + id;
+  if (!isNaN(+id) || id.split(" ").length > 1) {
+    let a = id.split(" ");
+    if (a.length === 1) {
+      ids = [0, +a[0], 0];
+    } else if (a.length === 2) {
+      ids = [0, +a[0], +a[1]];
+    } else {
+      ids = a;
+    }
+  } else {
+    ids = hashids.decode(id);
+    if (ids.length === 0) {
+      ids = [0, 0, 0];
+    } else if (ids.length === 1) {
+      ids = [0, +ids[0], 0];
+    } else if (ids.length === 2) {
+      ids = [0, +ids[0], +ids[1]];
+    }
+  }
+  return ids;
+}
+function encodeID(ids) {
+  if (ids.length === 1) {
+    ids = [0, +ids[0], 0];
+  } else if (ids.length === 2) {
+    ids = [0, +ids[0], +ids[1]];
+  }
+  let id = hashids.encode(ids);
+  return id;
+}
+
 // Routes
 
 app.get('/', function(req, res) {
@@ -435,33 +471,6 @@ app.get('/data', function(req, res) {
   });
 });
 
-let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
-function decodeID(id) {
-  // Return the three parts of an ID. Takes bare and hashed IDs.
-  let ids;
-  id = typeof id === "string" ? id.replace(/\+/g, " ") : "" + id;
-  if (!isNaN(+id) || id.split(" ").length > 1) {
-    let a = id.split(" ");
-    if (a.length === 1) {
-      ids = [0, a[0], 0];
-    } else if (a.length === 2) {
-      ids = [0, a[0], a[1]];
-    } else {
-      ids = a;
-    }
-  } else {
-    ids = hashids.decode(id);
-  }
-  return ids;
-}
-function encodeID(ids) {
-  let langID, codeID, dataID;
-  // if (ids.length < 3) {
-  //   ids.unshift(0);  // langID
-  // }
-  let id = hashids.encode(ids);
-  return id;
-}
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   var ids = decodeID(req.query.id);
@@ -610,27 +619,27 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   });
 };
 
-const nilID = encodeID([0]);
+const nilID = encodeID([0,0,0]);
 function getData(ids, resume) {
-  let id = encodeID(ids.slice(2));
-  if (id === nilID) {
+  if (+ids[2] === 0 || encodeID(ids) === nilID) {
     resume(null, {});
   } else {
     // Compile the tail.
+    let id = encodeID(ids.slice(2));
     compileID(id, resume);
   }
 }
 
 function getCode(ids, resume) {
-  let id = encodeID(ids.slice(0,2));
   getItem(ids[1], (err, item) => {
+    // if L113 there is no AST.
     resume(err, item.ast);
   });
 }
 
 function getLang(ids, resume) {
   let id = ids[0];
-  if (+id !== 0) {
+  if (id !== 0) {
     resume(null, "L" + id);
   } else {
     getItem(ids[1], (err, item) => {
@@ -651,10 +660,17 @@ function compileID(id, resume) {
         getData(ids, (err, data) => {
           getCode(ids, (err, code) => {
             getLang(ids, (err, lang) => {
-              comp(lang, code, data, (err, obj) => {              
-                setCache(id, obj);
-                resume(err, obj);
-              });
+              if (lang === "L113") {
+                // No need to recompile.
+                getItem(ids[1], (err, item) => {
+                  resume(err, JSON.parse(item.obj));
+                });
+              } else {
+                comp(lang, code, data, (err, obj) => {
+                  setCache(id, obj);
+                  resume(err, obj);
+                });
+              }
             });
           });
         });
@@ -781,9 +797,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
 // Compile code
 app.put('/compile', function (req, res) {
   var id = req.body.id;
-  // let ids = decodeID(id);
-  // console.log("PUT /compile id=" + id);
-  // console.log("PUT /compile ids=" + ids);
+  let ids = decodeID(id);
   // var codeID = ids[1];
   // var dataID = ids.slice(2);
   // var parent = req.body.parent;
@@ -799,9 +813,9 @@ app.put('/compile', function (req, res) {
   let obj = "";
   let label = "show";
   let parent = 0;
-  if (id && +id !== 0) {
+  if (id && +id !== 0 && id !== nilID) {
     let ids = decodeID(id);
-    updateItem(ids[2], language, src, ast, obj, user, parent, img, label, function (err, unused) {
+    updateItem(ids[1], language, src, ast, obj, user, parent, img, label, function (err, unused) {
       // Update the src and ast.
       if (err) {
         res.status(400).send(err);
@@ -820,8 +834,7 @@ app.put('/compile', function (req, res) {
         response.status(400).send(err);
       } else {
         let item = data.rows[0];  // only return the codeID
-        console.log("PUT /compile item=" + JSON.stringify(item));
-        let id = item.id;
+        let id = encodeID(item.id);
         compileID(id, (err, obj) => {
           res.json({
             id: id,
@@ -835,7 +848,6 @@ app.put('/compile', function (req, res) {
 
 app.put('/code', (req, response) => {
   var id = req.body.id;
-  console.log("PUT /code id=" + decodeID(id).join("+"));
   var src = req.body.src;
   var language = req.body.language;
   var ip = req.headers['x-forwarded-for'] ||
