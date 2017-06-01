@@ -1701,9 +1701,7 @@ window.gcexports.parser = (function () {
         } else if (data.id) {
           window.gcexports.lastErrors = [];
           // We have a good id, so use it.
-          let codeID = "" + data.id;
-          let ids = gcexports.decodeID(gcexports.id);
-          ids[1] = codeID;
+          let ids = gcexports.decodeID(data.id);
           let itemID = gcexports.encodeID(ids);
           gcexports.id = itemID;
           window.history.pushState(itemID, window.gcexports.language, "/" + window.gcexports.view + "?id=" + itemID);

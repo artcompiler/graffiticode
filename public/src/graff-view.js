@@ -23,15 +23,15 @@ var selfCleaningTimeout = {
 };
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
-  // Return the three parts of an ID. Takes bare and hashed IDs.
   console.log("decodeID() id=" + id);
+  // Return the three parts of an ID. Takes bare and hashed IDs.
   let ids;
-  if (+id || id.split("+").length > 1) {
+  if (!isNaN(+id) || id.split("+").length > 1) {
     let a = id.split("+");
     if (a.length === 1) {
       ids = [0, a[0], 0];
     } else if (a.length === 2) {
-      ids = [0, a[0], a[1]];
+      ids = [0, a[0], 113, a[1]];
     } else {
       ids = a;
     }
@@ -42,12 +42,13 @@ function decodeID(id) {
   return ids;
 }
 function encodeID(ids, force) {
-  let langID, codeID, dataID;
-  if (ids.length < 3) {
-    ids.unshift(0);  // langID
-  }
-  console.log("encodeID() ids=" + ids);
+  console.log("encodeID() ids=" + JSON.stringify(ids));
   let id;
+  if (ids.length === 1) {
+    ids = [0, +ids[0], 0];
+  } else if (ids.length === 2) {
+    ids = [0, +ids[0], +ids[1]];
+  }
   if (force || gcexports.view === "form") {
     id = hashids.encode(ids);
   } else {
@@ -66,21 +67,19 @@ var GraffContent = React.createClass({
   compileCode: function(itemID) {
     let langID, codeID, dataID;
     let ids = decodeID(itemID);
-    console.log("compilerCode() ids=" + ids);
     langID = ids[0];
     codeID = ids[1];
-    dataID = ids[2];
+    dataID = ids.slice(2);
     let self = this;
     if (!this.state) {
       this.state = {};
     }
     this.state.recompileCode = false;
     if (codeID) {
-      let itemID = encodeID([langID, codeID, dataID], true);
+      let itemID = encodeID(ids, true);
       d3.json(location.origin + "/data?id=" + itemID, (err, obj) => {
-        if (dataID && dataID !== "0") {
-          // TODO support languages as data sources.
-          d3.json(location.origin + "/data?id=" + encodeID([113, dataID, 0], true), (err, data) => {
+        if (dataID && +dataID !== 0) {
+          d3.json(location.origin + "/data?id=" + encodeID(dataID, true), (err, data) => {
             dispatcher.dispatch({
               id: itemID,
               obj: obj,
@@ -158,10 +157,10 @@ var GraffContent = React.createClass({
           // FIXME add to state
           if (itemID) {
             // Wait until we have an itemID to update URL.
-            let dataID = "" + data.id;
             let ids = decodeID(itemID);
-            let lastDataID = ids[2];
-            ids[2] = dataID;
+            let lastDataID = encodeID(ids.slice(2));
+            let dataID = encodeID([113, data.id, 0])
+            ids = ids.slice(0, 2).concat(decodeID(dataID));
             itemID = encodeID(ids);
             gcexports.id = itemID;
             if (dataID !== lastDataID && self.state.recompileCode) {
