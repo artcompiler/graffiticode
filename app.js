@@ -206,15 +206,11 @@ app.get('/items/src', function(req, res) {
 });
 
 app.get('/item', function(req, res) {
-  console.log("GET /item id=" + req.query.id);
   const hasEditingRights = false;   // Compute based on authorization.
   if (hasEditingRights) {
-    // Copy body of graffiticode /item here.
     var ids = decodeID(req.query.id);
     console.log("GET /item?id=" + ids.join("+"));
     var langID = ids[0];
-    var codeID = ids[1];
-    var dataID = ids[2];
     if (+langID !== 0) {
       let lang = "L" + langID;
       getCompilerVersion(lang, (version) => {
