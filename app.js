@@ -13,23 +13,19 @@ function assert(b, str) {
 }
 
 var express = require('express');
-var util = require('util');
 var _ = require('underscore');
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-var transformer = require('./static/transform.js');
-var renderer = require('./static/render.js');
-var qs = require("qs");
 var app = module.exports = express();
 var morgan = require("morgan");
-var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
-var timeout = require('connect-timeout');
-var main = require('./main.js');
 var pg = require('pg');
+var redis = require('redis');
+//var cache = redis.createClient(process.env.REDIS_URL);
+var main = require('./main.js');
 var Hashids = require("hashids");
 
 
@@ -53,9 +49,7 @@ let protocol = http; // Default. Set to http if localhost.
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
-    if (req.url === "/artcompiler") {
-      res.redirect('https://www.graffiticode.com/form?id=471917');
-    } else if (req.headers.host.match(/^www/) === null) {
+    if (req.headers.host.match(/^www/) === null) {
       console.log("app.all redirecting headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
       res.redirect('https://www.'+ req.headers.host + req.url);
     } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
@@ -210,34 +204,14 @@ app.get('/items/src', function(req, res) {
 });
 
 app.get('/item', function(req, res) {
-  var ids = decodeID(req.query.id);
-  console.log("GET /item?id=" + ids.join("+"));
-  var langID = ids[0];
-  var codeID = ids[1];
-  var dataID = ids[2];
-  if (+langID !== 0) {
-    let lang = "L" + langID;
-    getCompilerVersion(lang, (version) => {
-      res.render('views.html', {
-        title: 'Graffiti Code',
-        language: lang,
-        item: ids.join("+"),
-        view: "item",
-        version: version,
-      }, function (error, html) {
-        if (error) {
-          res.status(400).send(error);
-        } else {
-          res.send(html);
-        }
-      });
-    });
-  } else {
-    getItem(codeID, (err, row) => {
-      var rows;
-      var lang = row.language;
+  const hasEditingRights = true;   // Compute based on authorization.
+  if (hasEditingRights) {
+    var ids = decodeID(req.query.id);
+    console.log("GET /item?id=" + ids.join("+"));
+    var langID = ids[0];
+    if (+langID !== 0) {
+      let lang = "L" + langID;
       getCompilerVersion(lang, (version) => {
-        langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
         res.render('views.html', {
           title: 'Graffiti Code',
           language: lang,
@@ -252,7 +226,38 @@ app.get('/item', function(req, res) {
           }
         });
       });
-    });
+    } else {
+      getItem(codeID, (err, row) => {
+        var rows;
+        var lang = row.language;
+        getCompilerVersion(lang, (version) => {
+          langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+          res.render('views.html', {
+            title: 'Graffiti Code',
+            language: lang,
+            item: ids.join("+"),
+            view: "item",
+            version: version,
+          }, function (error, html) {
+            if (error) {
+              res.status(400).send(error);
+            } else {
+              res.send(html);
+            }
+          });
+        });
+      });
+    }
+  } else {
+    // Redirect to form view.
+    let protocol;
+    if (req.headers.host.match(/^localhost/) === null) {
+      protocol = "https://";
+    } else {
+      protocol = "http://";
+    }
+    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
+    res.redirect(url);
   }
 });
 

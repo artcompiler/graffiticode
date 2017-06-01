@@ -13,6 +13,8 @@
     "morgan": "latest",
     "pg": "6.1.2",
     "qs": "latest",
+    "redis": "2.6.3",
+    "request": "2.79.0",
     "stylus": "latest",
     "underscore": "1.4.x"
   },
