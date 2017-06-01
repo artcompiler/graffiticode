@@ -856,7 +856,7 @@ app.put('/compile', function (req, res) {
 
 app.put('/code', (req, response) => {
   var id = req.body.id;
-  var src = req.body.src;
+  var src = cleanAndTrimSrc(req.body.src);
   var language = req.body.language;
   var ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
@@ -864,7 +864,7 @@ app.put('/code', (req, response) => {
     req.connection.socket.remoteAddress;
   var user = dot2num(ip); //req.body.user;
   var query;
-  if (+id !== 0) {
+  if (id !== undefined) {
     let ids = decodeID(id);
     // Prefer the given id if there is one.
     query = "SELECT * FROM pieces WHERE id='" + ids[1] + "'";
