@@ -211,6 +211,7 @@ app.get('/item', function(req, res) {
     var ids = decodeID(req.query.id);
     console.log("GET /item?id=" + ids.join("+"));
     var langID = ids[0];
+    var codeID = ids[1];
     if (+langID !== 0) {
       let lang = "L" + langID;
       getCompilerVersion(lang, (version) => {
