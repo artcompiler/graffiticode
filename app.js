@@ -621,7 +621,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
 
 const nilID = encodeID([0,0,0]);
 function getData(ids, resume) {
-  if (+ids[2] === 0 || encodeID(ids) === nilID) {
+  if (encodeID(ids) === nilID || ids.length === 3 && +ids[2] === 0) {
     resume(null, {});
   } else {
     // Compile the tail.
