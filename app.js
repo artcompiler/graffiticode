@@ -669,7 +669,16 @@ function compileID(id, resume) {
               if (lang === "L113") {
                 // No need to recompile.
                 getItem(ids[1], (err, item) => {
-                  resume(err, JSON.parse(item.obj));
+                  try {
+                    resume(err, JSON.parse(item.obj));
+                  } catch (e) {
+                    // Oops. Missing or invalid obj, so need to recompile after all.
+                    assert(code.root !== undefined, "Invalid code.");
+                    comp(lang, code, data, (err, obj) => {
+                      setCache(id, obj);
+                      resume(err, obj);
+                    });
+                  }
                 });
               } else {
                 comp(lang, code, data, (err, obj) => {
