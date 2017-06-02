@@ -671,7 +671,16 @@ function compileID(id, resume) {
               if (lang === "L113") {
                 // No need to recompile.
                 getItem(ids[1], (err, item) => {
-                  resume(err, JSON.parse(item.obj));
+                  try {
+                    resume(err, JSON.parse(item.obj));
+                  } catch (e) {
+                    // Oops. Missing or invalid obj, so need to recompile after all.
+                    assert(code.root !== undefined, "Invalid code.");
+                    comp(lang, code, data, (err, obj) => {
+                      setCache(id, obj);
+                      resume(err, obj);
+                    });
+                  }
                 });
               } else {
                 comp(lang, code, data, (err, obj) => {
@@ -804,70 +813,87 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
 
 // Compile code
 app.put('/compile', function (req, res) {
-  var id = req.body.id;
+  let id = req.body.id;
   let ids = decodeID(id);
-  // var codeID = ids[1];
-  // var dataID = ids.slice(2);
-  // var parent = req.body.parent;
-  var src = req.body.src;
-  var ast = JSON.parse(req.body.ast);
-  var language = req.body.language;
-  var ip = req.headers['x-forwarded-for'] ||
+  let src = cleanAndTrimSrc(req.body.src);
+  let ast = JSON.parse(req.body.ast);
+  let language = req.body.language;
+  let ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  var user = dot2num(ip); //req.body.user;
+  let user = dot2num(ip); //req.body.user;
   let img = "";
   let obj = "";
   let label = "show";
   let parent = 0;
-  if (id && +id !== 0 && id !== nilID) {
-    let ids = decodeID(id);
-    updateItem(ids[1], language, src, ast, obj, user, parent, img, label, function (err, unused) {
-      // Update the src and ast.
-      if (err) {
-        res.status(400).send(err);
-      } else {
-        compileID(id, (err, obj) => {
-          res.json({
-            id: id,
-            obj: obj,
-          });
-        });
-      }
-    });
+  let query;
+  let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
+  if (itemID !== undefined) {
+    // Prefer the given id if there is one.
+    query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
   } else {
-    postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
-      if (err) {
-        response.status(400).send(err);
-      } else {
-        let item = data.rows[0];  // only return the codeID
-        let id = encodeID(item.id);
-        compileID(id, (err, obj) => {
-          res.json({
-            id: id,
-            obj: obj,
-          });
-        });
-      }
-    });
+    // Otherwise look for an item with matching source.
+    query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
+  dbQuery(query, function(err, result) {
+    var row = result.rows[0];
+    itemID = itemID ? itemID : row ? row.id : undefined;
+    if (itemID) {
+      let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
+      let codeID = result.rows[0].id;
+      let dataID = 0;
+      let id = encodeID([langID, codeID, dataID]);
+      // We have an id, so update the item record.
+      updateItem(itemID, language, src, ast, obj, user, parent, img, label, (err) => {
+        // Update the src and ast. In general, obj depends on data so don't save.
+        if (err) {
+          res.status(400).send(err);
+        } else {
+          compileID(id, (err, obj) => {
+            res.json({
+              id: id,
+              obj: obj,
+            });
+          });
+        }
+      });
+    } else {
+      postItem(language, src, ast, obj, user, parent, img, label, (err, result) => {
+        if (err) {
+          response.status(400).send(err);
+        } else {
+          let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
+          let codeID = result.rows[0].id;
+          let dataID = 0;
+          let id = encodeID([langID, codeID, dataID]);
+          compileID(id, (err, obj) => {
+            res.json({
+              id: id,
+              obj: obj,
+            });
+          });
+        }
+      });
+    }
+  });
 });
 
 app.put('/code', (req, response) => {
-  var id = req.body.id;
-  var src = cleanAndTrimSrc(req.body.src);
-  var language = req.body.language;
-  var ip = req.headers['x-forwarded-for'] ||
+  let id = req.body.id;
+  let ids = decodeID(id);
+  let src = cleanAndTrimSrc(req.body.src);
+  let language = req.body.language;
+  let ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  var user = dot2num(ip); //req.body.user;
-  var query;
-  if (id !== undefined) {
-    let ids = decodeID(id);
+  let user = dot2num(ip); //req.body.user;
+  let query;
+  let itemID = id && +ids[1] !== 0 ? ids[1] : undefined;
+  if (itemID !== undefined) {
     // Prefer the given id if there is one.
-    query = "SELECT * FROM pieces WHERE id='" + ids[1] + "'";
+    query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
   } else {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
@@ -875,8 +901,8 @@ app.put('/code', (req, response) => {
   dbQuery(query, function(err, result) {
     // See if there is already an item with the same source for the same language. If so, pass it on.
     var row = result.rows[0];
-    var id = id ? id : row ? row.id : undefined;  // Might still be undefined if there is no match.
-    if (id) {
+    itemID = itemID ? itemID : row ? row.id : undefined;  // Might still be undefined if there is no match.
+    if (itemID) {
       var language = row.language;
       var src = req.body.src ? req.body.src : row.src;
       var ast = req.body.ast ? JSON.parse(req.body.ast) : row.ast;
@@ -885,12 +911,16 @@ app.put('/code', (req, response) => {
       var parent = req.body.parent_id ? req.body.parent_id : row.parent_id;
       var img = req.body.img ? req.body.img : row.img;
       var label = req.body.label ? req.body.label : row.label;
-      updateItem(id, language, src, ast, obj, user, parent, img, label, function (err, data) {
+      updateItem(itemID, language, src, ast, obj, user, parent, img, label, function (err, data) {
         if (err) {
           console.log(err);
         }
       });
       // Don't wait for update. We have what we need to respond.
+      let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
+      let codeID = result.rows[0].id;
+      let dataID = 0;
+      let id = encodeID([langID, codeID, dataID]);
       response.json({
         id: id,
       });
@@ -903,12 +933,16 @@ app.put('/code', (req, response) => {
       var label = req.body.label;
       var parent = 0;
       var img = "";
-      postItem(language, src, ast, obj, user, parent, img, label, function (err, data) {
+      postItem(language, src, ast, obj, user, parent, img, label, function (err, result) {
+        let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
+        let codeID = result.rows[0].id;
+        let dataID = 0;
+        let id = encodeID([langID, codeID, dataID]);
         if (err) {
           response.status(400).send(err);
         } else {
           response.json({
-            id: data.rows[0].id,
+            id: id,
           });
         }
       });
