@@ -19823,6 +19823,7 @@ var selfCleaningTimeout = {
 };
 var hashids = new _hashids2.default("Art Compiler LLC"); // This string shall never change!
 function decodeID(id) {
+  // console.log("[1] decodeID() >> " + id);
   // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
   if (id === undefined) {
     id = "0";
@@ -19850,10 +19851,11 @@ function decodeID(id) {
   } else if (ids.length === 2) {
     ids = [0, ids[0], 113, ids[1], 0];
   }
-  console.log("decodeID() " + id + " --> " + JSON.stringify(ids));
+  // console.log("[2] decodeID() << " + JSON.stringify(ids));
   return ids;
 }
 function encodeID(ids, force) {
+  // console.log("[1] encodeID() >> " + JSON.stringify(ids));
   var id = void 0;
   if (ids.length === 1) {
     ids = [0, +ids[0], 0];
@@ -19866,7 +19868,7 @@ function encodeID(ids, force) {
     // If not "form" view, then return raw id.
     id = ids.join("+");
   }
-  console.log("encodeID() " + JSON.stringify(ids) + " --> " + id);
+  // console.log("[2] encodeID() << " + id);
   return id;
 }
 window.gcexports.decodeID = decodeID;

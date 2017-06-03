@@ -90,7 +90,7 @@ app.engine('html', function (templateFile, options, callback) {
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
   // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
-  console.log("[1] decodeID() >> " + id);
+  // console.log("[1] decodeID() >> " + id);
   if (id === undefined) {
     id = "0";
   }
@@ -116,19 +116,19 @@ function decodeID(id) {
   } else if (ids.length === 2) {
     ids = [0, ids[0], 113, ids[1], 0];
   }
-  console.log("[2] decodeID() << " + JSON.stringify(ids));
+  // console.log("[2] decodeID() << " + JSON.stringify(ids));
   return ids;
 }
 
 function encodeID(ids) {
-  console.log("[1] encodeID() >> " + JSON.stringify(ids));
+  // console.log("[1] encodeID() >> " + JSON.stringify(ids));
   if (ids.length === 1) {
     ids = [0, +ids[0], 0];
   } else if (ids.length === 2) {
     ids = [0, +ids[0], 113, +ids[1], 0];
   }
   let id = hashids.encode(ids);
-  console.log("[2] encodeID() << " + id);
+  // console.log("[2] encodeID() << " + id);
   return id;
 }
 
