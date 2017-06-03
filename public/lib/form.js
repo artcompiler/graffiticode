@@ -19813,12 +19813,11 @@ var GraffContent = React.createClass({
         },
         dataType: "json",
         success: function success(data) {
-          // FIXME add to state
           if (itemID) {
             // Wait until we have an itemID to update URL.
             var ids = decodeID(itemID);
             var lastDataID = encodeID(ids.slice(2));
-            var dataID = encodeID([113, data.id, 0]);
+            var dataID = data.id;
             ids = ids.slice(0, 2).concat(decodeID(dataID));
             itemID = encodeID(ids);
             gcexports.id = itemID;
