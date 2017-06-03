@@ -19657,6 +19657,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 window.gcexports.ReactDOM = ReactDOM;
 var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
+
+function assert(b, str) {
+  if (!b) {
+    throw new Error(str);
+  }
+}
+
 var selfCleaningTimeout = {
   componentDidUpdate: function componentDidUpdate() {
     clearTimeout(this.timeoutID);
@@ -19678,31 +19685,42 @@ var selfCleaningTimeout = {
 };
 var hashids = new _hashids2.default("Art Compiler LLC"); // This string shall never change!
 function decodeID(id) {
-  console.log("decodeID() id=" + id);
-  // Return the three parts of an ID. Takes bare and hashed IDs.
-  var ids = void 0;
-  if (!isNaN(+id) || id.split("+").length > 1) {
-    var a = id.split("+");
-    if (a.length === 1) {
-      ids = [0, a[0], 0];
-    } else if (a.length === 2) {
-      ids = [0, a[0], 113, a[1]];
-    } else {
-      ids = a;
-    }
-  } else {
-    ids = hashids.decode(id);
+  // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
+  if (id === undefined) {
+    id = "0";
   }
-  console.log("decodeID() ids=" + ids);
+  assert(typeof id === "string", "Invalid id " + id);
+  id = id.replace(/\+/g, " ");
+  var parts = id.split(" ");
+  var ids = [];
+  for (var i = 0; i < parts.length; i++) {
+    var n = void 0;
+    if (ids.length > 1 && ids[ids.length - 1] === 0) {
+      // If the current prefix ends with zero but is not the first id,
+      // discard that zero.
+      ids.pop();
+    }
+    if (Number.isInteger(n = +parts[i])) {
+      ids.push(n);
+    } else {
+      ids = ids.concat(hashids.decode(parts[i]));
+    }
+  }
+  // Fix short ids.
+  if (ids.length === 1) {
+    ids = [0, ids[0], 0];
+  } else if (ids.length === 2) {
+    ids = [0, ids[0], 113, ids[1], 0];
+  }
+  console.log("decodeID() " + id + " --> " + JSON.stringify(ids));
   return ids;
 }
 function encodeID(ids, force) {
-  console.log("encodeID() ids=" + JSON.stringify(ids));
   var id = void 0;
   if (ids.length === 1) {
     ids = [0, +ids[0], 0];
   } else if (ids.length === 2) {
-    ids = [0, +ids[0], +ids[1]];
+    ids = [0, +ids[0], 113, +ids[1], 0];
   }
   if (force || gcexports.view === "form") {
     id = hashids.encode(ids);
@@ -19710,7 +19728,7 @@ function encodeID(ids, force) {
     // If not "form" view, then return raw id.
     id = ids.join("+");
   }
-  console.log("encodeID() id=" + id);
+  console.log("encodeID() " + JSON.stringify(ids) + " --> " + id);
   return id;
 }
 window.gcexports.decodeID = decodeID;
@@ -19758,6 +19776,10 @@ var GraffContent = React.createClass({
   componentDidMount: function componentDidMount() {
     GraffView.dispatchToken = window.dispatcher.register(this.onChange);
     var itemID = window.gcexports.id;
+    if (!itemID) {
+      // Wait for valid id.
+      return;
+    }
     this.compileCode(itemID);
     var language = window.gcexports.language;
     var history = {
