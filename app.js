@@ -89,37 +89,46 @@ app.engine('html', function (templateFile, options, callback) {
 
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
-  // Return the three parts of an ID. Takes bare and hashed IDs.
-  let ids;
-  id = typeof id === "string" ? id.replace(/\+/g, " ") : "" + id;
-  if (!isNaN(+id) || id.split(" ").length > 1) {
-    let a = id.split(" ");
-    if (a.length === 1) {
-      ids = [0, +a[0], 0];
-    } else if (a.length === 2) {
-      ids = [0, +a[0], +a[1]];
-    } else {
-      ids = a;
+  // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
+  // console.log("[1] decodeID() >> " + id);
+  if (id === undefined) {
+    id = "0";
+  }
+  assert(typeof id === "string", "Invalid id " + id);
+  id = id.replace(/\+/g, " ");
+  let parts = id.split(" ");
+  let ids = [];
+  for (let i = 0; i < parts.length; i++) {
+    let n;
+    if (ids.length > 1 && ids[ids.length - 1] === 0) {
+      // If the current prefix ends with zero, discard that zero.
+      ids.pop();
     }
-  } else {
-    ids = hashids.decode(id);
-    if (ids.length === 0) {
-      ids = [0, 0, 0];
-    } else if (ids.length === 1) {
-      ids = [0, +ids[0], 0];
-    } else if (ids.length === 2) {
-      ids = [0, +ids[0], +ids[1]];
+    if (Number.isInteger(n = +parts[i])) {
+      ids.push(n);
+    } else {
+      ids = ids.concat(hashids.decode(parts[i]));
     }
   }
+  // Fix short ids.
+  if (ids.length === 1) {
+    ids = [0, ids[0], 0];
+  } else if (ids.length === 2) {
+    ids = [0, ids[0], 113, ids[1], 0];
+  }
+  // console.log("[2] decodeID() << " + JSON.stringify(ids));
   return ids;
 }
+
 function encodeID(ids) {
+  // console.log("[1] encodeID() >> " + JSON.stringify(ids));
   if (ids.length === 1) {
     ids = [0, +ids[0], 0];
   } else if (ids.length === 2) {
-    ids = [0, +ids[0], +ids[1]];
+    ids = [0, +ids[0], 113, +ids[1], 0];
   }
   let id = hashids.encode(ids);
+  // console.log("[2] encodeID() << " + id);
   return id;
 }
 
