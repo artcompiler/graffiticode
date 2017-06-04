@@ -89,8 +89,8 @@ app.engine('html', function (templateFile, options, callback) {
 
 let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
 function decodeID(id) {
-  // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
   // console.log("[1] decodeID() >> " + id);
+  // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
   if (id === undefined) {
     id = "0";
   }
@@ -98,11 +98,14 @@ function decodeID(id) {
   id = id.replace(/\+/g, " ");
   let parts = id.split(" ");
   let ids = [];
+  // Concatenate the first two integer ids and the last hash id. Everything
+  // else gets erased.
   for (let i = 0; i < parts.length; i++) {
     let n;
-    if (ids.length > 1 && ids[ids.length - 1] === 0) {
-      // If the current prefix ends with zero, discard that zero.
-      ids.pop();
+    if (ids.length > 2) {
+      // Found the head, now skip to the last part to get the tail.
+      ids = ids.slice(0, 2);
+      i = parts.length - 1;
     }
     if (Number.isInteger(n = +parts[i])) {
       ids.push(n);
@@ -115,11 +118,12 @@ function decodeID(id) {
     ids = [0, ids[0], 0];
   } else if (ids.length === 2) {
     ids = [0, ids[0], 113, ids[1], 0];
+  } else if (ids.length === 3 && ids[2] !== 0) {
+    ids = [ids[0], ids[1], 113, ids[2], 0];
   }
   // console.log("[2] decodeID() << " + JSON.stringify(ids));
   return ids;
 }
-
 function encodeID(ids) {
   // console.log("[1] encodeID() >> " + JSON.stringify(ids));
   if (ids.length === 1) {
@@ -216,7 +220,7 @@ app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
   if (hasEditingRights) {
     var ids = decodeID(req.query.id);
-    console.log("GET /item?id=" + ids.join("+"));
+    console.log("GET /item?id=" + ids.join("+") + " (" + req.query.id + ")");
     var langID = ids[0];
     var codeID = ids[1];
     if (+langID !== 0) {
@@ -225,7 +229,7 @@ app.get('/item', function(req, res) {
         res.render('views.html', {
           title: 'Graffiti Code',
           language: lang,
-          item: ids.join("+"),
+          item: encodeID(ids),
           view: "item",
           version: version,
         }, function (error, html) {
@@ -245,7 +249,7 @@ app.get('/item', function(req, res) {
           res.render('views.html', {
             title: 'Graffiti Code',
             language: lang,
-            item: ids.join("+"),
+            item: encodeID(ids),
             view: "item",
             version: version,
           }, function (error, html) {
@@ -417,7 +421,7 @@ app.get('/lang', function(req, res) {
 
 app.get('/form', function(req, res) {
   let ids = decodeID(req.query.id);
-  console.log("GET /form?id=" + ids.join("+"));
+  console.log("GET /form?id=" + ids.join("+") + " (" + req.query.id + ")");
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
@@ -468,7 +472,7 @@ app.get('/form', function(req, res) {
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
   let ids = decodeID(req.query.id);
-  console.log("GET /data?id=" + ids.join("+"));
+  console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ")");
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
@@ -489,7 +493,7 @@ app.get('/data', function(req, res) {
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   var ids = decodeID(req.query.id);
-  console.log("GET /code?id=" + ids.join("+"));
+  console.log("GET /code?id=" + ids.join("+") + " (" + req.query.id + ")");
   var langID = ids[0];
   var codeID = ids[1];
   getItem(codeID, (err, row) => {
