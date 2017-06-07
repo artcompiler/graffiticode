@@ -219,7 +219,7 @@ app.get('/items/src', function(req, res) {
 });
 
 app.get('/item', function(req, res) {
-  const hasEditingRights = false;   // Compute based on authorization.
+  const hasEditingRights = true;   // Compute based on authorization.
   if (hasEditingRights) {
     var ids = decodeID(req.query.id);
     console.log("GET /item?id=" + ids.join("+") + " (" + req.query.id + ")");
