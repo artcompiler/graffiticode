@@ -19894,6 +19894,8 @@ var GraffContent = React.createClass({
         var itemID = encodeID(ids, true);
         d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
           if (dataID && +dataID !== 0) {
+            // This is the magic where we collapse the "tail" into a JSON object.
+            // Next this JSON object gets interned as static data (in L113).
             d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
               dispatcher.dispatch({
                 id: itemID,
