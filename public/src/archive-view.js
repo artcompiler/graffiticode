@@ -1,6 +1,5 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-import Dispatcher from "./Dispatcher";
 import * as React from "react";
 var selfCleaningTimeout = {
   componentDidUpdate: function() {
@@ -15,7 +14,7 @@ var ArchiveContent = React.createClass({
   componentWillUnmount: function() {
   },
   componentDidMount: function() {
-    ArchiveView.dispatchToken = window.dispatcher.register(this.onChange);
+    ArchiveView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     this.isDirty = false;
   },
   componentDidUpdate: function() {

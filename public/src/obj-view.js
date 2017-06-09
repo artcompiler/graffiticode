@@ -1,7 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-import Dispatcher from "./Dispatcher.js";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
@@ -36,7 +35,7 @@ var CodeMirrorEditor = React.createClass({
       viewportMargin: Infinity,
       extraKeys: {"Ctrl-Space": "autocomplete"},
     });
-    CodeMirrorEditor.dispatchToken = window.dispatcher.register(this.onChange);
+    CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
   },
   componentDidUpdate: function() {
     if (this.props.readOnly) {

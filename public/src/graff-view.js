@@ -1,4 +1,3 @@
-import Dispatcher from "./Dispatcher";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import Hashids from "hashids";
@@ -79,6 +78,17 @@ function encodeID(ids) {
 window.gcexports.decodeID = decodeID;
 window.gcexports.encodeID = encodeID;
 
+let dispatch = (obj => {
+  window.gcexports.dispatcher.dispatch(obj);
+  // if (window.parent && window.parent.gcexports) {
+  //   window.parent.gcexports.dispatcher.dispatch({
+  //     data: {
+  //       child: obj
+  //     }
+  //   });
+  // }
+});
+
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
@@ -96,18 +106,21 @@ var GraffContent = React.createClass({
     if (codeID) {
       let itemID = encodeID(ids, true);
       d3.json(location.origin + "/data?id=" + itemID, (err, obj) => {
+        let lang = "L" + langID;
         if (dataID && +dataID !== 0) {
           // This is the magic where we collapse the "tail" into a JSON object.
           // Next this JSON object gets interned as static data (in L113).
           d3.json(location.origin + "/data?id=" + encodeID(dataID, true), (err, data) => {
-            dispatcher.dispatch({
+            dispatch({
+              lang: lang,
               id: itemID,
               obj: obj,
               data: data,
             });
           });
         } else {
-          dispatcher.dispatch({
+          dispatch({
+            lang: lang,
             id: itemID,
             obj: obj,
             data: {}, // Clear state
@@ -117,7 +130,7 @@ var GraffContent = React.createClass({
     }
   },
   componentDidMount: function() {
-    GraffView.dispatchToken = window.dispatcher.register(this.onChange);
+    GraffView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     let itemID = window.gcexports.id;
     if (!itemID) {
       // Wait for valid id.

@@ -19623,7 +19623,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-window.dispatcher = new _Dispatcher2.default();
+// This is the one and only dispatcher. It is used by embedded views as well.
+window.gcexports.dispatcher = window.gcexports.dispatcher ? window.gcexports.dispatcher : new _Dispatcher2.default();
 ReactDOM.render(React.createElement(_graffView2.default, null), document.getElementById('graff-view'));
 
 },{"./Dispatcher":160,"./graff-view":162,"react":158,"react-dom":29}],162:[function(require,module,exports){
@@ -19634,10 +19635,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _Dispatcher = require("./Dispatcher");
-
-var _Dispatcher2 = _interopRequireDefault(_Dispatcher);
 
 var _react = require("react");
 
@@ -19651,9 +19648,9 @@ var _hashids = require("hashids");
 
 var _hashids2 = _interopRequireDefault(_hashids);
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 window.gcexports.ReactDOM = ReactDOM;
 var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
@@ -19734,6 +19731,17 @@ function encodeID(ids) {
 window.gcexports.decodeID = decodeID;
 window.gcexports.encodeID = encodeID;
 
+var dispatch = function dispatch(obj) {
+  window.gcexports.dispatcher.dispatch(obj);
+  // if (window.parent && window.parent.gcexports) {
+  //   window.parent.gcexports.dispatcher.dispatch({
+  //     data: {
+  //       child: obj
+  //     }
+  //   });
+  // }
+};
+
 var GraffContent = React.createClass({
   displayName: "GraffContent",
 
@@ -19755,18 +19763,21 @@ var GraffContent = React.createClass({
       (function () {
         var itemID = encodeID(ids, true);
         d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
+          var lang = "L" + langID;
           if (dataID && +dataID !== 0) {
             // This is the magic where we collapse the "tail" into a JSON object.
             // Next this JSON object gets interned as static data (in L113).
             d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
-              dispatcher.dispatch({
+              dispatch({
+                lang: lang,
                 id: itemID,
                 obj: obj,
                 data: data
               });
             });
           } else {
-            dispatcher.dispatch({
+            dispatch({
+              lang: lang,
               id: itemID,
               obj: obj,
               data: {} });
@@ -19776,7 +19787,7 @@ var GraffContent = React.createClass({
     }
   },
   componentDidMount: function componentDidMount() {
-    GraffView.dispatchToken = window.dispatcher.register(this.onChange);
+    GraffView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     var itemID = window.gcexports.id;
     if (!itemID) {
       // Wait for valid id.
@@ -19912,7 +19923,7 @@ var GraffView = React.createClass({
 });
 exports.default = GraffView;
 
-},{"./Dispatcher":160,"hashids":28,"react":158,"react-dom":29}],163:[function(require,module,exports){
+},{"hashids":28,"react":158,"react-dom":29}],163:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
