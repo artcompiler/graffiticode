@@ -1,6 +1,5 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-import Dispatcher from "./Dispatcher";
 import * as React from "react";
 import GraffView from "./graff-view";
 var IS_MOBILE = (
@@ -61,14 +60,14 @@ var ToolContent = React.createClass({
   },
   componentDidMount: function() {
     var el = React.findDOMNode(this);
-    ToolView.dispatchToken = window.dispatcher.register(this.onChange);
+    ToolView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     d3.select(el).select("#save").on("click", this.onClick);
   },
   componentDidUpdate: function() {
   },
   onChange: function (data) {
     return;
-    window.dispatcher.waitFor([GraffView.dispatchToken]);
+    window.gcexports.dispatcher.waitFor([GraffView.dispatchToken]);
     var el = React.findDOMNode(this);
     if (data.id) {
       $.get(location.origin + "/label/" + state.item, function (data) {

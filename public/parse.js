@@ -1659,7 +1659,6 @@ window.gcexports.parser = (function () {
 
   function compileCode(ast, postCode) {
     lastAST = ast;
-    var dispatcher = window.dispatcher;
     ast = JSON.stringify(ast);
     var src = window.gcexports.editor.getValue();
     // HACK need general support for unicode.
@@ -1705,7 +1704,7 @@ window.gcexports.parser = (function () {
           let itemID = gcexports.encodeID(ids);
           gcexports.id = itemID;
           window.history.pushState(itemID, window.gcexports.language, "/" + window.gcexports.view + "?id=" + itemID);
-          dispatcher.dispatch({
+          window.gcexports.dispatcher.dispatch({
             id: itemID,
             src: src,
             obj: obj,
