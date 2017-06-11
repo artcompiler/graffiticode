@@ -112,16 +112,12 @@ var GraffContent = React.createClass({
           // Next this JSON object gets interned as static data (in L113).
           d3.json(location.origin + "/data?id=" + encodeID(dataID, true), (err, data) => {
             dispatch({
-              lang: lang,
-              id: itemID,
               obj: obj,
               data: data,
             });
           });
         } else {
           dispatch({
-            lang: lang,
-            id: itemID,
             obj: obj,
             data: {}, // Clear state
           });

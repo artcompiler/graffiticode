@@ -19760,30 +19760,24 @@ var GraffContent = React.createClass({
     }
     this.state.recompileCode = false;
     if (codeID) {
-      (function () {
-        var itemID = encodeID(ids, true);
-        d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
-          var lang = "L" + langID;
-          if (dataID && +dataID !== 0) {
-            // This is the magic where we collapse the "tail" into a JSON object.
-            // Next this JSON object gets interned as static data (in L113).
-            d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
-              dispatch({
-                lang: lang,
-                id: itemID,
-                obj: obj,
-                data: data
-              });
-            });
-          } else {
+      var _itemID = encodeID(ids, true);
+      d3.json(location.origin + "/data?id=" + _itemID, function (err, obj) {
+        var lang = "L" + langID;
+        if (dataID && +dataID !== 0) {
+          // This is the magic where we collapse the "tail" into a JSON object.
+          // Next this JSON object gets interned as static data (in L113).
+          d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
             dispatch({
-              lang: lang,
-              id: itemID,
               obj: obj,
-              data: {} });
-          }
-        });
-      })();
+              data: data
+            });
+          });
+        } else {
+          dispatch({
+            obj: obj,
+            data: {} });
+        }
+      });
     }
   },
   componentDidMount: function componentDidMount() {
