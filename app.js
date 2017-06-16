@@ -697,6 +697,13 @@ function compileID(id, resume) {
                 comp(lang, code, data, (err, obj) => {
                   setCache(id, obj);
                   resume(err, obj);
+                  if (ids[2] === 0) {
+                    // If not data, then save the object code.
+                    getItem(ids[1], (err, item) => {
+                      updateItem(ids[1], lang, item.src, code, JSON.stringify(obj), item.user,
+                                 item.parent, item.img, item.label, (err) => {});
+                    }
+                  });
                 });
               }
             });
