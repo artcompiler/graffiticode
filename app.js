@@ -163,7 +163,7 @@ app.get('/pieces/:lang', function (req, res) {
       likeStr += ") AND ";
     }
   }
-  queryString = "SELECT id FROM pieces WHERE language='" + lang +
+  queryString = "SELECT id, created FROM pieces WHERE language='" + lang +
     "' AND " + likeStr +
     "label = '" + label + "' ORDER BY id DESC";
   dbQuery(queryString, function (err, result) {
@@ -1014,7 +1014,7 @@ app.get("/:lang/*", function (req, res) {
 });
 
 function getCompilerHost(language) {
-  if (port === 3000) {
+  if (false && port === 3000) {
     return "localhost";
   } else {
     return language + ".artcompiler.com";
@@ -1022,7 +1022,7 @@ function getCompilerHost(language) {
 }
 
 function getCompilerPort(language) {
-  if (port === 3000) {
+  if (false && port === 3000) {
     return "5" + language.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";

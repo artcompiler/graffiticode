@@ -2,16 +2,6 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import Hashids from "hashids";
 window.gcexports.ReactDOM = ReactDOM;
-var IS_MOBILE = (
-  navigator.userAgent.match(/Android/i)
-    || navigator.userAgent.match(/webOS/i)
-    || navigator.userAgent.match(/iPhone/i)
-    || navigator.userAgent.match(/iPad/i)
-    || navigator.userAgent.match(/iPod/i)
-    || navigator.userAgent.match(/BlackBerry/i)
-    || navigator.userAgent.match(/Windows Phone/i)
-);
-
 function assert(b, str) {
   if (!b) {
     throw new Error(str);

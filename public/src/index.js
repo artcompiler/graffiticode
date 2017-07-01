@@ -15,6 +15,10 @@ window.gcexports.dispatcher = window.gcexports.dispatcher
 //  document.getElementById('tool-view')
 //);
 ReactDOM.render(
+ React.createElement(ArchiveView, null),
+ document.getElementById('archive-view')
+);
+ReactDOM.render(
   React.createElement(SourceView, null),
   document.getElementById('src-view')
 );
@@ -26,7 +30,3 @@ ReactDOM.render(
   React.createElement(ObjectView, null),
   document.getElementById('obj-view')
 );
-//ReactDOM.render(
-//  React.createElement(ArchiveView, null),
-//  document.getElementById('archive-view')
-//);
