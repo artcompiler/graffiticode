@@ -57,7 +57,9 @@ var ArchiveContent = React.createClass({
 
       var rect = svg.append("g")
         .attr("fill", "none")
-        .attr("stroke", "#ccc")
+        .attr("stroke", (d) => {
+          return "#ccc"
+        })
         .selectAll("rect")
         .data(function(d) { return d3.timeDays(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
         .enter().append("rect")
@@ -82,6 +84,10 @@ var ArchiveContent = React.createClass({
 
       rect
         .filter(function(d) { return d in data; })
+        .attr("id", (d) => {
+          let id = "ID" + d.split("-").join("");
+          return id;
+        })
         .attr("fill", function(d) {
           let c = color(data[d].length);
           return c;
@@ -91,6 +97,7 @@ var ArchiveContent = React.createClass({
         .text(function(d) {
           return d + ": " + data[d].length + " items";
         });
+
       var buttons = d3.select("#archive-view")
         .selectAll("div.buttons").data([1])
         .enter().append("div")
@@ -109,7 +116,20 @@ var ArchiveContent = React.createClass({
         .on("click", handleButtonClick)
         .text("NEXT");
 
+      let prevElt, prevFill;
+      function highlightCell(id) {
+        if (prevElt) {
+          prevElt.attr("fill", prevFill);
+        }
+        let elt = d3.select("#ID" + id.split("-").join(""));
+        let fill = elt.attr("fill");
+        elt.attr("fill", "#F00");
+        prevElt = elt;
+        prevFill = fill;
+      }
+
       function handleCalendarClick(e) {
+        highlightCell(e);
         index = data[e][data[e].length - 1].index;
         d3.select("#counter").text((index + 1) + " of " + items.length);
         let language = window.gcexports.language;
@@ -151,6 +171,8 @@ var ArchiveContent = React.createClass({
           view: gcexports.view,
         };
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+        let id = item.date;
+        highlightCell(id);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -163,6 +185,7 @@ var ArchiveContent = React.createClass({
           + "H" + (w0 + 1) * cellSize + "Z";
       }
 
+      highlightCell(items[index].date);
     });
 
     // get a list of piece ids that match a search criterial

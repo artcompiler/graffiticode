@@ -27177,7 +27177,9 @@ var ArchiveContent = React.createClass({
         return d;
       });
 
-      var rect = svg.append("g").attr("fill", "none").attr("stroke", "#ccc").selectAll("rect").data(function (d) {
+      var rect = svg.append("g").attr("fill", "none").attr("stroke", function (d) {
+        return "#ccc";
+      }).selectAll("rect").data(function (d) {
         return d3.timeDays(new Date(d, 0, 1), new Date(d + 1, 0, 1));
       }).enter().append("rect").attr("width", cellSize).attr("height", cellSize).attr("x", function (d) {
         return d3.timeWeek.count(d3.timeYear(d), d) * cellSize;
@@ -27197,12 +27199,16 @@ var ArchiveContent = React.createClass({
 
       rect.filter(function (d) {
         return d in data;
+      }).attr("id", function (d) {
+        var id = "ID" + d.split("-").join("");
+        return id;
       }).attr("fill", function (d) {
         var c = color(data[d].length);
         return c;
       }).on("click", handleCalendarClick).append("title").text(function (d) {
         return d + ": " + data[d].length + " items";
       });
+
       var buttons = d3.select("#archive-view").selectAll("div.buttons").data([1]).enter().append("div").attr("class", "buttons").style("margin", "10 50");
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .on("click", handleButtonClick).text("PREV");
@@ -27210,7 +27216,21 @@ var ArchiveContent = React.createClass({
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .on("click", handleButtonClick).text("NEXT");
 
+      var prevElt = void 0,
+          prevFill = void 0;
+      function highlightCell(id) {
+        if (prevElt) {
+          prevElt.attr("fill", prevFill);
+        }
+        var elt = d3.select("#ID" + id.split("-").join(""));
+        var fill = elt.attr("fill");
+        elt.attr("fill", "#F00");
+        prevElt = elt;
+        prevFill = fill;
+      }
+
       function handleCalendarClick(e) {
+        highlightCell(e);
         index = data[e][data[e].length - 1].index;
         d3.select("#counter").text(index + 1 + " of " + items.length);
         var language = window.gcexports.language;
@@ -27252,6 +27272,8 @@ var ArchiveContent = React.createClass({
           view: gcexports.view
         };
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+        var id = item.date;
+        highlightCell(id);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -27261,6 +27283,8 @@ var ArchiveContent = React.createClass({
             w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
         return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize + "H" + w0 * cellSize + "V" + 7 * cellSize + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize + "H" + (w1 + 1) * cellSize + "V" + 0 + "H" + (w0 + 1) * cellSize + "Z";
       }
+
+      highlightCell(items[index].date);
     });
 
     // get a list of piece ids that match a search criterial
