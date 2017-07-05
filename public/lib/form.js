@@ -19882,7 +19882,7 @@ var GraffContent = React.createClass({
       if (this.state && this.state.obj) {
         var obj = this.state.obj;
         var data = this.state.data;
-        return React.createElement(Viewer, _extends({ className: "viewer", obj: obj, data: data }, data));
+        return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: obj, data: data }, data));
       } else {
         return React.createElement("div", null);
       }

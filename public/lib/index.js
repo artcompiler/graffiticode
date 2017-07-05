@@ -27117,6 +27117,10 @@ var _react = require("react");
 
 var React = _interopRequireWildcard(_react);
 
+var _reactDom = require("react-dom");
+
+var ReactDOM = _interopRequireWildcard(_reactDom);
+
 var _d3V4Min = require("../d3.v4.min.js");
 
 var d3 = _interopRequireWildcard(_d3V4Min);
@@ -27152,22 +27156,24 @@ var ArchiveContent = React.createClass({
   componentDidMount: function componentDidMount() {
     ArchiveView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     this.isDirty = false;
-    queryPieces(function (err, items) {
+  },
+  componentDidUpdate: function componentDidUpdate() {
+    if (!this.state || !this.state.data || !this.state.data.views || !this.state.data.views.archive) {
+      return;
+    }
+    getItems(function (err, items) {
+      var index = items.length - 1;
       var width = 960,
-          height = 136,
-          cellSize = 12;
-
+          cellSize = 15,
+          height = 7 * cellSize + 20;
       var formatPercent = d3.format(".1%");
+      var color = d3.scaleQuantize().domain([0, 100]).range(['#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#006837', '#004529']);
+      var startYear = +items[0].date.substring(0, 4);
+      var stopYear = +items[items.length - 1].date.substring(0, 4) + 1;
 
-      var color = d3.scaleQuantize().domain([-0.05, 0.05]).range(["#a50026", "#d73027", "#f46d43", "#fdae61", "#fee08b", "#ffffbf", "#d9ef8b", "#a6d96a", "#66bd63", "#1a9850", "#006837"]);
+      var svg = d3.select("#archive-view").selectAll("svg").data(d3.range(startYear, stopYear)).enter().append("svg").attr("width", width).attr("height", height).append("g").attr("transform", "translate(" + 50 + "," + (height - cellSize * 7 - 11) + ")");
 
-      var startYear = +items[items.length - 1].date.substring(0, 4);
-      //let startYear = +items[0].date.substring(0,4);
-      var stopYear = +items[0].date.substring(0, 4) + 1;
-
-      var svg = d3.select("#archive-view").selectAll("svg").data(d3.range(startYear, stopYear)).enter().append("svg").attr("width", width).attr("height", height).append("g").attr("transform", "translate(" + (width - cellSize * 53) / 2 + "," + (height - cellSize * 7 - 1) + ")");
-
-      svg.append("text").attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)").attr("font-family", "sans-serif").attr("font-size", 10).attr("text-anchor", "middle").text(function (d) {
+      svg.append("text").attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)").attr("font-family", "sans-serif").attr("font-size", 12).attr("text-anchor", "middle").text(function (d) {
         return d;
       });
 
@@ -27192,30 +27198,61 @@ var ArchiveContent = React.createClass({
       rect.filter(function (d) {
         return d in data;
       }).attr("fill", function (d) {
-        return color(data[d].length / 5000);
-      }).on("click", clickHandler).append("title").text(function (d) {
-        return d + ": " + data[d].length;
+        var c = color(data[d].length);
+        return c;
+      }).on("click", handleCalendarClick).append("title").text(function (d) {
+        return d + ": " + data[d].length + " items";
       });
+      var buttons = d3.select("#archive-view").selectAll("div.buttons").data([1]).enter().append("div").attr("class", "buttons").style("margin", "10 50");
+      buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
+      .on("click", handleButtonClick).text("PREV");
+      buttons.append("span").attr("id", "counter").style("margin", "20").text(items.length + " of " + items.length);
+      buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
+      .on("click", handleButtonClick).text("NEXT");
 
-      function clickHandler(e) {
+      function handleCalendarClick(e) {
+        index = data[e][data[e].length - 1].index;
+        d3.select("#counter").text(index + 1 + " of " + items.length);
         var language = window.gcexports.language;
         var langID = +language.substring(1);
         var codeID = +data[e][0].id;
         var dataID = 0;
         var itemID = window.gcexports.encodeID([langID, codeID, dataID]);
-        // dispatch({
-        //   id: itemID,
-        //   data: {},
-        // });
-        // let history = {
-        //   language: language,
-        //   view: gcexports.view,
-        //   itemID: itemID,
-        // };
-        // window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
-        window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        $.get(location.origin + "/code?id=" + itemID, function (data) {
+          window.gcexports.updateSrc(itemID, data.src);
+        });
+        var history = {
+          language: language,
+          view: gcexports.view
+        };
+        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
       }
 
+      function handleButtonClick(e) {
+        var name = d3.select(this).text();
+        if (name === "NEXT") {
+          index = index < items.length - 1 ? index + 1 : 0;
+        } else {
+          index = index > 0 ? index - 1 : items.length - 1;
+        }
+        d3.select("#counter").text(index + 1 + " of " + items.length);
+        var item = items[index];
+        var language = window.gcexports.language;
+        var langID = +language.substring(1);
+        var codeID = +item.id;
+        var dataID = 0;
+        var itemID = window.gcexports.encodeID([langID, codeID, dataID]);
+        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        $.get(location.origin + "/code?id=" + itemID, function (data) {
+          window.gcexports.updateSrc(itemID, data.src);
+        });
+        var history = {
+          language: language,
+          view: gcexports.view
+        };
+        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+      }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
             d0 = t0.getDay(),
@@ -27228,79 +27265,23 @@ var ArchiveContent = React.createClass({
 
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
-    function queryPieces(resume) {
+    function getItems(resume) {
       $.ajax({
         type: "GET",
         url: "/pieces/" + window.gcexports.language,
         data: {},
         dataType: "json",
         success: function success(data) {
-          var pieces = [];
+          var items = [];
+          data = data.reverse(); // Make ascending.
           for (var i = 0; i < data.length; i++) {
-            pieces[i] = {
+            items[i] = {
+              index: i,
               date: data[i].created.substring(0, 10),
               id: data[i].id
             };
           }
-          resume(null, pieces);
-        },
-        error: function error(xhr, msg, err) {
-          console.log(msg + " " + err);
-        }
-      });
-    }
-  },
-  componentDidUpdate: function componentDidUpdate() {
-    var viewer = window.gcexports.viewer;
-    var el = React.findDOMNode(this);
-    function loadItems(list, data, resume) {
-      var sublist = list.slice(0, ITEM_COUNT);
-      $.ajax({
-        type: "GET",
-        url: "/code",
-        data: { list: sublist },
-        dataType: "json",
-        success: function success(dd) {
-          for (var i = 0; i < dd.length; i++) {
-            data.push(dd[i]);
-          }
-          list = list.slice(ITEM_COUNT);
-          if (list.length > 0) {
-            loadItems(list, data, resume);
-          } else {
-            resume(data);
-          }
-        },
-        error: function error(xhr, msg, err) {
-          console.log(msg + " " + err);
-        }
-      });
-    }
-    function addItem(obj, src, pool) {
-      //      viewer.update(el, obj, src, pool);
-    }
-    function loadMoreThumbnails(firstLoad) {
-      var start = window.gcexports.nextThumbnail;
-      var end = window.gcexports.nextThumbnail = start + (firstLoad ? 50 : 2);
-      var len = window.gcexports.pieces.length;
-      if (start >= len || window.gcexports.currentThumbnail >= len) {
-        return;
-      }
-      if (end > len) {
-        end = len;
-      }
-      var list = window.gcexports.pieces.slice(start, end);
-      $.ajax({
-        type: "GET",
-        url: "/code",
-        data: { list: list },
-        dataType: "json",
-        success: function success(data) {
-          for (var i = 0; i < data.length; i++) {
-            var d = data[i];
-            window.gcexports.currentThumbnail = start + i; // keep track of the current thumbnail in case of async
-            addItem(d.obj, d.src);
-          }
+          resume(null, items);
         },
         error: function error(xhr, msg, err) {
           console.log(msg + " " + err);
@@ -27312,13 +27293,7 @@ var ArchiveContent = React.createClass({
     this.replaceState(data);
   },
   render: function render() {
-    return React.createElement("div", null)
-    // <svg height="0" width="100%" style={{background: "white"}}>
-    //   <g>
-    //     <rect width="100%" height="100%" fill="white"/>
-    //   </g>
-    // </svg>
-    ;
+    return React.createElement("div", null);
   }
 });
 var ArchiveView = React.createClass({
@@ -27341,7 +27316,7 @@ var ArchiveView = React.createClass({
 });
 exports.default = ArchiveView;
 
-},{"../d3.v4.min.js":159,"react":158}],163:[function(require,module,exports){
+},{"../d3.v4.min.js":159,"react":158,"react-dom":29}],163:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -27596,7 +27571,7 @@ var GraffContent = React.createClass({
       if (this.state && this.state.obj) {
         var obj = this.state.obj;
         var data = this.state.data;
-        return React.createElement(Viewer, _extends({ className: "viewer", obj: obj, data: data }, data));
+        return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: obj, data: data }, data));
       } else {
         return React.createElement("div", null);
       }
@@ -27962,7 +27937,7 @@ var CodeMirrorEditor = React.createClass({
         });
       })();
     }
-    function updateSrc(id, src) {
+    var updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
       window.gcexports.parent = window.gcexports.id;
       window.gcexports.id = id;
       if (src) {

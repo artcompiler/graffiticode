@@ -218,7 +218,7 @@ var GraffContent = React.createClass({
         var obj = this.state.obj;
         var data = this.state.data;
         return (
-          <Viewer className="viewer" obj={obj} data={data} {...data} />
+          <Viewer id="graff-view" className="viewer" obj={obj} data={data} {...data} />
         );
       } else {
         return <div/>;

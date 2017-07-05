@@ -31,10 +31,16 @@ var Hashids = require("hashids");
 
 // Configuration
 
-pg.defaults.ssl = true;
+const LOCAL_COMPILES = false;
+const LOCAL_DATABASE = false;
+
+if (LOCAL_DATABASE) {
+  pg.defaults.ssl = false;
+} else {
+  pg.defaults.ssl = true;
+}
 let conStrs = [
-//  process.env.DATABASE_URL_LOCAL,
-  process.env.DATABASE_URL,
+  LOCAL_DATABASE ? process.env.DATABASE_URL_LOCAL : process.env.DATABASE_URL,
 ];
 
 function getConStr(id) {
@@ -1014,7 +1020,7 @@ app.get("/:lang/*", function (req, res) {
 });
 
 function getCompilerHost(language) {
-  if (false && port === 3000) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
     return language + ".artcompiler.com";
@@ -1022,7 +1028,7 @@ function getCompilerHost(language) {
 }
 
 function getCompilerPort(language) {
-  if (false && port === 3000) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "5" + language.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
