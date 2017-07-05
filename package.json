@@ -5,6 +5,7 @@
     "body-parser": "latest",
     "connect-timeout": "latest",
     "cookie-parser": "latest",
+    "d3": "^4.9.1",
     "errorhandler": "latest",
     "express": "4.14.0",
     "express-session": "1.14.2",

@@ -31,10 +31,16 @@ var Hashids = require("hashids");
 
 // Configuration
 
-pg.defaults.ssl = true;
+const LOCAL_COMPILES = false;
+const LOCAL_DATABASE = false;
+
+if (LOCAL_DATABASE) {
+  pg.defaults.ssl = false;
+} else {
+  pg.defaults.ssl = true;
+}
 let conStrs = [
-//  process.env.DATABASE_URL_LOCAL,
-  process.env.DATABASE_URL,
+  LOCAL_DATABASE ? process.env.DATABASE_URL_LOCAL : process.env.DATABASE_URL,
 ];
 
 function getConStr(id) {
@@ -165,7 +171,7 @@ app.get('/pieces/:lang', function (req, res) {
       likeStr += ") AND ";
     }
   }
-  queryString = "SELECT id FROM pieces WHERE language='" + lang +
+  queryString = "SELECT id, created FROM pieces WHERE language='" + lang +
     "' AND " + likeStr +
     "label = '" + label + "' ORDER BY id DESC";
   dbQuery(queryString, function (err, result) {
@@ -675,6 +681,7 @@ function compileID(id, resume) {
   } else {
     getCache(id, (err, val) => {
       if (val) {
+        // Got cached value. We're done.
         resume(err, val);
       } else {
         let ids = decodeID(id);
@@ -699,6 +706,13 @@ function compileID(id, resume) {
                 comp(lang, code, data, (err, obj) => {
                   setCache(id, obj);
                   resume(err, obj);
+                  if (Object.keys(data).length === 0) {
+                    // If data is an empty object/array, update obj for code.
+                    getItem(ids[1], (err, item) => {
+                      updateItem(ids[1], lang, item.src, code, JSON.stringify(obj), item.user,
+                                 item.parent, item.img, item.label, (err) => {});
+                    });
+                  }
                 });
               }
             });
@@ -1008,7 +1022,7 @@ app.get("/:lang/*", function (req, res) {
 });
 
 function getCompilerHost(language) {
-  if (port === 3002) {
+  if (LOCAL_COMPILES && port === 3002) {
     return "localhost";
   } else {
     return language + ".artcompiler.com";
@@ -1016,7 +1030,7 @@ function getCompilerHost(language) {
 }
 
 function getCompilerPort(language) {
-  if (port === 3002) {
+  if (LOCAL_COMPILES && port === 3002) {
     return "5" + language.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";

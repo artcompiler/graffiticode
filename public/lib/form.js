@@ -19653,8 +19653,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 window.gcexports.ReactDOM = ReactDOM;
-var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
-
 function assert(b, str) {
   if (!b) {
     throw new Error(str);
@@ -19884,7 +19882,7 @@ var GraffContent = React.createClass({
       if (this.state && this.state.obj) {
         var obj = this.state.obj;
         var data = this.state.data;
-        return React.createElement(Viewer, _extends({ className: "viewer", obj: obj, data: data }, data));
+        return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: obj, data: data }, data));
       } else {
         return React.createElement("div", null);
       }

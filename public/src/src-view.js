@@ -69,7 +69,7 @@ var CodeMirrorEditor = React.createClass({
         }
       });
     }
-    function updateSrc(id, src) {
+    let updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
       window.gcexports.parent = window.gcexports.id;
       window.gcexports.id = id;
       if (src) {

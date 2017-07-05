@@ -1,6 +1,6 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 import * as React from "react";
+import * as ReactDOM from "react-dom";
+import * as d3 from "../d3.v4.min.js";
 var selfCleaningTimeout = {
   componentDidUpdate: function() {
     clearTimeout(this.timeoutID);
@@ -10,6 +10,9 @@ var selfCleaningTimeout = {
     this.timeoutID = setTimeout.apply(null, arguments);
   },
 };
+let dispatch = (obj => {
+  window.gcexports.dispatcher.dispatch(obj);
+});
 var ArchiveContent = React.createClass({
   componentWillUnmount: function() {
   },
@@ -18,82 +21,195 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function() {
-    var viewer = window.gcexports.viewer;
-    var el = React.findDOMNode(this);
-    queryPieces();
+    if (!this.state ||
+        !this.state.data ||
+        !this.state.data.views ||
+        !this.state.data.views.archive) {
+      return;
+    }
+    getItems((err, items) => {
+      let index = items.length - 1;
+      var width = 960,
+          cellSize = 15,
+          height = 7 * cellSize + 20;
+      var formatPercent = d3.format(".1%");
+      var color = d3.scaleQuantize()
+        .domain([0, 100])
+        .range(['#f7fcb9','#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529']);
+      let startYear = +items[0].date.substring(0,4);
+      let stopYear = +items[items.length - 1].date.substring(0,4) + 1;
+
+      var svg = d3.select("#archive-view")
+        .selectAll("svg")
+        .data(d3.range(startYear, stopYear))
+        .enter().append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", "translate(" + 50 + "," + (height - cellSize * 7 - 11) + ")");
+
+      svg.append("text")
+        .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 12)
+        .attr("text-anchor", "middle")
+        .text(function(d) { return d; });
+
+      var rect = svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke", (d) => {
+          return "#ccc"
+        })
+        .selectAll("rect")
+        .data(function(d) { return d3.timeDays(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+        .enter().append("rect")
+        .attr("width", cellSize)
+        .attr("height", cellSize)
+        .attr("x", function(d) { return d3.timeWeek.count(d3.timeYear(d), d) * cellSize; })
+        .attr("y", function(d) { return d.getDay() * cellSize; })
+        .datum(d3.timeFormat("%Y-%m-%d"));
+
+      svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke", "#777")
+        .selectAll("path")
+        .data(function(d) { return d3.timeMonths(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+        .enter().append("path")
+        .attr("d", pathMonth);
+
+      var data = d3.nest()
+        .key(function(d) { return d.date; })
+        .rollup(function(d) { return d; })
+        .object(items);
+
+      rect
+        .filter(function(d) { return d in data; })
+        .attr("id", (d) => {
+          let id = "ID" + d.split("-").join("");
+          return id;
+        })
+        .attr("fill", function(d) {
+          let c = color(data[d].length);
+          return c;
+        })
+        .on("click", handleCalendarClick)
+        .append("title")
+        .text(function(d) {
+          return d + ": " + data[d].length + " items";
+        });
+
+      var buttons = d3.select("#archive-view")
+        .selectAll("div.buttons").data([1])
+        .enter().append("div")
+        .attr("class", "buttons")
+        .style("margin", "10 50");
+      buttons.append("button")
+        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .on("click", handleButtonClick)
+        .text("PREV");
+      buttons.append("span")
+        .attr("id", "counter")
+        .style("margin", "20")
+        .text(items.length + " of " + items.length);
+      buttons.append("button")
+        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .on("click", handleButtonClick)
+        .text("NEXT");
+
+      let prevElt, prevFill;
+      function highlightCell(id) {
+        if (prevElt) {
+          prevElt.attr("fill", prevFill);
+        }
+        let elt = d3.select("#ID" + id.split("-").join(""));
+        let fill = elt.attr("fill");
+        elt.attr("fill", "#F00");
+        prevElt = elt;
+        prevFill = fill;
+      }
+
+      function handleCalendarClick(e) {
+        highlightCell(e);
+        index = data[e][data[e].length - 1].index;
+        d3.select("#counter").text((index + 1) + " of " + items.length);
+        let language = window.gcexports.language;
+        let langID = +language.substring(1);
+        let codeID = +data[e][0].id;
+        let dataID = 0;
+        let itemID = window.gcexports.encodeID([langID, codeID, dataID]);
+        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        $.get(location.origin + "/code?id=" + itemID, function (data) {
+          window.gcexports.updateSrc(itemID, data.src);
+        });
+        let history = {
+          language: language,
+          view: gcexports.view,
+        };
+        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+      }
+
+      function handleButtonClick(e) {
+        let name = d3.select(this).text();
+        if (name === "NEXT") {
+          index = index < items.length - 1 ? index + 1 : 0;
+        } else {
+          index = index > 0 ? index - 1 : items.length - 1;
+        }
+        d3.select("#counter").text((index + 1) + " of " + items.length);
+        let item = items[index];
+        let language = window.gcexports.language;
+        let langID = +language.substring(1);
+        let codeID = +item.id;
+        let dataID = 0;
+        let itemID = window.gcexports.encodeID([langID, codeID, dataID]);
+        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        $.get(location.origin + "/code?id=" + itemID, function (data) {
+          window.gcexports.updateSrc(itemID, data.src);
+        });
+        let history = {
+          language: language,
+          view: gcexports.view,
+        };
+        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+        let id = item.date;
+        highlightCell(id);
+      }
+      function pathMonth(t0) {
+        var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+        d0 = t0.getDay(), w0 = d3.timeWeek.count(d3.timeYear(t0), t0),
+        d1 = t1.getDay(), w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
+        return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
+          + "H" + w0 * cellSize + "V" + 7 * cellSize
+          + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
+          + "H" + (w1 + 1) * cellSize + "V" + 0
+          + "H" + (w0 + 1) * cellSize + "Z";
+      }
+
+      highlightCell(items[index].date);
+    });
+
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
-    function queryPieces() {
+    function getItems(resume) {
       $.ajax({
         type: "GET",
         url: "/pieces/" + window.gcexports.language,
         data: {},
         dataType: "json",
         success: function(data) {
-          var pieces = []
-          for (var i = 0; i < data.length; i++) {
-            pieces[i] = data[i].id
+          let items = [];
+          data = data.reverse();  // Make ascending.
+          for (let i = 0; i < data.length; i++) {
+            items[i] = {
+              index: i,
+              date: data[i].created.substring(0,10),
+              id: data[i].id,
+            }
           }
-          window.exports.pieces = pieces
-          window.exports.nextThumbnail = 0
-          loadMoreThumbnails(true)
+          resume(null, items);
         },
         error: function(xhr, msg, err) {
           console.log(msg+" "+err)
-        }
-      });
-    }
-    function loadItems(list, data, resume) {
-      var sublist = list.slice(0, ITEM_COUNT);
-      $.ajax({
-        type: "GET",
-        url: "/code",
-        data : {list: sublist},
-        dataType: "json",
-        success: function(dd) {
-          for (var i = 0; i < dd.length; i++) {
-            data.push(dd[i]);
-          }
-          list = list.slice(ITEM_COUNT);
-          if (list.length > 0) {
-            loadItems(list, data, resume);
-          } else {
-            resume(data);
-          }
-        },
-        error: function(xhr, msg, err) {
-          console.log(msg+" "+err);
-        }
-      });
-    }
-    function addItem(obj, src, pool) {
-//      viewer.update(el, obj, src, pool);
-    }
-    function loadMoreThumbnails(firstLoad) {
-      var start = window.exports.nextThumbnail;
-      var end = window.exports.nextThumbnail = start + (firstLoad ? 50 : 2);
-      var len = window.exports.pieces.length;
-      if (start >= len || window.exports.currentThumbnail >= len) {
-        return;
-      }
-      if (end > len) {
-        end = len;
-      }
-      var list = window.exports.pieces.slice(start, end);
-      $.ajax({
-        type: "GET",
-        url: "/code",
-        data : {list: list},
-        dataType: "json",
-        success: function(data) {
-          for (var i = 0; i < data.length; i++) {
-            var d = data[i];
-            window.exports.currentThumbnail = start + i;  // keep track of the current thumbnail in case of async
-            addItem(d.obj, d.src);
-          }
-        },
-        error: function(xhr, msg, err) {
-          console.log(msg+" "+err);
         }
       });
     }
@@ -103,11 +219,7 @@ var ArchiveContent = React.createClass({
   },
   render: function () {
     return (
-      <svg height="0" width="100%" style={{background: "white"}}>
-        <g>
-          <rect width="100%" height="100%" fill="white"/>
-        </g>
-      </svg>
+      <div />
     );
   },
 });
