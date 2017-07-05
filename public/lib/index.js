@@ -25449,7 +25449,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       if ("function" != typeof t) throw new Error("invalid callback");if (this._call) throw new Error("defer after await");if (null != this._error) return this;var n = ym.call(arguments, 1);return n.push(t), ++this._waiting, this._tasks.push(n), vu(this), this;
     }, abort: function abort() {
       return null == this._error && gu(this, new Error("abort")), this;
-    }, await: function await(t) {
+    }, await: function _await(t) {
       if ("function" != typeof t) throw new Error("invalid callback");if (this._call) throw new Error("multiple await");return this._call = function (n, e) {
         t.apply(null, [n].concat(e));
       }, mu(this), this;
@@ -27471,28 +27471,26 @@ var GraffContent = React.createClass({
     }
     this.state.recompileCode = false;
     if (codeID) {
-      (function () {
-        var itemID = encodeID(ids, true);
-        d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
-          var lang = "L" + langID;
-          if (dataID && +dataID !== 0) {
-            // This is the magic where we collapse the "tail" into a JSON object.
-            // Next this JSON object gets interned as static data (in L113).
-            d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
-              dispatch({
-                id: itemID,
-                obj: obj,
-                data: data
-              });
-            });
-          } else {
+      var _itemID = encodeID(ids, true);
+      d3.json(location.origin + "/data?id=" + _itemID, function (err, obj) {
+        var lang = "L" + langID;
+        if (dataID && +dataID !== 0) {
+          // This is the magic where we collapse the "tail" into a JSON object.
+          // Next this JSON object gets interned as static data (in L113).
+          d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
             dispatch({
-              id: itemID,
+              id: _itemID,
               obj: obj,
-              data: {} });
-          }
-        });
-      })();
+              data: data
+            });
+          });
+        } else {
+          dispatch({
+            id: _itemID,
+            obj: obj,
+            data: {} });
+        }
+      });
     }
   },
   componentDidMount: function componentDidMount() {
