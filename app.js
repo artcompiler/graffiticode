@@ -686,7 +686,7 @@ function compileID(id, resume) {
         getData(ids, (err, data) => {
           getCode(ids, (err, code) => {
             getLang(ids, (err, lang) => {
-              if (lang === "L113") {
+              if (lang === "L113" && Object.keys(data).length === 0) {
                 // No need to recompile.
                 getItem(ids[1], (err, item) => {
                   try {
