@@ -24,7 +24,7 @@ var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
 var pg = require('pg');
 var redis = require('redis');
-//var cache = redis.createClient(process.env.REDIS_URL);
+var cache = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 
@@ -353,8 +353,9 @@ var getItem = function (itemID, resume) {
   dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + itemID, ()=>{});
 };
 
+const useCache = true;
 const getCache = function (id, resume) {
-  if (window.cache) {
+  if (useCache) {
     cache.get(id, (err, val) => {
       resume(null, parseJSON(val));
     });
@@ -364,7 +365,7 @@ const getCache = function (id, resume) {
 };
 
 const setCache = function (id, val) {
-  if (window.cache) {
+  if (useCache) {
     cache.set(id, JSON.stringify(val));
   }
 };
