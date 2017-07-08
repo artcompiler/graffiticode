@@ -176,6 +176,7 @@ app.get('/pieces/:lang', function (req, res) {
     var rows;
     if (!result || result.rows.length === 0) {
       console.log("no rows");
+      // No rows for this language so make an empty item and insert it.
       var insertStr =
         "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
         " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
@@ -196,31 +197,31 @@ app.get('/pieces/:lang', function (req, res) {
   });
 });
 
-app.get('/items/src', function(req, res) {
-  var data = "";
-  req.on("data", function (chunk) {
-    data += chunk;
-  });
-  req.on('end', function () {
-    var list = JSON.parse(data);
-    var queryStr =
-      "SELECT id, src FROM pieces WHERE id" +
-      " IN ("+list+") ORDER BY id DESC";
-    dbQuery(queryStr, function (err, result) {
-      var rows;
-      if (!result || result.rows.length === 0) {
-        rows = [{}];
-      } else {
-        rows = result.rows;
-      }
-      res.send(rows);
-    });
-  });
-  req.on('error', function(e) {
-    console.log(e);
-    res.status(400).send(e);
-  });
-});
+// app.get('/items/src', function(req, res) {
+//   var data = "";
+//   req.on("data", function (chunk) {
+//     data += chunk;
+//   });
+//   req.on('end', function () {
+//     var list = JSON.parse(data);
+//     var queryStr =
+//       "SELECT id, src FROM pieces WHERE id" +
+//       " IN ("+list+") ORDER BY id DESC";
+//     dbQuery(queryStr, function (err, result) {
+//       var rows;
+//       if (!result || result.rows.length === 0) {
+//         rows = [{}];
+//       } else {
+//         rows = result.rows;
+//       }
+//       res.send(rows);
+//     });
+//   });
+//   req.on('error', function(e) {
+//     console.log(e);
+//     res.status(400).send(e);
+//   });
+// });
 
 app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
@@ -342,6 +343,8 @@ var getItem = function (itemID, resume) {
     } else {
       //assert(result.rows.length === 1);
       val = result.rows[0];
+      val.src = fixSingleQuotes(val.src);
+      val.obj = fixSingleQuotes(val.obj);
     }
     resume(err, val);
   });
@@ -496,6 +499,10 @@ app.get('/data', function(req, res) {
   });
 });
 
+function fixSingleQuotes(str) {
+  return str.replace(new RegExp("''", "g"), "'");
+}
+
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   var ids = decodeID(req.query.id);
@@ -506,7 +513,7 @@ app.get('/code', (req, res) => {
     // No data provided, so obj code won't change.
     res.json({
       id: codeID,
-      src: row.src,
+      src: fixSingleQuotes(row.src),
     });
   });
 });
@@ -690,7 +697,7 @@ function compileID(id, resume) {
                 // No need to recompile.
                 getItem(ids[1], (err, item) => {
                   try {
-                    resume(err, JSON.parse(item.obj));
+                    resume(err, JSON.parse(fixSingleQuotes(item.obj)));
                   } catch (e) {
                     // Oops. Missing or invalid obj, so need to recompile after all.
                     assert(code.root !== undefined, "Invalid code.");
@@ -798,7 +805,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
           } else {
             response.json({
               id: data.rows[0].id,  // only return the codeID
-              obj: parseJSON(obj),
+              obj: parseJSON(fixSingleQuotes(obj)),
             });
           }
         });
@@ -823,7 +830,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
         // No update needed. Just return the item.
         response.json({
           id: rows[0].id,
-          obj: parseJSON(rows[0].obj),
+          obj: parseJSON(fixSingleQuotes(rows[0].obj)),
         });
       }
     });
@@ -976,6 +983,7 @@ app.put('/code', (req, response) => {
 });
 
 app.get('/items', function(req, res) {
+  // Used by L109.
   var list = req.query.list;
   var queryStr =
     "SELECT * FROM pieces WHERE pieces.id" +
@@ -1040,24 +1048,24 @@ app.get("/index", function (req, res) {
 });
 
 // Get the object code for piece with :id
-app.get('/graffiti/:id', function (req, res) {
-  var id = req.params.id;
-  dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
-    var ret;
-    if (!result || result.rows.length === 0) {
-      ret = "";
-    } else {
-      ret = result.rows[0].img;
-      if (!ret) {
-        // For backward compatibility
-        ret = result.rows[0].obj;
-      }
-    }
-    res.send(ret);
-    dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-    });
-  });
-});
+// app.get('/graffiti/:id', function (req, res) {
+//   var id = req.params.id;
+//   dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
+//     var ret;
+//     if (!result || result.rows.length === 0) {
+//       ret = "";
+//     } else {
+//       ret = result.rows[0].img;
+//       if (!ret) {
+//         // For backward compatibility
+//         ret = result.rows[0].obj;
+//       }
+//     }
+//     res.send(ret);
+//     dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
+//     });
+//   });
+// });
 
 // This is the new way of loading pages
 app.get('/:lang', function (req, res) {
