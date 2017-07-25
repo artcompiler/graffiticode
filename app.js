@@ -31,7 +31,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
-const LOCAL_COMPILES = false;
+const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
@@ -152,7 +152,20 @@ app.get('/', function(req, res) {
 app.get('/pieces/:lang', function (req, res) {
   var lang = req.params.lang;
   var search = req.query.src;
-  var label = req.query.label === undefined ? "show" : req.query.label;
+  var labelStr;
+  if (req.query.label === undefined) {
+    labelStr = " label='show' ";
+  } else {
+    let labels = req.query.label.split("|");
+    labelStr = " (";
+    labels.forEach(label => {
+      if (labelStr !== " (") {
+        labelStr += " OR ";
+      }
+      labelStr += " label='" + label + "' ";
+    });
+    labelStr += ") ";
+  }
   var queryString, likeStr = "";
   if (search) {
     var ss = search.split(",");
@@ -170,8 +183,7 @@ app.get('/pieces/:lang', function (req, res) {
     }
   }
   queryString = "SELECT id, created FROM pieces WHERE language='" + lang +
-    "' AND " + likeStr +
-    "label = '" + label + "' ORDER BY id DESC";
+    "' AND " + likeStr + labelStr + " ORDER BY id DESC";
   dbQuery(queryString, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
@@ -196,32 +208,6 @@ app.get('/pieces/:lang', function (req, res) {
     }
   });
 });
-
-// app.get('/items/src', function(req, res) {
-//   var data = "";
-//   req.on("data", function (chunk) {
-//     data += chunk;
-//   });
-//   req.on('end', function () {
-//     var list = JSON.parse(data);
-//     var queryStr =
-//       "SELECT id, src FROM pieces WHERE id" +
-//       " IN ("+list+") ORDER BY id DESC";
-//     dbQuery(queryStr, function (err, result) {
-//       var rows;
-//       if (!result || result.rows.length === 0) {
-//         rows = [{}];
-//       } else {
-//         rows = result.rows;
-//       }
-//       res.send(rows);
-//     });
-//   });
-//   req.on('error', function(e) {
-//     console.log(e);
-//     res.status(400).send(e);
-//   });
-// });
 
 app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
@@ -284,12 +270,12 @@ app.get('/item', function(req, res) {
 
 // Get a label
 app.get('/label', function (req, res) {
-  let ids = decodeID(req.body.id);
+  let ids = decodeID(req.query.id);
   var langID = ids[0];
-  let itemID = ids[1];
+  let codeID = ids[1];
   var label = "";
-  dbQuery("SELECT label FROM pieces WHERE id = '" + itemID + "'",  function (err, result) {
-    if (result || result.rows.length === 1) {
+  dbQuery("SELECT label FROM pieces WHERE id = '" + codeID + "'",  function (err, result) {
+    if (result && result.rows.length === 1) {
       label = result.rows[0].label;
     }
     res.send(label)
@@ -983,11 +969,25 @@ app.put('/code', (req, response) => {
 });
 
 app.get('/items', function(req, res) {
-  // Used by L109.
-  var list = req.query.list;
-  var queryStr =
-    "SELECT * FROM pieces WHERE pieces.id" +
-    " IN ("+list+") ORDER BY pieces.id DESC";
+  // Used by L109, L131.
+  let queryStr = "";
+  if (req.query.list) {
+    let list = req.query.list;
+    queryStr =
+      "SELECT * FROM pieces WHERE pieces.id" +
+      " IN ("+list+") ORDER BY pieces.id DESC";
+  } else if (req.query.where) {
+    let fields = req.query.fields ? req.query.fields : "id";
+    let limit = req.query.limit ? req.query.limit : "100";
+    let where = req.query.where;
+    queryStr =
+      "SELECT " + fields +
+      " FROM pieces WHERE " + where +
+      " ORDER BY pieces.id DESC" +
+      " LIMIT " + limit;
+  } else {
+    send.status(400).send("bad request");
+  }
   dbQuery(queryStr, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
