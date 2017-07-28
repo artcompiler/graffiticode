@@ -104,6 +104,11 @@ var ArchiveContent = React.createClass({
         .attr("class", "buttons")
         .style("margin", "10 50");
       buttons.append("button")
+        .attr("id", "hide-button")
+        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .style("margin", "0 20 0 0")
+        .on("click", handleButtonClick);
+      buttons.append("button")
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
         .on("click", handleButtonClick)
         .text("PREV");
@@ -115,6 +120,26 @@ var ArchiveContent = React.createClass({
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
         .on("click", handleButtonClick)
         .text("NEXT");
+
+      let ids = window.gcexports.decodeID(window.gcexports.id);
+      updateHideButton(ids[1]);
+
+      function updateHideButton(id) {
+        $.ajax({
+          type: "GET",
+          url: "/label",
+          data: {
+            id: id,
+          },
+          dataType: "text",
+          success: function(label) {
+            d3.select("#hide-button").text(label === "show" ? "HIDE" : "SHOW");
+          },
+          error: function(xhr, msg, err) {
+            console.log(msg + " " + err);
+          }
+        });
+      }
 
       let prevElt, prevFill;
       function highlightCell(id) {
@@ -148,9 +173,35 @@ var ArchiveContent = React.createClass({
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
       }
 
+      function hideItem(hide) {
+        let ids = window.gcexports.decodeID(window.gcexports.id);
+        let label = hide ? "hide" : "show";
+        $.ajax({
+          type: "PUT",
+          url: "/label",
+          data: {
+            id: ids[1],
+            label: label,
+          },
+          dataType: "text",
+          success: function(data) {
+            d3.select("#hide-button").text(hide ? "SHOW" : "HIDE");
+          },
+          error: function(xhr, msg, err) {
+            console.log(msg + " " + err);
+          }
+        });
+      }
+
       function handleButtonClick(e) {
         let name = d3.select(this).text();
-        if (name === "NEXT") {
+        if (name === "HIDE") {
+          hideItem(true);
+          return;
+        } else if (name === "SHOW") {
+          hideItem(false);
+          return;
+        } else if (name === "NEXT") {
           index = index < items.length - 1 ? index + 1 : 0;
         } else {
           index = index > 0 ? index - 1 : items.length - 1;
@@ -173,6 +224,7 @@ var ArchiveContent = React.createClass({
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
         let id = item.date;
         highlightCell(id);
+        updateHideButton(codeID);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -194,7 +246,9 @@ var ArchiveContent = React.createClass({
       $.ajax({
         type: "GET",
         url: "/pieces/" + window.gcexports.language,
-        data: {},
+        data: {
+          label: "show|hide",
+        },
         dataType: "json",
         success: function(data) {
           let items = [];
