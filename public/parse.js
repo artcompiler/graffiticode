@@ -1704,7 +1704,8 @@ window.gcexports.parser = (function () {
           let itemID = gcexports.encodeID(ids);
           gcexports.id = itemID;
           window.history.pushState(itemID, window.gcexports.language, "/" + window.gcexports.view + "?id=" + itemID);
-          window.gcexports.dispatcher.dispatch({
+          let state = {};
+          state[window.gcexports.language] = {
             id: itemID,
             src: src,
             obj: obj,
@@ -1712,7 +1713,8 @@ window.gcexports.parser = (function () {
             postCode: postCode,
             errors: errors,
             data: {}, // Clear state
-          });
+          };
+          window.gcexports.dispatcher.dispatch(state);
         }
       },
       error: function(xhr, msg, err) {

@@ -31,7 +31,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
-const LOCAL_COMPILES = false;
+const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
@@ -522,6 +522,7 @@ function retrieve(language, path, response) {
 
 let compilerVersions = {};
 function getCompilerVersion(language, resume) {
+  // Compiler version tells which parser to use.
   if (compilerVersions[language]) {
     resume(compilerVersions[language]);
   } else {

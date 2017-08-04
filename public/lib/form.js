@@ -19624,7 +19624,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // This is the one and only dispatcher. It is used by embedded views as well.
-window.gcexports.dispatcher = window.gcexports.dispatcher ? window.gcexports.dispatcher : new _Dispatcher2.default();
+window.gcexports.dispatcher = window.parent.gcexports && window.parent.gcexports.dispatcher ? window.parent.gcexports.dispatcher : new _Dispatcher2.default();
 ReactDOM.render(React.createElement(_graffView2.default, null), document.getElementById('graff-view'));
 
 },{"./Dispatcher":160,"./graff-view":162,"react":158,"react-dom":29}],162:[function(require,module,exports){
@@ -19753,30 +19753,35 @@ var GraffContent = React.createClass({
     codeID = ids[1];
     dataID = ids.slice(2);
     var self = this;
-    if (!this.state) {
-      this.state = {};
-    }
-    this.state.recompileCode = false;
+    var lang = window.gcexports.language;
+    var state = this.state && this.state[lang] ? this.state[lang] : {};
+    // Deprecated?
+    //this.state[lang].recompileCode = false;
     if (codeID) {
       (function () {
         var itemID = encodeID(ids, true);
+        var lang = window.gcexports.language;
         d3.json(location.origin + "/data?id=" + itemID, function (err, obj) {
-          var lang = "L" + langID;
+          var lang = window.gcexports.language;
           if (dataID && +dataID !== 0) {
             // This is the magic where we collapse the "tail" into a JSON object.
             // Next this JSON object gets interned as static data (in L113).
             d3.json(location.origin + "/data?id=" + encodeID(dataID, true), function (err, data) {
-              dispatch({
+              var state = {};
+              state[lang] = {
                 id: itemID,
                 obj: obj,
                 data: data
-              });
+              };
+              dispatch(state);
             });
           } else {
-            dispatch({
+            var _state = {};
+            _state[lang] = {
               id: itemID,
               obj: obj,
-              data: {} });
+              data: {} };
+            dispatch(_state);
           }
         });
       })();
@@ -19802,13 +19807,15 @@ var GraffContent = React.createClass({
     var gcexports = window.gcexports;
     var viewer = gcexports.viewer;
     var el = ReactDOM.findDOMNode(this);
-    if (this.state && !this.state.errors) {
-      var ast = this.state.ast;
-      var src = this.state.src;
-      var obj = this.state.obj;
-      var itemID = this.state.id;
-      var data = this.state.data;
-      var label = this.state.label;
+    var lang = window.gcexports.language;
+    if (this.state[lang] && !this.state[lang].errors) {
+      var state = this.state[lang];
+      var ast = state.ast;
+      var src = state.src;
+      var obj = state.obj;
+      var itemID = state.id;
+      var data = state.data;
+      var label = state.label;
       if (!viewer.Viewer && obj) {
         // Legacy code path
         viewer.update(el, obj, src, ast);
@@ -19823,11 +19830,12 @@ var GraffContent = React.createClass({
     var gcexports = window.gcexports;
     var user = $("#username").data("user");
     var parent = gcexports.parent;
-    var language = gcexports.language;
-    var updateHistory = this.state.updateHistory;
+    var lang = gcexports.language;
+    var state = this.state[lang];
+    var updateHistory = state.updateHistory;
     var self = this;
     // Append host language to label.
-    label = label ? language + " " + label : language;
+    label = label ? lang + " " + label : lang;
     if (Object.keys(obj).length > 0) {
       $.ajax({
         type: "PUT",
@@ -19852,18 +19860,18 @@ var GraffContent = React.createClass({
             ids = ids.slice(0, 2).concat(decodeID(dataID));
             itemID = encodeID(ids);
             gcexports.id = itemID;
-            if (dataID !== lastDataID && self.state.recompileCode) {
+            if (dataID !== lastDataID && self.state[lang].recompileCode) {
               self.compileCode(itemID);
             }
             var history = {
-              language: language,
+              language: lang,
               view: gcexports.view,
               itemID: itemID
             };
             if (updateHistory) {
-              window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+              window.history.pushState(history, lang, "/" + gcexports.view + "?id=" + itemID);
             } else {
-              window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+              window.history.replaceState(history, lang, "/" + gcexports.view + "?id=" + itemID);
             }
           }
         },
@@ -19874,14 +19882,24 @@ var GraffContent = React.createClass({
     }
   },
   onChange: function onChange(data) {
-    this.setState(data);
+    var lang = window.gcexports.language;
+    if (this.state === null) {
+      this.setState(data);
+    } else {
+      // Copy state for the current language.
+      var state = {};
+      state[lang] = Object.assign({}, this.state[lang], data[lang]);
+      this.setState(Object.assign({}, this.state, state));
+    }
   },
   render: function render() {
     var Viewer = window.gcexports.viewer.Viewer;
     if (Viewer) {
-      if (this.state && this.state.obj) {
-        var obj = this.state.obj;
-        var data = this.state.data;
+      var lang = window.gcexports.language;
+      if (this.state && this.state[lang] && this.state[lang].obj) {
+        var state = this.state[lang];
+        var obj = state.obj;
+        var data = state.data;
         return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: obj, data: data }, data));
       } else {
         return React.createElement("div", null);

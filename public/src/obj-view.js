@@ -44,8 +44,9 @@ var CodeMirrorEditor = React.createClass({
   },
   onChange: function (data) {
     let objectCode = "";
-    let obj = data.obj;
-    if (obj) {
+    let lang = window.gcexports.language;
+    if (data[lang] && data[lang].obj) {
+      let obj = data[lang].obj;
       if (obj.objectCode) {
         objectCode = JSON.stringify(obj.objectCode, null, 2);
       } else {
@@ -139,15 +140,8 @@ var ObjectView = React.createClass({
     );
   },
   componentDidMount: function() {
-    this.executeCode();
   },
   componentDidUpdate: function(prevProps, prevState) {
-    // execute code only when the state's not being updated by switching tab
-    // this avoids re-displaying the error, which comes after a certain delay
-    if (this.props.transformer !== prevProps.transformer ||
-        this.state.code !== prevState.code) {
-      this.executeCode();
-    }
   },
   executeCode: function() {
     return;
