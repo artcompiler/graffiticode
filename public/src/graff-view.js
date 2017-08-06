@@ -224,6 +224,9 @@ var GraffContent = React.createClass({
       // Copy state for the current language.
       let state = {};
       state[lang] = Object.assign({}, this.state[lang], data[lang]);
+      if (this.state[lang] && data[lang]) {
+        state[lang].data = Object.assign({}, this.state[lang].data, data[lang].data);
+      }
       this.setState(Object.assign({}, this.state, state));
     }
   },
