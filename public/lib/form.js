@@ -19808,7 +19808,7 @@ var GraffContent = React.createClass({
     var viewer = gcexports.viewer;
     var el = ReactDOM.findDOMNode(this);
     var lang = window.gcexports.language;
-    if (this.state[lang] && !this.state[lang].errors) {
+    if (this.state[lang] && this.state[lang].id && !this.state[lang].errors) {
       var state = this.state[lang];
       var ast = state.ast;
       var src = state.src;

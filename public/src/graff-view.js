@@ -70,13 +70,6 @@ window.gcexports.encodeID = encodeID;
 
 let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
-  // if (window.parent && window.parent.gcexports) {
-  //   window.parent.gcexports.dispatcher.dispatch({
-  //     data: {
-  //       child: obj
-  //     }
-  //   });
-  // }
 });
 
 var GraffContent = React.createClass({
@@ -143,7 +136,7 @@ var GraffContent = React.createClass({
     let viewer = gcexports.viewer;
     let el = ReactDOM.findDOMNode(this);
     let lang = window.gcexports.language;
-    if (this.state[lang] && !this.state[lang].errors) {
+    if (this.state[lang] && this.state[lang].id && !this.state[lang].errors) {
       let state = this.state[lang];
       let ast = state.ast;
       let src = state.src;
