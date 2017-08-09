@@ -87,14 +87,14 @@ var GraffContent = React.createClass({
     // Deprecated?
     //this.state[lang].recompileCode = false;
     if (codeID) {
-      let itemID = encodeID(ids, true);
+      let itemID = encodeID(ids);
       let lang = window.gcexports.language;
       d3.json(location.origin + "/data?id=" + itemID, (err, obj) => {
         let lang = window.gcexports.language;
         if (dataID && +dataID !== 0) {
           // This is the magic where we collapse the "tail" into a JSON object.
           // Next this JSON object gets interned as static data (in L113).
-          d3.json(location.origin + "/data?id=" + encodeID(dataID, true), (err, data) => {
+          d3.json(location.origin + "/data?id=" + encodeID(dataID), (err, data) => {
             let state = {};
             state[lang] = {
               id: itemID,
@@ -187,19 +187,21 @@ var GraffContent = React.createClass({
             let dataID = data.id;
             ids = ids.slice(0, 2).concat(decodeID(dataID));
             itemID = encodeID(ids);
-            gcexports.id = itemID;
-            if (dataID !== lastDataID && self.state[lang].recompileCode) {
+            if (dataID !== lastDataID && state.recompileCode) {
               self.compileCode(itemID);
             }
-            let history = {
-              language: lang,
-              view: gcexports.view,
-              itemID: itemID,
-            };
-            if (updateHistory) {
-              window.history.pushState(history, lang, "/" + gcexports.view + "?id=" + itemID);
-            } else {
-              window.history.replaceState(history, lang, "/" + gcexports.view + "?id=" + itemID);
+            if (state.dontUpdateID !== true) {
+              gcexports.id = itemID;
+              let history = {
+                language: lang,
+                view: gcexports.view,
+                itemID: itemID,
+              };
+              if (updateHistory) {
+                window.history.pushState(history, lang, "/" + gcexports.view + "?id=" + itemID);
+              } else {
+                window.history.replaceState(history, lang, "/" + gcexports.view + "?id=" + itemID);
+              }
             }
           }
         },

@@ -950,7 +950,9 @@ app.put('/code', (req, response) => {
       let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
       let codeID = result.rows[0].id;
       let dataID = 0;
-      let id = encodeID([langID, codeID, dataID]);
+      let ids = [langID, codeID, dataID];
+      let id = encodeID(ids);
+//      console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")");
       response.json({
         id: id,
       });
@@ -967,11 +969,13 @@ app.put('/code', (req, response) => {
         let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
         let codeID = result.rows[0].id;
         let dataID = 0;
-        let id = encodeID([langID, codeID, dataID]);
+        let ids = [langID, codeID, dataID];
+        let id = encodeID(ids);
         if (err) {
-          console.log("PUT /code err=" + err);
+//          console.log("PUT /code err=" + err);
           response.status(400).send(err);
         } else {
+          console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")*");
           response.json({
             id: id,
           });
