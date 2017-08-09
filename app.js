@@ -31,7 +31,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
-const LOCAL_COMPILES = false;
+const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
@@ -198,6 +198,7 @@ app.get('/pieces/:lang', function (req, res) {
         " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
       dbQuery(insertStr, function(err, result) {
         if (err) {
+          console.log("GET /pieces/:lang err=" + err);
           res.status(400).send(err);
           return;
         }
@@ -229,6 +230,7 @@ app.get('/item', function(req, res) {
           version: version,
         }, function (error, html) {
           if (error) {
+            console.log("[1] GET /item err=" + error);
             res.status(400).send(error);
           } else {
             res.send(html);
@@ -249,6 +251,7 @@ app.get('/item', function(req, res) {
             version: version,
           }, function (error, html) {
             if (error) {
+              console.log("[2] GET /item err=" + error);
               res.status(400).send(error);
             } else {
               res.send(html);
@@ -394,6 +397,7 @@ app.get('/lang', function(req, res) {
             }
           });
         } else {
+          console.log("[1] GET /lang err=" + err);
           res.status(400).send(err);
         }
       });
@@ -408,6 +412,7 @@ app.get('/lang', function(req, res) {
         version: version,
       }, function (error, html) {
         if (error) {
+          console.log("[2] GET /lang err=" + err);
           res.status(400).send(error);
         } else {
           res.send(html);
@@ -438,6 +443,7 @@ app.get('/form', function(req, res) {
         version: version,
       }, function (error, html) {
         if (error) {
+          console.log("[1] GET /form err=" + error);
           res.status(400).send(error);
         } else {
           res.send(html);
@@ -457,6 +463,7 @@ app.get('/form', function(req, res) {
           version: version,
         }, function (error, html) {
           if (error) {
+            console.log("[2] GET /form error=" + error);
             res.status(400).send(error);
           } else {
             res.send(html);
@@ -481,6 +488,7 @@ app.get('/data', function(req, res) {
   }
   compileID(hashID, (err, obj) => {
     if (err) {
+      console.log("GET /data err=" + err);
       res.status(400).send(err);
     } else {
       res.json(obj);
@@ -525,6 +533,7 @@ function retrieve(language, path, response) {
 
 let compilerVersions = {};
 function getCompilerVersion(language, resume) {
+  // Compiler version tells which parser to use.
   if (compilerVersions[language]) {
     resume(compilerVersions[language]);
   } else {
@@ -790,6 +799,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
         let ids = decodeID(parent);
         postItem(lang, src, ast, obj, user, ids[1], img, label, function (err, data) {
           if (err) {
+            console.log("compile() err=" + err);
             response.status(400).send(err);
           } else {
             response.json({
@@ -869,6 +879,7 @@ app.put('/compile', function (req, res) {
       updateItem(itemID, language, src, ast, obj, user, parent, img, label, (err) => {
         // Update the src and ast. In general, obj depends on data so don't save.
         if (err) {
+          console.log("[1] PUT /compile err=" + err);
           res.status(400).send(err);
         } else {
           compileID(id, (err, obj) => {
@@ -882,6 +893,7 @@ app.put('/compile', function (req, res) {
     } else {
       postItem(language, src, ast, obj, user, parent, img, label, (err, result) => {
         if (err) {
+          console.log("[2] PUT /compile err=" + err);
           response.status(400).send(err);
         } else {
           let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
@@ -941,7 +953,9 @@ app.put('/code', (req, response) => {
       let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
       let codeID = result.rows[0].id;
       let dataID = 0;
-      let id = encodeID([langID, codeID, dataID]);
+      let ids = [langID, codeID, dataID];
+      let id = encodeID(ids);
+//      console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")");
       response.json({
         id: id,
       });
@@ -958,10 +972,13 @@ app.put('/code', (req, response) => {
         let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
         let codeID = result.rows[0].id;
         let dataID = 0;
-        let id = encodeID([langID, codeID, dataID]);
+        let ids = [langID, codeID, dataID];
+        let id = encodeID(ids);
         if (err) {
+//          console.log("PUT /code err=" + err);
           response.status(400).send(err);
         } else {
+          console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")*");
           response.json({
             id: id,
           });
@@ -989,6 +1006,7 @@ app.get('/items', function(req, res) {
       " ORDER BY pieces.id DESC" +
       " LIMIT " + limit;
   } else {
+    console.log("[1] GET /items err=" + err);
     send.status(400).send("bad request");
   }
   dbQuery(queryStr, function (err, result) {
@@ -1002,6 +1020,7 @@ app.get('/items', function(req, res) {
   });
   req.on('error', function(e) {
     console.log(e);
+    console.log("[2] GET /items err=" + err);
     res.status(400).send(e);
   });
 });
@@ -1076,6 +1095,7 @@ app.get('/:lang', function (req, res) {
   if (!isNaN(parseInt(lang))) {
     res.redirect('/lang?id=' + lang);
   } else {
+    console.log("GET /:lang err");
     res.status(400).send("Page not found");
   }
 });
