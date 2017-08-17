@@ -27158,7 +27158,8 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function componentDidUpdate() {
-    if (!this.state || !this.state.data || !this.state.data.views || !this.state.data.views.archive) {
+    var state = this.state[window.gcexports.language];
+    if (!state || !state.data || !state.data.views || !state.data.views.archive) {
       return;
     }
     getItems(function (err, items) {
