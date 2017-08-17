@@ -796,8 +796,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
         var img = "";
         var label = "show";
         // New item.
-        let ids = decodeID(parent);
-        postItem(lang, src, ast, obj, user, ids[1], img, label, function (err, data) {
+        postItem(lang, src, ast, obj, user, 0, img, label, function (err, data) {
           if (err) {
             console.log("compile() err=" + err);
             response.status(400).send(err);
@@ -913,15 +912,16 @@ app.put('/compile', function (req, res) {
 });
 
 app.put('/code', (req, response) => {
-  let id = req.body.id;
+  let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  let id = body.id;
   let ids = decodeID(id);
-  let src = cleanAndTrimSrc(req.body.src);
-  let language = req.body.language;
+  let src = cleanAndTrimSrc(body.src);
+  let language = body.language;
   let ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  let user = dot2num(ip); //req.body.user;
+  let user = dot2num(ip); //body.user;
   let query;
   let itemID = id && +ids[1] !== 0 ? ids[1] : undefined;
   if (itemID !== undefined) {
@@ -937,13 +937,13 @@ app.put('/code', (req, response) => {
     itemID = itemID ? itemID : row ? row.id : undefined;  // Might still be undefined if there is no match.
     if (itemID) {
       var language = row.language;
-      var src = req.body.src ? req.body.src : row.src;
-      var ast = req.body.ast ? JSON.parse(req.body.ast) : row.ast;
-      var obj = req.body.obj ? req.body.obj : row.obj;
-      //        var user = req.body.user_id ? req.body.user_id : row.user_id;
-      var parent = req.body.parent_id ? req.body.parent_id : row.parent_id;
-      var img = req.body.img ? req.body.img : row.img;
-      var label = req.body.label ? req.body.label : row.label;
+      var src = body.src ? body.src : row.src;
+      var ast = body.ast ? JSON.parse(body.ast) : row.ast;
+      var obj = body.obj ? body.obj : row.obj;
+      //        var user = body.user_id ? body.user_id : row.user_id;
+      var parent = body.parent_id ? body.parent_id : row.parent_id;
+      var img = body.img ? body.img : row.img;
+      var label = body.label ? body.label : row.label;
       updateItem(itemID, language, src, ast, obj, user, parent, img, label, function (err, data) {
         if (err) {
           console.log(err);
@@ -955,17 +955,16 @@ app.put('/code', (req, response) => {
       let dataID = 0;
       let ids = [langID, codeID, dataID];
       let id = encodeID(ids);
-//      console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")");
       response.json({
         id: id,
       });
     } else {
-      //var id = req.body.id;
-      var src = req.body.src;
-      var language = req.body.language;
-      var ast = req.body.ast ? JSON.parse(req.body.ast) : {};  // Possibly undefined.
-      var obj = req.body.obj;
-      var label = req.body.label;
+      //var id = body.id;
+      var src = body.src;
+      var language = body.language;
+      var ast = body.ast ? JSON.parse(body.ast) : {};  // Possibly undefined.
+      var obj = body.obj;
+      var label = body.label;
       var parent = 0;
       var img = "";
       postItem(language, src, ast, obj, user, parent, img, label, function (err, result) {
@@ -975,10 +974,9 @@ app.put('/code', (req, response) => {
         let ids = [langID, codeID, dataID];
         let id = encodeID(ids);
         if (err) {
-//          console.log("PUT /code err=" + err);
+          console.log("PUT /code err=" + err);
           response.status(400).send(err);
         } else {
-          console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")*");
           response.json({
             id: id,
           });

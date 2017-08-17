@@ -21,10 +21,11 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function() {
-    if (!this.state ||
-        !this.state.data ||
-        !this.state.data.views ||
-        !this.state.data.views.archive) {
+    let state = this.state[window.gcexports.language];
+    if (!state ||
+        !state.data ||
+        !state.data.views ||
+        !state.data.views.archive) {
       return;
     }
     getItems((err, items) => {
