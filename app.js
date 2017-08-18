@@ -482,10 +482,10 @@ app.get('/data', function(req, res) {
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
   let hashID = encodeID(ids);
-  if (!/[a-zA-Z]/.test(req.query.id)) {
-    res.redirect("/data?id=" + hashID);
-    return;
-  }
+  // if (!/[a-zA-Z]/.test(req.query.id)) {
+  //   res.redirect("/data?id=" + hashID);
+  //   return;
+  // }
   compileID(hashID, (err, obj) => {
     if (err) {
       console.log("GET /data err=" + err);
