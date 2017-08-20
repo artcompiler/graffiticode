@@ -19685,6 +19685,9 @@ function decodeID(id) {
   if (id === undefined) {
     id = "0";
   }
+  if (Number.isInteger(id)) {
+    id = "" + id;
+  }
   assert(typeof id === "string", "Invalid id " + id);
   id = id.replace(/\+/g, " ");
   var parts = id.split(" ");
