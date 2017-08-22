@@ -351,9 +351,8 @@ var getItem = function (itemID, resume) {
   dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + itemID, ()=>{});
 };
 
-const useCache = true;
 const getCache = function (id, resume) {
-  if (useCache) {
+  if (cache) {
     cache.get(id, (err, val) => {
       resume(null, parseJSON(val));
     });
@@ -363,7 +362,7 @@ const getCache = function (id, resume) {
 };
 
 const setCache = function (id, val) {
-  if (useCache) {
+  if (cache && lang !== "L124" && lang !== "L131") {
     cache.set(id, JSON.stringify(val));
   }
 };
