@@ -24,7 +24,7 @@ var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
 var pg = require('pg');
 var redis = require('redis');
-//var cache = redis.createClient(process.env.REDIS_URL);
+var cache = undefined; //redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 
@@ -350,7 +350,7 @@ var getItem = function (itemID, resume) {
 };
 
 const getCache = function (id, resume) {
-  if (window.cache) {
+  if (cache) {
     cache.get(id, (err, val) => {
       resume(null, parseJSON(val));
     });
@@ -360,7 +360,7 @@ const getCache = function (id, resume) {
 };
 
 const setCache = function (id, val) {
-  if (window.cache) {
+  if (cache && lang !== "L124" && lang !== "L131") {
     cache.set(id, JSON.stringify(val));
   }
 };
