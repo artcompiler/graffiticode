@@ -19907,8 +19907,9 @@ var GraffContent = React.createClass({
     }
   },
   render: function render() {
-    var Viewer = window.gcexports.viewer.Viewer;
-    if (Viewer) {
+    if (window.gcexports && window.gcexports.viewer.Viewer) {
+      // Legacy path.
+      var Viewer = window.gcexports.viewer.Viewer;
       var lang = window.gcexports.language;
       if (this.state && this.state[lang] && this.state[lang].obj) {
         var state = this.state[lang];
