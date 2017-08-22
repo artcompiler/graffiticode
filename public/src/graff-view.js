@@ -145,9 +145,8 @@ var GraffContent = React.createClass({
   },
   componentDidUpdate: function() {
     let gcexports = window.gcexports;
-    let viewer = gcexports.viewer;
     let el = ReactDOM.findDOMNode(this);
-    let lang = window.gcexports.language;
+    let lang = gcexports.language;
     if (this.state[lang] && this.state[lang].id && !this.state[lang].errors) {
       let state = this.state[lang];
       let ast = state.ast;
@@ -156,7 +155,8 @@ var GraffContent = React.createClass({
       let itemID = state.id;
       let data = state.data;
       let label = state.label;
-      if (!viewer.Viewer && obj) {
+      let viewer = window.gcexports.viewer;
+      if (viewer && !viewer.Viewer && obj) {
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
