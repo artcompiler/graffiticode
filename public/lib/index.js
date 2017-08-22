@@ -27672,7 +27672,7 @@ var GraffContent = React.createClass({
     }
   },
   render: function render() {
-    if (window.gcexports && window.gcexports.viewer.Viewer) {
+    if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
       // Legacy path.
       var Viewer = window.gcexports.viewer.Viewer;
       var lang = window.gcexports.language;
