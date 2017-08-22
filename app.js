@@ -361,7 +361,7 @@ const getCache = function (id, resume) {
   }
 };
 
-const setCache = function (id, val) {
+const setCache = function (lang, id, val) {
   if (cache && lang !== "L124" && lang !== "L131") {
     cache.set(id, JSON.stringify(val));
   }
@@ -708,14 +708,14 @@ function compileID(id, resume) {
                     // Oops. Missing or invalid obj, so need to recompile after all.
                     assert(code.root !== undefined, "Invalid code.");
                     comp(lang, code, data, (err, obj) => {
-                      setCache(id, obj);
+                      setCache(lang, id, obj);
                       resume(err, obj);
                     });
                   }
                 });
               } else {
                 comp(lang, code, data, (err, obj) => {
-                  setCache(id, obj);
+                  setCache(lang, id, obj);
                   resume(err, obj);
                   if (Object.keys(data).length === 0) {
                     // If data is an empty object/array, update obj for code.
