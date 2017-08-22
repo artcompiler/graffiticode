@@ -27453,6 +27453,11 @@ function decodeID(id) {
   if (Number.isInteger(id)) {
     id = "" + id;
   }
+  if (Array.isArray(id)) {
+    // Looks like it is already decoded.
+    assert(Number.isInteger(id[0]) && Number.isInteger(id[1]));
+    return id;
+  }
   assert(typeof id === "string", "Invalid id " + id);
   id = id.replace(/\+/g, " ");
   var parts = id.split(" ");
