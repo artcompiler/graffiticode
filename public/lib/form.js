@@ -19887,6 +19887,10 @@ var GraffContent = React.createClass({
     }
   },
   onChange: function onChange(data) {
+    if (!window.gcexports) {
+      // Not ready yet.
+      return;
+    }
     var lang = window.gcexports.language;
     if (this.state === null) {
       this.setState(data);
