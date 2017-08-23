@@ -359,7 +359,7 @@ const getCache = function (id, resume) {
   }
 };
 
-const dontCache = ["L124", "L131"];
+const dontCache = ["L124"];
 const setCache = function (lang, id, val) {
   if (cache && !dontCache.includes(lang)) {
     cache.set(id, JSON.stringify(val));
@@ -489,10 +489,6 @@ app.get('/data', function(req, res) {
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
   let hashID = encodeID(ids);
-  // if (!/[a-zA-Z]/.test(req.query.id)) {
-  //   res.redirect("/data?id=" + hashID);
-  //   return;
-  // }
   compileID(hashID, (err, obj) => {
     if (err) {
       console.log("GET /data err=" + err);
@@ -702,7 +698,9 @@ function compileID(id, resume) {
                 // No need to recompile.
                 getItem(ids[1], (err, item) => {
                   try {
-                    resume(err, JSON.parse(fixSingleQuotes(item.obj)));
+                    let obj = JSON.parse(fixSingleQuotes(item.obj));
+                    setCache(lang, id, obj);
+                    resume(err, JSON.parse(obj));
                   } catch (e) {
                     // Oops. Missing or invalid obj, so need to recompile after all.
                     assert(code.root !== undefined, "Invalid code.");
