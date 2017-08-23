@@ -702,7 +702,7 @@ function compileID(id, resume) {
                   try {
                     let obj = JSON.parse(fixSingleQuotes(item.obj));
                     setCache(lang, id, obj);
-                    resume(err, JSON.parse(obj));
+                    resume(err, obj);
                   } catch (e) {
                     // Oops. Missing or invalid obj, so need to recompile after all.
                     assert(code.root !== undefined, "Invalid code.");
