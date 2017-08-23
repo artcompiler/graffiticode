@@ -359,8 +359,9 @@ const getCache = function (id, resume) {
   }
 };
 
+const dontCache = ["L124", "L131", "L132"];
 const setCache = function (id, val) {
-  if (cache && lang !== "L124" && lang !== "L131") {
+  if (cache && !dontCache.includes(lang)) {
     cache.set(id, JSON.stringify(val));
   }
 };
