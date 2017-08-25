@@ -705,7 +705,7 @@ function compileID(id, resume) {
                     resume(err, obj);
                   } catch (e) {
                     // Oops. Missing or invalid obj, so need to recompile after all.
-                    assert(code.root !== undefined, "Invalid code.");
+                    assert(code && code.root !== undefined, "Invalid code.");
                     comp(lang, code, data, (err, obj) => {
                       setCache(lang, id, obj);
                       resume(err, obj);
@@ -713,17 +713,17 @@ function compileID(id, resume) {
                   }
                 });
               } else {
-                comp(lang, code, data, (err, obj) => {
-                  setCache(lang, id, obj);
-                  resume(err, obj);
-                  if (Object.keys(data).length === 0) {
-                    // If data is an empty object/array, update obj for code.
-                    getItem(ids[1], (err, item) => {
-                      updateItem(ids[1], lang, item.src, code, JSON.stringify(obj), item.user,
-                                 item.parent, item.img, item.label, (err) => {});
-                    });
-                  }
-                });
+                if (lang && code) {
+                  assert(code.root !== undefined, "Invalid code.");
+                  comp(lang, code, data, (err, obj) => {
+                    setCache(lang, id, obj);
+                    resume(err, obj);
+                  });
+                } else {
+                  // Error handling here.
+                  console.log("ERROR compileID() missing code");
+                  resume(null, {});
+                }
               }
             });
           });
