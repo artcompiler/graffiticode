@@ -310,8 +310,8 @@ var dbQuery = function(query, resume) {
   pg.connect(conString, function (err, client, done) {
     // If there is an error, client is null and done is a noop
     if (err) {
-      console.log("[1] dbQuery() err=" + err);
-      return resume(err);
+      console.log("[1] ERROR dbQuery() err=" + err);
+      return resume(err, {});
     }
     try {
       client.query(query, function (err, result) {
@@ -324,7 +324,7 @@ var dbQuery = function(query, resume) {
         return resume(err, result);
       });
     } catch (e) {
-      console.log("[2] dbQuery() e=" + e);
+      console.log("[2] ERROR dbQuery() e=" + e);
       done();
       return resume(e);
     }
