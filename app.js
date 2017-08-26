@@ -312,8 +312,8 @@ var dbQuery = function(query, resume) {
   pg.connect(conString, function (err, client, done) {
     // If there is an error, client is null and done is a noop
     if (err) {
-      console.log("[1] dbQuery() err=" + err);
-      return resume(err);
+      console.log("[1] ERROR dbQuery() err=" + err);
+      return resume(err, {});
     }
     try {
       client.query(query, function (err, result) {
@@ -326,7 +326,7 @@ var dbQuery = function(query, resume) {
         return resume(err, result);
       });
     } catch (e) {
-      console.log("[2] dbQuery() e=" + e);
+      console.log("[2] ERROR dbQuery() e=" + e);
       done();
       return resume(e);
     }
@@ -489,8 +489,8 @@ app.get('/data', function(req, res) {
   console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ")");
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
-  let dataID = ids[2] ? ids[2] : 0;
-  let hashID = encodeID(ids);
+  let dataIDs = ids[2] ? ids.slice(2) : 0;
+  let hashID = encodeID([langID, codeID].concat(dataIDs));
   compileID(hashID, (err, obj) => {
     if (err) {
       console.log("GET /data err=" + err);
@@ -653,6 +653,17 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
     resume(err, []);
   });
 };
+
+function updateObj(id, obj, resume) {
+  obj = cleanAndTrimObj(JSON.stringify(obj));
+  var query =
+    "UPDATE pieces SET " +
+    "obj='" + obj + "' " +
+    "WHERE id='" + id + "'";
+  dbQuery(query, function (err) {
+    resume(err, []);
+  });
+}
 
 const nilID = encodeID([0,0,0]);
 function getData(ids, resume) {
@@ -883,12 +894,13 @@ app.put('/compile', function (req, res) {
       let id = encodeID([langID, codeID, dataID]);
       // We have an id, so update the item record.
       updateItem(itemID, language, src, ast, obj, user, parent, img, label, (err) => {
-        // Update the src and ast. In general, obj depends on data so don't save.
+        // Update the src and ast because they are used by compileID().
         if (err) {
           console.log("[1] PUT /compile err=" + err);
           res.status(400).send(err);
         } else {
           compileID(id, (err, obj) => {
+            updateObj(codeID, obj, (err)=>{ assert(!err) });
             res.json({
               id: id,
               obj: obj,
@@ -907,6 +919,7 @@ app.put('/compile', function (req, res) {
           let dataID = 0;
           let id = encodeID([langID, codeID, dataID]);
           compileID(id, (err, obj) => {
+            updateObj(codeID, obj, (err)=>{ assert(!err) });
             res.json({
               id: id,
               obj: obj,
