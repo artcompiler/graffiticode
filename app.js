@@ -223,7 +223,6 @@ app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
   if (hasEditingRights) {
     var ids = decodeID(req.query.id);
-    console.log("GET /item?id=" + ids.join("+") + " (" + req.query.id + ")");
     var langID = ids[0];
     var codeID = ids[1];
     if (+langID !== 0) {
@@ -382,7 +381,6 @@ function parseJSON(str) {
 // lang?id=106&src=equivLiteral "1+2" "1+2" --> item id
 app.get('/lang', function(req, res) {
   var id = req.query.id;
-  console.log("GET /lang?id=" + id);
   var src = req.query.src;
   var lang = "L" + id;
   var type = req.query.type;
@@ -431,7 +429,6 @@ app.get('/lang', function(req, res) {
 
 app.get('/form', function(req, res) {
   let ids = decodeID(req.query.id);
-  console.log("GET /form?id=" + ids.join("+") + " (" + req.query.id + ")");
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
@@ -484,16 +481,18 @@ app.get('/form', function(req, res) {
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
   let ids = decodeID(req.query.id);
-  console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ")");
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataIDs = ids[2] ? ids.slice(2) : 0;
   let hashID = encodeID([langID, codeID].concat(dataIDs));
+  let t0 = new Date;
   compileID(hashID, (err, obj) => {
     if (err) {
       console.log("GET /data err=" + err);
       res.status(400).send(err);
     } else {
+      console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ") in " +
+                  (new Date - t0) + "ms");
       res.json(obj);
     }
   });
@@ -506,7 +505,6 @@ function fixSingleQuotes(str) {
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   var ids = decodeID(req.query.id);
-  console.log("GET /code?id=" + ids.join("+") + " (" + req.query.id + ")");
   var langID = ids[0];
   var codeID = ids[1];
   getItem(codeID, (err, row) => {

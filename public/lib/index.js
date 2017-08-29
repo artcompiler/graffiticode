@@ -27673,7 +27673,6 @@ var GraffContent = React.createClass({
   },
   render: function render() {
     if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
-      // Legacy path.
       var Viewer = window.gcexports.viewer.Viewer;
       var lang = window.gcexports.language;
       if (this.state && this.state[lang] && this.state[lang].obj) {
@@ -27682,16 +27681,18 @@ var GraffContent = React.createClass({
         var data = state.data;
         return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: obj, data: data }, data));
       } else {
+        //        return <img key="0" className="preloader" width="30" height="30" src="logo.png"/>
         return React.createElement("div", null);
       }
     } else {
+      // Legacy path.
       return React.createElement(
         "svg",
         { height: "0", width: "100%", style: { background: "transparent" } },
         React.createElement(
           "g",
           null,
-          React.createElement("rect", { width: "100%", height: "100%", fill: "white" })
+          React.createElement("rect", { key: "1", width: "100%", height: "100%", fill: "white" })
         )
       );
     }
