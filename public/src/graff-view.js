@@ -245,7 +245,6 @@ var GraffContent = React.createClass({
     if (window.gcexports &&
         window.gcexports.viewer &&
         window.gcexports.viewer.Viewer) {
-      // Legacy path.
       let Viewer = window.gcexports.viewer.Viewer;
       let lang = window.gcexports.language;
       if (this.state && this.state[lang] && this.state[lang].obj) {
@@ -256,13 +255,15 @@ var GraffContent = React.createClass({
           <Viewer id="graff-view" className="viewer" obj={obj} data={data} {...data} />
         );
       } else {
+//        return <img key="0" className="preloader" width="30" height="30" src="logo.png"/>
         return <div/>;
       }
     } else {
+      // Legacy path.
       return (
         <svg height="0" width="100%" style={{background: "transparent"}}>
           <g>
-            <rect width="100%" height="100%" fill="white"/>
+            <rect key="1" width="100%" height="100%" fill="white"/>
           </g>
         </svg>
       );
