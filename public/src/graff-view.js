@@ -64,13 +64,21 @@ function decodeID(id) {
 }
 function encodeID(ids) {
   // console.log("[1] encodeID() >> " + JSON.stringify(ids));
-  if (ids.length === 1) {
-    if (+ids[0] === 0) {
+  let length = ids.length;
+  if (length >= 3 &&
       // [0,0,0] --> "0"
+      +ids[length - 3] === 0 &&
+      +ids[length - 2] === 0 &&
+      +ids[length - 1] === 0) {
+    ids = ids.slice(0, length - 2);
+    length = ids.length;
+  }
+  if (length === 1) {
+    if (+ids[0] === 0) {
       return "0";
     }
     ids = [0, +ids[0], 0];
-  } else if (ids.length === 2) {
+  } else if (length === 2) {
     ids = [0, +ids[0], 113, +ids[1], 0];
   }
   let id = hashids.encode(ids);
