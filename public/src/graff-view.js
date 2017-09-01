@@ -164,20 +164,20 @@ var GraffContent = React.createClass({
       let data = state.data;
       let label = state.label;
       let viewer = window.gcexports.viewer;
+      let parentID = state.parentID;
       if (viewer && !viewer.Viewer && obj) {
         // Legacy code path
         viewer.update(el, obj, src, ast);
       }
       gcexports.id = itemID;
-      this.postData(itemID, data, label);
+      this.postData(itemID, data, label, parentID);
     }
   },
-  postData: function postData(itemID, obj, label) {
+  postData: function postData(itemID, obj, label, parentID) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
     let gcexports = window.gcexports;
     let user = $("#username").data("user");
-    let parent = gcexports.parent;
     let lang = gcexports.language;
     let state = this.state[lang];
     let updateHistory = state.updateHistory;
@@ -194,7 +194,7 @@ var GraffContent = React.createClass({
           obj: JSON.stringify(obj),
           img: "",
           user: user ? user.id : 1,
-          parent: parent,
+          parent_id: parentID,
           language: "L113",
           label: label + " data",
         },
