@@ -654,6 +654,7 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
+    "parent_id='" + parent + "', " +
     "src='" + src + "', " +
     "ast='" + ast + "', " +
     "obj='" + obj + "' " +
@@ -741,7 +742,7 @@ function compileID(id, resume) {
                   });
                 } else {
                   // Error handling here.
-                  console.log("ERROR compileID() missing code");
+                  console.log("ERROR compileID() ids=" + ids + " missing code");
                   resume(null, {});
                 }
               }
@@ -971,6 +972,7 @@ app.put('/code', (req, response) => {
       var obj = body.obj ? body.obj : row.obj;
       //        var user = body.user_id ? body.user_id : row.user_id;
       var parent = body.parent_id ? body.parent_id : row.parent_id;
+      assert(row.parent_id === 0 || String(row.parent_id) === String(parent), "parent=" + parent + " row.parent_id=" + row.parent_id);
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
       updateItem(itemID, language, src, ast, obj, user, parent, img, label, function (err, data) {
@@ -994,7 +996,7 @@ app.put('/code', (req, response) => {
       var ast = body.ast ? JSON.parse(body.ast) : {};  // Possibly undefined.
       var obj = body.obj;
       var label = body.label;
-      var parent = 0;
+      var parent = body.parent_id ? body.parent_id : 0;
       var img = "";
       postItem(language, src, ast, obj, user, parent, img, label, function (err, result) {
         let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
