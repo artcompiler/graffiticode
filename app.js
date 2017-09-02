@@ -970,7 +970,7 @@ app.put('/code', (req, response) => {
       var obj = body.obj ? body.obj : row.obj;
       //        var user = body.user_id ? body.user_id : row.user_id;
       var parent = body.parent_id ? body.parent_id : row.parent_id;
-      assert(row.parent_id === 0 || String(row.parent_id) === String(parent), "parent=" + parent + " row.parent_id=" + row.parent_id);
+      //assert(row.parent_id === 0 || String(row.parent_id) === String(parent), "parent=" + parent + " row.parent_id=" + row.parent_id);
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
       updateItem(itemID, language, src, ast, obj, user, parent, img, label, function (err, data) {
