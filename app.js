@@ -361,8 +361,12 @@ var getItem = function (itemID, resume) {
   dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + itemID, ()=>{});
 };
 
+const localCache = {};
 const getCache = function (id, resume) {
-  if (cache) {
+  let val;
+  if ((val = localCache[id])) {
+    resume(null, val);
+  } else if (cache) {
     cache.get(id, (err, val) => {
       resume(null, parseJSON(val));
     });
@@ -373,8 +377,11 @@ const getCache = function (id, resume) {
 
 const dontCache = ["L124"];
 const setCache = function (lang, id, val) {
-  if (cache && !dontCache.includes(lang)) {
-    cache.set(id, JSON.stringify(val));
+  if (!dontCache.includes(lang)) {
+    localCache[id] = val;
+    if (cache) {
+      cache.set(id, JSON.stringify(val));
+    }
   }
 };
 
@@ -942,6 +949,7 @@ app.put('/compile', function (req, res) {
 });
 
 app.put('/code', (req, response) => {
+  let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
   let ids = decodeID(id);
@@ -986,6 +994,8 @@ app.put('/code', (req, response) => {
       let dataID = 0;
       let ids = [langID, codeID, dataID];
       let id = encodeID(ids);
+      console.log("PUT /code?id=" + ids.join("+") + " (" + id + ") in " +
+                  (new Date - t0) + "ms");
       response.json({
         id: id,
       });
@@ -1008,6 +1018,8 @@ app.put('/code', (req, response) => {
           console.log("PUT /code err=" + err);
           response.status(400).send(err);
         } else {
+          console.log("PUT* /code?id=" + ids.join("+") + " (" + id + ") in " +
+                      (new Date - t0) + "ms");
           response.json({
             id: id,
           });

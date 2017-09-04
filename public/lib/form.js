@@ -19770,12 +19770,12 @@ var GraffContent = React.createClass({
     //this.state[lang].recompileCode = false;
     if (codeID) {
       var _itemID = encodeID(ids);
-      var _lang = window.gcexports.language;
+      console.log(decodeID(window.gcexports.id).join("+") + " --> " + ids.join("+"));
       d3.json(location.origin + "/data?id=" + _itemID, function (err, obj) {
-        var lang = window.gcexports.language;
         if (dataID && +dataID !== 0) {
           // This is the magic where we collapse the "tail" into a JSON object.
           // Next this JSON object gets interned as static data (in L113).
+          console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID);
           d3.json(location.origin + "/data?id=" + encodeID(dataID), function (err, data) {
             var state = {};
             state[lang] = {
