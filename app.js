@@ -216,7 +216,7 @@ app.get('/pieces/:lang', function (req, res) {
         " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
       dbQuery(insertStr, function(err, result) {
         if (err) {
-          console.log("GET /pieces/:lang err=" + err);
+          console.log("ERROR GET /pieces/:lang err=" + err);
           res.status(400).send(err);
           return;
         }
@@ -255,7 +255,7 @@ app.get('/item', function(req, res) {
           version: version,
         }, function (error, html) {
           if (error) {
-            console.log("[1] GET /item err=" + error);
+            console.log("ERROR [1] GET /item err=" + error);
             res.status(400).send(error);
           } else {
             res.send(html);
@@ -276,7 +276,7 @@ app.get('/item', function(req, res) {
             version: version,
           }, function (error, html) {
             if (error) {
-              console.log("[2] GET /item err=" + error);
+              console.log("ERROR [2] GET /item err=" + error);
               res.status(400).send(error);
             } else {
               res.send(html);
@@ -313,7 +313,6 @@ app.get('/label', function (req, res) {
 });
 
 const updateLabel = function(id, label, resume) {
-  console.log("updateLabel() id=" + id + " label=" + label);
   dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'", () => {
     if (resume) {
       resume();
@@ -338,7 +337,7 @@ const dbQuery = function(query, resume) {
   pg.connect(conString, function (err, client, done) {
     // If there is an error, client is null and done is a noop
     if (err) {
-      console.log("[1] ERROR dbQuery() err=" + err);
+      console.log("ERROR [1] dbQuery() err=" + err);
       return resume(err, {});
     }
     try {
@@ -352,7 +351,7 @@ const dbQuery = function(query, resume) {
         return resume(err, result);
       });
     } catch (e) {
-      console.log("[2] ERROR dbQuery() e=" + e);
+      console.log("ERROR [2] dbQuery() e=" + e);
       done();
       return resume(e);
     }
@@ -380,23 +379,21 @@ var getItem = function (itemID, resume) {
 const localCache = {};
 
 const delCache = function (id) {
-  console.log("delCache() del id=" + id);
   localCache[id] = undefined;
-  cache.del(id);
+  if (cache) {
+    cache.del(id);
+  }
 };
 
 const getCache = function (id, resume) {
   let val;
   if ((val = localCache[id])) {
-    console.log("getCache() local id=" + id + " val=" + JSON.stringify(val));
     resume(null, val);
   } else if (cache) {
     cache.get(id, (err, val) => {
-      console.log("getCache() redis id=" + id + " val=" + val);
       resume(null, parseJSON(val));
     });
   } else {
-    console.log("getCache() miss id=" + id);
     resume(null, null);
   }
 };
@@ -448,7 +445,7 @@ app.get('/lang', function(req, res) {
             }
           });
         } else {
-          console.log("[1] GET /lang err=" + err);
+          console.log("ERROR [1] GET /lang err=" + err);
           res.status(400).send(err);
         }
       });
@@ -463,7 +460,7 @@ app.get('/lang', function(req, res) {
         version: version,
       }, function (error, html) {
         if (error) {
-          console.log("[2] GET /lang err=" + err);
+          console.log("ERROR [2] GET /lang err=" + err);
           res.status(400).send(error);
         } else {
           res.send(html);
@@ -499,9 +496,10 @@ app.get('/form', function(req, res) {
         item: encodeID(ids),
         view: "form",
         version: version,
+        refresh: req.query.refresh,
       }, function (error, html) {
         if (error) {
-          console.log("[1] GET /form err=" + error);
+          console.log("ERROR [1] GET /form err=" + error);
           res.status(400).send(error);
         } else {
           res.send(html);
@@ -522,7 +520,7 @@ app.get('/form', function(req, res) {
           version: version,
         }, function (error, html) {
           if (error) {
-            console.log("[2] GET /form error=" + error);
+            console.log("ERROR [2] GET /form error=" + error);
             res.status(400).send(error);
           } else {
             res.send(html);
@@ -540,10 +538,11 @@ app.get('/data', function(req, res) {
   let codeID = ids[1] ? ids[1] : 0;
   let dataIDs = ids[2] ? ids.slice(2) : 0;
   let hashID = encodeID([langID, codeID].concat(dataIDs));
+  let refresh = !!req.query.refresh;
   let t0 = new Date;
-  compileID(hashID, true, (err, obj) => {
+  compileID(hashID, refresh, (err, obj) => {
     if (err) {
-      console.log("GET /data err=" + err);
+      console.log("ERROR GET /data err=" + err);
       res.status(400).send(err);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ") in " +
@@ -674,7 +673,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
     " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
-      console.log("postItem() ERROR: " + queryStr);
+      console.log("ERROR postItem() " + queryStr);
       resume(err);
     } else {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
@@ -718,13 +717,13 @@ function updateObj(id, obj, resume) {
 }
 
 const nilID = encodeID([0,0,0]);
-function getData(ids, resume) {
+function getData(ids, refresh, resume) {
   if (encodeID(ids) === nilID || ids.length === 3 && +ids[2] === 0) {
     resume(null, {});
   } else {
     // Compile the tail.
     let id = encodeID(ids.slice(2));
-    compileID(id, true, resume);
+    compileID(id, refresh, resume);
   }
 }
 
@@ -750,7 +749,7 @@ function compileID(id, refresh, resume) {
   if (id === nilID) {
     resume(null, {});
   } else {
-    if (cache && refresh) {
+    if (refresh) {
       delCache(id);
     }
     getCache(id, (err, val) => {
@@ -759,7 +758,7 @@ function compileID(id, refresh, resume) {
         resume(err, val);
       } else {
         let ids = decodeID(id);
-        getData(ids, (err, data) => {
+        getData(ids, refresh, (err, data) => {
           getCode(ids, (err, code) => {
             getLang(ids, (err, lang) => {
               if (lang === "L113" && Object.keys(data).length === 0) {
@@ -771,7 +770,9 @@ function compileID(id, refresh, resume) {
                     resume(err, obj);
                   } catch (e) {
                     // Oops. Missing or invalid obj, so need to recompile after all.
-                    comp(lang, code, data, (err, obj) => {
+                    // Let downstream compilers they need to refresh
+                    // any data used. Prefer true over false.
+                    comp(lang, code, data, refresh, (err, obj) => {
                       setCache(lang, id, obj);
                       resume(err, obj);
                     });
@@ -780,7 +781,9 @@ function compileID(id, refresh, resume) {
               } else {
                 if (lang && code) {
                   assert(code.root !== undefined, "Invalid code.");
-                  comp(lang, code, data, (err, obj) => {
+                  // Let downstream compilers they need to refresh
+                  // any data used.
+                  comp(lang, code, data, refresh, (err, obj) => {
                     setCache(lang, id, obj);
                     resume(err, obj);
                   });
@@ -798,18 +801,19 @@ function compileID(id, refresh, resume) {
   }
 }
 
-function comp(language, code, data, resume) {
+function comp(lang, code, data, refresh, resume) {
   // Compile ast to obj.
   var path = "/compile";
   var encodedData = JSON.stringify({
     "description": "graffiticode",
-    "language": language,
+    "language": lang,
     "src": code,
     "data": data,
+    "refresh": refresh,
   });
   var options = {
-    host: getCompilerHost(language),
-    port: getCompilerPort(language),
+    host: getCompilerHost(lang),
+    port: getCompilerPort(lang),
     path: path,
     method: 'GET',
     headers: {
@@ -870,7 +874,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
         // New item.
         postItem(lang, src, ast, obj, user, 0, img, label, function (err, data) {
           if (err) {
-            console.log("compile() err=" + err);
+            console.log("ERROR compile() err=" + err);
             response.status(400).send(err);
           } else {
             response.json({
@@ -888,7 +892,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
         var label = row.label;
         updateItem(id, lang, src, ast, obj, user, parent, img, label, function (err, data) {
           if (err) {
-            console.log(err);
+            console.log("ERROR " + err);
           }
         });
         // Don't wait for update. We have what we need to respond.
@@ -908,7 +912,7 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
   req.write(encodedData);
   req.end();
   req.on('error', function(e) {
-    console.log("ERR01 " + e);
+    console.log("ERROR 01 " + e);
     response.send(e);
   });
 }
@@ -950,10 +954,10 @@ app.put('/compile', function (req, res) {
       updateItem(itemID, language, src, ast, obj, user, parent, img, label, (err) => {
         // Update the src and ast because they are used by compileID().
         if (err) {
-          console.log("[1] PUT /compile err=" + err);
+          console.log("ERROR [1] PUT /compile err=" + err);
           res.status(400).send(err);
         } else {
-          compileID(id, true, (err, obj) => {
+          compileID(id, false, (err, obj) => {
             updateObj(codeID, obj, (err)=>{ assert(!err) });
             res.json({
               id: id,
@@ -965,14 +969,14 @@ app.put('/compile', function (req, res) {
     } else {
       postItem(language, src, ast, obj, user, parent, img, label, (err, result) => {
         if (err) {
-          console.log("[2] PUT /compile err=" + err);
+          console.log("ERROR [2] PUT /compile err=" + err);
           response.status(400).send(err);
         } else {
           let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
           let codeID = result.rows[0].id;
           let dataID = 0;
           let id = encodeID([langID, codeID, dataID]);
-          compileID(id, true, (err, obj) => {
+          compileID(id, false, (err, obj) => {
             updateObj(codeID, obj, (err)=>{ assert(!err) });
             res.json({
               id: id,
@@ -1022,7 +1026,7 @@ app.put('/code', (req, response) => {
       var label = body.label ? body.label : row.label;
       updateItem(itemID, language, src, ast, obj, user, parent, img, label, function (err, data) {
         if (err) {
-          console.log(err);
+          console.log("ERROR " + err);
         }
       });
       // Don't wait for update. We have what we need to respond.
@@ -1052,7 +1056,7 @@ app.put('/code', (req, response) => {
         let ids = [langID, codeID, dataID];
         let id = encodeID(ids);
         if (err) {
-          console.log("PUT /code err=" + err);
+          console.log("ERROR PUT /code err=" + err);
           response.status(400).send(err);
         } else {
           console.log("PUT* /code?id=" + ids.join("+") + " (" + id + ") in " +
@@ -1084,7 +1088,7 @@ app.get('/items', function(req, res) {
       " ORDER BY pieces.id DESC" +
       " LIMIT " + limit;
   } else {
-    console.log("[1] GET /items err=" + err);
+    console.log("ERROR [1] GET /items err=" + err);
     send.status(400).send("bad request");
   }
   dbQuery(queryStr, function (err, result) {
@@ -1097,8 +1101,8 @@ app.get('/items', function(req, res) {
     res.send(rows)
   });
   req.on('error', function(e) {
-    console.log(e);
-    console.log("[2] GET /items err=" + err);
+    console.log("ERROR " + e);
+    console.log("ERROR [2] GET /items err=" + err);
     res.status(400).send(e);
   });
 });
@@ -1173,7 +1177,7 @@ app.get('/:lang', function (req, res) {
   if (!isNaN(parseInt(lang))) {
     res.redirect('/lang?id=' + lang);
   } else {
-    console.log("GET /:lang err");
+    console.log("ERROR GET /:lang err");
     res.status(400).send("Page not found");
   }
 });
@@ -1191,7 +1195,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 process.on('uncaughtException', function(err) {
-  console.log('Caught exception: ' + err.stack);
+  console.log('ERROR Caught exception: ' + err.stack);
 });
 
 if (!module.parent) {

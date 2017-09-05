@@ -104,17 +104,18 @@ var GraffContent = React.createClass({
     let self = this;
     let lang = window.gcexports.language;
     let state = this.state && this.state[lang] ? this.state[lang] : {};
-    // Deprecated?
-    //this.state[lang].recompileCode = false;
+    let params = "";
+    if (window.gcexports.refresh) {
+      params += "&refresh=true";
+    }
     if (codeID) {
       let itemID = encodeID(ids);
-      console.log(decodeID(window.gcexports.id).join("+") + " --> " + ids.join("+")); 
-      d3.json(location.origin + "/data?id=" + itemID, (err, obj) => {
+      d3.json(location.origin + "/data?id=" + itemID + params, (err, obj) => {
         if (dataID && +dataID !== 0) {
           // This is the magic where we collapse the "tail" into a JSON object.
           // Next this JSON object gets interned as static data (in L113).
           console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID); 
-          d3.json(location.origin + "/data?id=" + encodeID(dataID), (err, data) => {
+          d3.json(location.origin + "/data?id=" + encodeID(dataID) + params, (err, data) => {
             let state = {};
             state[lang] = {
               id: itemID,
