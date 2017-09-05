@@ -751,7 +751,7 @@ function compileID(id, refresh, resume) {
     resume(null, {});
   } else {
     if (cache && refresh) {
-      cache.del(id);
+      delCache(id);
     }
     getCache(id, (err, val) => {
       if (val) {
