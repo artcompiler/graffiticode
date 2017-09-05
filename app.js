@@ -378,15 +378,25 @@ var getItem = function (itemID, resume) {
 };
 
 const localCache = {};
+
+const delCache = function (id) {
+  console.log("delCache() del id=" + id);
+  localCache[id] = undefined;
+  cache.del(id);
+};
+
 const getCache = function (id, resume) {
   let val;
   if ((val = localCache[id])) {
+    console.log("getCache() local id=" + id + " val=" + JSON.stringify(val));
     resume(null, val);
   } else if (cache) {
     cache.get(id, (err, val) => {
+      console.log("getCache() redis id=" + id + " val=" + val);
       resume(null, parseJSON(val));
     });
   } else {
+    console.log("getCache() miss id=" + id);
     resume(null, null);
   }
 };
