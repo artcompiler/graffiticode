@@ -236,6 +236,14 @@ app.get('/item', function(req, res) {
     var ids = decodeID(req.query.id);
     var langID = ids[0];
     var codeID = ids[1];
+    // if (req.query.label) {
+    //   if (req.query.label.code) {
+    //     updateLabel(codeID, req.query.label.code);
+    //   }
+    //   if (req.query.label.data) {
+    //     updateLabel(dataID, req.query.label.data);
+    //   }
+    // }
     if (+langID !== 0) {
       let lang = "L" + langID;
       getCompilerVersion(lang, (version) => {
@@ -304,6 +312,16 @@ app.get('/label', function (req, res) {
   });
 });
 
+const updateLabel = function(id, label, resume) {
+  console.log("updateLabel() id=" + id + " label=" + label);
+  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'", () => {
+    if (resume) {
+      resume();
+    }
+    return;
+  });
+};
+
 // Update a label
 app.put('/label', function (req, res) {
   let ids = decodeID(req.body.id);
@@ -314,7 +332,7 @@ app.put('/label', function (req, res) {
   res.send(200)
 });
 
-var dbQuery = function(query, resume) {
+const dbQuery = function(query, resume) {
   let conString = getConStr(0);
   // Query Helper -- https://github.com/brianc/node-postgres/issues/382
   pg.connect(conString, function (err, client, done) {
@@ -450,6 +468,14 @@ app.get('/form', function(req, res) {
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
+  // if (req.query.label) {
+  //   if (req.query.label.code) {
+  //     updateLabel(codeID, req.query.label.code);
+  //   }
+  //   if (req.query.label.data) {
+  //     updateLabel(dataID, req.query.label.data);
+  //   }
+  // }
   if (!/[a-zA-Z]/.test(req.query.id)) {
     res.redirect("/form?id=" + encodeID(ids));
     return;
@@ -473,6 +499,7 @@ app.get('/form', function(req, res) {
       });
     });
   } else {
+    // Don't have a langID, so get it from the database item.
     getItem(codeID, function(err, row) {
       var lang = row.language;
       getCompilerVersion(lang, (version) => {
@@ -504,7 +531,7 @@ app.get('/data', function(req, res) {
   let dataIDs = ids[2] ? ids.slice(2) : 0;
   let hashID = encodeID([langID, codeID].concat(dataIDs));
   let t0 = new Date;
-  compileID(hashID, (err, obj) => {
+  compileID(hashID, true, (err, obj) => {
     if (err) {
       console.log("GET /data err=" + err);
       res.status(400).send(err);
@@ -687,7 +714,7 @@ function getData(ids, resume) {
   } else {
     // Compile the tail.
     let id = encodeID(ids.slice(2));
-    compileID(id, resume);
+    compileID(id, true, resume);
   }
 }
 
@@ -709,10 +736,13 @@ function getLang(ids, resume) {
   }
 }
 
-function compileID(id, resume) {
+function compileID(id, refresh, resume) {
   if (id === nilID) {
     resume(null, {});
   } else {
+    if (cache && refresh) {
+      cache.del(id);
+    }
     getCache(id, (err, val) => {
       if (val) {
         // Got cached value. We're done.
@@ -731,7 +761,6 @@ function compileID(id, resume) {
                     resume(err, obj);
                   } catch (e) {
                     // Oops. Missing or invalid obj, so need to recompile after all.
-                    assert(code && code.root !== undefined, "Invalid code.");
                     comp(lang, code, data, (err, obj) => {
                       setCache(lang, id, obj);
                       resume(err, obj);
@@ -914,7 +943,7 @@ app.put('/compile', function (req, res) {
           console.log("[1] PUT /compile err=" + err);
           res.status(400).send(err);
         } else {
-          compileID(id, (err, obj) => {
+          compileID(id, true, (err, obj) => {
             updateObj(codeID, obj, (err)=>{ assert(!err) });
             res.json({
               id: id,
@@ -933,7 +962,7 @@ app.put('/compile', function (req, res) {
           let codeID = result.rows[0].id;
           let dataID = 0;
           let id = encodeID([langID, codeID, dataID]);
-          compileID(id, (err, obj) => {
+          compileID(id, true, (err, obj) => {
             updateObj(codeID, obj, (err)=>{ assert(!err) });
             res.json({
               id: id,
