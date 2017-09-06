@@ -379,14 +379,12 @@ var getItem = function (itemID, resume) {
 };
 
 const localCache = {};
-
 const delCache = function (id) {
-  localCache[id] = undefined;
+  delete localCache[id];
   if (cache) {
     cache.del(id);
   }
 };
-
 const getCache = function (id, resume) {
   let val;
   if ((val = localCache[id])) {
@@ -399,7 +397,6 @@ const getCache = function (id, resume) {
     resume(null, null);
   }
 };
-
 const dontCache = ["L124"];
 const setCache = function (lang, id, val) {
   if (!dontCache.includes(lang)) {
@@ -548,7 +545,7 @@ app.get('/data', function(req, res) {
       res.status(400).send(err);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ") in " +
-                  (new Date - t0) + "ms");
+                  (new Date - t0) + "ms [" + (refresh ? "refresh" : "") + "]");
       res.json(obj);
     }
   });
@@ -1037,8 +1034,8 @@ app.put('/code', (req, response) => {
       let dataID = 0;
       let ids = [langID, codeID, dataID];
       let id = encodeID(ids);
-      console.log("PUT /code?id=" + ids.join("+") + " (" + id + ") in " +
-                  (new Date - t0) + "ms");
+      // console.log("PUT /code?id=" + ids.join("+") + " (" + id + ") in " +
+      //             (new Date - t0) + "ms");
       response.json({
         id: id,
       });
