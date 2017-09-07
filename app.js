@@ -2,10 +2,6 @@
  * Module dependencies.
  */
 
-function print(str) {
-  console.log(str)
-}
-
 function assert(b, str) {
   if (!b) {
     throw new Error(str);
@@ -545,7 +541,7 @@ app.get('/data', function(req, res) {
       res.status(400).send(err);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ") in " +
-                  (new Date - t0) + "ms [" + (refresh ? "refresh" : "") + "]");
+                  (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
       res.json(obj);
     }
   });
