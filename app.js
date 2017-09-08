@@ -431,24 +431,7 @@ app.get('/lang', function(req, res) {
   var lang = "L" + id;
   var type = req.query.type;
   if (src) {
-    parse(lang, src, (err, ast) => {
-      if (ast) {
-        compile(0, 0, 0, lang, src, ast, null, null, {
-          json: function (data) {
-            if (type === "id") {
-              res.json(data);
-            } else if (type === "data") {
-              res.redirect('/data?id=' + data.id);
-            } else {
-              res.redirect('/form?id=' + data.id);
-            }
-          }
-        });
-      } else {
-        console.log("ERROR [1] GET /lang err=" + err);
-        res.status(400).send(err);
-      }
-    });
+    assert(false, "Should not get here. Call PUT /compile");
   } else {
     getCompilerVersion(lang, (version) => {
       res.render('views.html', {
@@ -836,82 +819,6 @@ function comp(lang, code, data, refresh, resume) {
   req.on('error', function(err) {
     console.log("ERROR " + err);
     resume(err);
-  });
-}
-
-function compile(id, user, parent, lang, src, ast, data, rows, response) {
-  // Compile ast to obj.
-  var path = "/compile";
-  var encodedData = JSON.stringify({
-    "description": "graffiticode",
-    "language": lang,
-    "src": ast,
-    "data": data,
-  });
-  var options = {
-    host: getCompilerHost(lang),
-    port: getCompilerPort(lang),
-    path: path,
-    method: 'GET',
-    headers: {
-      'Content-Type': 'text/plain',
-      'Content-Length': encodedData.length
-    },
-  };
-  var req = protocol.request(options, function(res) {
-    var obj = "";
-    res.on('data', function (chunk) {
-      obj += chunk;
-    });
-    res.on('end', function () {
-      rows = rows ? rows : [];
-      if (rows.length === 0) {
-        // We don't have an existing item with the same source, so add one.
-        var img = "";
-        var label = "show";
-        // New item.
-        postItem(lang, src, ast, obj, user, 0, img, label, function (err, data) {
-          if (err) {
-            console.log("ERROR compile() err=" + err);
-            response.status(400).send(err);
-          } else {
-            response.json({
-              id: data.rows[0].id,  // only return the codeID
-              obj: parseJSON(fixSingleQuotes(obj)),
-            });
-          }
-        });
-      } else if (rows.length === 1 && (rows[0].obj !== obj || rows[0].ast !== ast)) {
-        var row = rows[0];
-        id = id ? decodeID(id)[1] : row.id;
-        user = row.user_id;
-        parent = row.parent_id;
-        var img = row.img;
-        var label = row.label;
-        updateItem(id, lang, src, ast, obj, user, parent, img, label, function (err, data) {
-          if (err) {
-            console.log("ERROR " + err);
-          }
-        });
-        // Don't wait for update. We have what we need to respond.
-        response.json({
-          id: id,
-          obj: parseJSON(obj),
-        });
-      } else {
-        // No update needed. Just return the item.
-        response.json({
-          id: rows[0].id,
-          obj: parseJSON(fixSingleQuotes(rows[0].obj)),
-        });
-      }
-    });
-  });
-  req.write(encodedData);
-  req.end();
-  req.on('error', function(e) {
-    console.log("ERROR 01 " + e);
-    response.send(e);
   });
 }
 
