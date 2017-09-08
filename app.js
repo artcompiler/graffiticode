@@ -411,6 +411,16 @@ function parseJSON(str) {
   }
 }
 
+function parse(lang, src, resume) {
+  get(lang, "lexicon.js", function (err, data) {
+    const lstr = data.substring(data.indexOf("{"));
+    const lexicon = JSON.parse(lstr);
+    main.parse(src, lexicon, (err, ast) => {
+      resume(err, ast);
+    });
+  });
+}
+
 // lang?id=106
 // item?id=12304
 // data?author=dyer&sort=desc
@@ -421,28 +431,23 @@ app.get('/lang', function(req, res) {
   var lang = "L" + id;
   var type = req.query.type;
   if (src) {
-    get(lang, "lexicon.js", function (err, data) {
-      var lstr = data.substring(data.indexOf("{"));
-      var lexicon = JSON.parse(lstr);
-      var ast = main.parse(src, lexicon, function (err, ast) {
-        if (ast) {
-          compile(0, 0, 0, lang, src, ast, null, null, {
-            json: function (data) {
-              if (type === "id") {
-                res.json(data);
-              } else if (type === "data") {
-                res.redirect('/data?id=' + data.id);
-              } else {
-                res.redirect('/form?id=' + data.id);
-              }
+    parse(lang, src, (err, ast) => {
+      if (ast) {
+        compile(0, 0, 0, lang, src, ast, null, null, {
+          json: function (data) {
+            if (type === "id") {
+              res.json(data);
+            } else if (type === "data") {
+              res.redirect('/data?id=' + data.id);
+            } else {
+              res.redirect('/form?id=' + data.id);
             }
-          });
-        } else {
-          console.log("ERROR [1] GET /lang err=" + err);
-          res.status(400).send(err);
-        }
-      });
-      return;
+          }
+        });
+      } else {
+        console.log("ERROR [1] GET /lang err=" + err);
+        res.status(400).send(err);
+      }
     });
   } else {
     getCompilerVersion(lang, (version) => {
@@ -910,18 +915,19 @@ function compile(id, user, parent, lang, src, ast, data, rows, response) {
   });
 }
 
-// Compile code
 app.put('/compile', function (req, res) {
+  // Compile AST or SRC to OBJ. Insert or add item.
   let id = req.body.id;
   let ids = decodeID(id);
+  let rawSrc = req.body.src;
   let src = cleanAndTrimSrc(req.body.src);
-  let ast = JSON.parse(req.body.ast);
-  let language = req.body.language;
+  let ast = req.body.ast;
+  let lang = req.body.language;
   let ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  let user = dot2num(ip); //req.body.user;
+  let user = dot2num(ip);  // Use IP address for user for now.
   let img = "";
   let obj = "";
   let label = "show";
@@ -933,62 +939,74 @@ app.put('/compile', function (req, res) {
     query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
   } else {
     // Otherwise look for an item with matching source.
-    query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
+    query = "SELECT * FROM pieces WHERE lang='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
+  console.log("PUT /compile src=" + src);
   dbQuery(query, function(err, result) {
     var row = result.rows[0];
     itemID = itemID ? itemID : row ? row.id : undefined;
-    if (itemID) {
-      let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
-      let codeID = result.rows[0].id;
-      let dataID = 0;
-      let id = encodeID([langID, codeID, dataID]);
-      // We have an id, so update the item record.
-      updateItem(itemID, language, src, ast, obj, user, parent, img, label, (err) => {
-        // Update the src and ast because they are used by compileID().
-        if (err) {
-          console.log("ERROR [1] PUT /compile err=" + err);
-          res.status(400).send(err);
-        } else {
-          compileID(id, false, (err, obj) => {
-            updateObj(codeID, obj, (err)=>{ assert(!err) });
-            res.json({
-              id: id,
-              obj: obj,
-            });
-          });
-        }
+    ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
+    if (!ast) {
+      parse(lang, rawSrc, (err, ast) => {
+        compile(ast);
       });
     } else {
-      postItem(language, src, ast, obj, user, parent, img, label, (err, result) => {
-        if (err) {
-          console.log("ERROR [2] PUT /compile err=" + err);
-          response.status(400).send(err);
-        } else {
-          let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
-          let codeID = result.rows[0].id;
-          let dataID = 0;
-          let id = encodeID([langID, codeID, dataID]);
-          compileID(id, false, (err, obj) => {
-            updateObj(codeID, obj, (err)=>{ assert(!err) });
-            res.json({
-              id: id,
-              obj: obj,
+      compile(ast);
+    }
+    function compile(ast) {
+      if (itemID) {
+        let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+        let codeID = row.id;
+        let dataID = 0;
+        let id = encodeID([langID, codeID, dataID]);
+        // We have an id, so update the item with the current AST.
+        updateItem(itemID, lang, src, ast, obj, user, parent, img, label, (err) => {
+          // Update the src and ast because they are used by compileID().
+          if (err) {
+            console.log("ERROR [1] PUT /compile err=" + err);
+            res.status(400).send(err);
+          } else {
+            compileID(id, false, (err, obj) => {
+              updateObj(codeID, obj, (err)=>{ assert(!err) });
+              res.json({
+                id: id,
+                obj: obj,
+              });
             });
-          });
-        }
-      });
+          }
+        });
+      } else {
+        postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
+          if (err) {
+            console.log("ERROR [2] PUT /compile err=" + err);
+            response.status(400).send(err);
+          } else {
+            let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+            let codeID = result.rows[0].id;
+            let dataID = 0;
+            let id = encodeID([langID, codeID, dataID]);
+            compileID(id, false, (err, obj) => {
+              updateObj(codeID, obj, (err)=>{ assert(!err) });
+              res.json({
+                id: id,
+                obj: obj,
+              });
+            });
+          }
+        });
+      }
     }
   });
 });
 
 app.put('/code', (req, response) => {
+  // Insert or update with given values.
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
   let ids = decodeID(id);
   let src = cleanAndTrimSrc(body.src);
-  let language = body.language;
+  let lang = body.language;
   let ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
@@ -1001,29 +1019,30 @@ app.put('/code', (req, response) => {
     query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
   } else {
     // Otherwise look for an item with matching source.
-    query = "SELECT * FROM pieces WHERE language='" + language + "' AND src = '" + src + "' ORDER BY pieces.id";
+    query = "SELECT * FROM pieces WHERE language='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
   dbQuery(query, function(err, result) {
-    // See if there is already an item with the same source for the same language. If so, pass it on.
+    // See if there is already an item with the same source for the same
+    // language. If so, pass it on.
     var row = result.rows[0];
-    itemID = itemID ? itemID : row ? row.id : undefined;  // Might still be undefined if there is no match.
+    itemID = itemID ? itemID : row ? row.id : undefined;
+    // Might still be undefined if there is no match.
     if (itemID) {
-      var language = row.language;
+      var lang = row.language;
       var src = body.src ? body.src : row.src;
       var ast = body.ast ? JSON.parse(body.ast) : row.ast;
       var obj = body.obj ? body.obj : row.obj;
-      //        var user = body.user_id ? body.user_id : row.user_id;
+      // var user = body.user_id ? body.user_id : row.user_id;
       var parent = body.parent_id ? body.parent_id : row.parent_id;
-      //assert(row.parent_id === 0 || String(row.parent_id) === String(parent), "parent=" + parent + " row.parent_id=" + row.parent_id);
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
-      updateItem(itemID, language, src, ast, obj, user, parent, img, label, function (err, data) {
+      updateItem(itemID, lang, src, ast, obj, user, parent, img, label, function (err, data) {
         if (err) {
           console.log("ERROR " + err);
         }
       });
       // Don't wait for update. We have what we need to respond.
-      let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
+      let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
       let codeID = result.rows[0].id;
       let dataID = 0;
       let ids = [langID, codeID, dataID];
@@ -1034,16 +1053,15 @@ app.put('/code', (req, response) => {
         id: id,
       });
     } else {
-      //var id = body.id;
       var src = body.src;
-      var language = body.language;
-      var ast = body.ast ? JSON.parse(body.ast) : {};  // Possibly undefined.
+      var lang = body.language;
+      var ast = body.ast ? JSON.parse(body.ast) : null;  // Possibly undefined.
       var obj = body.obj;
       var label = body.label;
       var parent = body.parent_id ? body.parent_id : 0;
       var img = "";
-      postItem(language, src, ast, obj, user, parent, img, label, function (err, result) {
-        let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
+      postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
+        let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
         let codeID = result.rows[0].id;
         let dataID = 0;
         let ids = [langID, codeID, dataID];

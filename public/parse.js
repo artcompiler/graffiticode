@@ -1657,7 +1657,7 @@ window.gcexports.parser = (function () {
     return ctx.state.env[ctx.state.env.length-1]
   }
 
-  function compileCode(ast, postCode) {
+  function compileAST(ast, postCode) {
     lastAST = ast;
     ast = JSON.stringify(ast);
     var src = window.gcexports.editor.getValue();
@@ -1724,13 +1724,16 @@ window.gcexports.parser = (function () {
   }
 
   function saveSrc() {
+    // Update SRC for a given ID.
     var id = window.gcexports.id;
+    let ids = window.gcexports.decodeID(id);
+    let codeID = ids[1];
     var src = window.gcexports.editor.getValue();
     $.ajax({
       type: "PUT",
       url: "/code",
       data: {
-        "id": id,
+        "id": codeID,
         "src": src,
       },
       dataType: "json",
@@ -1787,11 +1790,11 @@ window.gcexports.parser = (function () {
             // Compile code if no edit activity after 1 sec.
             if (firstTime) {
               // First time through, don't delay.
-              compileCode(thisAST, false);
+              compileAST(thisAST, false);
             }
             if (!firstTime) {
               lastTimer = window.setTimeout(function () {
-                compileCode(thisAST, true);
+                compileAST(thisAST, true);
               }, 1000);
             }
             firstTime = false;
