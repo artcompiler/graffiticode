@@ -35,7 +35,8 @@ if (LOCAL_DATABASE) {
 } else {
   pg.defaults.ssl = true;
 }
-let conStrs = [
+
+const conStrs = [
   LOCAL_DATABASE ? process.env.DATABASE_URL_LOCAL : process.env.DATABASE_URL,
 ];
 
@@ -161,69 +162,11 @@ function encodeID(ids) {
 // Routes
 
 app.get('/', function(req, res) {
-  res.redirect("/index");
+  res.redirect("public/index.html");
 });
 
-// get list of piece ids
-app.get('/pieces/:lang', function (req, res) {
-  var lang = req.params.lang;
-  var search = req.query.src;
-  var labelStr;
-  if (req.query.label === undefined) {
-    labelStr = " label='show' ";
-  } else {
-    let labels = req.query.label.split("|");
-    labelStr = " (";
-    labels.forEach(label => {
-      if (labelStr !== " (") {
-        labelStr += " OR ";
-      }
-      labelStr += " label='" + label + "' ";
-    });
-    labelStr += ") ";
-  }
-  var queryString, likeStr = "";
-  if (search) {
-    var ss = search.split(",");
-    ss.forEach(function (s) {
-      s = cleanAndTrimSrc(s);
-      if (likeStr) {
-        likeStr += " AND ";
-      } else {
-        likeStr += "(";
-      }
-      likeStr += "src like '%" + s + "%'";
-    });
-    if (likeStr) {
-      likeStr += ") AND ";
-    }
-  }
-  queryString = "SELECT id, created FROM pieces WHERE language='" + lang +
-    "' AND " + likeStr + labelStr + " ORDER BY id DESC";
-  dbQuery(queryString, function (err, result) {
-    var rows;
-    if (!result || result.rows.length === 0) {
-      console.log("no rows");
-      // No rows for this language so make an empty item and insert it.
-      var insertStr =
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-      dbQuery(insertStr, function(err, result) {
-        if (err) {
-          console.log("ERROR GET /pieces/:lang err=" + err);
-          res.status(400).send(err);
-          return;
-        }
-        dbQuery(queryString, function (err, result) {
-          res.send(result.rows);
-        });
-      });
-    } else {
-      res.send(result.rows);
-    }
-  });
+app.get("/index", function (req, res) {
+  res.sendFile("public/index.html");
 });
 
 app.get('/item', function(req, res) {
@@ -960,13 +903,13 @@ app.get('/items', function(req, res) {
       " IN ("+list+") ORDER BY pieces.id DESC";
   } else if (req.query.where) {
     let fields = req.query.fields ? req.query.fields : "id";
-    let limit = req.query.limit ? req.query.limit : "100";
+    let limit = req.query.limit ? req.query.limit : "1000";
     let where = req.query.where;
     queryStr =
       "SELECT " + fields +
       " FROM pieces WHERE " + where +
       " ORDER BY pieces.id DESC" +
-      " LIMIT " + limit;
+      (limit ? " LIMIT " + limit : "");
   } else {
     console.log("ERROR [1] GET /items err=" + err);
     send.status(400).send("bad request");
@@ -987,6 +930,69 @@ app.get('/items', function(req, res) {
   });
 });
 
+// DECPRECATE replace with GET /items {fields: "id", where: "language='L106' and ..."}
+app.get('/pieces/:lang', function (req, res) {
+  // Get list of item ids that match a query.
+  var lang = req.params.lang;
+  var search = req.query.src;
+  var labelStr;
+  if (req.query.label === undefined) {
+    labelStr = " label='show' ";
+  } else {
+    let labels = req.query.label.split("|");
+    labelStr = " (";
+    labels.forEach(label => {
+      if (labelStr !== " (") {
+        labelStr += " OR ";
+      }
+      labelStr += " label='" + label + "' ";
+    });
+    labelStr += ") ";
+  }
+  var queryString, likeStr = "";
+  if (search) {
+    var ss = search.split(",");
+    ss.forEach(function (s) {
+      s = cleanAndTrimSrc(s);
+      if (likeStr) {
+        likeStr += " AND ";
+      } else {
+        likeStr += "(";
+      }
+      likeStr += "src like '%" + s + "%'";
+    });
+    if (likeStr) {
+      likeStr += ") AND ";
+    }
+  }
+  queryString = "SELECT id, created FROM pieces WHERE language='" + lang +
+    "' AND " + likeStr + labelStr + " ORDER BY id DESC";
+  dbQuery(queryString, function (err, result) {
+    var rows;
+    if (!result || result.rows.length === 0) {
+      console.log("no rows");
+      // No rows for this language so make an empty item and insert it.
+      var insertStr =
+        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+      dbQuery(insertStr, function(err, result) {
+        if (err) {
+          console.log("ERROR GET /pieces/:lang err=" + err);
+          res.status(400).send(err);
+          return;
+        }
+        dbQuery(queryString, function (err, result) {
+          res.send(result.rows);
+        });
+      });
+    } else {
+      res.send(result.rows);
+    }
+  });
+});
+
 // From http://javascript.about.com/library/blipconvert.htm
 function dot2num(dot) {
   var d = dot.split('.');
@@ -1004,45 +1010,41 @@ function num2dot(num) {
   return d;
 }
 
-app.get("/:lang/*", function (req, res) {
+app.get("/:lang/*", function (req, response) {
   // /L106/lexicon.js
   var lang = req.params.lang;
   let url = req.url;
   let path = url.substring(url.indexOf(lang) + lang.length + 1);
   var data = [];
   var options = {
-    host: getCompilerHost(language),
-    port: getCompilerPort(language),
+    host: getCompilerHost(lang),
+    port: getCompilerPort(lang),
     path: "/" + path,
   };
   var req = protocol.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
     }).on("end", function () {
-      res.send(data.join(""));
+      response.send(data.join(""));
     });
   });
 });
 
-function getCompilerHost(language) {
+function getCompilerHost(lang) {
   if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
-    return language + ".artcompiler.com";
+    return lang + ".artcompiler.com";
   }
 }
 
-function getCompilerPort(language) {
+function getCompilerPort(lang) {
   if (LOCAL_COMPILES && port === 3000) {
-    return "5" + language.substring(1);  // e.g. L103 -> 5103
+    return "5" + lang.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
   }
 }
-
-app.get("/index", function (req, res) {
-  res.sendFile("public/index.html");
-});
 
 dbQuery("SELECT NOW() as when", function(err, result) {
   console.log(result);
