@@ -232,14 +232,6 @@ app.get('/item', function(req, res) {
     var ids = decodeID(req.query.id);
     var langID = ids[0];
     var codeID = ids[1];
-    // if (req.query.label) {
-    //   if (req.query.label.code) {
-    //     updateLabel(codeID, req.query.label.code);
-    //   }
-    //   if (req.query.label.data) {
-    //     updateLabel(dataID, req.query.label.data);
-    //   }
-    // }
     if (+langID !== 0) {
       let lang = "L" + langID;
       getCompilerVersion(lang, (version) => {
@@ -415,21 +407,15 @@ function parse(lang, src, resume) {
   get(lang, "lexicon.js", function (err, data) {
     const lstr = data.substring(data.indexOf("{"));
     const lexicon = JSON.parse(lstr);
-    main.parse(src, lexicon, (err, ast) => {
-      resume(err, ast);
-    });
+    main.parse(src, lexicon, resume);
   });
 }
 
-// lang?id=106
-// item?id=12304
-// data?author=dyer&sort=desc
-// lang?id=106&src=equivLiteral "1+2" "1+2" --> item id
 app.get('/lang', function(req, res) {
+  // lang?id=106
   var id = req.query.id;
   var src = req.query.src;
   var lang = "L" + id;
-  var type = req.query.type;
   if (src) {
     assert(false, "Should not get here. Call PUT /compile");
   } else {
@@ -456,14 +442,6 @@ app.get('/form', function(req, res) {
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
-  // if (req.query.label) {
-  //   if (req.query.label.code) {
-  //     updateLabel(codeID, req.query.label.code);
-  //   }
-  //   if (req.query.label.data) {
-  //     updateLabel(dataID, req.query.label.data);
-  //   }
-  // }
   if (!/[a-zA-Z]/.test(req.query.id)) {
     res.redirect("/form?id=" + encodeID(ids));
     return;
@@ -518,10 +496,10 @@ app.get('/data', function(req, res) {
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataIDs = ids[2] ? ids.slice(2) : 0;
-  let hashID = encodeID([langID, codeID].concat(dataIDs));
+  let id = encodeID([langID, codeID].concat(dataIDs));
   let refresh = !!req.query.refresh;
   let t0 = new Date;
-  compileID(hashID, refresh, (err, obj) => {
+  compileID(id, refresh, (err, obj) => {
     if (err) {
       console.log("ERROR GET /data err=" + err);
       res.status(400).send(err);
@@ -550,22 +528,6 @@ app.get('/code', (req, res) => {
     });
   });
 });
-
-function retrieve(language, path, response) {
-  var data = [];
-  var options = {
-    host: getCompilerHost(language),
-    port: getCompilerPort(language),
-    path: "/" + path,
-  };
-  var req = protocol.get(options, function(res) {
-    res.on("data", function (chunk) {
-      data.push(chunk);
-    }).on("end", function () {
-      response.send(data.join(""));
-    });
-  });
-}
 
 let compilerVersions = {};
 function getCompilerVersion(language, resume) {
@@ -1043,10 +1005,23 @@ function num2dot(num) {
 }
 
 app.get("/:lang/*", function (req, res) {
+  // /L106/lexicon.js
   var lang = req.params.lang;
   let url = req.url;
   let path = url.substring(url.indexOf(lang) + lang.length + 1);
-  retrieve(lang, path, res);
+  var data = [];
+  var options = {
+    host: getCompilerHost(language),
+    port: getCompilerPort(language),
+    path: "/" + path,
+  };
+  var req = protocol.get(options, function(res) {
+    res.on("data", function (chunk) {
+      data.push(chunk);
+    }).on("end", function () {
+      res.send(data.join(""));
+    });
+  });
 });
 
 function getCompilerHost(language) {
@@ -1067,37 +1042,6 @@ function getCompilerPort(language) {
 
 app.get("/index", function (req, res) {
   res.sendFile("public/index.html");
-});
-
-// Get the object code for piece with :id
-// app.get('/graffiti/:id', function (req, res) {
-//   var id = req.params.id;
-//   dbQuery("SELECT obj, img FROM pieces WHERE id=" + id, function (err, result) {
-//     var ret;
-//     if (!result || result.rows.length === 0) {
-//       ret = "";
-//     } else {
-//       ret = result.rows[0].img;
-//       if (!ret) {
-//         // For backward compatibility
-//         ret = result.rows[0].obj;
-//       }
-//     }
-//     res.send(ret);
-//     dbQuery("UPDATE pieces SET views = views + 1 WHERE id = "+id, function () {
-//     });
-//   });
-// });
-
-// This is the new way of loading pages
-app.get('/:lang', function (req, res) {
-  var lang = req.params.lang.substring(1);
-  if (!isNaN(parseInt(lang))) {
-    res.redirect('/lang?id=' + lang);
-  } else {
-    console.log("ERROR GET /:lang err");
-    res.status(400).send("Page not found");
-  }
 });
 
 dbQuery("SELECT NOW() as when", function(err, result) {
