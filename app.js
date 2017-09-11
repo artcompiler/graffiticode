@@ -753,7 +753,6 @@ app.put('/compile', function (req, res) {
     // Otherwise look for an item with matching source.
     query = "SELECT * FROM pieces WHERE lang='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
-  console.log("PUT /compile src=" + src);
   dbQuery(query, function(err, result) {
     var row = result.rows[0];
     itemID = itemID ? itemID : row ? row.id : undefined;
