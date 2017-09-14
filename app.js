@@ -24,6 +24,20 @@ var cache = undefined; //redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 
+// const expressJWT = require("express-jwt");
+// const jwt = require("jsonwebtoken");
+// const jwtSecret = "Artcompiler LLC"
+// app.use(expressJWT({secret: jwtSecret}).unless(["/login"]));
+// app.get("/login", (req, res) => {
+//   if (auth) {
+//     let token = jwt.sign({
+//       user: "foobar"
+//     }, jwtSecret);
+//     res.json(token);
+//   } else {
+//     res.send(401).send("Invalid credentials");
+//   }
+// });
 
 // Configuration
 
@@ -165,10 +179,6 @@ app.get('/', function(req, res) {
   res.redirect("public/index.html");
 });
 
-app.get("/index", function (req, res) {
-  res.sendFile("public/index.html");
-});
-
 app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
   if (hasEditingRights) {
@@ -184,6 +194,7 @@ app.get('/item', function(req, res) {
           item: encodeID(ids),
           view: "item",
           version: version,
+          refresh: req.query.refresh,
         }, function (error, html) {
           if (error) {
             console.log("ERROR [1] GET /item err=" + error);
@@ -205,6 +216,7 @@ app.get('/item', function(req, res) {
             item: encodeID(ids),
             view: "item",
             version: version,
+            refresh: req.query.refresh,
           }, function (error, html) {
             if (error) {
               console.log("ERROR [2] GET /item err=" + error);
@@ -420,6 +432,7 @@ app.get('/form', function(req, res) {
           item: encodeID(ids),
           view: "form",
           version: version,
+          refresh: req.query.refresh,
         }, function (error, html) {
           if (error) {
             console.log("ERROR [2] GET /form error=" + error);
@@ -911,7 +924,7 @@ app.get('/items', function(req, res) {
       (limit ? " LIMIT " + limit : "");
   } else {
     console.log("ERROR [1] GET /items err=" + err);
-    send.status(400).send("bad request");
+    res.status(400).send("bad request");
   }
   dbQuery(queryStr, function (err, result) {
     var rows;
