@@ -95,7 +95,7 @@ app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
 app.use(function (err, req, res, next) {
   console.error(err.stack)
-  res.status(500).send('Something broke!')
+  res.sendStatus(500).send('Something broke!')
 });
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
@@ -198,7 +198,7 @@ app.get('/item', function(req, res) {
         }, function (error, html) {
           if (error) {
             console.log("ERROR [1] GET /item err=" + error);
-            res.status(400).send(error);
+            res.sendStatus(400).send(error);
           } else {
             res.send(html);
           }
@@ -220,7 +220,7 @@ app.get('/item', function(req, res) {
           }, function (error, html) {
             if (error) {
               console.log("ERROR [2] GET /item err=" + error);
-              res.status(400).send(error);
+              res.sendStatus(400).send(error);
             } else {
               res.send(html);
             }
@@ -286,6 +286,9 @@ const dbQuery = function(query, resume) {
     try {
       client.query(query, function (err, result) {
         done();
+        if (err) {
+          throw new Error(err);
+        }
         if (!result) {
           result = {
             rows: [],
@@ -383,7 +386,7 @@ app.get('/lang', function(req, res) {
       }, function (error, html) {
         if (error) {
           console.log("ERROR [2] GET /lang err=" + err);
-          res.status(400).send(error);
+          res.sendStatus(400).send(error);
         } else {
           res.send(html);
         }
@@ -414,7 +417,7 @@ app.get('/form', function(req, res) {
       }, function (error, html) {
         if (error) {
           console.log("ERROR [1] GET /form err=" + error);
-          res.status(400).send(error);
+          res.sendStatus(400).send(error);
         } else {
           res.send(html);
         }
@@ -436,7 +439,7 @@ app.get('/form', function(req, res) {
         }, function (error, html) {
           if (error) {
             console.log("ERROR [2] GET /form error=" + error);
-            res.status(400).send(error);
+            res.sendStatus(400).send(error);
           } else {
             res.send(html);
           }
@@ -458,7 +461,7 @@ app.get('/data', function(req, res) {
   compileID(id, refresh, (err, obj) => {
     if (err) {
       console.log("ERROR GET /data err=" + err);
-      res.status(400).send(err);
+      res.sendStatus(400).send(err);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
@@ -764,7 +767,7 @@ app.put('/compile', function (req, res) {
     query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
   } else {
     // Otherwise look for an item with matching source.
-    query = "SELECT * FROM pieces WHERE lang='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
+    query = "SELECT * FROM pieces WHERE language='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
   dbQuery(query, function(err, result) {
     var row = result.rows[0];
@@ -788,7 +791,7 @@ app.put('/compile', function (req, res) {
           // Update the src and ast because they are used by compileID().
           if (err) {
             console.log("ERROR [1] PUT /compile err=" + err);
-            res.status(400).send(err);
+            res.sendStatus(400).send(err);
           } else {
             compileID(id, false, (err, obj) => {
               updateObj(codeID, obj, (err)=>{ assert(!err) });
@@ -803,7 +806,7 @@ app.put('/compile', function (req, res) {
         postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
           if (err) {
             console.log("ERROR [2] PUT /compile err=" + err);
-            response.status(400).send(err);
+            response.sendStatus(400).send(err);
           } else {
             let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
             let codeID = result.rows[0].id;
@@ -892,7 +895,7 @@ app.put('/code', (req, response) => {
         let id = encodeID(ids);
         if (err) {
           console.log("ERROR PUT /code err=" + err);
-          response.status(400).send(err);
+          response.sendStatus(400).send(err);
         } else {
           console.log("PUT* /code?id=" + ids.join("+") + " (" + id + ") in " +
                       (new Date - t0) + "ms");
@@ -924,7 +927,7 @@ app.get('/items', function(req, res) {
       (limit ? " LIMIT " + limit : "");
   } else {
     console.log("ERROR [1] GET /items err=" + err);
-    res.status(400).send("bad request");
+    res.sendStatus(400).send("bad request");
   }
   dbQuery(queryStr, function (err, result) {
     var rows;
@@ -938,7 +941,7 @@ app.get('/items', function(req, res) {
   req.on('error', function(e) {
     console.log("ERROR " + e);
     console.log("ERROR [2] GET /items err=" + err);
-    res.status(400).send(e);
+    res.sendStatus(400).send(e);
   });
 });
 
@@ -992,7 +995,7 @@ app.get('/pieces/:lang', function (req, res) {
       dbQuery(insertStr, function(err, result) {
         if (err) {
           console.log("ERROR GET /pieces/:lang err=" + err);
-          res.status(400).send(err);
+          res.sendStatus(400).send(err);
           return;
         }
         dbQuery(queryString, function (err, result) {
