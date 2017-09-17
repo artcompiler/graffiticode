@@ -2,6 +2,9 @@
  * Module dependencies.
  */
 
+function print(str) {
+  process.stdout.write(str);
+}
 function assert(b, str) {
   if (!b) {
     throw new Error(str);
@@ -363,12 +366,20 @@ function parseJSON(str) {
   }
 }
 
+const lexiconCache = {};
 function parse(lang, src, resume) {
-  get(lang, "lexicon.js", function (err, data) {
-    const lstr = data.substring(data.indexOf("{"));
-    const lexicon = JSON.parse(lstr);
+  let lexicon;
+  if ((lexicon = lexiconCache[lang])) {
     main.parse(src, lexicon, resume);
-  });
+  } else {
+    get(lang, "lexicon.js", function (err, data) {
+      const lstr = data.substring(data.indexOf("{"));
+      console.log("parse() lang=" + lang + " lstr=" + lstr);
+      lexicon = JSON.parse(lstr);
+      lexiconCache[lang] = lexicon;
+      main.parse(src, lexicon, resume);
+    });
+  }
 }
 
 app.get('/lang', function(req, res) {
@@ -385,6 +396,7 @@ app.get('/lang', function(req, res) {
         language: lang,
         item: undefined,
         version: version,
+        refresh: req.query.refresh,
       }, function (error, html) {
         if (error) {
           console.log("ERROR [2] GET /lang err=" + err);
@@ -609,7 +621,21 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   });
 };
 
-function updateObj(id, obj, resume) {
+function updateAST(id, ast, resume) {
+  ast = cleanAndTrimSrc(JSON.stringify(ast));
+  var query =
+    "UPDATE pieces SET " +
+    "ast='" + ast + "' " +
+    "WHERE id='" + id + "'";
+  dbQuery(query, function (err) {
+    if (err && err.length) {
+      console.log("ERROR updateAST() err=" + err);
+    }
+    resume(err, []);
+  });
+}
+
+function updateOBJ(id, obj, resume) {
   obj = cleanAndTrimObj(JSON.stringify(obj));
   var query =
     "UPDATE pieces SET " +
@@ -745,6 +771,48 @@ function comp(lang, code, data, refresh, resume) {
   });
 }
 
+const parseID = (id, resume) => {
+  let ids = decodeID(id);
+  getItem(ids[1], (err, item) => {
+    // if L113 there is no AST.
+    const lang = item.language;
+    const src = item.src;
+    if (src) {
+      print(id + " ");
+      parse(lang, src, (err, ast) => {
+        if (!ast || Object.keys(ast).length === 0) {
+          console.log("NO AST for SRC " + src);
+        }
+        if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
+          console.log("AST* id=" + id);
+          updateAST(id, ast, (err)=>{ assert(!err) });
+        } else {
+          resume(err, ast);
+        }
+      });
+    } else {
+      resume(["ERROR no source. " + id]);
+    }
+  });
+};
+
+const recompileItems = (items, parseOnly) => {
+  items.forEach(id => {
+    parseID(id, (err, ast) => {
+      if (err.length) {
+        console.log("ERROR " + err);
+        return;
+      }
+      if (!parseOnly) {
+        compileID(id, true, (err, obj) => {
+          console.log("Compiled " + id);
+          updateOBJ(id, obj, (err)=>{ assert(!err) });
+        });
+      }
+    });
+  });
+};
+
 app.put('/compile', function (req, res) {
   // Compile AST or SRC to OBJ. Insert or add item.
   let id = req.body.id;
@@ -796,7 +864,7 @@ app.put('/compile', function (req, res) {
             res.sendStatus(400).send(err);
           } else {
             compileID(id, false, (err, obj) => {
-              updateObj(codeID, obj, (err)=>{ assert(!err) });
+              updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
                 obj: obj,
@@ -815,7 +883,7 @@ app.put('/compile', function (req, res) {
             let dataID = 0;
             let id = encodeID([langID, codeID, dataID]);
             compileID(id, false, (err, obj) => {
-              updateObj(codeID, obj, (err)=>{ assert(!err) });
+              updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
                 obj: obj,
@@ -1083,6 +1151,7 @@ if (!module.parent) {
   var port = process.env.PORT || 3002;
   app.listen(port, function() {
     console.log("Listening on " + port);
+    recompileItems([], true);
   });
 }
 

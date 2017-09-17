@@ -1816,7 +1816,7 @@ window.gcexports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-      console.log(x.stack);
+//      console.log(x.stack);
 //      console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
@@ -1830,7 +1830,7 @@ window.gcexports.parser = (function () {
         next(ctx)
         cls = "error"
       }
-      console.log(x)
+//      console.log(x)
     }
     var t1 = new Date;
     parseCount++
