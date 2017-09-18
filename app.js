@@ -372,7 +372,6 @@ function parse(lang, src, resume) {
   } else {
     get(lang, "lexicon.js", function (err, data) {
       const lstr = data.substring(data.indexOf("{"));
-      console.log("parse() lang=" + lang + " lstr=" + lstr);
       lexicon = JSON.parse(lstr);
       lexiconCache[lang] = lexicon;
       main.parse(src, lexicon, resume);
@@ -776,14 +775,16 @@ const parseID = (id, resume) => {
     const lang = item.language;
     const src = item.src;
     if (src) {
-      print(id + " ");
       parse(lang, src, (err, ast) => {
         if (!ast || Object.keys(ast).length === 0) {
           console.log("NO AST for SRC " + src);
         }
         if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-          console.log("AST* id=" + id);
-          updateAST(id, ast, (err)=>{ assert(!err) });
+          print("*");
+          updateAST(id, ast, (err)=>{
+            assert(!err);
+            resume(err, ast);
+          });
         } else {
           resume(err, ast);
         }
@@ -797,15 +798,18 @@ const parseID = (id, resume) => {
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
     parseID(id, (err, ast) => {
+      print(id + " parsed");
       if (err.length) {
         console.log("ERROR " + err);
         return;
       }
       if (!parseOnly) {
         compileID(id, true, (err, obj) => {
-          console.log("Compiled " + id);
+          print(" compiled\n");
           updateOBJ(id, obj, (err)=>{ assert(!err) });
         });
+      } else {
+        print("\n");
       }
     });
   });
@@ -1149,7 +1153,7 @@ if (!module.parent) {
   var port = process.env.PORT || 3000;
   app.listen(port, function() {
     console.log("Listening on " + port);
-    recompileItems([], true);
+    recompileItems([482612]);
   });
 }
 
