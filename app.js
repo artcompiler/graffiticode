@@ -44,6 +44,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
+const DEBUG = false;
 const LOCAL_COMPILES = false;
 const LOCAL_DATABASE = false;
 
@@ -348,7 +349,7 @@ const getCache = function (id, resume) {
 };
 const dontCache = ["L124"];
 const setCache = function (lang, id, val) {
-  if (!dontCache.includes(lang)) {
+  if (!DEBUG && !dontCache.includes(lang)) {
     localCache[id] = val;
     if (cache) {
       cache.set(id, JSON.stringify(val));
@@ -374,7 +375,6 @@ function parse(lang, src, resume) {
   } else {
     get(lang, "lexicon.js", function (err, data) {
       const lstr = data.substring(data.indexOf("{"));
-      console.log("parse() lang=" + lang + " lstr=" + lstr);
       lexicon = JSON.parse(lstr);
       lexiconCache[lang] = lexicon;
       main.parse(src, lexicon, resume);
@@ -740,6 +740,7 @@ function comp(lang, code, data, refresh, resume) {
     "src": code,
     "data": data,
     "refresh": refresh,
+    "auth": authToken,
   });
   var options = {
     host: getCompilerHost(lang),
@@ -778,14 +779,16 @@ const parseID = (id, resume) => {
     const lang = item.language;
     const src = item.src;
     if (src) {
-      print(id + " ");
       parse(lang, src, (err, ast) => {
         if (!ast || Object.keys(ast).length === 0) {
           console.log("NO AST for SRC " + src);
         }
         if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-          console.log("AST* id=" + id);
-          updateAST(id, ast, (err)=>{ assert(!err) });
+          print("*");
+          updateAST(id, ast, (err)=>{
+            assert(!err);
+            resume(err, ast);
+          });
         } else {
           resume(err, ast);
         }
@@ -799,21 +802,25 @@ const parseID = (id, resume) => {
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
     parseID(id, (err, ast) => {
+      print(id + " parsed");
       if (err.length) {
         console.log("ERROR " + err);
         return;
       }
       if (!parseOnly) {
         compileID(id, true, (err, obj) => {
-          console.log("Compiled " + id);
+          print(" compiled\n");
           updateOBJ(id, obj, (err)=>{ assert(!err) });
         });
+      } else {
+        print("\n");
       }
     });
   });
 };
 
 app.put('/compile', function (req, res) {
+  let t0 = new Date;
   // Compile AST or SRC to OBJ. Insert or add item.
   let id = req.body.id;
   let ids = decodeID(id);
@@ -855,7 +862,8 @@ app.put('/compile', function (req, res) {
         let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
         let codeID = row.id;
         let dataID = 0;
-        let id = encodeID([langID, codeID, dataID]);
+        let ids = [langID, codeID, dataID];
+        let id = encodeID(ids);
         // We have an id, so update the item with the current AST.
         updateItem(itemID, lang, src, ast, obj, user, parent, img, label, (err) => {
           // Update the src and ast because they are used by compileID().
@@ -864,6 +872,8 @@ app.put('/compile', function (req, res) {
             res.sendStatus(400).send(err);
           } else {
             compileID(id, false, (err, obj) => {
+              console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
+                          (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
@@ -881,8 +891,11 @@ app.put('/compile', function (req, res) {
             let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
             let codeID = result.rows[0].id;
             let dataID = 0;
-            let id = encodeID([langID, codeID, dataID]);
+            let ids = [langID, codeID, dataID];
+            let id = encodeID(ids);
             compileID(id, false, (err, obj) => {
+              console.log("PUT* /comp?id=" + ids.join("+") + " (" + id + ") in " +
+                          (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
@@ -1147,11 +1160,57 @@ process.on('uncaughtException', function(err) {
   console.log('ERROR Caught exception: ' + err.stack);
 });
 
+function postAuth(path, data, resume) {
+  let encodedData = JSON.stringify(data);
+  var options = {
+    host: "auth.artcompiler.com",
+    port: "443",
+    path: path,
+    method: "POST",
+    headers: {
+      'Content-Type': 'text/plain',
+      'Content-Length': Buffer.byteLength(encodedData),
+    },
+  };
+  var req = https.request(options);
+  req.on("response", (res) => {
+    var data = "";
+    res.on('data', function (chunk) {
+      data += chunk;
+    }).on('end', function () {
+      try {
+        resume(null, JSON.parse(data));
+      } catch (e) {
+        console.log("ERROR " + data);
+        console.log(e.stack);
+      }
+    }).on("error", function () {
+      console.log("error() status=" + res.statusCode + " data=" + data);
+    });
+  });
+  req.end(encodedData);
+  req.on('error', function(err) {
+    console.log("ERROR " + err);
+    resume(err);
+  });
+}
+
+let authToken;
+
 if (!module.parent) {
   var port = process.env.PORT || 3002;
   app.listen(port, function() {
     console.log("Listening on " + port);
-    recompileItems([], true);
+    postAuth("/login", {
+      "address": "0x0123456789abcdef0123456789abcdef01234567"
+    }, (err, data) => {
+      postAuth("/finishLogin", {
+        "jwt": data.jwt,
+      }, (err, data) => {
+        authToken = data.jwt;
+      });
+    });
+    recompileItems([]);
   });
 }
 
