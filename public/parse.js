@@ -1668,8 +1668,8 @@ window.gcexports.parser = (function () {
       type: "PUT",
       url: "/compile",
       data: {
-        "id": !postCode ? window.gcexports.id : 0,
-        "parent": postCode ? window.gcexports.id : 0,
+        "id": postCode ? null : window.gcexports.id,
+        "parent": postCode ? window.gcexports.id : null,
         "ast": ast,
         "type": window.gcexports.lexiconType,
         "language": window.gcexports.language,

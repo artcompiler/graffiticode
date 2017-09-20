@@ -27544,7 +27544,7 @@ var GraffContent = React.createClass({
           obj: JSON.stringify(obj),
           img: "",
           user: user ? user.id : 1,
-          parent_id: parentID,
+          parent: parentID,
           language: "L113",
           label: label + " data"
         },
