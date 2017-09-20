@@ -818,6 +818,7 @@ const recompileItems = (items, parseOnly) => {
 };
 
 app.put('/compile', function (req, res) {
+  let t0 = new Date;
   // Compile AST or SRC to OBJ. Insert or add item.
   let id = req.body.id;
   let ids = decodeID(id);
@@ -859,7 +860,8 @@ app.put('/compile', function (req, res) {
         let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
         let codeID = row.id;
         let dataID = 0;
-        let id = encodeID([langID, codeID, dataID]);
+        let ids = [langID, codeID, dataID];
+        let id = encodeID(ids);
         // We have an id, so update the item with the current AST.
         updateItem(itemID, lang, src, ast, obj, user, parent, img, label, (err) => {
           // Update the src and ast because they are used by compileID().
@@ -868,6 +870,8 @@ app.put('/compile', function (req, res) {
             res.sendStatus(400).send(err);
           } else {
             compileID(id, false, (err, obj) => {
+              console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
+                          (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
@@ -885,8 +889,11 @@ app.put('/compile', function (req, res) {
             let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
             let codeID = result.rows[0].id;
             let dataID = 0;
-            let id = encodeID([langID, codeID, dataID]);
+            let ids = [langID, codeID, dataID];
+            let id = encodeID(ids);
             compileID(id, false, (err, obj) => {
+              console.log("PUT* /comp?id=" + ids.join("+") + " (" + id + ") in " +
+                          (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
@@ -1193,9 +1200,8 @@ if (!module.parent) {
   app.listen(port, function() {
     console.log("Listening on " + port);
     postAuth("/login", {
-      "address": "0xae91fc0da6b3a5d9db881531b5227abe075a806b"
+      "address": "0x0123456789abcdef0123456789abcdef01234567"
     }, (err, data) => {
-      console.log("PUT /login data=" + JSON.stringify(data));
       postAuth("/finishLogin", {
         "jwt": data.jwt,
       }, (err, data) => {
