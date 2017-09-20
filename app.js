@@ -44,6 +44,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
+const DEBUG = false;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
@@ -346,7 +347,7 @@ const getCache = function (id, resume) {
 };
 const dontCache = ["L124"];
 const setCache = function (lang, id, val) {
-  if (!dontCache.includes(lang)) {
+  if (!DEBUG && !dontCache.includes(lang)) {
     localCache[id] = val;
     if (cache) {
       cache.set(id, JSON.stringify(val));
@@ -737,6 +738,7 @@ function comp(lang, code, data, refresh, resume) {
     "src": code,
     "data": data,
     "refresh": refresh,
+    "auth": authToken,
   });
   var options = {
     host: getCompilerHost(lang),
@@ -1149,11 +1151,58 @@ process.on('uncaughtException', function(err) {
   console.log('ERROR Caught exception: ' + err.stack);
 });
 
+function postAuth(path, data, resume) {
+  let encodedData = JSON.stringify(data);
+  var options = {
+    host: "auth.artcompiler.com",
+    port: "443",
+    path: path,
+    method: "POST",
+    headers: {
+      'Content-Type': 'text/plain',
+      'Content-Length': Buffer.byteLength(encodedData),
+    },
+  };
+  var req = https.request(options);
+  req.on("response", (res) => {
+    var data = "";
+    res.on('data', function (chunk) {
+      data += chunk;
+    }).on('end', function () {
+      try {
+        resume(null, JSON.parse(data));
+      } catch (e) {
+        console.log("ERROR " + data);
+        console.log(e.stack);
+      }
+    }).on("error", function () {
+      console.log("error() status=" + res.statusCode + " data=" + data);
+    });
+  });
+  req.end(encodedData);
+  req.on('error', function(err) {
+    console.log("ERROR " + err);
+    resume(err);
+  });
+}
+
+let authToken;
+
 if (!module.parent) {
   var port = process.env.PORT || 3000;
   app.listen(port, function() {
     console.log("Listening on " + port);
-    recompileItems([482612]);
+    postAuth("/login", {
+      "address": "0xae91fc0da6b3a5d9db881531b5227abe075a806b"
+    }, (err, data) => {
+      console.log("PUT /login data=" + JSON.stringify(data));
+      postAuth("/finishLogin", {
+        "jwt": data.jwt,
+      }, (err, data) => {
+        authToken = data.jwt;
+      });
+    });
+    recompileItems([]);
   });
 }
 
