@@ -325,7 +325,6 @@ var getItem = function (itemID, resume) {
     }
     resume(err, val);
   });
-  dbQuery("UPDATE pieces SET views = views + 1 WHERE id = " + itemID, ()=>{});
 };
 
 const localCache = {};
@@ -575,18 +574,17 @@ function cleanAndTrimSrc(str) {
 
 // Commit and return commit id
 function postItem(language, src, ast, obj, user, parent, img, label, resume) {
+  parent = decodeID(parent)[1];
   // ast is a JSON object
-  var views = 0;
   var forks = 0;
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var queryStr =
-    "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
-    " VALUES ('" + user + "', '" + parent + "', '" + views +
-    " ', '" + forks + "', now(), '" + src + "', '" + obj +
-    " ', '" + language + "', '" + label + "', '" + img + "', '" + ast + "');"
+    "INSERT INTO pieces (address, user_id, parent_id, forks, created, src, obj, language, label, img, ast)" +
+    " VALUES ('" + clientAddress + "','" + user + "','" + parent + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
+    label + "','" + img + "','" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
       console.log("ERROR postItem() " + queryStr);
@@ -602,7 +600,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
 };
 
 // Commit and return commit id
-function updateItem(id, language, src, ast, obj, user, parent, img, label, resume) {
+function updateItem(id, language, src, ast, obj, img, resume) {
   var views = 0;
   var forks = 0;
   obj = cleanAndTrimObj(obj);
@@ -611,10 +609,10 @@ function updateItem(id, language, src, ast, obj, user, parent, img, label, resum
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
-    "parent_id='" + parent + "', " +
-    "src='" + src + "', " +
-    "ast='" + ast + "', " +
-    "obj='" + obj + "' " +
+    "src='" + src + "'," +
+    "ast='" + ast + "'," +
+    "obj='" + obj + "'," +
+    "img='" + img + "'" +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
     resume(err, []);
@@ -836,7 +834,7 @@ app.put('/compile', function (req, res) {
   let img = "";
   let obj = "";
   let label = "show";
-  let parent = 0;
+  let parent = req.body.parent ? req.body.parent : 0;
   let query;
   let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
   if (itemID !== undefined) {
@@ -865,7 +863,7 @@ app.put('/compile', function (req, res) {
         let ids = [langID, codeID, dataID];
         let id = encodeID(ids);
         // We have an id, so update the item with the current AST.
-        updateItem(itemID, lang, src, ast, obj, user, parent, img, label, (err) => {
+        updateItem(itemID, lang, src, ast, obj, img, (err) => {
           // Update the src and ast because they are used by compileID().
           if (err) {
             console.log("ERROR [1] PUT /compile err=" + err);
@@ -943,10 +941,10 @@ app.put('/code', (req, response) => {
       var ast = body.ast ? JSON.parse(body.ast) : row.ast;
       var obj = body.obj ? body.obj : row.obj;
       // var user = body.user_id ? body.user_id : row.user_id;
-      var parent = body.parent_id ? body.parent_id : row.parent_id;
+      var parent = body.parent ? body.parent : row.parent_id;
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
-      updateItem(itemID, lang, src, ast, obj, user, parent, img, label, function (err, data) {
+      updateItem(itemID, lang, src, ast, obj, img, function (err, data) {
         if (err) {
           console.log("ERROR " + err);
         }
@@ -968,7 +966,7 @@ app.put('/code', (req, response) => {
       var ast = body.ast ? JSON.parse(body.ast) : null;  // Possibly undefined.
       var obj = body.obj;
       var label = body.label;
-      var parent = body.parent_id ? body.parent_id : 0;
+      var parent = body.parentd ? body.parent : 0;
       var img = "";
       postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
         let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
@@ -1195,14 +1193,19 @@ function postAuth(path, data, resume) {
   });
 }
 
+const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
+  ? process.env.ARTCOMPILER_CLIENT_ADDRESS
+  : "0x0123456789abcdef0123456789abcdef01234567";
+
 let authToken;
 
 if (!module.parent) {
   var port = process.env.PORT || 3002;
   app.listen(port, function() {
     console.log("Listening on " + port);
+    console.log("Using address " + clientAddress);
     postAuth("/login", {
-      "address": "0x0123456789abcdef0123456789abcdef01234567"
+      "address": clientAddress,
     }, (err, data) => {
       postAuth("/finishLogin", {
         "jwt": data.jwt,
