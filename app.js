@@ -1005,7 +1005,7 @@ app.get('/items', function(req, res) {
       " ORDER BY pieces.id DESC" +
       (limit ? " LIMIT " + limit : "");
   } else {
-    console.log("ERROR [1] GET /items err=" + err);
+    console.log("ERROR [1] GET /items");
     res.sendStatus(400).send("bad request");
   }
   dbQuery(queryStr, function (err, result) {
