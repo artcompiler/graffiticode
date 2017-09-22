@@ -964,7 +964,7 @@ app.put('/code', (req, response) => {
       var ast = body.ast ? JSON.parse(body.ast) : null;  // Possibly undefined.
       var obj = body.obj;
       var label = body.label;
-      var parent = body.parentd ? body.parent : 0;
+      var parent = body.parent ? body.parent : 0;
       var img = "";
       postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
         let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
