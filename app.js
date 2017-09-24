@@ -27,21 +27,6 @@ var cache = undefined; //redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 
-// const expressJWT = require("express-jwt");
-// const jwt = require("jsonwebtoken");
-// const jwtSecret = "Artcompiler LLC"
-// app.use(expressJWT({secret: jwtSecret}).unless(["/login"]));
-// app.get("/login", (req, res) => {
-//   if (auth) {
-//     let token = jwt.sign({
-//       user: "foobar"
-//     }, jwtSecret);
-//     res.json(token);
-//   } else {
-//     res.send(401).send("Invalid credentials");
-//   }
-// });
-
 // Configuration
 
 const DEBUG = false;
