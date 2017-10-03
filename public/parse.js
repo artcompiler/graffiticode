@@ -935,6 +935,11 @@ window.gcexports.parser = (function () {
       severity : "error",
     });
   }
+
+  var CC_LEFTBRACE = 0x7B;
+  var CC_RIGHTBRACE = 0x7D;
+  var CC_DOUBLEQUOTE = 0x22;
+
   var TK_IDENT  = 0x01;
   var TK_NUM  = 0x02;
   var TK_STR  = 0x03;
@@ -973,6 +978,11 @@ window.gcexports.parser = (function () {
   var TK_COMMENT    = 0xAD;
   var TK_LEFTANGLE  = 0xAE;
   var TK_RIGHTANGLE = 0xAF;
+  var TK_DOUBLELEFTBRACE = 0xB0;
+  var TK_DOUBLERIGHTBRACE = 0xB1;
+  var TK_STRPREFIX = 0xB2;
+  var TK_STRMIDDLE = 0xB3;
+  var TK_STRSUFFIX = 0xB4;
 
   function tokenToLexeme(tk) {
     switch (tk) {
@@ -1090,6 +1100,78 @@ window.gcexports.parser = (function () {
     return cc;
   }
 
+  /*
+  Str :
+    STR
+    STRPREFIX StrSuffix
+
+  StrSuffix :
+    Expr STRMIDDLE StrSuffix
+    Expr STRSUFFIX
+  */
+
+  function str(ctx, cc) {
+    if (match(ctx, TK_STR)) {
+      eat(ctx, TK_STR);
+      var coord = getCoord(ctx);
+      Ast.string(ctx, lexeme, coord); // strip quotes;
+      cc.cls = "string";
+      return cc;
+    } else if (match(ctx, TK_STRPREFIX)) {
+      eat(ctx, TK_STRPREFIX);
+      startCounter(ctx);
+      var coord = getCoord(ctx);
+      Ast.string(ctx, lexeme, coord) // strip quotes;
+      countCounter(ctx);
+      var ret = function(ctx) {
+        return strSuffix(ctx, function (ctx) {
+          eat(ctx, TK_STRSUFFIX);
+          var coord = getCoord(ctx);
+          Ast.string(ctx, lexeme, coord) // strip quotes;
+          countCounter(ctx);
+          Ast.list(ctx, ctx.state.exprc, getCoord(ctx));
+          stopCounter(ctx);
+          Ast.concat(ctx);
+          cc.cls = "string";
+          return cc;
+        });
+      }
+      ret.cls = "string";
+      return ret;
+    }
+    assert(false);
+  }
+  function strSuffix(ctx, resume) {
+    if (match(ctx, TK_STRSUFFIX)) {
+      // We have a STRSUFFIX so we are done.
+      return resume;
+    }
+    return strPart(ctx, function (ctx) {
+      if (match(ctx, TK_STRMIDDLE)) {
+        // Not done yet.
+        eat(ctx, TK_STRMIDDLE);
+        var coord = getCoord(ctx);
+        Ast.string(ctx, lexeme, coord) // strip quotes;
+        countCounter(ctx);
+        var ret = function (ctx) {
+          return strSuffix(ctx, resume);
+        };
+        ret.cls = "string";
+        return ret;
+      }
+      var ret = function (ctx) {
+        return strSuffix(ctx, resume);
+      };
+      ret.cls = "string";
+      return ret;
+    });
+  }
+  function strPart(ctx, resume) {
+    return expr(ctx, function(ctx) {
+      countCounter(ctx);
+      return resume(ctx);
+    });
+  }
   function ident(ctx, cc) {
     eat(ctx, TK_IDENT);
     Ast.name(ctx, lexeme);
@@ -1100,7 +1182,7 @@ window.gcexports.parser = (function () {
     if (match(ctx, TK_IDENT)) {
       return ident(ctx, cc);
     }
-    return string(ctx, cc);
+    return str(ctx, cc);
   }
   function defList(ctx, resume) {
     eat(ctx, TK_LEFTBRACKET);
@@ -1286,8 +1368,8 @@ window.gcexports.parser = (function () {
   function primaryExpr(ctx, cc) {
     if (match(ctx, TK_NUM)) {
       return number(ctx, cc);
-    } else if (match(ctx, TK_STR)) {
-      return string(ctx, cc);
+    } else if (match(ctx, TK_STR) || match(ctx, TK_STRPREFIX)) {
+      return str(ctx, cc);
     } else if (match(ctx, TK_BOOL)) {
       return bool(ctx, cc);
     } else if (match(ctx, TK_NULL)) {
@@ -1481,11 +1563,12 @@ window.gcexports.parser = (function () {
   }
 
   function expr(ctx, cc) {
+    var ret;
     if (match(ctx, TK_LET)) {
-      var ret = letDef(ctx, cc);
-      return ret;
+      ret = letDef(ctx, cc);
+    } else {
+      ret = condExpr(ctx, cc);
     }
-    var ret = condExpr(ctx, cc);
     return ret;
   }
 
@@ -1499,6 +1582,7 @@ window.gcexports.parser = (function () {
       || match(ctx, TK_ELSE)
       || match(ctx, TK_OR)
       || match(ctx, TK_END)
+      || match(ctx, TK_DOUBLERIGHTBRACE)
       || match(ctx, TK_DOT);
   }
 
@@ -1853,6 +1937,16 @@ window.gcexports.parser = (function () {
 
     // begin private functions
 
+    function peekCC() {
+      return stream.peek().charCodeAt(0);
+    }
+
+    function nextCC() {
+      return stream.peek() !== undefined 
+        ? stream.next().charCodeAt(0)
+        : 0;
+    }
+
     function start () {
       var c;
       lexeme = "";
@@ -1899,9 +1993,19 @@ window.gcexports.parser = (function () {
           return TK_RIGHTBRACKET
         case 123: // left brace
           lexeme += String.fromCharCode(c);
+          if (peekCC() === CC_LEFTBRACE) {
+            c = nextCC();
+            lexeme += String.fromCharCode(c);
+            return TK_DOUBLELEFTBRACE;
+          }
           return TK_LEFTBRACE
         case 125: // right brace
           lexeme += String.fromCharCode(c);
+          if (peekCC() === CC_RIGHTBRACE) {
+            c = nextCC();
+            lexeme += String.fromCharCode(c);
+            return stringSuffix();
+          }
           return TK_RIGHTBRACE
         case 34:  // double quote
         case 39:  // single quote
@@ -1958,14 +2062,42 @@ window.gcexports.parser = (function () {
       var quoteChar = c
       lexeme += String.fromCharCode(c)
       c = (s = stream.next()) ? s.charCodeAt(0) : 0
-      while (c !== quoteChar && c !== 0) {
+      while (c !== quoteChar && c !== 0 &&
+            !(quoteChar === CC_DOUBLEQUOTE &&  // Double quoted string can be templated.
+              c === CC_LEFTBRACE &&
+              stream.peek().charCodeAt(0) === CC_LEFTBRACE)) {
         lexeme += String.fromCharCode(c);
         var s;
         c = (s = stream.next()) ? s.charCodeAt(0) : 0
       }
-      if (c) {
-        lexeme += String.fromCharCode(c)
+      if (c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE) {
+        stream.next();
+        lexeme = lexeme.substring(1);  // Strip off punct.
+        return TK_STRPREFIX;
+      } else if (c) {
+        lexeme = lexeme.substring(1);  // Strip off leading quote.
         return TK_STR;
+      } else {
+        return 0
+      }
+    }
+
+    function stringSuffix() {
+      var quoteChar = CC_DOUBLEQUOTE;
+      c = (s = stream.next()) ? s.charCodeAt(0) : 0
+      while (c !== quoteChar && c !== 0 &&
+            !(c === CC_LEFTBRACE && stream.peek().charCodeAt(0) === CC_LEFTBRACE)) {
+        lexeme += String.fromCharCode(c);
+        var s;
+        c = (s = stream.next()) ? s.charCodeAt(0) : 0
+      }
+      if (c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE) {
+        stream.next();
+        lexeme = lexeme.substring(2);  // Strip off leading brace and trailing brace.
+        return TK_STRMIDDLE;
+      } else if (c) {
+        lexeme = lexeme.substring(2);  // Strip off leading braces.
+        return TK_STRSUFFIX;
       } else {
         return 0
       }
@@ -2204,7 +2336,7 @@ var folder = function() {
   }
 
   function expr(node) {
-    // Construc an expression node for the compiler.
+    // Construct an expression node for the compiler.
     Ast.name(ctx, node.tag);
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
