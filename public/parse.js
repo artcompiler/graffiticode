@@ -2062,15 +2062,16 @@ window.gcexports.parser = (function () {
       var quoteChar = c
       lexeme += String.fromCharCode(c)
       c = (s = stream.next()) ? s.charCodeAt(0) : 0
-      while (c !== quoteChar && c !== 0 &&
-            !(quoteChar === CC_DOUBLEQUOTE &&  // Double quoted string can be templated.
-              c === CC_LEFTBRACE &&
-              stream.peek().charCodeAt(0) === CC_LEFTBRACE)) {
+      // while (c !== quoteChar && c !== 0 &&
+      //       !(quoteChar === CC_DOUBLEQUOTE &&  // Double quoted string can be templated.
+      //         c === CC_LEFTBRACE &&
+      //         stream.peek().charCodeAt(0) === CC_LEFTBRACE)) {
+      while (c !== quoteChar && c !== 0) {
         lexeme += String.fromCharCode(c);
         var s;
         c = (s = stream.next()) ? s.charCodeAt(0) : 0
       }
-      if (c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE) {
+      if (false && c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE) {
         stream.next();
         lexeme = lexeme.substring(1);  // Strip off punct.
         return TK_STRPREFIX;
