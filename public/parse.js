@@ -936,9 +936,10 @@ window.gcexports.parser = (function () {
     });
   }
 
+  var CC_DOUBLEQUOTE = 0x22;
+  var CC_SINGLEQUOTE = 0x27;
   var CC_LEFTBRACE = 0x7B;
   var CC_RIGHTBRACE = 0x7D;
-  var CC_DOUBLEQUOTE = 0x22;
 
   var TK_IDENT  = 0x01;
   var TK_NUM  = 0x02;
@@ -1228,12 +1229,6 @@ window.gcexports.parser = (function () {
       }
     } else {
       cc.cls = "comment";
-      // ctx.state.errors.push({
-      //   from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
-      //   to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
-      //   message: "Name '" + lexeme + "' not found.",
-      //   severity : "error",
-      // });
       addError(ctx, "Name '" + lexeme + "' not found.");
     }
     assert(cc, "name");
@@ -1582,7 +1577,6 @@ window.gcexports.parser = (function () {
       || match(ctx, TK_ELSE)
       || match(ctx, TK_OR)
       || match(ctx, TK_END)
-      || match(ctx, TK_DOUBLERIGHTBRACE)
       || match(ctx, TK_DOT);
   }
 
@@ -1938,13 +1932,11 @@ window.gcexports.parser = (function () {
     // begin private functions
 
     function peekCC() {
-      return stream.peek().charCodeAt(0);
+      return stream.peek() && stream.peek().charCodeAt(0) || 0;
     }
 
     function nextCC() {
-      return stream.peek() !== undefined 
-        ? stream.next().charCodeAt(0)
-        : 0;
+      return stream.peek() && stream.next().charCodeAt(0) || 0;
     }
 
     function start () {
@@ -2062,16 +2054,17 @@ window.gcexports.parser = (function () {
       var quoteChar = c
       lexeme += String.fromCharCode(c)
       c = (s = stream.next()) ? s.charCodeAt(0) : 0
-      // while (c !== quoteChar && c !== 0 &&
-      //       !(quoteChar === CC_DOUBLEQUOTE &&  // Double quoted string can be templated.
-      //         c === CC_LEFTBRACE &&
-      //         stream.peek().charCodeAt(0) === CC_LEFTBRACE)) {
-      while (c !== quoteChar && c !== 0) {
+      while (c !== quoteChar && c !== 0 &&
+            !(quoteChar === CC_SINGLEQUOTE &&  // Single quoted string can be templated.
+              c === CC_LEFTBRACE &&
+              peekCC() === CC_LEFTBRACE)) {
         lexeme += String.fromCharCode(c);
         var s;
         c = (s = stream.next()) ? s.charCodeAt(0) : 0
       }
-      if (false && c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE) {
+      if (quoteChar === CC_SINGLEQUOTE &&
+          c === CC_LEFTBRACE &&
+          peekCC() === CC_LEFTBRACE) {
         stream.next();
         lexeme = lexeme.substring(1);  // Strip off punct.
         return TK_STRPREFIX;
@@ -2084,13 +2077,13 @@ window.gcexports.parser = (function () {
     }
 
     function stringSuffix() {
-      var quoteChar = CC_DOUBLEQUOTE;
+      var quoteChar = CC_SINGLEQUOTE;
       c = (s = stream.next()) ? s.charCodeAt(0) : 0
       while (c !== quoteChar && c !== 0 &&
-            !(c === CC_LEFTBRACE && stream.peek().charCodeAt(0) === CC_LEFTBRACE)) {
+            !(c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE)) {
         lexeme += String.fromCharCode(c);
         var s;
-        c = (s = stream.next()) ? s.charCodeAt(0) : 0
+        c = nextCC();
       }
       if (c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE) {
         stream.next();
