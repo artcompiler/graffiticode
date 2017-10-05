@@ -1052,7 +1052,7 @@ window.gcexports.parser = (function () {
     var nextToken = ctx.state.nextToken;
     if (nextToken < 0) {
       var t0 = new Date();
-      tk = ctx.scan.start();
+      tk = ctx.scan.start(ctx);
       var t1 = new Date();
       scanTime += (t1-t0);
       ctx.state.nextToken = tk;
@@ -1111,7 +1111,6 @@ window.gcexports.parser = (function () {
     Expr STRSUFFIX
   */
 
-  var inStrState = 0;
   function str(ctx, cc) {
     if (match(ctx, TK_STR)) {
       eat(ctx, TK_STR);
@@ -1120,7 +1119,7 @@ window.gcexports.parser = (function () {
       cc.cls = "string";
       return cc;
     } else if (match(ctx, TK_STRPREFIX)) {
-      inStrState++;
+      ctx.state.inStr++;
       eat(ctx, TK_STRPREFIX);
       startCounter(ctx);
       var coord = getCoord(ctx);
@@ -1128,7 +1127,7 @@ window.gcexports.parser = (function () {
       countCounter(ctx);
       var ret = function(ctx) {
         return strSuffix(ctx, function (ctx) {
-          inStrState--;
+          ctx.state.inStr--;
           eat(ctx, TK_STRSUFFIX);
           var coord = getCoord(ctx);
           Ast.string(ctx, lexeme, coord) // strip quotes;
@@ -1942,7 +1941,7 @@ window.gcexports.parser = (function () {
       return stream.peek() && stream.next().charCodeAt(0) || 0;
     }
 
-    function start () {
+    function start(ctx) {
       var c;
       lexeme = "";
       while (stream.peek() !== void 0) {
@@ -1991,7 +1990,7 @@ window.gcexports.parser = (function () {
           return TK_LEFTBRACE
         case 125: // right brace
           lexeme += String.fromCharCode(c);
-          if (inStrState) {
+          if (ctx.state.inStr) {
             return stringSuffix();
           }
           return TK_RIGHTBRACE
