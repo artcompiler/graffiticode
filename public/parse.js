@@ -1111,6 +1111,7 @@ window.gcexports.parser = (function () {
     Expr STRSUFFIX
   */
 
+  var inStrState = 0;
   function str(ctx, cc) {
     if (match(ctx, TK_STR)) {
       eat(ctx, TK_STR);
@@ -1119,6 +1120,7 @@ window.gcexports.parser = (function () {
       cc.cls = "string";
       return cc;
     } else if (match(ctx, TK_STRPREFIX)) {
+      inStrState++;
       eat(ctx, TK_STRPREFIX);
       startCounter(ctx);
       var coord = getCoord(ctx);
@@ -1126,6 +1128,7 @@ window.gcexports.parser = (function () {
       countCounter(ctx);
       var ret = function(ctx) {
         return strSuffix(ctx, function (ctx) {
+          inStrState--;
           eat(ctx, TK_STRSUFFIX);
           var coord = getCoord(ctx);
           Ast.string(ctx, lexeme, coord) // strip quotes;
@@ -1985,17 +1988,10 @@ window.gcexports.parser = (function () {
           return TK_RIGHTBRACKET
         case 123: // left brace
           lexeme += String.fromCharCode(c);
-          if (peekCC() === CC_LEFTBRACE) {
-            c = nextCC();
-            lexeme += String.fromCharCode(c);
-            return TK_DOUBLELEFTBRACE;
-          }
           return TK_LEFTBRACE
         case 125: // right brace
           lexeme += String.fromCharCode(c);
-          if (peekCC() === CC_RIGHTBRACE) {
-            c = nextCC();
-            lexeme += String.fromCharCode(c);
+          if (inStrState) {
             return stringSuffix();
           }
           return TK_RIGHTBRACE
@@ -2056,16 +2052,13 @@ window.gcexports.parser = (function () {
       c = (s = stream.next()) ? s.charCodeAt(0) : 0
       while (c !== quoteChar && c !== 0 &&
             !(quoteChar === CC_SINGLEQUOTE &&  // Single quoted string can be templated.
-              c === CC_LEFTBRACE &&
-              peekCC() === CC_LEFTBRACE)) {
+              c === CC_LEFTBRACE)) {
         lexeme += String.fromCharCode(c);
         var s;
         c = (s = stream.next()) ? s.charCodeAt(0) : 0
       }
       if (quoteChar === CC_SINGLEQUOTE &&
-          c === CC_LEFTBRACE &&
-          peekCC() === CC_LEFTBRACE) {
-        stream.next();
+          c === CC_LEFTBRACE) {
         lexeme = lexeme.substring(1);  // Strip off punct.
         return TK_STRPREFIX;
       } else if (c) {
@@ -2080,17 +2073,16 @@ window.gcexports.parser = (function () {
       var quoteChar = CC_SINGLEQUOTE;
       c = (s = stream.next()) ? s.charCodeAt(0) : 0
       while (c !== quoteChar && c !== 0 &&
-            !(c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE)) {
+             c !== CC_LEFTBRACE) {
         lexeme += String.fromCharCode(c);
         var s;
         c = nextCC();
       }
-      if (c === CC_LEFTBRACE && peekCC() === CC_LEFTBRACE) {
-        stream.next();
-        lexeme = lexeme.substring(2);  // Strip off leading brace and trailing brace.
+      if (c === CC_LEFTBRACE) {
+        lexeme = lexeme.substring(1);  // Strip off leading brace and trailing brace.
         return TK_STRMIDDLE;
       } else if (c) {
-        lexeme = lexeme.substring(2);  // Strip off leading braces.
+        lexeme = lexeme.substring(1);  // Strip off leading braces.
         return TK_STRSUFFIX;
       } else {
         return 0
