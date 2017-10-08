@@ -2049,14 +2049,14 @@ window.gcexports.parser = (function () {
     function string(c) {
       var quoteChar = c
       lexeme += String.fromCharCode(c)
-      c = (s = stream.next()) ? s.charCodeAt(0) : 0
+      c = nextCC();
       while (c !== quoteChar && c !== 0 &&
             !(quoteChar === CC_SINGLEQUOTE &&  // Single quoted string can be templated.
               c === CC_DOLLAR &&
               peekCC() === CC_LEFTBRACE)) {
         lexeme += String.fromCharCode(c);
         var s;
-        c = (s = stream.next()) ? s.charCodeAt(0) : 0
+        c = nextCC();
       }
       if (quoteChar === CC_SINGLEQUOTE &&
           c === CC_DOLLAR &&
@@ -2075,11 +2075,11 @@ window.gcexports.parser = (function () {
     function stringSuffix() {
       var c, s;
       var quoteChar = CC_SINGLEQUOTE;
-      c = (s = stream.next()) ? s.charCodeAt(0) : 0
+      c = nextCC();
       while (c !== quoteChar && c !== 0 &&
              !(c === CC_DOLLAR &&
                peekCC() === CC_LEFTBRACE)) {
-        lexeme += s;
+        lexeme += String.fromCharCode(c);
         c = nextCC();
       }
       if (c === CC_DOLLAR &&
