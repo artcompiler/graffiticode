@@ -2047,7 +2047,8 @@ window.gcexports.parser = (function () {
     // "abc" --> "abc"
     // "a{{x}}c" --> concat ["a", x, "b"]
     function string(ctx, c) {
-      var quoteChar = ctx.state.quoteChar = c
+      var quoteChar = c;
+      ctx.state.quoteCharStack.push(c);
       lexeme += String.fromCharCode(c)
       c = nextCC();
       while (c !== quoteChar && c !== 0 &&
@@ -2072,7 +2073,8 @@ window.gcexports.parser = (function () {
 
     function stringSuffix(ctx) {
       var c, s;
-      var quoteChar = ctx.state.quoteChar;
+      var quoteCharStack = ctx.state.quoteCharStack;
+      var quoteChar = quoteCharStack[quoteCharStack.length - 1];
       c = nextCC();
       while (c !== quoteChar && c !== 0 &&
              !(c === CC_DOLLAR &&
@@ -2086,6 +2088,7 @@ window.gcexports.parser = (function () {
         lexeme = lexeme.substring(1);  // Strip off leading brace and trailing brace.
         return TK_STRMIDDLE;
       } else if (c) {
+        quoteCharStack.pop();
         lexeme = lexeme.substring(1);  // Strip off leading braces.
         return TK_STRSUFFIX;
       } else {

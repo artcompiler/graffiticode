@@ -22,6 +22,8 @@ var parse = exports.parse = function(src, lexicon, resume) {
     nextToken: -1,
     errors: [],
     coords: [],
+    inStr: 0,
+    quoteCharStack: [],
   };
   var next = function () {
     return parser.parse(stream, state, resume);
