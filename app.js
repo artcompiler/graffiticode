@@ -167,7 +167,7 @@ function encodeID(ids) {
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
-  request("https://www.graffiticode.com/form?id=p1vUMeRQUR").pipe(res);
+  request("https://www.graffiticode.com/form?id=dO4Sn0p2sa").pipe(res);
 });
 
 app.get('/item', function(req, res) {
