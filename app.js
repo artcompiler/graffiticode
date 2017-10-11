@@ -171,6 +171,18 @@ app.get("/", (req, res) => {
 });
 
 app.get('/item', function(req, res) {
+  // Deprecated. Redirect to /code path.
+  let protocol;
+  if (req.headers.host.match(/^localhost/) === null) {
+    protocol = "https://";
+  } else {
+    protocol = "http://";
+  }
+  let url = [protocol, req.headers.host, req.url.replace("item", "code")].join('');
+  res.redirect(url);
+});
+
+app.get('/code', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
   if (hasEditingRights) {
     var ids = decodeID(req.query.id);
@@ -188,7 +200,7 @@ app.get('/item', function(req, res) {
           refresh: req.query.refresh,
         }, function (error, html) {
           if (error) {
-            console.log("ERROR [1] GET /item err=" + error);
+            console.log("ERROR [1] GET /code err=" + error);
             res.sendStatus(400).send(error);
           } else {
             res.send(html);
@@ -210,7 +222,7 @@ app.get('/item', function(req, res) {
             refresh: req.query.refresh,
           }, function (error, html) {
             if (error) {
-              console.log("ERROR [2] GET /item err=" + error);
+              console.log("ERROR [2] GET /code err=" + error);
               res.sendStatus(400).send(error);
             } else {
               res.send(html);
