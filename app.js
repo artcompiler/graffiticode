@@ -171,18 +171,6 @@ app.get("/", (req, res) => {
 });
 
 app.get('/item', function(req, res) {
-  // Deprecated. Redirect to /code path.
-  let protocol;
-  if (req.headers.host.match(/^localhost/) === null) {
-    protocol = "https://";
-  } else {
-    protocol = "http://";
-  }
-  let url = [protocol, req.headers.host, req.url.replace("item", "code")].join('');
-  res.redirect(url);
-});
-
-app.get('/code', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
   if (hasEditingRights) {
     var ids = decodeID(req.query.id);
@@ -195,12 +183,12 @@ app.get('/code', function(req, res) {
           title: 'Graffiti Code',
           language: lang,
           item: encodeID(ids),
-          view: "code",
+          view: "item",
           version: version,
           refresh: req.query.refresh,
         }, function (error, html) {
           if (error) {
-            console.log("ERROR [1] GET /code err=" + error);
+            console.log("ERROR [1] GET /item err=" + error);
             res.sendStatus(400).send(error);
           } else {
             res.send(html);
@@ -217,12 +205,12 @@ app.get('/code', function(req, res) {
             title: 'Graffiti Code',
             language: lang,
             item: encodeID(ids),
-            view: "code",
+            view: "item",
             version: version,
             refresh: req.query.refresh,
           }, function (error, html) {
             if (error) {
-              console.log("ERROR [2] GET /code err=" + error);
+              console.log("ERROR [2] GET /item err=" + error);
               res.sendStatus(400).send(error);
             } else {
               res.send(html);
@@ -239,7 +227,7 @@ app.get('/code', function(req, res) {
     } else {
       protocol = "http://";
     }
-    let url = [protocol, req.headers.host, req.url.replace("code", "form")].join('');
+    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
     res.redirect(url);
   }
 });
