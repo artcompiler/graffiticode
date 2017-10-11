@@ -195,7 +195,7 @@ app.get('/code', function(req, res) {
           title: 'Graffiti Code',
           language: lang,
           item: encodeID(ids),
-          view: "item",
+          view: "code",
           version: version,
           refresh: req.query.refresh,
         }, function (error, html) {
@@ -217,7 +217,7 @@ app.get('/code', function(req, res) {
             title: 'Graffiti Code',
             language: lang,
             item: encodeID(ids),
-            view: "item",
+            view: "code",
             version: version,
             refresh: req.query.refresh,
           }, function (error, html) {
@@ -239,7 +239,7 @@ app.get('/code', function(req, res) {
     } else {
       protocol = "http://";
     }
-    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
+    let url = [protocol, req.headers.host, req.url.replace("code", "form")].join('');
     res.redirect(url);
   }
 });
