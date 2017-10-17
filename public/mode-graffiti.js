@@ -33,6 +33,7 @@ CodeMirror.defineMode("graffiti", function() {
         errors: [],
         coords: [],
         inStr: 0,
+        quoteCharStack: [],
       };
     },
     copyState: function(state) {

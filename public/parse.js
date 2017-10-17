@@ -1992,12 +1992,12 @@ window.gcexports.parser = (function () {
         case 125: // right brace
           lexeme += String.fromCharCode(c);
           if (ctx.state.inStr) {
-            return stringSuffix();
+            return stringSuffix(ctx);
           }
           return TK_RIGHTBRACE
         case 34:  // double quote
         case 39:  // single quote
-          return string(c)
+          return string(ctx, c)
 
         case 96:  // backquote
         case 47:  // slash
@@ -2046,20 +2046,19 @@ window.gcexports.parser = (function () {
 
     // "abc" --> "abc"
     // "a{{x}}c" --> concat ["a", x, "b"]
-    function string(c) {
-      var quoteChar = c
+    function string(ctx, c) {
+      var quoteChar = c;
+      ctx.state.quoteCharStack.push(c);
       lexeme += String.fromCharCode(c)
       c = nextCC();
       while (c !== quoteChar && c !== 0 &&
-            !(quoteChar === CC_SINGLEQUOTE &&  // Single quoted string can be templated.
-              c === CC_DOLLAR &&
+            !(c === CC_DOLLAR &&
               peekCC() === CC_LEFTBRACE)) {
         lexeme += String.fromCharCode(c);
         var s;
         c = nextCC();
       }
-      if (quoteChar === CC_SINGLEQUOTE &&
-          c === CC_DOLLAR &&
+      if (c === CC_DOLLAR &&
           peekCC() === CC_LEFTBRACE) {
         nextCC(); // Eat CC_LEFTBRACE
         lexeme = lexeme.substring(1);  // Strip off punct.
@@ -2072,9 +2071,10 @@ window.gcexports.parser = (function () {
       }
     }
 
-    function stringSuffix() {
+    function stringSuffix(ctx) {
       var c, s;
-      var quoteChar = CC_SINGLEQUOTE;
+      var quoteCharStack = ctx.state.quoteCharStack;
+      var quoteChar = quoteCharStack[quoteCharStack.length - 1];
       c = nextCC();
       while (c !== quoteChar && c !== 0 &&
              !(c === CC_DOLLAR &&
@@ -2088,6 +2088,7 @@ window.gcexports.parser = (function () {
         lexeme = lexeme.substring(1);  // Strip off leading brace and trailing brace.
         return TK_STRMIDDLE;
       } else if (c) {
+        quoteCharStack.pop();
         lexeme = lexeme.substring(1);  // Strip off leading braces.
         return TK_STRSUFFIX;
       } else {
