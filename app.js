@@ -864,7 +864,7 @@ app.put('/compile', function (req, res) {
           }
         });
       } else {
-        postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
+        postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
           if (err) {
             console.log("ERROR [2] PUT /compile err=" + err);
             response.status(400).send(err);
@@ -875,7 +875,7 @@ app.put('/compile', function (req, res) {
             let ids = [langID, codeID, dataID];
             let id = encodeID(ids);
             compileID(id, false, (err, obj) => {
-              console.log("PUT* /comp?id=" + ids.join("+") + " (" + id + ") in " +
+              console.log("PUT* /compile?id=" + ids.join("+") + " (" + id + ") in " +
                           (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
