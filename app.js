@@ -76,7 +76,7 @@ app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
 
-app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }));
+app.use(bodyParser.urlencoded({ extended: false, limit: 100000000 }));
 app.use(bodyParser.text());
 app.use(bodyParser.raw());
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
@@ -246,23 +246,14 @@ app.get('/label', function (req, res) {
   });
 });
 
-const updateLabel = function(id, label, resume) {
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'", () => {
-    if (resume) {
-      resume();
-    }
-    return;
-  });
-};
-
 // Update a label
 app.put('/label', function (req, res) {
   let ids = decodeID(req.body.id);
-  var langID = ids[0];
   let itemID = ids[1];
   var label = req.body.label;
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", ()=>{});
-  res.send(200)
+  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", (err, val) => {
+  });
+  res.sendStatus(200)
 });
 
 const dbQuery = function(query, resume) {
@@ -848,7 +839,7 @@ app.put('/compile', function (req, res) {
         let ids = [langID, codeID, dataID];
         let id = encodeID(ids);
         // We have an id, so update the item with the current AST.
-        updateItem(itemID, lang, src, ast, obj, img, (err) => {
+        updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
           // Update the src and ast because they are used by compileID().
           if (err) {
             console.log("ERROR [1] PUT /compile err=" + err);
@@ -866,7 +857,7 @@ app.put('/compile', function (req, res) {
           }
         });
       } else {
-        postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
+        postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
           if (err) {
             console.log("ERROR [2] PUT /compile err=" + err);
             response.status(400).send(err);
@@ -877,7 +868,7 @@ app.put('/compile', function (req, res) {
             let ids = [langID, codeID, dataID];
             let id = encodeID(ids);
             compileID(id, false, (err, obj) => {
-              console.log("PUT* /comp?id=" + ids.join("+") + " (" + id + ") in " +
+              console.log("PUT* /compile?id=" + ids.join("+") + " (" + id + ") in " +
                           (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
