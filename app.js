@@ -76,7 +76,7 @@ app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
 
-app.use(bodyParser.urlencoded({ extended: false, limit: 10000000 }));
+app.use(bodyParser.urlencoded({ extended: false, limit: 100000000 }));
 app.use(bodyParser.text());
 app.use(bodyParser.raw());
 app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
