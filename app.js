@@ -244,23 +244,14 @@ app.get('/label', function (req, res) {
   });
 });
 
-const updateLabel = function(id, label, resume) {
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + id + "'", () => {
-    if (resume) {
-      resume();
-    }
-    return;
-  });
-};
-
 // Update a label
 app.put('/label', function (req, res) {
   let ids = decodeID(req.body.id);
-  var langID = ids[0];
   let itemID = ids[1];
   var label = req.body.label;
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", ()=>{});
-  res.send(200)
+  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", (err, val) => {
+  });
+  res.sendStatus(200)
 });
 
 const dbQuery = function(query, resume) {
@@ -846,7 +837,7 @@ app.put('/compile', function (req, res) {
         let ids = [langID, codeID, dataID];
         let id = encodeID(ids);
         // We have an id, so update the item with the current AST.
-        updateItem(itemID, lang, src, ast, obj, img, (err) => {
+        updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
           // Update the src and ast because they are used by compileID().
           if (err) {
             console.log("ERROR [1] PUT /compile err=" + err);

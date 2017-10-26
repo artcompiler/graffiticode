@@ -27272,14 +27272,13 @@ var ArchiveContent = React.createClass({
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
       }
 
-      function hideItem(hide) {
-        var ids = window.gcexports.decodeID(window.gcexports.id);
+      function hideItem(id, hide) {
         var label = hide ? "hide" : "show";
         $.ajax({
           type: "PUT",
           url: "/label",
           data: {
-            id: ids[1],
+            id: id,
             label: label
           },
           dataType: "text",
@@ -27295,10 +27294,10 @@ var ArchiveContent = React.createClass({
       function handleButtonClick(e) {
         var name = d3.select(this).text();
         if (name === "HIDE") {
-          hideItem(true);
+          hideItem(items[index].id, true);
           return;
         } else if (name === "SHOW") {
-          hideItem(false);
+          hideItem(items[index].id, false);
           return;
         } else if (name === "NEXT") {
           index = index < items.length - 1 ? index + 1 : 0;
@@ -27306,8 +27305,8 @@ var ArchiveContent = React.createClass({
           index = index > 0 ? index - 1 : items.length - 1;
         }
         d3.select("#counter").text(index + 1 + " of " + items.length);
-        var item = items[index];
         var language = window.gcexports.language;
+        var item = items[index];
         var langID = +language.substring(1);
         var codeID = +item.id;
         var dataID = 0;
