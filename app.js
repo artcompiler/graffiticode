@@ -128,7 +128,9 @@ function decodeID(id) {
     }
   }
   // Fix short ids.
-  if (ids.length === 1) {
+  if (ids.length === 0) {
+    ids = [0, 0, 0]; // Invalid id
+  } else if (ids.length === 1) {
     ids = [0, ids[0], 0];
   } else if (ids.length === 2) {
     ids = [0, ids[0], 113, ids[1], 0];
@@ -195,26 +197,30 @@ app.get('/item', function(req, res) {
       });
     } else {
       getItem(codeID, (err, row) => {
-        var rows;
-        var lang = row.language;
-        getCompilerVersion(lang, (version) => {
-          langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
-          res.render('views.html', {
-            title: 'Graffiti Code',
-            language: lang,
-            item: encodeID(ids),
-            view: "item",
-            version: version,
-            refresh: req.query.refresh,
-          }, function (error, html) {
-            if (error) {
-              console.log("ERROR [2] GET /item err=" + error);
-              res.status(400).send(error);
-            } else {
-              res.send(html);
-            }
+        if (err && err.length) {
+          res.sendStatus(404);
+        } else {
+          var rows;
+          var lang = row.language;
+          getCompilerVersion(lang, (version) => {
+            langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+            res.render('views.html', {
+              title: 'Graffiti Code',
+              language: lang,
+              item: encodeID(ids),
+              view: "item",
+              version: version,
+              refresh: req.query.refresh,
+            }, function (error, html) {
+              if (error) {
+                console.log("ERROR [2] GET /item err=" + error);
+                res.status(400).send(error);
+              } else {
+                res.send(html);
+              }
+            });
           });
-        });
+        }
       });
     }
   } else {
@@ -290,14 +296,14 @@ var getItem = function (itemID, resume) {
     // the view after it is loaded.
     let val;
     if (!result || result.rows.length === 0) {
-      val = {};
+      resume("Item doesn't exist", null);
     } else {
       //assert(result.rows.length === 1);
       val = result.rows[0];
       val.src = fixSingleQuotes(val.src);
       val.obj = fixSingleQuotes(val.obj);
+      resume(err, val);
     }
-    resume(err, val);
   });
 };
 
@@ -413,25 +419,29 @@ app.get('/form', function(req, res) {
   } else {
     // Don't have a langID, so get it from the database item.
     getItem(codeID, function(err, row) {
-      var lang = row.language;
-      getCompilerVersion(lang, (version) => {
-        langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
-        res.render('form.html', {
-          title: 'Graffiti Code',
-          language: lang,
-          item: encodeID(ids),
-          view: "form",
-          version: version,
-          refresh: req.query.refresh,
-        }, function (error, html) {
-          if (error) {
-            console.log("ERROR [2] GET /form error=" + error);
-            res.status(400).send(error);
-          } else {
-            res.send(html);
-          }
+      if (!row) {
+        res.sendStatus(404);
+      } else {
+        var lang = row.language;
+        getCompilerVersion(lang, (version) => {
+          langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+          res.render('form.html', {
+            title: 'Graffiti Code',
+            language: lang,
+            item: encodeID(ids),
+            view: "form",
+            version: version,
+            refresh: req.query.refresh,
+          }, function (error, html) {
+            if (error) {
+              console.log("ERROR [2] GET /form error=" + error);
+              res.status(400).send(error);
+            } else {
+              res.send(html);
+            }
+          });
         });
-      });
+      }
     });
   }
 });
@@ -467,11 +477,15 @@ app.get('/code', (req, res) => {
   var langID = ids[0];
   var codeID = ids[1];
   getItem(codeID, (err, row) => {
-    // No data provided, so obj code won't change.
-    res.json({
-      id: codeID,
-      src: fixSingleQuotes(row.src),
-    });
+    if (!row) {
+      res.sendStatus(404);
+    } else {
+      // No data provided, so obj code won't change.
+      res.json({
+        id: codeID,
+        src: fixSingleQuotes(row.src),
+      });
+    }
   });
 });
 
@@ -662,40 +676,52 @@ function compileID(id, refresh, resume) {
         let ids = decodeID(id);
         getData(ids, refresh, (err, data) => {
           getCode(ids, (err, code) => {
-            getLang(ids, (err, lang) => {
-              if (lang === "L113" && Object.keys(data).length === 0) {
-                // No need to recompile.
-                getItem(ids[1], (err, item) => {
-                  try {
-                    let obj = JSON.parse(fixSingleQuotes(item.obj));
-                    setCache(lang, id, obj);
-                    resume(err, obj);
-                  } catch (e) {
-                    // Oops. Missing or invalid obj, so need to recompile after all.
-                    // Let downstream compilers they need to refresh
-                    // any data used. Prefer true over false.
-                    comp(lang, code, data, refresh, (err, obj) => {
-                      setCache(lang, id, obj);
-                      resume(err, obj);
-                    });
-                  }
-                });
-              } else {
-                if (lang && code) {
-                  assert(code.root !== undefined, "Invalid code.");
-                  // Let downstream compilers they need to refresh
-                  // any data used.
-                  comp(lang, code, data, refresh, (err, obj) => {
-                    setCache(lang, id, obj);
-                    resume(err, obj);
-                  });
+            if (err && err.length) {
+              resume(err, null);
+            } else {
+              getLang(ids, (err, lang) => {
+                if (err && err.length) {
+                  resume(err, null);
                 } else {
-                  // Error handling here.
-                  console.log("ERROR compileID() ids=" + ids + " missing code");
-                  resume(null, {});
+                  if (lang === "L113" && Object.keys(data).length === 0) {
+                    // No need to recompile.
+                    getItem(ids[1], (err, item) => {
+                      if (err && err.length) {
+                        resume(err, null);
+                      } else {
+                        try {
+                          let obj = JSON.parse(fixSingleQuotes(item.obj));
+                          setCache(lang, id, obj);
+                          resume(err, obj);
+                        } catch (e) {
+                          // Oops. Missing or invalid obj, so need to recompile after all.
+                          // Let downstream compilers they need to refresh
+                          // any data used. Prefer true over false.
+                          comp(lang, code, data, refresh, (err, obj) => {
+                            setCache(lang, id, obj);
+                            resume(err, obj);
+                          });
+                        }
+                      }
+                    });
+                  } else {
+                    if (lang && code) {
+                      assert(code.root !== undefined, "Invalid code.");
+                      // Let downstream compilers they need to refresh
+                      // any data used.
+                      comp(lang, code, data, refresh, (err, obj) => {
+                        setCache(lang, id, obj);
+                        resume(err, obj);
+                      });
+                    } else {
+                      // Error handling here.
+                      console.log("ERROR compileID() ids=" + ids + " missing code");
+                      resume(null, {});
+                    }
+                  }
                 }
-              }
-            });
+              });
+            }
           });
         });
       }
@@ -747,26 +773,30 @@ function comp(lang, code, data, refresh, resume) {
 const parseID = (id, resume) => {
   let ids = decodeID(id);
   getItem(ids[1], (err, item) => {
-    // if L113 there is no AST.
-    const lang = item.language;
-    const src = item.src;
-    if (src) {
-      parse(lang, src, (err, ast) => {
-        if (!ast || Object.keys(ast).length === 0) {
-          console.log("NO AST for SRC " + src);
-        }
-        if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-          print("*");
-          updateAST(id, ast, (err)=>{
-            assert(!err);
-            resume(err, ast);
-          });
-        } else {
-          resume(err, ast);
-        }
-      });
+    if (err && err.length) {
+      resume(err, null);
     } else {
-      resume(["ERROR no source. " + id]);
+      // if L113 there is no AST.
+      const lang = item.language;
+      const src = item.src;
+      if (src) {
+        parse(lang, src, (err, ast) => {
+          if (!ast || Object.keys(ast).length === 0) {
+            console.log("NO AST for SRC " + src);
+          }
+          if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
+            print("*");
+            updateAST(id, ast, (err)=>{
+              assert(!err);
+              resume(err, ast);
+            });
+          } else {
+            resume(err, ast);
+          }
+        });
+      } else {
+        resume(["ERROR no source. " + id]);
+      }
     }
   });
 };
