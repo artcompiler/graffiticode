@@ -290,13 +290,14 @@ const dbQuery = function(query, resume) {
   });
 };
 
-var getItem = function (itemID, resume) {
+const getItem = function (itemID, resume) {
   dbQuery("SELECT * FROM pieces WHERE id = " + itemID, (err, result) => {
     // Here we get the language associated with the id. The code is gotten by
     // the view after it is loaded.
     let val;
-    if (!result || result.rows.length === 0) {
-      resume("Item doesn't exist", null);
+    if (!result || result.rows.length === 0 || result.rows[0].id < 1000) {
+      // Any id before 1000 was experimental
+      resume("Bad ID", null);
     } else {
       //assert(result.rows.length === 1);
       val = result.rows[0];
