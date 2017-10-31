@@ -1738,7 +1738,7 @@ window.gcexports.parser = (function () {
     return ctx.state.env[ctx.state.env.length-1]
   }
 
-  function compileAST(ast, postCode) {
+  function compileCode(ast, postCode) {
     lastAST = ast;
     ast = JSON.stringify(ast);
     var src = window.gcexports.editor.getValue();
@@ -1782,12 +1782,12 @@ window.gcexports.parser = (function () {
           window.gcexports.lastErrors = [];
           // We have a good id, so use it.
           let ids = gcexports.decodeID(data.id);
-          let itemID = gcexports.encodeID(ids);
-          gcexports.id = itemID;
-          window.history.pushState(itemID, window.gcexports.language, "/" + window.gcexports.view + "?id=" + itemID);
+          let id = gcexports.encodeID(ids);
+          window.gcexports.id = id;
+          window.history.pushState(id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + id);
           let state = {};
           state[window.gcexports.language] = {
-            id: itemID,
+            id: id,
             src: src,
             obj: obj,
             ast: ast,
@@ -1871,11 +1871,11 @@ window.gcexports.parser = (function () {
             // Compile code if no edit activity after 1 sec.
             if (firstTime) {
               // First time through, don't delay.
-              compileAST(thisAST, false);
+              compileCode(thisAST, false);
             }
             if (!firstTime) {
               lastTimer = window.setTimeout(function () {
-                compileAST(thisAST, true);
+                compileCode(thisAST, true);
               }, 1000);
             }
             firstTime = false;
