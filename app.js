@@ -29,7 +29,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
-const DEBUG = false;
+const DEBUG = true;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
@@ -449,11 +449,8 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
-  let ids = decodeID(req.query.id);
-  let langID = ids[0] ? ids[0] : 0;
-  let codeID = ids[1] ? ids[1] : 0;
-  let dataIDs = ids[2] ? ids.slice(2) : 0;
-  let id = encodeID([langID, codeID].concat(dataIDs));
+  let id = req.query.id;
+  let ids = decodeID(id);
   let refresh = !!req.query.refresh;
   let t0 = new Date;
   compileID(id, refresh, (err, obj) => {
@@ -461,7 +458,7 @@ app.get('/data', function(req, res) {
       console.log("ERROR GET /data err=" + err);
       res.status(400).send(err);
     } else {
-      console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ") in " +
+      console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
       res.json(obj);
     }
@@ -823,6 +820,7 @@ const recompileItems = (items, parseOnly) => {
 };
 
 app.put('/compile', function (req, res) {
+  // Map AST or SRC into OBJ. Store OBJ and return ID.
   let t0 = new Date;
   // Compile AST or SRC to OBJ. Insert or add item.
   let id = req.body.id;
@@ -854,6 +852,7 @@ app.put('/compile', function (req, res) {
     itemID = itemID ? itemID : row ? row.id : undefined;
     ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
     if (!ast) {
+      // No AST, try creating from source.
       parse(lang, rawSrc, (err, ast) => {
         compile(ast);
       });
@@ -897,7 +896,7 @@ app.put('/compile', function (req, res) {
             let ids = [langID, codeID, dataID];
             let id = encodeID(ids);
             compileID(id, false, (err, obj) => {
-              console.log("PUT* /compile?id=" + ids.join("+") + " (" + id + ") in " +
+              console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
                           (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
@@ -913,7 +912,7 @@ app.put('/compile', function (req, res) {
 });
 
 app.put('/code', (req, response) => {
-  // Insert or update with given values.
+  // Insert or update code without recompiling.
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
@@ -983,7 +982,7 @@ app.put('/code', (req, response) => {
           console.log("ERROR PUT /code err=" + err);
           response.status(400).send(err);
         } else {
-          console.log("PUT* /code?id=" + ids.join("+") + " (" + id + ") in " +
+          console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")* in " +
                       (new Date - t0) + "ms");
           response.json({
             id: id,
