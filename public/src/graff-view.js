@@ -77,7 +77,7 @@ var GraffContent = React.createClass({
         state[lang] = {
           id: itemID,
           code: obj.code || obj,
-          data: obj.data,
+          data: obj.data.code || obj.data,  // Data's object code is the data.
         };
         dispatch(state);
       });

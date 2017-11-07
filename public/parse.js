@@ -1868,11 +1868,8 @@ window.gcexports.parser = (function () {
             window.clearTimeout(lastTimer);
           }
           if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
-            // Compile code if no edit activity after 1 sec.
-            if (firstTime) {
-              // First time through, don't delay.
-              compileCode(thisAST, false);
-            }
+            // Compile code if not first time (newly loaded) and no edit
+            // activity after 1 sec.
             if (!firstTime) {
               lastTimer = window.setTimeout(function () {
                 compileCode(thisAST, true);
