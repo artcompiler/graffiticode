@@ -27216,30 +27216,37 @@ var GraffContent = React.createClass({
       params += "&refresh=true";
     }
     if (codeID) {
-      var _itemID = (0, _share.encodeID)(ids);
-      d3.json(location.origin + "/data?id=" + _itemID + params, function (err, obj) {
-        if (dataID && +dataID !== 0) {
-          // This is the magic where we collapse the "tail" into a JSON object.
-          // Next this JSON object gets interned as static data (in L113).
-          console.log((0, _share.decodeID)(window.gcexports.id).join("+") + " --> " + dataID);
-          d3.json(location.origin + "/data?id=" + (0, _share.encodeID)(dataID) + params, function (err, data) {
-            var state = {};
-            state[lang] = {
-              id: _itemID,
-              obj: obj,
-              data: data
-            };
-            dispatch(state);
-          });
-        } else {
-          var _state = {};
-          _state[lang] = {
-            id: _itemID,
-            obj: obj,
-            data: {} // clear data
-          };
-          dispatch(_state);
-        }
+      //let itemID = encodeID(ids);
+      d3.json(location.origin + "/data?id=" + itemID + params, function (err, obj) {
+        // if (dataID && +dataID !== 0) {
+        //   // This is the magic where we collapse the "tail" into a JSON object.
+        //   // Next this JSON object gets interned as static data (in L113).
+        //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID); 
+        //   d3.json(location.origin + "/data?id=" + encodeID(dataID) + params, (err, data) => {
+        //     let state = {};
+        //     state[lang] = {
+        //       id: itemID,
+        //       obj: obj,
+        //       data: data,
+        //     };
+        //     dispatch(state);
+        //   });
+        // } else {
+        //   let state = {};
+        //   state[lang] = {
+        //     id: itemID,
+        //     obj: obj,
+        //     data: {},  // clear data
+        //   };
+        //   dispatch(state);
+        // }
+        var state = {};
+        state[lang] = {
+          id: itemID,
+          code: obj.code || obj,
+          data: obj.data
+        };
+        dispatch(state);
       });
     }
   },
@@ -27350,10 +27357,15 @@ var GraffContent = React.createClass({
     } else {
       // Copy state for the current language.
       var state = {};
-      state[lang] = Object.assign({}, this.state[lang], data[lang]);
-      if (this.state[lang] && data[lang]) {
-        state[lang].data = Object.assign({}, this.state[lang].data, data[lang].data);
+      if (this.state.postCode) {
+        // New code so clear (don't copy) old state.
+        state[lang] = data[lang];
+      } else {
+        state[lang] = Object.assign({}, this.state[lang], data[lang]);
       }
+      // if (this.state[lang] && data[lang]) {
+      //   state[lang].data = Object.assign({}, this.state[lang].data, data[lang].data);
+      // }
       this.setState(Object.assign({}, this.state, state));
     }
   },
@@ -27361,13 +27373,12 @@ var GraffContent = React.createClass({
     if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
       var Viewer = window.gcexports.viewer.Viewer;
       var lang = window.gcexports.language;
-      if (this.state && this.state[lang] && this.state[lang].obj) {
+      if (this.state && this.state[lang] && this.state[lang].code) {
         var state = this.state[lang];
-        var obj = state.obj;
+        var code = state.code;
         var data = state.data;
-        return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: obj, data: data }, data));
+        return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: code, data: data }, data));
       } else {
-        //        return <img key="0" className="preloader" width="30" height="30" src="logo.png"/>
         return React.createElement("div", null);
       }
     } else {

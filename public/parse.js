@@ -1789,10 +1789,10 @@ window.gcexports.parser = (function () {
           state[window.gcexports.language] = {
             id: id,
             src: src,
-            obj: obj,
             ast: ast,
             postCode: postCode,
             errors: errors,
+            code: obj.code,
             data: {}, // Clear state
           };
           window.gcexports.dispatcher.dispatch(state);
