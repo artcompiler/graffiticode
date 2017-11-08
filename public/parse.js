@@ -1792,7 +1792,7 @@ window.gcexports.parser = (function () {
             ast: ast,
             postCode: postCode,
             errors: errors,
-            code: obj.code,
+            obj: obj,
             data: {}, // Clear state
           };
           window.gcexports.dispatcher.dispatch(state);
@@ -1914,7 +1914,7 @@ window.gcexports.parser = (function () {
     parseCount++
     parseTime += t1 - t0
     window.coords = state.coords;
-    return cls
+    return cls;
   }
 
   var lexeme = ""

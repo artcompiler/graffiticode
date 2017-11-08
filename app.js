@@ -696,10 +696,6 @@ function compileID(id, refresh, resume) {
                           // Let downstream compilers they need to refresh
                           // any data used. Prefer true over false.
                           comp(lang, code, data, refresh, (err, obj) => {
-                            obj = {
-                              code: obj,
-                              data: data,
-                            };
                             setCache(lang, id, obj);
                             resume(err, obj);
                           });
@@ -712,10 +708,6 @@ function compileID(id, refresh, resume) {
                       // Let downstream compilers know they need to refresh
                       // any data used.
                       comp(lang, code, data, refresh, (err, obj) => {
-                        obj = {
-                          code: obj,
-                          data: data,
-                        };
                         setCache(lang, id, obj);
                         resume(err, obj);
                       });

@@ -76,8 +76,8 @@ var GraffContent = React.createClass({
         let state = {};
         state[lang] = {
           id: itemID,
-          code: obj.code || obj,
-          data: obj.data.code || obj.data,  // Data's object code is the data.
+          obj: obj,
+          data: {},  // clear data
         };
         dispatch(state);
       });
@@ -208,12 +208,13 @@ var GraffContent = React.createClass({
         window.gcexports.viewer.Viewer) {
       let Viewer = window.gcexports.viewer.Viewer;
       let lang = window.gcexports.language;
-      if (this.state && this.state[lang] && this.state[lang].code) {
+      if (this.state && this.state[lang] && this.state[lang].obj) {
         let state = this.state[lang];
-        let code = state.code;
+        let obj = state.obj;
         let data = state.data;
         return (
-          <Viewer id="graff-view" className="viewer" obj={code} data={data} {...data} />
+//          <Viewer id="graff-view" className="viewer" obj={code} data={data} {...data} />
+          <Viewer id="graff-view" className="viewer" obj={obj} data={data} />
         );
       } else {
         return <div/>;

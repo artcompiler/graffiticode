@@ -27158,8 +27158,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _react = require("react");
 
 var React = _interopRequireWildcard(_react);
@@ -27243,8 +27241,8 @@ var GraffContent = React.createClass({
         var state = {};
         state[lang] = {
           id: itemID,
-          code: obj.code || obj,
-          data: obj.data.code || obj.data // Data's object code is the data.
+          obj: obj,
+          data: {} // clear data
         };
         dispatch(state);
       });
@@ -27373,11 +27371,14 @@ var GraffContent = React.createClass({
     if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
       var Viewer = window.gcexports.viewer.Viewer;
       var lang = window.gcexports.language;
-      if (this.state && this.state[lang] && this.state[lang].code) {
+      if (this.state && this.state[lang] && this.state[lang].obj) {
         var state = this.state[lang];
-        var code = state.code;
+        var obj = state.obj;
         var data = state.data;
-        return React.createElement(Viewer, _extends({ id: "graff-view", className: "viewer", obj: code, data: data }, data));
+        return (
+          //          <Viewer id="graff-view" className="viewer" obj={code} data={data} {...data} />
+          React.createElement(Viewer, { id: "graff-view", className: "viewer", obj: obj, data: data })
+        );
       } else {
         return React.createElement("div", null);
       }
