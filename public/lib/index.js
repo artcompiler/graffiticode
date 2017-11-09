@@ -34682,8 +34682,7 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function componentDidUpdate() {
-    var state = this.state[window.gcexports.language];
-    if (!state || !state.data || !state.data.views || !state.data.views.archive) {
+    if (!window.gcexports.archive) {
       return;
     }
     getItems(function (err, items) {
@@ -34865,9 +34864,10 @@ var ArchiveContent = React.createClass({
     function getItems(resume) {
       $.ajax({
         type: "GET",
-        url: "/pieces/" + window.gcexports.language,
+        url: "/items",
         data: {
-          label: "show|hide"
+          fields: "id, created",
+          where: "language='" + window.gcexports.language + "' and label in ('show', 'hide')"
         },
         dataType: "json",
         success: function success(data) {
@@ -35730,29 +35730,7 @@ var CodeMirrorEditor = React.createClass({
         updateSrc(id, data.src);
       });
     } else {
-      var lang = window.gcexports.language;
-      $.ajax({
-        type: "GET",
-        url: "/pieces/" + lang,
-        data: {},
-        dataType: "json",
-        success: function success(data) {
-          var pieces = [];
-          for (var i = 0; i < data.length; i++) {
-            pieces[i] = data[i].id;
-          }
-          var langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
-          var codeID = pieces[0];
-          window.gcexports.pieces = pieces;
-          window.gcexports.id = window.gcexports.encodeID([langID, codeID, 0]);
-          $.get(location.origin + "/code?id=" + window.gcexports.id, function (data) {
-            updateSrc(data.id, data.src);
-          });
-        },
-        error: function error(xhr, msg, err) {
-          console.log(msg + " " + err);
-        }
-      });
+      console.log("ERROR missing ID");
     }
     var updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
       window.gcexports.parent = window.gcexports.id;

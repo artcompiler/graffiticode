@@ -21,11 +21,7 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function() {
-    let state = this.state[window.gcexports.language];
-    if (!state ||
-        !state.data ||
-        !state.data.views ||
-        !state.data.views.archive) {
+    if (!window.gcexports.archive) {
       return;
     }
     getItems((err, items) => {
@@ -245,9 +241,10 @@ var ArchiveContent = React.createClass({
     function getItems(resume) {
       $.ajax({
         type: "GET",
-        url: "/pieces/" + window.gcexports.language,
-        data: {
-          label: "show|hide",
+        url: "/items",
+        data : {
+          fields: "id, created",
+          where: "language='" + window.gcexports.language + "' and label in ('show', 'hide')",
         },
         dataType: "json",
         success: function(data) {

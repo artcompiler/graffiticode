@@ -186,6 +186,7 @@ app.get('/item', function(req, res) {
           view: "item",
           version: version,
           refresh: req.query.refresh,
+          archive: req.query.archive,
         }, function (error, html) {
           if (error) {
             console.log("ERROR [1] GET /item err=" + error);
@@ -211,6 +212,7 @@ app.get('/item', function(req, res) {
               view: "item",
               version: version,
               refresh: req.query.refresh,
+              archive: req.query.archive,
             }, function (error, html) {
               if (error) {
                 console.log("ERROR [2] GET /item err=" + error);
@@ -370,21 +372,33 @@ app.get('/lang', function(req, res) {
   if (src) {
     assert(false, "Should not get here. Call PUT /compile");
   } else {
-    getCompilerVersion(lang, (version) => {
-      res.render('views.html', {
-        title: 'Graffiti Code',
-        language: lang,
-        item: undefined,
-        version: version,
-        refresh: req.query.refresh,
-      }, function (error, html) {
-        if (error) {
-          console.log("ERROR [2] GET /lang err=" + err);
-          res.status(400).send(error);
-        } else {
-          res.send(html);
-        }
-      });
+    let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
+    dbQuery(queryString, (err, result) => {
+      let rows = result.rows;
+      if (rows.length === 0) {
+        var insertStr =
+          "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+          " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+          " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+          " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+        dbQuery(insertStr, function(err, result) {
+          if (err) {
+            console.log("ERROR GET /pieces/:lang err=" + err);
+            res.status(400).send(err);
+            return;
+          }
+          dbQuery(queryString, (err, result) => {
+            let rows = result.rows;
+            if (rows.length > 0) {
+              res.redirect("/form?id=" + rows[0].id);
+            } else {
+              res.sendStatus(404);
+            }
+          });
+        });
+      } else {
+        res.redirect("/item?id=" + rows[0].id);
+      }
     });
   }
 });
@@ -1003,7 +1017,7 @@ app.get('/items', function(req, res) {
       " IN ("+list+") ORDER BY pieces.id DESC";
   } else if (req.query.where) {
     let fields = req.query.fields ? req.query.fields : "id";
-    let limit = req.query.limit ? req.query.limit : "1000";
+    let limit = req.query.limit;
     let where = req.query.where;
     queryStr =
       "SELECT " + fields +
@@ -1017,7 +1031,7 @@ app.get('/items', function(req, res) {
   dbQuery(queryStr, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
-      rows = [{}];
+      rows = [];
     } else {
       rows = result.rows;
     }
@@ -1027,69 +1041,6 @@ app.get('/items', function(req, res) {
     console.log("ERROR " + e);
     console.log("ERROR [2] GET /items err=" + err);
     res.status(400).send(e);
-  });
-});
-
-// DECPRECATE replace with GET /items {fields: "id", where: "language='L106' and ..."}
-app.get('/pieces/:lang', function (req, res) {
-  // Get list of item ids that match a query.
-  var lang = req.params.lang;
-  var search = req.query.src;
-  var labelStr;
-  if (req.query.label === undefined) {
-    labelStr = " label='show' ";
-  } else {
-    let labels = req.query.label.split("|");
-    labelStr = " (";
-    labels.forEach(label => {
-      if (labelStr !== " (") {
-        labelStr += " OR ";
-      }
-      labelStr += " label='" + label + "' ";
-    });
-    labelStr += ") ";
-  }
-  var queryString, likeStr = "";
-  if (search) {
-    var ss = search.split(",");
-    ss.forEach(function (s) {
-      s = cleanAndTrimSrc(s);
-      if (likeStr) {
-        likeStr += " AND ";
-      } else {
-        likeStr += "(";
-      }
-      likeStr += "src like '%" + s + "%'";
-    });
-    if (likeStr) {
-      likeStr += ") AND ";
-    }
-  }
-  queryString = "SELECT id, created FROM pieces WHERE language='" + lang +
-    "' AND " + likeStr + labelStr + " ORDER BY id DESC";
-  dbQuery(queryString, function (err, result) {
-    var rows;
-    if (!result || result.rows.length === 0) {
-      console.log("no rows");
-      // No rows for this language so make an empty item and insert it.
-      var insertStr =
-        "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-        " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-        " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-        " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-      dbQuery(insertStr, function(err, result) {
-        if (err) {
-          console.log("ERROR GET /pieces/:lang err=" + err);
-          res.status(400).send(err);
-          return;
-        }
-        dbQuery(queryString, function (err, result) {
-          res.send(result.rows);
-        });
-      });
-    } else {
-      res.send(result.rows);
-    }
   });
 });
 
