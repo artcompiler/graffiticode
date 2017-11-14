@@ -35,6 +35,7 @@ window.gcexports.compileSrc = (lang, src, resume) => {
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
+  lastItemID: undefined,
   compileCode: function(itemID) {
     let langID, codeID, dataID;
     let ids = decodeID(itemID);
@@ -48,7 +49,8 @@ var GraffContent = React.createClass({
     if (window.gcexports.refresh) {
       params += "&refresh=true";
     }
-    if (codeID) {
+    if (codeID && itemID && itemID !== this.lastItemID) {
+      this.lastItemID = itemID;
       //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, (err, obj) => {
         // if (dataID && +dataID !== 0) {
@@ -199,6 +201,7 @@ var GraffContent = React.createClass({
       // if (this.state[lang] && data[lang]) {
       //   state[lang].data = Object.assign({}, this.state[lang].data, data[lang].data);
       // }
+      let lastState;
       this.setState(Object.assign({}, this.state, state));
     }
   },

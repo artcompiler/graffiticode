@@ -34962,6 +34962,7 @@ var GraffContent = React.createClass({
   displayName: "GraffContent",
 
   componentWillUnmount: function componentWillUnmount() {},
+  lastItemID: undefined,
   compileCode: function compileCode(itemID) {
     var langID = void 0,
         codeID = void 0,
@@ -34977,7 +34978,8 @@ var GraffContent = React.createClass({
     if (window.gcexports.refresh) {
       params += "&refresh=true";
     }
-    if (codeID) {
+    if (codeID && itemID && itemID !== this.lastItemID) {
+      this.lastItemID = itemID;
       //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, function (err, obj) {
         // if (dataID && +dataID !== 0) {
@@ -35128,6 +35130,7 @@ var GraffContent = React.createClass({
       // if (this.state[lang] && data[lang]) {
       //   state[lang].data = Object.assign({}, this.state[lang].data, data[lang].data);
       // }
+      var lastState = void 0;
       this.setState(Object.assign({}, this.state, state));
     }
   },

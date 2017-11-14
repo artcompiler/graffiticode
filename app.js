@@ -29,7 +29,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
-const DEBUG = true;
+const DEBUG = false;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
@@ -367,6 +367,7 @@ function parse(lang, src, resume) {
 app.get('/lang', function(req, res) {
   // lang?id=106
   var id = req.query.id;
+  let langID = id;
   var src = req.query.src;
   var lang = "L" + id;
   if (src) {
@@ -397,7 +398,7 @@ app.get('/lang', function(req, res) {
           });
         });
       } else {
-        res.redirect("/item?id=" + rows[0].id);
+        res.redirect("/item?id=" + encodeID([langID, rows[0].id, 0]));
       }
     });
   }
