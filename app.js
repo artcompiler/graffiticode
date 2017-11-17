@@ -470,7 +470,7 @@ app.get('/data', function(req, res) {
   let t0 = new Date;
   compileID(id, refresh, (err, obj) => {
     if (err) {
-      console.log("ERROR GET /data err=" + err);
+      console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
       res.status(400).send(err);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
@@ -724,6 +724,10 @@ function compileID(id, refresh, resume) {
                       // any data used.
                       comp(lang, code, data, refresh, (err, obj) => {
                         setCache(lang, id, obj);
+                        if (ids[2] === 0) {
+                          // If this is pure code, then update OBJ.
+                          updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                        }
                         resume(err, obj);
                       });
                     } else {
