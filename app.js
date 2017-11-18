@@ -166,12 +166,23 @@ function encodeID(ids) {
 
 // Routes
 
-app.get('/', function(req, res) {
-  res.redirect("public/index.html");
+const userRoutes = {};
+
+// http://stackoverflow.com/questions/10435407/proxy-with-express-js
+var request = require('request');
+app.get("/", (req, res) => {
+  if (userRoutes["/"]) {
+    request("https://www.graffiticode.com/form?id=" + userRoutes["/"]).pipe(res);
+  } else {
+    request("https://www.graffiticode.com/form?id=XZLuq8g1FM").pipe(res);
+  }
 });
 
 app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
+  if (req.query.route) {
+    userRoutes[req.query.route] = req.query.id;
+  }
   if (hasEditingRights) {
     var ids = decodeID(req.query.id);
     var langID = ids[0];
