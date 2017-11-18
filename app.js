@@ -166,27 +166,33 @@ function encodeID(ids) {
 
 // Routes
 
-const userRoutes = {};
-
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
-  if (userRoutes["/"]) {
-    request("https://www.graffiticode.com/form?id=" + userRoutes["/"]).pipe(res);
+  let proto = req.headers['x-forwarded-proto'] || "http";
+  console.log("proto=" + proto + " host=" + req.headers.host);
+  if (aliases["home"]) {
+    request([proto, "://", req.headers.host, "/form?id=" + aliases["home"]].join("")).pipe(res);
   } else {
-    request("https://www.graffiticode.com/form?id=XZLuq8g1FM").pipe(res);
+    request([proto, "://", req.headers.host, "/form?id=XZLuq8g1FM"].join("")).pipe(res);
   }
 });
 
+const aliases = {};
+
 app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
-  if (req.query.route) {
-    userRoutes[req.query.route] = req.query.id;
+  if (req.query.alias) {
+    aliases[req.query.alias] = req.query.id;
   }
   if (hasEditingRights) {
-    var ids = decodeID(req.query.id);
-    var langID = ids[0];
-    var codeID = ids[1];
+    let ids = decodeID(req.query.id);
+    if (ids[1] === 0 && aliases[req.query.id]) {
+      // ID is an invalid ID but a valid alias, so get aliased ID.
+      ids = decodeID(aliases[req.query.id]);
+    }
+    let langID = ids[0];
+    let codeID = ids[1];
     if (+langID !== 0) {
       let lang = "L" + langID;
       getCompilerVersion(lang, (version) => {
@@ -417,6 +423,10 @@ app.get('/lang', function(req, res) {
 
 app.get('/form', function(req, res) {
   let ids = decodeID(req.query.id);
+  if (ids[1] === 0 && aliases[req.query.id]) {
+    // ID is an invalid ID but a valid alias, so get aliased ID.
+    ids = decodeID(aliases[req.query.id]);
+  }
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
