@@ -171,6 +171,7 @@ const userRoutes = {};
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
+  console.log("GET / userRoutes=" + JSON.stringify(userRoutes));
   if (userRoutes["/"]) {
     request("https://www.graffiticode.com/form?id=" + userRoutes["/"]).pipe(res);
   } else {
