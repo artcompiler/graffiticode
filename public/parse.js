@@ -2042,7 +2042,7 @@ window.gcexports.parser = (function () {
     }
 
     // "abc" --> "abc"
-    // "a{{x}}c" --> concat ["a", x, "b"]
+    // "a${x}c" --> concat ["a", x, "b"]
     function string(ctx, c) {
       var quoteChar = c;
       ctx.state.quoteCharStack.push(c);

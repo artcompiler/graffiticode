@@ -29,7 +29,7 @@ var Hashids = require("hashids");
 
 // Configuration
 
-const DEBUG = false;
+const DEBUG = true;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
@@ -170,7 +170,6 @@ function encodeID(ids) {
 var request = require('request');
 app.get("/", (req, res) => {
   let proto = req.headers['x-forwarded-proto'] || "http";
-  console.log("proto=" + proto + " host=" + req.headers.host);
   if (aliases["home"]) {
     request([proto, "://", req.headers.host, "/form?id=" + aliases["home"]].join("")).pipe(res);
   } else {
@@ -430,6 +429,10 @@ app.get('/form', function(req, res) {
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
+  if (ids[1] === 0) {
+    res.sendStatus(404);
+    return;
+  }
   if (!/[a-zA-Z]/.test(req.query.id)) {
     res.redirect("/form?id=" + encodeID(ids));
     return;

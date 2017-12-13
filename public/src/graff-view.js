@@ -44,7 +44,7 @@ var GraffContent = React.createClass({
     dataID = ids.slice(2);
     let self = this;
     let lang = window.gcexports.language;
-    let state = this.state && this.state[lang] ? this.state[lang] : {};
+    let state = this.state && this.state[itemID] ? this.state[itemID] : {};
     let params = "";
     if (window.gcexports.refresh) {
       params += "&refresh=true";
@@ -76,7 +76,7 @@ var GraffContent = React.createClass({
         //   dispatch(state);
         // }
         let state = {};
-        state[lang] = {
+        state[itemID] = {
           id: itemID,
           obj: obj,
           data: {},  // clear data
@@ -105,12 +105,13 @@ var GraffContent = React.createClass({
     let gcexports = window.gcexports;
     let el = ReactDOM.findDOMNode(this);
     let lang = gcexports.language;
-    if (this.state[lang] && this.state[lang].id && !this.state[lang].errors) {
-      let state = this.state[lang];
+    let itemID = gcexports.id;
+    if (this.state[itemID] && this.state[itemID].id && !this.state[itemID].errors) {
+      let state = this.state[itemID];
+      assert(state.id === itemID);
       let ast = state.ast;
       let src = state.src;
       let obj = state.obj;
-      let itemID = state.id;
       let data = state.data;
       let label = state.label;
       let viewer = window.gcexports.viewer;
@@ -129,7 +130,7 @@ var GraffContent = React.createClass({
     let gcexports = window.gcexports;
     let user = $("#username").data("user");
     let lang = gcexports.language;
-    let state = this.state[lang];
+    let state = this.state[itemID];
     let updateHistory = state.updateHistory;
     let self = this;
     // Append host language to label.
@@ -192,16 +193,13 @@ var GraffContent = React.createClass({
     } else {
       // Copy state for the current language.
       let state = {};
+      let itemID = window.gcexports.id;
       if (this.state.postCode) {
         // New code so clear (don't copy) old state.
-        state[lang] = data[lang];
+        state[itemID] = data[itemID];
       } else {
-        state[lang] = Object.assign({}, this.state[lang], data[lang]);
+        state[itemID] = Object.assign({}, this.state[itemID], data[itemID]);
       }
-      // if (this.state[lang] && data[lang]) {
-      //   state[lang].data = Object.assign({}, this.state[lang].data, data[lang].data);
-      // }
-      let lastState;
       this.setState(Object.assign({}, this.state, state));
     }
   },
@@ -211,12 +209,12 @@ var GraffContent = React.createClass({
         window.gcexports.viewer.Viewer) {
       let Viewer = window.gcexports.viewer.Viewer;
       let lang = window.gcexports.language;
-      if (this.state && this.state[lang] && this.state[lang].obj) {
-        let state = this.state[lang];
+      let itemID = window.gcexports.id;
+      if (this.state && this.state[itemID] && this.state[itemID].obj) {
+        let state = this.state[itemID];
         let obj = state.obj;
         let data = state.data;
         return (
-//          <Viewer id="graff-view" className="viewer" obj={code} data={data} {...data} />
           <Viewer id="graff-view" className="viewer" obj={obj} data={data} />
         );
       } else {
