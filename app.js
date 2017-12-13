@@ -169,15 +169,29 @@ function encodeID(ids) {
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
-  request("https://www.artcompiler.com/form?id=XZLuq8g1FM").pipe(res);
+  let proto = req.headers['x-forwarded-proto'] || "http";
+  if (aliases["home"]) {
+    request([proto, "://", req.headers.host, "/form?id=" + aliases["home"]].join("")).pipe(res);
+  } else {
+    request([proto, "://", req.headers.host, "/form?id=XZLuq8g1FM"].join("")).pipe(res);
+  }
 });
+
+const aliases = {};
 
 app.get('/item', function(req, res) {
   const hasEditingRights = true;   // Compute based on authorization.
+  if (req.query.alias) {
+    aliases[req.query.alias] = req.query.id;
+  }
   if (hasEditingRights) {
-    var ids = decodeID(req.query.id);
-    var langID = ids[0];
-    var codeID = ids[1];
+    let ids = decodeID(req.query.id);
+    if (ids[1] === 0 && aliases[req.query.id]) {
+      // ID is an invalid ID but a valid alias, so get aliased ID.
+      ids = decodeID(aliases[req.query.id]);
+    }
+    let langID = ids[0];
+    let codeID = ids[1];
     if (+langID !== 0) {
       let lang = "L" + langID;
       getCompilerVersion(lang, (version) => {
@@ -188,6 +202,7 @@ app.get('/item', function(req, res) {
           view: "item",
           version: version,
           refresh: req.query.refresh,
+          archive: req.query.archive,
         }, function (error, html) {
           if (error) {
             console.log("ERROR [1] GET /item err=" + error);
@@ -213,6 +228,7 @@ app.get('/item', function(req, res) {
               view: "item",
               version: version,
               refresh: req.query.refresh,
+              archive: req.query.archive,
             }, function (error, html) {
               if (error) {
                 console.log("ERROR [2] GET /item err=" + error);
@@ -367,35 +383,56 @@ function parse(lang, src, resume) {
 app.get('/lang', function(req, res) {
   // lang?id=106
   var id = req.query.id;
+  let langID = id;
   var src = req.query.src;
   var lang = "L" + id;
   if (src) {
     assert(false, "Should not get here. Call PUT /compile");
   } else {
-    getCompilerVersion(lang, (version) => {
-      res.render('views.html', {
-        title: 'Graffiti Code',
-        language: lang,
-        item: undefined,
-        version: version,
-        refresh: req.query.refresh,
-      }, function (error, html) {
-        if (error) {
-          console.log("ERROR [2] GET /lang err=" + err);
-          res.status(400).send(error);
-        } else {
-          res.send(html);
-        }
-      });
+    let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
+    dbQuery(queryString, (err, result) => {
+      let rows = result.rows;
+      if (rows.length === 0) {
+        var insertStr =
+          "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+          " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+          " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+          " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+        dbQuery(insertStr, function(err, result) {
+          if (err) {
+            console.log("ERROR GET /pieces/:lang err=" + err);
+            res.status(400).send(err);
+            return;
+          }
+          dbQuery(queryString, (err, result) => {
+            let rows = result.rows;
+            if (rows.length > 0) {
+              res.redirect("/form?id=" + rows[0].id);
+            } else {
+              res.sendStatus(404);
+            }
+          });
+        });
+      } else {
+        res.redirect("/item?id=" + encodeID([langID, rows[0].id, 0]));
+      }
     });
   }
 });
 
 app.get('/form', function(req, res) {
   let ids = decodeID(req.query.id);
+  if (ids[1] === 0 && aliases[req.query.id]) {
+    // ID is an invalid ID but a valid alias, so get aliased ID.
+    ids = decodeID(aliases[req.query.id]);
+  }
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   let dataID = ids[2] ? ids[2] : 0;
+  if (ids[1] === 0) {
+    res.sendStatus(404);
+    return;
+  }
   if (!/[a-zA-Z]/.test(req.query.id)) {
     res.redirect("/form?id=" + encodeID(ids));
     return;
@@ -451,19 +488,16 @@ app.get('/form', function(req, res) {
 
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
-  let ids = decodeID(req.query.id);
-  let langID = ids[0] ? ids[0] : 0;
-  let codeID = ids[1] ? ids[1] : 0;
-  let dataIDs = ids[2] ? ids.slice(2) : 0;
-  let id = encodeID([langID, codeID].concat(dataIDs));
+  let id = req.query.id;
+  let ids = decodeID(id);
   let refresh = !!req.query.refresh;
   let t0 = new Date;
   compileID(id, refresh, (err, obj) => {
     if (err) {
-      console.log("ERROR GET /data err=" + err);
+      console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
       res.status(400).send(err);
     } else {
-      console.log("GET /data?id=" + ids.join("+") + " (" + req.query.id + ") in " +
+      console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
       res.json(obj);
     }
@@ -710,10 +744,14 @@ function compileID(id, refresh, resume) {
                   } else {
                     if (lang && code) {
                       assert(code.root !== undefined, "Invalid code.");
-                      // Let downstream compilers they need to refresh
+                      // Let downstream compilers know they need to refresh
                       // any data used.
                       comp(lang, code, data, refresh, (err, obj) => {
                         setCache(lang, id, obj);
+                        if (ids[2] === 0) {
+                          // If this is pure code, then update OBJ.
+                          updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                        }
                         resume(err, obj);
                       });
                     } else {
@@ -825,6 +863,7 @@ const recompileItems = (items, parseOnly) => {
 };
 
 app.put('/compile', function (req, res) {
+  // Map AST or SRC into OBJ. Store OBJ and return ID.
   let t0 = new Date;
   // Compile AST or SRC to OBJ. Insert or add item.
   let id = req.body.id;
@@ -856,6 +895,7 @@ app.put('/compile', function (req, res) {
     itemID = itemID ? itemID : row ? row.id : undefined;
     ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
     if (!ast) {
+      // No AST, try creating from source.
       parse(lang, rawSrc, (err, ast) => {
         compile(ast);
       });
@@ -899,7 +939,7 @@ app.put('/compile', function (req, res) {
             let ids = [langID, codeID, dataID];
             let id = encodeID(ids);
             compileID(id, false, (err, obj) => {
-              console.log("PUT* /compile?id=" + ids.join("+") + " (" + id + ") in " +
+              console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
                           (new Date - t0) + "ms");
               updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
@@ -915,7 +955,7 @@ app.put('/compile', function (req, res) {
 });
 
 app.put('/code', (req, response) => {
-  // Insert or update with given values.
+  // Insert or update code without recompiling.
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
@@ -985,7 +1025,7 @@ app.put('/code', (req, response) => {
           console.log("ERROR PUT /code err=" + err);
           response.status(400).send(err);
         } else {
-          console.log("PUT* /code?id=" + ids.join("+") + " (" + id + ") in " +
+          console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")* in " +
                       (new Date - t0) + "ms");
           response.json({
             id: id,
@@ -1006,7 +1046,7 @@ app.get('/items', function(req, res) {
       " IN ("+list+") ORDER BY pieces.id DESC";
   } else if (req.query.where) {
     let fields = req.query.fields ? req.query.fields : "id";
-    let limit = req.query.limit ? req.query.limit : "1000";
+    let limit = req.query.limit;
     let where = req.query.where;
     queryStr =
       "SELECT " + fields +
@@ -1020,7 +1060,7 @@ app.get('/items', function(req, res) {
   dbQuery(queryStr, function (err, result) {
     var rows;
     if (!result || result.rows.length === 0) {
-      rows = [{}];
+      rows = [];
     } else {
       rows = result.rows;
     }

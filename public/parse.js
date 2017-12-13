@@ -1789,10 +1789,10 @@ window.gcexports.parser = (function () {
           state[window.gcexports.language] = {
             id: id,
             src: src,
-            obj: obj,
             ast: ast,
             postCode: postCode,
             errors: errors,
+            obj: obj,
             data: {}, // Clear state
           };
           window.gcexports.dispatcher.dispatch(state);
@@ -1868,11 +1868,8 @@ window.gcexports.parser = (function () {
             window.clearTimeout(lastTimer);
           }
           if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
-            // Compile code if no edit activity after 1 sec.
-            if (firstTime) {
-              // First time through, don't delay.
-              compileCode(thisAST, false);
-            }
+            // Compile code if not first time (newly loaded) and no edit
+            // activity after 1 sec.
             if (!firstTime) {
               lastTimer = window.setTimeout(function () {
                 compileCode(thisAST, true);
@@ -1917,7 +1914,7 @@ window.gcexports.parser = (function () {
     parseCount++
     parseTime += t1 - t0
     window.coords = state.coords;
-    return cls
+    return cls;
   }
 
   var lexeme = ""
@@ -2045,7 +2042,7 @@ window.gcexports.parser = (function () {
     }
 
     // "abc" --> "abc"
-    // "a{{x}}c" --> concat ["a", x, "b"]
+    // "a${x}c" --> concat ["a", x, "b"]
     function string(ctx, c) {
       var quoteChar = c;
       ctx.state.quoteCharStack.push(c);

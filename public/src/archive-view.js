@@ -13,6 +13,32 @@ var selfCleaningTimeout = {
 let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
 });
+var TextArea = React.createClass({
+  displayName: 'TextArea',
+  propTypes: {
+    name: React.PropTypes.string.isRequired
+  },
+  componentWillReceiveProps(nextProps) {
+    if(nextProps.initValue !== this.props.initValue) {
+      this.setState({
+        value: nextProps.initValue
+      });
+    }
+    // Otherwise the value has been set by handleChange or initial rendering.
+  },
+  handleChange: function(event) {
+    this.setState({value: event.target.value});
+  },
+  render: function() {
+    let props = this.props;
+    return (
+        <textarea id={this.props.name}
+                  className="u-full-width"
+                  value={this.state && this.state.value}
+                  {...props}/>
+    );
+  }
+});
 var ArchiveContent = React.createClass({
   componentWillUnmount: function() {
   },
@@ -21,11 +47,7 @@ var ArchiveContent = React.createClass({
     this.isDirty = false;
   },
   componentDidUpdate: function() {
-    let state = this.state[window.gcexports.language];
-    if (!state ||
-        !state.data ||
-        !state.data.views ||
-        !state.data.views.archive) {
+    if (!window.gcexports.archive) {
       return;
     }
     getItems((err, items) => {
@@ -37,9 +59,15 @@ var ArchiveContent = React.createClass({
       var color = d3.scaleQuantize()
         .domain([0, 100])
         .range(['#f7fcb9','#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529']);
-      let startYear = +items[0].date.substring(0,4);
-      let stopYear = +items[items.length - 1].date.substring(0,4) + 1;
-
+      let startYear, stopYear;
+      if (index < 0) {
+        // No items to render
+        startYear = new Date().getFullYear();
+        stopYear = startYear + 1;
+      } else {
+        startYear = +items[0].date.substring(0,4);
+        stopYear = +items[items.length - 1].date.substring(0,4) + 1;
+      }
       var svg = d3.select("#archive-view")
         .selectAll("svg")
         .data(d3.range(startYear, stopYear))
@@ -121,7 +149,6 @@ var ArchiveContent = React.createClass({
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
         .on("click", handleButtonClick)
         .text("NEXT");
-
       let ids = window.gcexports.decodeID(window.gcexports.id);
       updateHideButton(ids[1]);
 
@@ -237,17 +264,24 @@ var ArchiveContent = React.createClass({
           + "H" + (w0 + 1) * cellSize + "Z";
       }
 
-      highlightCell(items[index].date);
+      if (items.length > 0) {
+        highlightCell(items[index].date);
+      }
     });
 
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function getItems(resume) {
+      let filterStr = archiveFilter !== "" 
+                    ? " and src like '%" + archiveFilter + "%'"
+                    : "";
       $.ajax({
         type: "GET",
-        url: "/pieces/" + window.gcexports.language,
-        data: {
-          label: "show|hide",
+        url: "/items",
+        data : {
+          fields: "id, created",
+          where: "language='" + window.gcexports.language +
+                 "' and label in ('show', 'hide')" + filterStr ,
         },
         dataType: "json",
         success: function(data) {
@@ -272,11 +306,30 @@ var ArchiveContent = React.createClass({
     this.replaceState(data);
   },
   render: function () {
+    if (!window.gcexports.archive) {
+      return <div/>;
+    }
     return (
-      <div />
+      <div><TextArea name="filter"
+                     style={{margin: "10 35", width: "812"}}
+                     rows="1"
+                     onBlur={this.onFilterBlur}
+                     placeholder="Enter filter here..."/></div>
     );
   },
+  onFilterBlur(e) {
+    e = e;
+    archiveFilter = e.target.value;
+    d3.select("#archive-view")
+      .selectAll("svg").remove();
+    d3.select("#archive-view")
+      .selectAll("div.buttons").remove();
+    this.setState({
+      archiveFilter: e.target.value
+    });
+  },
 });
+let archiveFilter = "";
 var ArchiveView = React.createClass({
   mixins: [selfCleaningTimeout],
   MODES: {},

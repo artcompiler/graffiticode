@@ -20,8 +20,7 @@
     "underscore": "1.4.x"
   },
   "engines": {
-    "node": "latest",
-    "npm": "latest"
+    "node": "9.0.0"
   },
   "babel": {
     "presets": [

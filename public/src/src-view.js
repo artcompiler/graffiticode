@@ -45,29 +45,7 @@ var CodeMirrorEditor = React.createClass({
         updateSrc(id, data.src);
       });
     } else {
-      let lang = window.gcexports.language;
-      $.ajax({
-        type: "GET",
-        url: "/pieces/" + lang,
-        data: {},
-        dataType: "json",
-        success: function(data) {
-          let pieces = [];
-          for (var i = 0; i < data.length; i++) {
-            pieces[i] = data[i].id;
-          }
-          let langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
-          let codeID = pieces[0];
-          window.gcexports.pieces = pieces;
-          window.gcexports.id = window.gcexports.encodeID([langID, codeID, 0]);
-          $.get(location.origin + "/code?id=" + window.gcexports.id, function (data) {
-            updateSrc(data.id, data.src);
-          });
-        },
-        error: function(xhr, msg, err) {
-          console.log(msg+" "+err)
-        }
-      });
+      console.log("ERROR missing ID");
     }
     let updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
       window.gcexports.parent = window.gcexports.id;
