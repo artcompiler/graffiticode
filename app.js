@@ -683,7 +683,12 @@ function getData(ids, refresh, resume) {
 function getCode(ids, resume) {
   getItem(ids[1], (err, item) => {
     // if L113 there is no AST.
-    resume(err, item.ast);
+    if (item && item.ast) {
+      resume(err, item.ast);
+    } else {
+      console.log("No AST found for id=" + ids.join("+"));
+      resume("No AST found for id=" + ids.join("+"), null);
+    }
   });
 }
 
