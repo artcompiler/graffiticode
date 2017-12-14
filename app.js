@@ -687,7 +687,7 @@ function getCode(ids, resume) {
       resume(err, item.ast);
     } else {
       console.log("No AST found for id=" + ids.join("+"));
-      resume("No AST found for id=" + ids.join("+"), null);
+      resume(err, {});
     }
   });
 }

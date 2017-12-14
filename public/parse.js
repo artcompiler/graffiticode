@@ -1786,7 +1786,7 @@ window.gcexports.parser = (function () {
           window.gcexports.id = id;
           window.history.pushState(id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + id);
           let state = {};
-          state[window.gcexports.language] = {
+          state[window.gcexports.id] = {
             id: id,
             src: src,
             ast: ast,
