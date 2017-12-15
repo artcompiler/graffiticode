@@ -45,8 +45,9 @@ var CodeMirrorEditor = React.createClass({
   onChange: function (data) {
     let objectCode = "";
     let lang = window.gcexports.language;
-    if (data[lang] && data[lang].obj) {
-      let obj = data[lang].obj;
+    let itemID = window.gcexports.id;
+    if (data[itemID] && data[itemID].obj) {
+      let obj = data[itemID].obj;
       if (obj.objectCode) {
         objectCode = JSON.stringify(obj.objectCode, null, 2);
       } else {
