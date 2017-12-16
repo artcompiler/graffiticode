@@ -939,6 +939,7 @@ window.gcexports.parser = (function () {
   var CC_DOUBLEQUOTE = 0x22;
   var CC_DOLLAR = 0x24;
   var CC_SINGLEQUOTE = 0x27;
+  var CC_BACKTICK = 0x60;
   var CC_LEFTBRACE = 0x7B;
   var CC_RIGHTBRACE = 0x7D;
 
@@ -1992,8 +1993,9 @@ window.gcexports.parser = (function () {
             return stringSuffix(ctx);
           }
           return TK_RIGHTBRACE
-        case 34:  // double quote
-        case 39:  // single quote
+        case CC_DOUBLEQUOTE:
+        case CC_SINGLEQUOTE:
+        case CC_BACKTICK:
           return string(ctx, c)
 
         case 96:  // backquote
@@ -2049,8 +2051,7 @@ window.gcexports.parser = (function () {
       lexeme += String.fromCharCode(c)
       c = nextCC();
       while (c !== quoteChar && c !== 0 &&
-            !(c === CC_DOLLAR &&
-              peekCC() === CC_LEFTBRACE)) {
+            (c !== CC_BACKTICK || !(c === CC_DOLLAR && peekCC() === CC_LEFTBRACE))) {
         lexeme += String.fromCharCode(c);
         var s;
         c = nextCC();
