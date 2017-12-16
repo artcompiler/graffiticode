@@ -2051,7 +2051,7 @@ window.gcexports.parser = (function () {
       lexeme += String.fromCharCode(c)
       c = nextCC();
       while (c !== quoteChar && c !== 0 &&
-            (c !== CC_BACKTICK || !(c === CC_DOLLAR && peekCC() === CC_LEFTBRACE))) {
+            (quoteChar === CC_BACKTICK || !(c === CC_DOLLAR && peekCC() === CC_LEFTBRACE))) {
         lexeme += String.fromCharCode(c);
         var s;
         c = nextCC();
