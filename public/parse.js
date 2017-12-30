@@ -302,7 +302,7 @@ var Ast = (function () {
         // For each parameter, get its definition assign the value of the argument
         // used on the current function application.
         if (!id) continue;
-        var word = JSON.parse(JSON.stringify(lexicon[id])); // Poorman's copy.
+        var word = JSON.parse(JSON.stringify(lexicon[id])); // poor man's copy.
         var index = args.length - word.offset - 1;
         if (isListPattern) {
           // <[x y]: ...> foo..
@@ -1952,6 +1952,9 @@ window.gcexports.parser = (function () {
           c = ' ';
           continue
         case 46:  // dot
+          if (isNumeric(stream.peek())) {
+            return number(c);
+          }
           lexeme += String.fromCharCode(c);
           return TK_DOT
         case 44:  // comma
@@ -2015,7 +2018,7 @@ window.gcexports.parser = (function () {
             (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0)) ||
             (c === '_'.charCodeAt(0))) {
             return ident(c);
-          } else if (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)) {
+          } else if (isNumeric(c) || c === '.'.charCodeAt(0) && isNumeric(stream.peek())) {
             //lex += String.fromCharCode(c);
             //c = src.charCodeAt(curIndex++);
             //return TK_NUM;
@@ -2030,13 +2033,20 @@ window.gcexports.parser = (function () {
       return 0;
     }
 
+    function isNumeric(c) {
+      if (typeof c === "string") {
+        c = c.charCodeAt(0);
+      }
+      return c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0);
+    }
+
     function number(c) {
-      while (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)) {
+      // 123, 1.23, .123
+      while (isNumeric(c) || c === '.'.charCodeAt(0) && isNumeric(stream.peek())) {
         lexeme += String.fromCharCode(c);
         var s;
         c = (s = stream.next()) ? s.charCodeAt(0) : 0
       }
-
       if (c) {
         stream.backUp(1);
       }  // otherwise, we are at the end of stream
