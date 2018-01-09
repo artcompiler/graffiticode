@@ -56,7 +56,7 @@ var GraffContent = React.createClass({
         // if (dataID && +dataID !== 0) {
         //   // This is the magic where we collapse the "tail" into a JSON object.
         //   // Next this JSON object gets interned as static data (in L113).
-        //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID); 
+        //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID);
         //   d3.json(location.origin + "/data?id=" + encodeID(dataID) + params, (err, data) => {
         //     let state = {};
         //     state[lang] = {
@@ -106,9 +106,9 @@ var GraffContent = React.createClass({
     let el = ReactDOM.findDOMNode(this);
     let lang = gcexports.language;
     let itemID = gcexports.id;
-    if (this.state[itemID] && this.state[itemID].id && !this.state[itemID].errors) {
+    if (this.state[itemID] /*&& this.state[itemID].id*/ && !this.state[itemID].errors) {
       let state = this.state[itemID];
-      assert(state.id === itemID);
+      //assert(state.id === itemID);
       let ast = state.ast;
       let src = state.src;
       let obj = state.obj;
@@ -183,22 +183,45 @@ var GraffContent = React.createClass({
     }
   },
   onChange: function (data) {
+    // Every dispatch comes through here.
     if (!window.gcexports) {
       // Not ready yet.
       return;
     }
-    let lang = window.gcexports.language;
+    let itemID = window.gcexports.id;
     if (this.state === null) {
-      this.setState(data);
+      let state = data;
+      let ids = decodeID(itemID);
+      let codeID = encodeID(ids.slice(0, 2).concat(0));
+      if (!state[codeID]) {
+        state[codeID] = {
+          id: codeID,
+          obj: data[itemID].obj,
+        };
+      }
+      this.setState(state);
     } else {
-      // Copy state for the current language.
+      // Copy state for the current item.
       let state = {};
-      let itemID = window.gcexports.id;
+      let ids = decodeID(itemID);
+      let codeID = encodeID(ids.slice(0, 2).concat(0));
+      let item = data[itemID];
+      if (!item.obj) {
+        // If item doesn't have an obj, then get it from the previous compile.
+        item.obj = this.state[codeID].obj;
+        item.id = itemID;
+      } else if (this.state[codeID] && !this.state[codeID].obj) {
+        // Don't have the base obj set yet.
+        state[codeID] = {
+          id: codeID,
+          obj: this.state[codeID].obj,
+        };
+      }
       if (this.state.postCode) {
         // New code so clear (don't copy) old state.
-        state[itemID] = data[itemID];
+        state[itemID] = item;
       } else {
-        state[itemID] = Object.assign({}, this.state[itemID], data[itemID]);
+        state[itemID] = Object.assign({}, this.state[itemID], item);
       }
       this.setState(Object.assign({}, this.state, state));
     }
