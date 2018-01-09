@@ -27221,7 +27221,7 @@ var GraffContent = React.createClass({
         // if (dataID && +dataID !== 0) {
         //   // This is the magic where we collapse the "tail" into a JSON object.
         //   // Next this JSON object gets interned as static data (in L113).
-        //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID); 
+        //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID);
         //   d3.json(location.origin + "/data?id=" + encodeID(dataID) + params, (err, data) => {
         //     let state = {};
         //     state[lang] = {
@@ -27271,9 +27271,9 @@ var GraffContent = React.createClass({
     var el = ReactDOM.findDOMNode(this);
     var lang = gcexports.language;
     var itemID = gcexports.id;
-    if (this.state[itemID] && this.state[itemID].id && !this.state[itemID].errors) {
+    if (this.state[itemID] /*&& this.state[itemID].id*/ && !this.state[itemID].errors) {
       var state = this.state[itemID];
-      (0, _share.assert)(state.id === itemID);
+      //assert(state.id === itemID);
       var ast = state.ast;
       var src = state.src;
       var obj = state.obj;
@@ -27348,24 +27348,47 @@ var GraffContent = React.createClass({
     }
   },
   onChange: function onChange(data) {
+    // Every dispatch comes through here.
     if (!window.gcexports) {
       // Not ready yet.
       return;
     }
-    var lang = window.gcexports.language;
+    var itemID = window.gcexports.id;
     if (this.state === null) {
-      this.setState(data);
+      var state = data;
+      var ids = (0, _share.decodeID)(itemID);
+      var codeID = (0, _share.encodeID)(ids.slice(0, 2).concat(0));
+      if (!state[codeID]) {
+        state[codeID] = {
+          id: codeID,
+          obj: data[itemID].obj
+        };
+      }
+      this.setState(state);
     } else {
-      // Copy state for the current language.
-      var state = {};
-      var itemID = window.gcexports.id;
+      // Copy state for the current item.
+      var _state = {};
+      var _ids = (0, _share.decodeID)(itemID);
+      var _codeID = (0, _share.encodeID)(_ids.slice(0, 2).concat(0));
+      var item = data[itemID];
+      if (!item.obj) {
+        // If item doesn't have an obj, then get it from the previous compile.
+        item.obj = this.state[_codeID].obj;
+        item.id = itemID;
+      } else if (this.state[_codeID] && !this.state[_codeID].obj) {
+        // Don't have the base obj set yet.
+        _state[_codeID] = {
+          id: _codeID,
+          obj: this.state[_codeID].obj
+        };
+      }
       if (this.state.postCode) {
         // New code so clear (don't copy) old state.
-        state[itemID] = data[itemID];
+        _state[itemID] = item;
       } else {
-        state[itemID] = Object.assign({}, this.state[itemID], data[itemID]);
+        _state[itemID] = Object.assign({}, this.state[itemID], item);
       }
-      this.setState(Object.assign({}, this.state, state));
+      this.setState(Object.assign({}, this.state, _state));
     }
   },
   render: function render() {
