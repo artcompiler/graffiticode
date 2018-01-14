@@ -774,7 +774,6 @@ function compileID(id, refresh, resume) {
     });
   }
 }
-
 function comp(lang, code, data, refresh, resume) {
   // Compile ast to obj.
   var path = "/compile";
@@ -793,7 +792,7 @@ function comp(lang, code, data, refresh, resume) {
     method: 'GET',
     headers: {
       'Content-Type': 'text/plain',
-      'Content-Length': encodedData.length
+      'Content-Length': Buffer.byteLength(encodedData),
     },
   };
   var req = protocol.request(options, function(res) {
