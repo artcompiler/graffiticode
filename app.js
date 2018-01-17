@@ -319,8 +319,6 @@ const getItem = function (itemID, resume) {
     } else {
       //assert(result.rows.length === 1);
       val = result.rows[0];
-      val.src = fixSingleQuotes(val.src);
-      val.obj = fixSingleQuotes(val.obj);
       resume(err, val);
     }
   });
@@ -504,10 +502,6 @@ app.get('/data', function(req, res) {
   });
 });
 
-function fixSingleQuotes(str) {
-  return str.replace(new RegExp("''", "g"), "'");
-}
-
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   var ids = decodeID(req.query.id);
@@ -520,7 +514,7 @@ app.get('/code', (req, res) => {
       // No data provided, so obj code won't change.
       res.json({
         id: codeID,
-        src: fixSingleQuotes(row.src),
+        src: row.src,
       });
     }
   });
@@ -732,7 +726,7 @@ function compileID(id, refresh, resume) {
                         resume(err, null);
                       } else {
                         try {
-                          let obj = JSON.parse(fixSingleQuotes(item.obj));
+                          let obj = JSON.parse(item.obj);
                           setCache(lang, id, obj);
                           resume(err, obj);
                         } catch (e) {
