@@ -678,7 +678,8 @@ function getCode(ids, resume) {
   getItem(ids[1], (err, item) => {
     // if L113 there is no AST.
     if (item && item.ast) {
-      resume(err, item.ast);
+      let code = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
+      resume(err, code);
     } else {
       console.log("No AST found for id=" + ids.join("+"));
       resume(err, {});
