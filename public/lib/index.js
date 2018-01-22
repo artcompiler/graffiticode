@@ -35192,7 +35192,7 @@ var GraffContent = React.createClass({
       var _ids = (0, _share.decodeID)(itemID);
       var _codeID = (0, _share.encodeID)(_ids.slice(0, 2).concat(0));
       var item = data[itemID];
-      if (!item.obj) {
+      if (item && !item.obj) {
         // If item doesn't have an obj, then get it from the previous compile.
         item.obj = this.state[_codeID].obj;
         item.id = itemID;
