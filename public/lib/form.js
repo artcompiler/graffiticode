@@ -27358,7 +27358,7 @@ var GraffContent = React.createClass({
       var state = data;
       var ids = (0, _share.decodeID)(itemID);
       var codeID = (0, _share.encodeID)(ids.slice(0, 2).concat(0));
-      if (!state[codeID]) {
+      if (!state[codeID] && data[itemID]) {
         state[codeID] = {
           id: codeID,
           obj: data[itemID].obj

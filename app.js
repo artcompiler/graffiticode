@@ -137,7 +137,7 @@ function decodeID(id) {
   } else if (ids.length === 3 && ids[2] !== 0) {
     ids = [ids[0], ids[1], 113, ids[2], 0];
   }
-  // console.log("[2] decodeID() << " + JSON.stringify(ids));
+  console.log("[2] decodeID() << " + JSON.stringify(ids));
   return ids;
 }
 function encodeID(ids) {
@@ -958,7 +958,7 @@ app.put('/code', (req, response) => {
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
-  let ids = decodeID(id);
+  let ids = id !== undefined ? decodeID(id) : [0, 0, 0];
   let src = cleanAndTrimSrc(body.src);
   let lang = body.language;
   let ip = req.headers['x-forwarded-for'] ||
