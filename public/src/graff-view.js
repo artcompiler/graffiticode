@@ -99,7 +99,6 @@ var GraffContent = React.createClass({
       view: gcexports.view,
       itemID: itemID,
     };
-    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
   },
   componentDidUpdate: function() {
     let gcexports = window.gcexports;
