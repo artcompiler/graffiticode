@@ -151,11 +151,15 @@ const decodeID = (id) => {
     }
   }
   // Fix short ids.
-  if (ids.length === 1) {
+  if (ids.length === 0) {
+    ids = [0, 0, 0]; // Invalid id
+  } else if (ids.length === 1) {
     ids = [0, ids[0], 0];
   } else if (ids.length === 2) {
+    // Legacy code+data
     ids = [0, ids[0], 113, ids[1], 0];
   } else if (ids.length === 3 && ids[2] !== 0) {
+    // Legacy lang+code+data
     ids = [ids[0], ids[1], 113, ids[2], 0];
   }
   // console.log("[2] decodeID() << " + JSON.stringify(ids));

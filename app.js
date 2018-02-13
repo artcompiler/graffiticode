@@ -133,13 +133,29 @@ function decodeID(id) {
   } else if (ids.length === 1) {
     ids = [0, ids[0], 0];
   } else if (ids.length === 2) {
+    // Legacy code+data
     ids = [0, ids[0], 113, ids[1], 0];
   } else if (ids.length === 3 && ids[2] !== 0) {
+    // Legacy lang+code+data
     ids = [ids[0], ids[1], 113, ids[2], 0];
   }
   // console.log("[2] decodeID() << " + JSON.stringify(ids));
   return ids;
 }
+    // getLang(ids, (err, lang) => {
+    //   lang = lang.slice(1);
+    //   if (length === 1) {
+    //     ids = [lang, +ids[0], 0];
+    //   } else if (length === 2) {
+    //     ids = [lang, +ids[0], 113, +ids[1], 0];
+    //   } else {
+    //     // [0, 123456, 113, 234567, 0] or some such.
+    //     ids = [lang, +ids[1]].concat(ids.slice(2));
+    //   }
+    //   let id = hashids.encode(ids);
+    //   return id;
+    //   // console.log("[2b] encodeID() << " + id);
+    // });
 function encodeID(ids) {
   // console.log("[1] encodeID() >> " + JSON.stringify(ids));
   let length = ids.length;
@@ -291,7 +307,7 @@ const dbQuery = function(query, resume) {
       client.query(query, function (err, result) {
         done();
         if (err) {
-          throw new Error(err);
+          throw new Error(err + ": " + query);
         }
         if (!result) {
           result = {
@@ -319,8 +335,6 @@ const getItem = function (itemID, resume) {
     } else {
       //assert(result.rows.length === 1);
       val = result.rows[0];
-      val.src = fixSingleQuotes(val.src);
-      val.obj = fixSingleQuotes(val.obj);
       resume(err, val);
     }
   });
@@ -504,10 +518,6 @@ app.get('/data', function(req, res) {
   });
 });
 
-function fixSingleQuotes(str) {
-  return str.replace(new RegExp("''", "g"), "'");
-}
-
 app.get('/code', (req, res) => {
   // Get the source code for an item.
   var ids = decodeID(req.query.id);
@@ -520,7 +530,7 @@ app.get('/code', (req, res) => {
       // No data provided, so obj code won't change.
       res.json({
         id: codeID,
-        src: fixSingleQuotes(row.src),
+        src: row.src,
       });
     }
   });
@@ -684,9 +694,10 @@ function getCode(ids, resume) {
   getItem(ids[1], (err, item) => {
     // if L113 there is no AST.
     if (item && item.ast) {
-      resume(err, item.ast);
+      let code = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
+      resume(err, code);
     } else {
-      console.log("No AST found for id=" + ids.join("+"));
+      // console.log("No AST found for id=" + ids.join("+"));
       resume(err, {});
     }
   });
@@ -698,6 +709,7 @@ function getLang(ids, resume) {
     resume(null, "L" + id);
   } else {
     getItem(ids[1], (err, item) => {
+      console.log("getLang() item.language=" + item.language);
       resume(err, item.language);
     });
   }
@@ -732,7 +744,7 @@ function compileID(id, refresh, resume) {
                         resume(err, null);
                       } else {
                         try {
-                          let obj = JSON.parse(fixSingleQuotes(item.obj));
+                          let obj = JSON.parse(item.obj);
                           setCache(lang, id, obj);
                           resume(err, obj);
                         } catch (e) {
@@ -963,7 +975,7 @@ app.put('/code', (req, response) => {
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
-  let ids = decodeID(id);
+  let ids = id !== undefined ? decodeID(id) : [0, 0, 0];
   let src = cleanAndTrimSrc(body.src);
   let lang = body.language;
   let ip = req.headers['x-forwarded-for'] ||

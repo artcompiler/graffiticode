@@ -35084,7 +35084,10 @@ var GraffContent = React.createClass({
       view: gcexports.view,
       itemID: itemID
     };
-    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+    if (exports.view === "item") {
+      // Only update the URL in item view on load.
+      //      window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+    }
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;
@@ -35178,7 +35181,7 @@ var GraffContent = React.createClass({
       var state = data;
       var ids = (0, _share.decodeID)(itemID);
       var codeID = (0, _share.encodeID)(ids.slice(0, 2).concat(0));
-      if (!state[codeID]) {
+      if (!state[codeID] && data[itemID]) {
         state[codeID] = {
           id: codeID,
           obj: data[itemID].obj
@@ -35191,7 +35194,7 @@ var GraffContent = React.createClass({
       var _ids = (0, _share.decodeID)(itemID);
       var _codeID = (0, _share.encodeID)(_ids.slice(0, 2).concat(0));
       var item = data[itemID];
-      if (!item.obj) {
+      if (item && !item.obj) {
         // If item doesn't have an obj, then get it from the previous compile.
         item.obj = this.state[_codeID].obj;
         item.id = itemID;
@@ -35658,11 +35661,15 @@ var decodeID = function decodeID(id) {
     }
   }
   // Fix short ids.
-  if (ids.length === 1) {
+  if (ids.length === 0) {
+    ids = [0, 0, 0]; // Invalid id
+  } else if (ids.length === 1) {
     ids = [0, ids[0], 0];
   } else if (ids.length === 2) {
+    // Legacy code+data
     ids = [0, ids[0], 113, ids[1], 0];
   } else if (ids.length === 3 && ids[2] !== 0) {
+    // Legacy lang+code+data
     ids = [ids[0], ids[1], 113, ids[2], 0];
   }
   // console.log("[2] decodeID() << " + JSON.stringify(ids));
