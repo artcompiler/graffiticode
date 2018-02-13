@@ -133,13 +133,29 @@ function decodeID(id) {
   } else if (ids.length === 1) {
     ids = [0, ids[0], 0];
   } else if (ids.length === 2) {
+    // Legacy code+data
     ids = [0, ids[0], 113, ids[1], 0];
   } else if (ids.length === 3 && ids[2] !== 0) {
+    // Legacy lang+code+data
     ids = [ids[0], ids[1], 113, ids[2], 0];
   }
   // console.log("[2] decodeID() << " + JSON.stringify(ids));
   return ids;
 }
+    // getLang(ids, (err, lang) => {
+    //   lang = lang.slice(1);
+    //   if (length === 1) {
+    //     ids = [lang, +ids[0], 0];
+    //   } else if (length === 2) {
+    //     ids = [lang, +ids[0], 113, +ids[1], 0];
+    //   } else {
+    //     // [0, 123456, 113, 234567, 0] or some such.
+    //     ids = [lang, +ids[1]].concat(ids.slice(2));
+    //   }
+    //   let id = hashids.encode(ids);
+    //   return id;
+    //   // console.log("[2b] encodeID() << " + id);
+    // });
 function encodeID(ids) {
   // console.log("[1] encodeID() >> " + JSON.stringify(ids));
   let length = ids.length;
@@ -291,7 +307,7 @@ const dbQuery = function(query, resume) {
       client.query(query, function (err, result) {
         done();
         if (err) {
-          throw new Error(err);
+          throw new Error(err + ": " + query);
         }
         if (!result) {
           result = {
@@ -681,7 +697,7 @@ function getCode(ids, resume) {
       let code = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
       resume(err, code);
     } else {
-      console.log("No AST found for id=" + ids.join("+"));
+      // console.log("No AST found for id=" + ids.join("+"));
       resume(err, {});
     }
   });
@@ -693,6 +709,7 @@ function getLang(ids, resume) {
     resume(null, "L" + id);
   } else {
     getItem(ids[1], (err, item) => {
+      console.log("getLang() item.language=" + item.language);
       resume(err, item.language);
     });
   }
