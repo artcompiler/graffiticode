@@ -219,6 +219,7 @@ app.get('/item', function(req, res) {
           version: version,
           refresh: req.query.refresh,
           archive: req.query.archive,
+          showdata: req.query.data,
         }, function (error, html) {
           if (error) {
             console.log("ERROR [1] GET /item err=" + error);
@@ -245,6 +246,7 @@ app.get('/item', function(req, res) {
               version: version,
               refresh: req.query.refresh,
               archive: req.query.archive,
+              showdata: req.query.data,
             }, function (error, html) {
               if (error) {
                 console.log("ERROR [2] GET /item err=" + error);

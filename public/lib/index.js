@@ -35372,6 +35372,9 @@ var CodeMirrorEditor = React.createClass({
     }
   },
   render: function render() {
+    if (!window.gcexports.showdata) {
+      return React.createElement("div", null);
+    }
     // wrap in a div to fully contain CodeMirror
     var editor = void 0;
     if (IS_MOBILE) {
