@@ -35085,10 +35085,6 @@ var GraffContent = React.createClass({
       view: gcexports.view,
       itemID: itemID
     };
-    if (exports.view === "item") {
-      // Only update the URL in item view on load.
-      //      window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
-    }
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;

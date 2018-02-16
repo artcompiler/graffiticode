@@ -442,8 +442,7 @@ app.get('/form', function(req, res) {
   }
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
-  let dataID = ids[2] ? ids[2] : 0;
-  if (ids[1] === 0) {
+  if (codeID === 0) {
     res.sendStatus(404);
     return;
   }
@@ -451,7 +450,7 @@ app.get('/form', function(req, res) {
     res.redirect("/form?id=" + encodeID(ids));
     return;
   }
-  if (+langID !== 0) {
+  if (langID !== 0) {
     let lang = "L" + langID;
     getCompilerVersion(lang, (version) => {
       res.render('form.html', {
@@ -765,7 +764,7 @@ function compileID(id, refresh, resume) {
                       // any data used.
                       comp(lang, code, data, refresh, (err, obj) => {
                         setCache(lang, id, obj);
-                        if (ids[2] === 0) {
+                        if (ids[2] === 0 && ids.length === 3) {
                           // If this is pure code, then update OBJ.
                           updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
                         }
