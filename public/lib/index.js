@@ -35331,23 +35331,23 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function componentDidMount() {
-    this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
-      mode: 'javascript',
-      lineNumbers: this.props.lineNumbers,
-      lineWrapping: true,
-      smartIndent: true,
-      matchBrackets: true,
-      theme: 'neat',
-      readOnly: this.props.readOnly,
-      viewportMargin: Infinity,
-      extraKeys: { "Ctrl-Space": "autocomplete" }
-    });
-    CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+    if (true || this.refs && thie.refs.editor) {
+      this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
+        mode: 'javascript',
+        lineNumbers: this.props.lineNumbers,
+        lineWrapping: true,
+        smartIndent: true,
+        matchBrackets: true,
+        theme: 'neat',
+        readOnly: this.props.readOnly,
+        viewportMargin: Infinity,
+        extraKeys: { "Ctrl-Space": "autocomplete" }
+      });
+      CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+    }
   },
   componentDidUpdate: function componentDidUpdate() {
-    if (this.props.readOnly) {
-      this.editor.setValue(this.props.codeText);
-    }
+    this.editor.setValue(this.props.codeText);
   },
   onChange: function onChange(data) {
     var objectCode = "";
@@ -35795,38 +35795,40 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function componentDidMount() {
-    var editor = window.gcexports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
-      mode: 'graffiti',
-      lineNumbers: this.props.lineNumbers,
-      lineWrapping: true,
-      smartIndent: true,
-      matchBrackets: true,
-      theme: 'neat',
-      readOnly: this.props.readOnly,
-      viewportMargin: Infinity,
-      extraKeys: { "Ctrl-Space": "autocomplete" },
-      gutters: ["CodeMirror-lint-markers"],
-      lint: true
-    });
-    var pieces = [];
-    var id = window.gcexports.id;
-    if (id) {
-      id = window.gcexports.encodeID(window.gcexports.decodeID(id), true); // hash it
-      $.get(location.origin + "/code?id=" + id, function (data) {
-        updateSrc(id, data.src);
+    if (this.refs && this.refs.editor) {
+      var editor = window.gcexports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
+        mode: 'graffiti',
+        lineNumbers: this.props.lineNumbers,
+        lineWrapping: true,
+        smartIndent: true,
+        matchBrackets: true,
+        theme: 'neat',
+        readOnly: this.props.readOnly,
+        viewportMargin: Infinity,
+        extraKeys: { "Ctrl-Space": "autocomplete" },
+        gutters: ["CodeMirror-lint-markers"],
+        lint: true
       });
-    } else {
-      console.log("ERROR missing ID");
-    }
-    var updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
-      window.gcexports.parent = window.gcexports.id;
-      window.gcexports.id = id;
-      if (src) {
-        // Avoid adding newlines for commands that begin with \n
-        src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless
-        editor.setValue(src.join("\n"));
+      var pieces = [];
+      var id = window.gcexports.id;
+      if (id) {
+        id = window.gcexports.encodeID(window.gcexports.decodeID(id), true); // hash it
+        $.get(location.origin + "/code?id=" + id, function (data) {
+          updateSrc(id, data.src);
+        });
+      } else {
+        console.log("ERROR missing ID");
       }
-    };
+      var updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
+        window.gcexports.parent = window.gcexports.id;
+        window.gcexports.id = id;
+        if (src) {
+          // Avoid adding newlines for commands that begin with \n
+          src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless
+          editor.setValue(src.join("\n"));
+        }
+      };
+    }
   },
   componentDidUpdate: function componentDidUpdate() {},
   handleChange: function handleChange() {
