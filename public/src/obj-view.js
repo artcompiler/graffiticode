@@ -24,23 +24,23 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
-      mode: 'javascript',
-      lineNumbers: this.props.lineNumbers,
-      lineWrapping: true,
-      smartIndent: true,
-      matchBrackets: true,
-      theme: 'neat',
-      readOnly: this.props.readOnly,
-      viewportMargin: Infinity,
-      extraKeys: {"Ctrl-Space": "autocomplete"},
-    });
-    CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+    if (true || this.refs && thie.refs.editor) {
+      this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
+        mode: 'javascript',
+        lineNumbers: this.props.lineNumbers,
+        lineWrapping: true,
+        smartIndent: true,
+        matchBrackets: true,
+        theme: 'neat',
+        readOnly: this.props.readOnly,
+        viewportMargin: Infinity,
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+      });
+      CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+    }
   },
   componentDidUpdate: function() {
-    if (this.props.readOnly) {
-      this.editor.setValue(this.props.codeText);
-    }
+    this.editor.setValue(this.props.codeText);
   },
   onChange: function (data) {
     let objectCode = "";
@@ -65,6 +65,9 @@ var CodeMirrorEditor = React.createClass({
     }
   },
   render: function() {
+    if (!window.gcexports.showdata) {
+      return <div/>;
+    }
     // wrap in a div to fully contain CodeMirror
     let editor;
     if (IS_MOBILE) {

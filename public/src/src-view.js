@@ -24,38 +24,40 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    let editor = window.gcexports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
-      mode: 'graffiti',
-      lineNumbers: this.props.lineNumbers,
-      lineWrapping: true,
-      smartIndent: true,
-      matchBrackets: true,
-      theme: 'neat',
-      readOnly: this.props.readOnly,
-      viewportMargin: Infinity,
-      extraKeys: {"Ctrl-Space": "autocomplete"},
-      gutters: ["CodeMirror-lint-markers"],
-      lint: true,
-    });
-    let pieces = [];
-    let id = window.gcexports.id;
-    if (id) {
-      id = window.gcexports.encodeID(window.gcexports.decodeID(id), true); // hash it
-      $.get(location.origin + "/code?id=" + id, function (data) {
-        updateSrc(id, data.src);
+    if (this.refs && this.refs.editor) {
+      let editor = window.gcexports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
+        mode: 'graffiti',
+        lineNumbers: this.props.lineNumbers,
+        lineWrapping: true,
+        smartIndent: true,
+        matchBrackets: true,
+        theme: 'neat',
+        readOnly: this.props.readOnly,
+        viewportMargin: Infinity,
+        extraKeys: {"Ctrl-Space": "autocomplete"},
+        gutters: ["CodeMirror-lint-markers"],
+        lint: true,
       });
-    } else {
-      console.log("ERROR missing ID");
-    }
-    let updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
-      window.gcexports.parent = window.gcexports.id;
-      window.gcexports.id = id;
-      if (src) {
-        // Avoid adding newlines for commands that begin with \n
-        src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless
-        editor.setValue(src.join("\n"));
+      let pieces = [];
+      let id = window.gcexports.id;
+      if (id) {
+        id = window.gcexports.encodeID(window.gcexports.decodeID(id), true); // hash it
+        $.get(location.origin + "/code?id=" + id, function (data) {
+          updateSrc(id, data.src);
+        });
+      } else {
+        console.log("ERROR missing ID");
       }
-    };
+      let updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
+        window.gcexports.parent = window.gcexports.id;
+        window.gcexports.id = id;
+        if (src) {
+          // Avoid adding newlines for commands that begin with \n
+          src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless
+          editor.setValue(src.join("\n"));
+        }
+      };
+    }
   },
   componentDidUpdate: function() {    
   },
