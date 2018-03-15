@@ -34897,13 +34897,19 @@ var ArchiveContent = React.createClass({
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function getItems(resume) {
-      var filterStr = archiveFilter !== "" ? " and src like '%" + archiveFilter + "%'" : "";
+      var filters = archiveFilter.split(",");
+      var filterStr = "";
+      filters.forEach(function (f) {
+        filterStr += f !== "" ? " and src like '%" + f + "%'" : "";
+      });
       $.ajax({
         type: "GET",
         url: "/items",
         data: {
           fields: "id, created",
-          where: "language='" + window.gcexports.language + "' and label in ('show', 'hide')" + filterStr
+          where: "language='" + window.gcexports.language +
+          //                 "' and label in ('show', 'hide')" + filterStr ,
+          "' and label='show'" + filterStr
         },
         dataType: "json",
         success: function success(data) {
