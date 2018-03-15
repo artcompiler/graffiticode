@@ -27264,7 +27264,7 @@ var GraffContent = React.createClass({
       view: gcexports.view,
       itemID: itemID
     };
-    if (gcexports.view === "item") {
+    if (true || gcexports.view === "item") {
       window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
     }
   },
