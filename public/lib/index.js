@@ -35326,7 +35326,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
 var CodeMirrorEditor = React.createClass({
   displayName: "CodeMirrorEditor",
 
@@ -35384,17 +35383,7 @@ var CodeMirrorEditor = React.createClass({
     if (!window.gcexports.showdata) {
       return React.createElement("div", null);
     }
-    // wrap in a div to fully contain CodeMirror
-    var editor = void 0;
-    if (IS_MOBILE) {
-      editor = React.createElement(
-        "pre",
-        { style: { overflow: 'scroll' } },
-        ""
-      );
-    } else {
-      editor = React.createElement("textarea", { ref: "editor", defaultValue: "" });
-    }
+    var editor = React.createElement("textarea", { ref: "editor", defaultValue: "" });
     return React.createElement(
       "div",
       { style: this.props.style, className: this.props.className },
@@ -35790,7 +35779,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
 var CodeMirrorEditor = React.createClass({
   displayName: "CodeMirrorEditor",
 
@@ -35847,16 +35835,7 @@ var CodeMirrorEditor = React.createClass({
   },
   render: function render() {
     // wrap in a div to fully contain CodeMirror
-    var editor;
-    if (IS_MOBILE) {
-      editor = React.createElement(
-        "pre",
-        { style: { overflow: 'scroll' } },
-        this.props.codeText
-      );
-    } else {
-      editor = React.createElement("textarea", { ref: "editor", defaultValue: this.props.codeText });
-    }
+    var editor = React.createElement("textarea", { ref: "editor", defaultValue: this.props.codeText });
     return React.createElement(
       "div",
       { style: this.props.style, className: this.props.className },

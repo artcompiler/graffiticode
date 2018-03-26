@@ -4,15 +4,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-var IS_MOBILE = (
-  navigator.userAgent.match(/Android/i)
-    || navigator.userAgent.match(/webOS/i)
-    || navigator.userAgent.match(/iPhone/i)
-    || navigator.userAgent.match(/iPad/i)
-    || navigator.userAgent.match(/iPod/i)
-    || navigator.userAgent.match(/BlackBerry/i)
-    || navigator.userAgent.match(/Windows Phone/i)
-);
 var CodeMirrorEditor = React.createClass({
   propTypes: {
     lineNumbers: React.PropTypes.bool,
@@ -68,12 +59,7 @@ var CodeMirrorEditor = React.createClass({
   },
   render: function() {
     // wrap in a div to fully contain CodeMirror
-    var editor;
-    if (IS_MOBILE) {
-      editor = <pre style={{overflow: 'scroll'}}>{this.props.codeText}</pre>;
-    } else {
-      editor = <textarea ref="editor" defaultValue={this.props.codeText} />;
-    }
+    var editor = <textarea ref="editor" defaultValue={this.props.codeText} />;
     return (
       <div style={this.props.style} className={this.props.className}>
         {editor}
