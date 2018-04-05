@@ -209,7 +209,7 @@ app.get('/item', function(req, res) {
     let langID = ids[0];
     let codeID = ids[1];
     if (+langID !== 0) {
-      let lang = "L" + langID;
+      let lang = langName(langID);
       getCompilerVersion(lang, (version) => {
         res.render('views.html', {
           title: 'Graffiti Code',
@@ -401,7 +401,7 @@ app.get('/lang', function(req, res) {
   var id = req.query.id;
   let langID = id;
   var src = req.query.src;
-  var lang = "L" + id;
+  var lang = langName(langID);
   if (src) {
     assert(false, "Should not get here. Call PUT /compile");
   } else {
@@ -453,7 +453,7 @@ app.get('/form', function(req, res) {
     return;
   }
   if (langID !== 0) {
-    let lang = "L" + langID;
+    let lang = langName(langID);
     getCompilerVersion(lang, (version) => {
       res.render('form.html', {
         title: 'Graffiti Code',
@@ -704,10 +704,15 @@ function getCode(ids, resume) {
   });
 }
 
+function langName(id) {
+  id = +id;
+  return "L" + (id < 10 ? "00" + id : id < 100 ? "0" + id : id);
+}
+
 function getLang(ids, resume) {
-  let id = ids[0];
-  if (id !== 0) {
-    resume(null, "L" + id);
+  let langID = ids[0];
+  if (langID !== 0) {
+    resume(null, langName(langID));
   } else {
     getItem(ids[1], (err, item) => {
       console.log("getLang() item.language=" + item.language);
@@ -1191,6 +1196,7 @@ app.get("/:lang/*", function (req, response) {
 });
 
 function getCompilerHost(lang) {
+  console.log("getCompilerHost() lang=" + lang);
   if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
