@@ -629,7 +629,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
       dbQuery(queryStr, function (err, result) {
         resume(err, result);
-        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
+        dbQuery("UPDATE pieces SET forks=forks+1 WHERE id=" + parent + ";", () => {});
       });
     }
   });
@@ -659,6 +659,7 @@ function updateAST(id, ast, resume) {
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
+    "views=views+1 " +
     "ast='" + ast + "' " +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
@@ -673,6 +674,7 @@ function updateOBJ(id, obj, resume) {
   obj = cleanAndTrimObj(JSON.stringify(obj));
   var query =
     "UPDATE pieces SET " +
+    "views=views+1 " +
     "obj='" + obj + "' " +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
