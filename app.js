@@ -660,7 +660,7 @@ function updateAST(id, ast, resume) {
   var query =
     "UPDATE pieces SET " +
     "views=views+1 " +
-    "ast='" + ast + "' " +
+    ", ast='" + ast + "' " +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
     if (err && err.length) {
@@ -675,7 +675,7 @@ function updateOBJ(id, obj, resume) {
   var query =
     "UPDATE pieces SET " +
     "views=views+1 " +
-    "obj='" + obj + "' " +
+    ", obj='" + obj + "' " +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
     resume(err, []);
@@ -717,7 +717,6 @@ function getLang(ids, resume) {
     resume(null, langName(langID));
   } else {
     getItem(ids[1], (err, item) => {
-      console.log("getLang() item.language=" + item.language);
       resume(err, item.language);
     });
   }
@@ -1198,7 +1197,6 @@ app.get("/:lang/*", function (req, response) {
 });
 
 function getCompilerHost(lang) {
-  console.log("getCompilerHost() lang=" + lang);
   if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
@@ -1264,6 +1262,40 @@ function postAuth(path, data, resume) {
     resume(err);
   });
 }
+
+// Member sign-in
+
+app.post('/signIn', (req, res) => {
+  if (!req.body.name || !req.body.number) {
+    res.sendStatus(400);
+    return;
+  }
+  postAuth("/signIn", {
+    "name": req.body.name,
+    "number": req.body.number,
+  }, (err, data) => {
+    res.send({
+      jwt: data.jwt,
+    });
+  });
+});
+
+app.post('/finishSignIn', (req, res) => {
+  if (!req.body.jwt && !req.body.passcode) {
+    res.sendStatus(400);
+    return;
+  }
+  postAuth("/finishSignIn", {
+    jwt: req.body.jwt,
+    passcode: req.body.passcode,
+  }, (err, data) => {
+    res.send({
+      jwt: data.jwt,
+    });
+  });
+});
+
+// Client login
 
 const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
   ? process.env.ARTCOMPILER_CLIENT_ADDRESS

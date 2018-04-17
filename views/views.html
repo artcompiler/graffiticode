@@ -3,8 +3,13 @@
   <head>
     <title><%=language%></title>
     <link rel="stylesheet" href="normalize.css">
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="starter-template.css" rel="stylesheet">
     <link rel="stylesheet" href="codemirror.css">
     <link rel="stylesheet" href="codemirror-theme.css">
+    <link rel="stylesheet" href="lint.css">
     <link rel="stylesheet" href="editor.css">
     <link rel="stylesheet" href="<%=language%>/style.css">
     <script src="jquery.js"></script>
@@ -35,13 +40,6 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Starter Template for Bootstrap</title>
-
-    <!-- Bootstrap core CSS -->
-    <link href="bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="starter-template.css" rel="stylesheet">
   </head>
   <body>
     <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
@@ -51,24 +49,46 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Views</a>
-            <div class="dropdown-menu" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="#">Repo</a>
-              <a class="dropdown-item" href="#">Spec</a>
-              <a class="dropdown-item" href="#">Code</a>
-              <a class="dropdown-item" href="#">Form</a>
-              <a class="dropdown-item" href="#">Data</a>
-            </div>
+          <li class="nav-item">
+            <button id="repo-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+              Repo
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="docs-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+              Docs
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="code-btn" class="btn btn-success my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+              Code
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="form-btn" class="btn btn-success my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+              Form
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="data-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+              Data
+            </button>
           </li>
         </ul>
-        <button class="btn btn-outline-danger my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0">Private</button>
-        <form class="form-inline my-2 my-lg-0">
-          <input class="form-control mr-sm-2" type="text" placeholder="Username" aria-label="username">
-          <input class="form-control mr-sm-2" type="hidden" placeholder="Mobile Number" aria-label="mobile number">
-          <input class="form-control mr-sm-2" type="hidden" placeholder="Passcode" aria-label="passcode">
-          <button class="btn btn-outline-secondary my-2 my-sm-0" type="submit">Signin</button>
-        </form>
+       <button class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display: none; margin:0 10 0 0">Private</button>
+       <form id="signin" style="display:block" class="form-inline my-2 my-lg-0">
+         <input id="name-txt" class="form-control mr-sm-2" type="text" placeholder="Name" aria-label="username">
+         <input id="number-txt" class="form-control mr-sm-2" type="text" placeholder="Mobile number" aria-label="mobile number">
+         <button id="signin" class="btn btn-outline-secondary my-2 my-sm-0" onclick="handleSignInClick(event)" type="button">SIGN IN</button>
+       </form>
+       <form id="passcode" style="display:none" class="form-inline my-2 my-lg-0">
+         <input id="passcode-txt" class="form-control mr-sm-2" type="text" placeholder="Passcode" aria-label="mobile number">
+         <button id="passcode" class="btn btn-outline-secondary my-2 my-sm-0" onclick="handleSignInClick(event)" type="button">VERIFY</button>
+       </form>
+       <form id="signout" style="display:none" class="form-inline my-2 my-lg-0">
+         <!-- <text id="member" class="" aria-label="member">Hi Jeff!&nbsp;&nbsp;</text> -->
+         <button id="signout" class="btn btn-outline-secondary my-2 my-sm-0" onclick="handleSignInClick(event)" type="button">SIGN OUT</button>
+       </form>
       </div>
     </nav>
 
@@ -76,7 +96,7 @@
       <div id="tool-view"></div>
       <div id="archive-view"></div>
       <div id="src-view"></div>
-      <div id="graff-view"></div>
+      <div id="graff-view" class="<%=language%>"></div>
       <div id="obj-view"></div>
     </main><!-- /.container -->
 

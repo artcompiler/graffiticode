@@ -29,7 +29,8 @@ if (typeof CodeMirror === "undefined") {
 }
 
 if (typeof window === "undefined") {
-  window = {
+  window = {};
+  window.gcexports = {
     coords: {},
     gcexports: {},
     isSynthetic: true,
@@ -432,10 +433,11 @@ var Ast = (function () {
     });
   }
 
-  function name(ctx, str) {
+  function name(ctx, str, coord) {
     push(ctx, {
       tag: "IDENT",
-      elts: [str]
+      elts: [str],
+      coord: coord,
     });
   }
 
@@ -928,9 +930,10 @@ window.gcexports.parser = (function () {
     "null" : { "tk": 0x15, "cls": "val", "length": 0 },
   };
   function addError(ctx, str) {
+    let ln = ctx.scan.stream.lineOracle.line;
     ctx.state.errors.push({
-      from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
-      to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
+      from: CodeMirror.Pos(ln, ctx.scan.stream.start),
+      to: CodeMirror.Pos(ln, ctx.scan.stream.pos),
       message: str,
       severity : "error",
     });
@@ -1089,9 +1092,10 @@ window.gcexports.parser = (function () {
   }
 
   function getCoord(ctx) {
+    let ln = ctx.scan.stream.lineOracle.line;
     return {
-      from: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.start),
-      to: CodeMirror.Pos(ctx.state.lineNo, ctx.scan.stream.pos),
+      from: CodeMirror.Pos(ln, ctx.scan.stream.start),
+      to: CodeMirror.Pos(ln, ctx.scan.stream.pos),
     };
   }
 
@@ -1221,15 +1225,16 @@ window.gcexports.parser = (function () {
   }
   function name(ctx, cc) {
     eat(ctx, TK_IDENT);
+    var coord = getCoord(ctx);
     var word = env.findWord(ctx, lexeme);
     if (word) {
       cc.cls = word.cls;
       if (word.cls==="number" && word.val) {
-        Ast.number(ctx, word.val);
+        Ast.number(ctx, word.val, coord);
       } else if (word.cls==="string" && word.val) {
-        Ast.string(ctx, word.val);
+        Ast.string(ctx, word.val, coord);
       } else {
-        Ast.name(ctx, lexeme);
+        Ast.name(ctx, lexeme, coord);
       }
     } else {
       cc.cls = "comment";
@@ -1764,7 +1769,7 @@ window.gcexports.parser = (function () {
         if (obj.error && obj.error.length) {
           errors = [];
           obj.error.forEach(function (err) {
-            var coord = window.coords[err.nid];
+            var coord = window.gcexports.coords[err.nid];
             if (!coord || !coord.from || !coord.to) {
               coord = {};
               coord.from = CodeMirror.Pos(0, 0);
@@ -1914,7 +1919,7 @@ window.gcexports.parser = (function () {
     var t1 = new Date;
     parseCount++
     parseTime += t1 - t0
-    window.coords = state.coords;
+    window.gcexports.coords = state.coords;
     return cls;
   }
 
@@ -2155,7 +2160,7 @@ window.gcexports.parser = (function () {
   }
 
   window.gcexports.parse = parser.parse
-  if (window.isSynthetic) {
+  if (window.gcexports.isSynthetic) {
     // Export in node.
     exports.parse = window.gcexports.parse;
     exports.StringStream = window.gcexports.StringStream;
