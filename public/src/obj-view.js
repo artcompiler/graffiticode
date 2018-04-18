@@ -15,7 +15,7 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    if (true || this.refs && thie.refs.editor) {
+    if (this.refs && this.refs.editor) {
       this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
         mode: 'javascript',
         lineNumbers: this.props.lineNumbers,
@@ -56,7 +56,7 @@ var CodeMirrorEditor = React.createClass({
     }
   },
   render: function() {
-    if (!window.gcexports.showdata) {
+    if (window.gcexports.showdata === false) {
       return <div/>;
     }
     let editor = <textarea ref="editor" defaultValue={""} />;

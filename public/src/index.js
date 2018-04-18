@@ -89,19 +89,19 @@ window.handleSignInClick = function handleSignInClick(e) {
     break;
   }
 }
-window.handleViewClick = function handleSignInClick(e) {
+window.handleViewClick = function (e) {
   let id = e.target.id;
-  let show = !d3.select("#" + id).classed("btn-success");
+  let show = !d3.select("#" + id).classed("btn-secondary");
   d3.select("#" + id).classed("btn-outline-secondary", !show);
-  d3.select("#" + id).classed("btn-success", show);
+  d3.select("#" + id).classed("btn-secondary", show);
   let selector;
   switch (id) {
   case "repo-btn":
     window.gcexports.archive = show;
     selector = "#archive-view";
     break;
-  case "docs-btn":
-    selector = "#docs-view";
+  case "help-btn":
+    selector = "#help-view";
     break;
   case "code-btn":
     selector = "#src-view";
@@ -110,7 +110,6 @@ window.handleViewClick = function handleSignInClick(e) {
     selector = "#graff-view";
     break;
   case "data-btn":
-    window.gcexports.showdata = show;
     selector = "#obj-view";
     break;
   default:

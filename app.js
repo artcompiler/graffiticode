@@ -613,13 +613,14 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   parent = decodeID(parent)[1];
   // ast is a JSON object
   var forks = 0;
+  var views = 0;
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var queryStr =
-    "INSERT INTO pieces (address, user_id, parent_id, forks, created, src, obj, language, label, img, ast)" +
-    " VALUES ('" + clientAddress + "','" + user + "','" + parent + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
+    "INSERT INTO pieces (address, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
+    " VALUES ('" + clientAddress + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
     label + "','" + img + "','" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
@@ -655,12 +656,23 @@ function updateItem(id, language, src, ast, obj, img, resume) {
   });
 };
 
+function countView(id) {
+  var query =
+    "UPDATE pieces SET " +
+    "views=views+1 " +
+    "WHERE id='" + id + "'";
+  dbQuery(query, function (err) {
+    if (err && err.length) {
+      console.log("ERROR updateViews() err=" + err);
+    }
+  });
+}
+
 function updateAST(id, ast, resume) {
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
-    "views=views+1 " +
-    ", ast='" + ast + "' " +
+    "ast='" + ast + "' " +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
     if (err && err.length) {
@@ -674,8 +686,7 @@ function updateOBJ(id, obj, resume) {
   obj = cleanAndTrimObj(JSON.stringify(obj));
   var query =
     "UPDATE pieces SET " +
-    "views=views+1 " +
-    ", obj='" + obj + "' " +
+    "obj='" + obj + "' " +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
     resume(err, []);
@@ -726,6 +737,8 @@ function compileID(id, refresh, resume) {
   if (id === nilID) {
     resume(null, {});
   } else {
+    let ids = decodeID(id);
+    countView(ids[1]);
     if (refresh) {
       delCache(id);
     }
@@ -734,7 +747,6 @@ function compileID(id, refresh, resume) {
         // Got cached value. We're done.
         resume(err, val);
       } else {
-        let ids = decodeID(id);
         getData(ids, refresh, (err, data) => {
           getCode(ids, (err, code) => {
             if (err && err.length) {
@@ -942,7 +954,8 @@ app.put('/compile', function (req, res) {
             compileID(id, false, (err, obj) => {
               console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
                           (new Date - t0) + "ms");
-              updateOBJ(codeID, obj, (err)=>{ assert(!err) });
+              // This is done by compileID().
+              // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
                 obj: obj,
@@ -964,7 +977,8 @@ app.put('/compile', function (req, res) {
             compileID(id, false, (err, obj) => {
               console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
                           (new Date - t0) + "ms");
-              updateOBJ(codeID, obj, (err)=>{ assert(!err) });
+              // This is done by compileID.
+              // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
                 obj: obj,

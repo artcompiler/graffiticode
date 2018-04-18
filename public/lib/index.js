@@ -35364,19 +35364,19 @@ window.handleSignInClick = function handleSignInClick(e) {
       break;
   }
 };
-window.handleViewClick = function handleSignInClick(e) {
+window.handleViewClick = function (e) {
   var id = e.target.id;
-  var show = !d3.select("#" + id).classed("btn-success");
+  var show = !d3.select("#" + id).classed("btn-secondary");
   d3.select("#" + id).classed("btn-outline-secondary", !show);
-  d3.select("#" + id).classed("btn-success", show);
+  d3.select("#" + id).classed("btn-secondary", show);
   var selector = void 0;
   switch (id) {
     case "repo-btn":
       window.gcexports.archive = show;
       selector = "#archive-view";
       break;
-    case "docs-btn":
-      selector = "#docs-view";
+    case "help-btn":
+      selector = "#help-view";
       break;
     case "code-btn":
       selector = "#src-view";
@@ -35385,7 +35385,6 @@ window.handleViewClick = function handleSignInClick(e) {
       selector = "#graff-view";
       break;
     case "data-btn":
-      window.gcexports.showdata = show;
       selector = "#obj-view";
       break;
     default:
@@ -35402,8 +35401,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _React$createClass;
-
 var _react = require("react");
 
 var React = _interopRequireWildcard(_react);
@@ -35414,7 +35411,7 @@ var ReactDOM = _interopRequireWildcard(_reactDom);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; } /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 var CodeMirrorEditor = React.createClass({
@@ -35442,31 +35439,27 @@ var CodeMirrorEditor = React.createClass({
         viewportMargin: Infinity,
         extraKeys: { "Ctrl-Space": "autocomplete" }
       });
+      CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     }
-    CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
   },
   componentDidUpdate: function componentDidUpdate() {
     this.editor.setValue(this.props.codeText);
   },
   onChange: function onChange(data) {
-    if (this.refs && this.refs.editor) {
-      var objectCode = "";
-      var lang = window.gcexports.language;
-      var itemID = window.gcexports.id;
-      if (data[itemID] && data[itemID].obj) {
-        var obj = data[itemID].obj;
-        if (obj.objectCode) {
-          objectCode = JSON.stringify(obj.objectCode, null, 2);
-        } else {
-          objectCode = JSON.stringify(obj, null, 2);
-        }
-        this.editor.setValue(objectCode);
-      } else if (data && !data.error && window.gcexports.viewer.getObjectCode) {
-        objectCode = window.gcexports.viewer.getObjectCode(data.obj);
-        this.editor.setValue(objectCode);
+    var objectCode = "";
+    var lang = window.gcexports.language;
+    var itemID = window.gcexports.id;
+    if (data[itemID] && data[itemID].obj) {
+      var obj = data[itemID].obj;
+      if (obj.objectCode) {
+        objectCode = JSON.stringify(obj.objectCode, null, 2);
+      } else {
+        objectCode = JSON.stringify(obj, null, 2);
       }
-    } else {
-      this.replaceState(data);
+      this.editor.setValue(objectCode);
+    } else if (data && !data.error && window.gcexports.viewer.getObjectCode) {
+      objectCode = window.gcexports.viewer.getObjectCode(data.obj);
+      this.editor.setValue(objectCode);
     }
   },
   handleChange: function handleChange() {
@@ -35475,7 +35468,7 @@ var CodeMirrorEditor = React.createClass({
     }
   },
   render: function render() {
-    if (!window.gcexports.showdata) {
+    if (window.gcexports.showdata === false) {
       return React.createElement("div", null);
     }
     var editor = React.createElement("textarea", { ref: "editor", defaultValue: "" });
@@ -35505,7 +35498,7 @@ var selfCleaningTimeout = {
     this.timeoutID = setTimeout.apply(null, arguments);
   })
 };
-var ObjectView = React.createClass((_React$createClass = {
+var ObjectView = React.createClass({
   displayName: "ObjectView",
 
   mixins: [selfCleaningTimeout],
@@ -35518,7 +35511,6 @@ var ObjectView = React.createClass((_React$createClass = {
     showLineNumbers: React.PropTypes.bool,
     editorTabTitle: React.PropTypes.string
   },
-  componentDidMount: function componentDidMount() {},
   getDefaultProps: function getDefaultProps() {
     return {
       editorTabTitle: 'Object',
@@ -35536,7 +35528,6 @@ var ObjectView = React.createClass((_React$createClass = {
   handleCodeChange: function handleCodeChange(value) {},
   handleCodeModeSwitch: function handleCodeModeSwitch(mode) {},
   compileCode: function compileCode() {},
-  onChange: function onChange(data) {},
   render: function render() {
     var isJS = this.state.mode === this.MODES.JS;
     var compiledCode = '';
@@ -35558,30 +35549,33 @@ var ObjectView = React.createClass((_React$createClass = {
         })
       )
     );
-  }
-}, _defineProperty(_React$createClass, "componentDidMount", function componentDidMount() {}), _defineProperty(_React$createClass, "componentDidUpdate", function componentDidUpdate(prevProps, prevState) {}), _defineProperty(_React$createClass, "executeCode", function executeCode() {
-  return;
-  var mountNode = ReactDOM.findDOMNode(this.refs.mount);
-  try {
-    React.unmountComponentAtNode(mountNode);
-  } catch (e) {}
-  try {
-    var compiledCode = this.compileCode();
-    if (this.props.renderCode) {
-      ReactDOM.render(React.createElement(CodeMirrorEditor, { codeText: compiledCode, readOnly: true }), mountNode);
-    } else {
-      eval(compiledCode);
+  },
+  componentDidMount: function componentDidMount() {},
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {},
+  executeCode: function executeCode() {
+    return;
+    var mountNode = ReactDOM.findDOMNode(this.refs.mount);
+    try {
+      React.unmountComponentAtNode(mountNode);
+    } catch (e) {}
+    try {
+      var compiledCode = this.compileCode();
+      if (this.props.renderCode) {
+        ReactDOM.render(React.createElement(CodeMirrorEditor, { codeText: compiledCode, readOnly: true }), mountNode);
+      } else {
+        eval(compiledCode);
+      }
+    } catch (err) {
+      this.setTimeout(function () {
+        React.render(React.createElement(
+          "div",
+          { className: "playgroundError" },
+          "ERROR:" + err.toString()
+        ), mountNode);
+      }, 500);
     }
-  } catch (err) {
-    this.setTimeout(function () {
-      React.render(React.createElement(
-        "div",
-        { className: "playgroundError" },
-        "ERROR:" + err.toString()
-      ), mountNode);
-    }, 500);
   }
-}), _React$createClass));
+});
 exports.default = ObjectView;
 
 },{"react":195,"react-dom":66}],203:[function(require,module,exports){
