@@ -1261,7 +1261,8 @@ function postAuth(path, data, resume) {
       data += chunk;
     }).on('end', function () {
       try {
-        resume(null, JSON.parse(data));
+        data = JSON.parse(data);
+        resume(data.error, data);
       } catch (e) {
         console.log("ERROR " + data);
         console.log(e.stack);
@@ -1284,11 +1285,9 @@ app.post('/signIn', (req, res) => {
     res.sendStatus(400);
     return;
   }
-  postAuth("/signIn", {
-    "name": req.body.name,
-    "number": req.body.number,
-  }, (err, data) => {
+  postAuth("/signIn", req.body, (err, data) => {
     res.send({
+      err: err,
       jwt: data.jwt,
     });
   });
@@ -1299,11 +1298,9 @@ app.post('/finishSignIn', (req, res) => {
     res.sendStatus(400);
     return;
   }
-  postAuth("/finishSignIn", {
-    jwt: req.body.jwt,
-    passcode: req.body.passcode,
-  }, (err, data) => {
+  postAuth("/finishSignIn", req.body, (err, data) => {
     res.send({
+      err: err,
       jwt: data.jwt,
     });
   });

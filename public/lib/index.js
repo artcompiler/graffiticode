@@ -35310,16 +35310,56 @@ ReactDOM.render(React.createElement(_graffView2.default, null), document.getElem
 ReactDOM.render(React.createElement(_objView2.default, null), document.getElementById('obj-view'));
 var signInJWT = void 0;
 function signIn(name, number) {
+  var isNew = d3.select("button#signin").classed("is-signup");
   $.ajax({
     type: "POST",
     url: "/signIn",
     data: {
       name: name,
-      number: number
+      number: number,
+      isNew: isNew
     },
     dataType: "json",
     success: function success(data) {
+      if (data.err && data.err.code) {
+        switch (data.err.code) {
+          case 1000:
+            if (!isNew) {
+              // signin --> signup
+              d3.select("input#name-txt").classed("is-valid", true);
+              d3.select("input#number-txt").classed("is-valid", true);
+              d3.select("div#name-feedback").classed("valid-feedback", true).text("New user? Sign-up!");
+              d3.select("button#signin").html("SIGN UP");
+              d3.select("button#signin").classed("btn-outline-secondary", false);
+              d3.select("button#signin").classed("btn-success", true);
+              d3.select("button#signin").classed("is-signup", true);
+              return;
+            }
+            break;
+          case 1001:
+            d3.select("input#name-txt").classed("is-invalid", true);
+            d3.select("div#name-feedback").classed("invalid-feedback", true).text("Letters, numbers and spaces only.");
+            break;
+          case 1002:
+            d3.select("input#number-txt").classed("is-invalid", true);
+            d3.select("div#number-feedback").classed("invalid-feedback", true).text("If a non-US, use int'l '+' format.");
+            return;
+          case 1003:
+            d3.select("input#name-txt").classed("is-invalid", true);
+            d3.select("input#number-txt").classed("is-invalid", true);
+            d3.select("div#name-feedback").classed("invalid-feedback", true).text(data.err.message);
+            return;
+          case 1004:
+            d3.select("input#passcode-txt").classed("is-invalid", true);
+            d3.select("div#passcode-feedback").classed("invalid-feedback", true).text(data.err.message);
+
+            return;
+        }
+      }
       signInJWT = data.jwt;
+      d3.select("form#signin").style("display", "none");
+      d3.select("form#passcode").style("display", "block");
+      d3.select("input#passcode-txt").node().focus();
     },
     error: function error(xhr, msg, err) {
       console.log("ERROR " + msg + " " + err);
@@ -35336,31 +35376,80 @@ function finishSignIn(passcode) {
     },
     dataType: "json",
     success: function success(data) {
+      if (data.err && data.err.code) {
+        switch (data.err.code) {
+          case 1004:
+            d3.select("input#passcode-txt").classed("is-invalid", true);
+            d3.select("div#passcode-feedback").classed("invalid-feedback", true).text(data.err.message);
+            d3.select("button#passcode").html("RETRY");
+            d3.select("button#passcode").classed("btn-success", false);
+            d3.select("button#passcode").classed("btn-danger", true);
+            d3.select("button#passcode").attr("id", "retry");
+            return;
+        }
+      }
       data = data;
+      localStorage.setItem("accessToken", data.jwt);
+      d3.select("form#passcode").style("display", "none");
+      d3.select("form#signout").style("display", "block");
     },
     error: function error(xhr, msg, err) {
       console.log("ERROR " + msg + " " + err);
     }
   });
 }
-window.handleSignInClick = function handleSignInClick(e) {
+function signOut() {
+  // Restore sign-in state.
+  localStorage.removeItem("accessToken");
+  d3.select("input#name-txt").classed("is-valid", false);
+  d3.select("input#number-txt").classed("is-valid", false);
+  d3.select("div#name-feedback").classed("valid-feedback", false).text("");
+  d3.select("button#signin").html("SIGN IN");
+  d3.select("button#signin").classed("is-signup", false);
+  d3.select("input#passcode-txt")[0][0].value = "";
+}
+window.handleSignInBlur = function (e) {
+  switch (e.target.id) {
+    case "name-txt":
+      d3.select("input#name-txt").classed("is-invalid", false);
+      d3.select("#name-feedback").classed("invalid-feedback", false).text("");
+      break;
+    case "number-txt":
+      d3.select("input#number-txt").classed("is-invalid", false);
+      d3.select("#number-feedback").classed("invalid-feedback", false).text("");
+      break;
+    case "passcode-txt":
+      d3.select("input#passcode-txt").classed("is-invalid", false);
+      d3.select("#passcode-feedback").classed("invalid-feedback", false).text("");
+      break;
+  }
+};
+window.handleSignInClick = function (e) {
   switch (e.target.id) {
     case "signin":
       var name = d3.select("#name-txt")[0][0].value;
       var number = d3.select("#number-txt")[0][0].value;
-      d3.select("form#signin").style("display", "none");
-      d3.select("form#passcode").style("display", "block");
       signIn(name, number);
       break;
     case "passcode":
       var passcode = d3.select("#passcode-txt")[0][0].value;
-      d3.select("form#passcode").style("display", "none");
-      d3.select("form#signout").style("display", "block");
       finishSignIn(passcode);
+      break;
+    case "retry":
+      d3.select("button#retry").attr("id", "passcode");
+      d3.select("button#passcode").classed("btn-danger", false);
+      d3.select("button#passcode").classed("btn-success", true);
+      d3.select("button#passcode").html("VERIFY");
+      d3.select("input#passcode-txt").classed("is-invalid", false);
+      d3.select("#passcode-txt")[0][0].value = "";
+      d3.select("div#passcode-feedback").classed("invalid-feedback", false).text("");
+      d3.select("form#passcode").style("display", "none");
+      d3.select("form#signin").style("display", "block");
       break;
     case "signout":
       d3.select("form#signout").style("display", "none");
       d3.select("form#signin").style("display", "block");
+      signOut();
       break;
   }
 };
@@ -35392,6 +35481,14 @@ window.handleViewClick = function (e) {
   }
   dispatch({});
   d3.select(selector).style("display", show ? "block" : "none");
+};
+window.onload = function () {
+  // Restore state of the app.
+  if (localStorage.accessToken) {
+    d3.select("form#signout").style("display", "block");
+  } else {
+    d3.select("form#signin").style("display", "block");
+  }
 };
 
 },{"./Dispatcher":198,"./archive-view":199,"./graff-view":200,"./obj-view":202,"./src-view":204,"./tool-view":205,"react":195,"react-dom":66}],202:[function(require,module,exports){

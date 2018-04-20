@@ -42,7 +42,7 @@
 
   </head>
   <body>
-    <nav style="display: none;" class="navbar navbar-expand-md navbar-light bg-light fixed-top">
+    <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
       <a class="navbar-brand" href="https://www.artcompiler.com"><img style="opacity:1" width="50" src="logo.png"></a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -56,34 +56,58 @@
         <!--   </li> -->
           <li class="nav-item">
             <button id="repo-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
-              Find
+              FIND
             </button>
           </li>
           <li class="nav-item">
             <button id="code-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
-              Code
+              CODE
             </button>
           </li>
           <li class="nav-item">
             <button id="form-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
-              Form
+              FORM
             </button>
           </li>
           <li class="nav-item">
             <button id="data-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
-              Data
+              DATA
             </button>
           </li>
         </ul>
        <button class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display: none; margin:0 10 0 0">Private</button>
-       <form id="signin" style="display:block" class="form-inline my-2 my-lg-0">
-         <input id="name-txt" class="form-control mr-sm-2" type="text" placeholder="Name" aria-label="username">
-         <input id="number-txt" class="form-control mr-sm-2" type="text" placeholder="Mobile number" aria-label="mobile number">
-         <button id="signin" class="btn btn-outline-secondary my-2 my-sm-0" onclick="handleSignInClick(event)" type="button">SIGN IN</button>
+       <form id="signin" style="display:none" class="form-inline my-2 my-lg-0">
+         <div class="form-row">
+           <div class="mb-3">
+             <input autofocus id="name-txt" class="form-control mr-sm-2" type="text" placeholder="Name" aria-label="username" onblur="handleSignInBlur(event)">
+             <div id="name-feedback">
+             </div>
+           </div>
+           <div class="mb-3">
+             <input id="number-txt" class="form-control mr-sm-2" type="text" placeholder="Mobile number" aria-label="mobile number" onblur="handleSignInBlur(event)">
+             <div id="number-feedback">
+             </div>
+           </div>
+           <div class="mb-3">
+             <button id="signin" class="btn btn-success my-2 my-sm-0" onclick="handleSignInClick(event)" type="button">SIGN IN</button>
+             <div id="button-feedback">
+             </div>
+           </div>
+         </div>
        </form>
        <form id="passcode" style="display:none" class="form-inline my-2 my-lg-0">
-         <input id="passcode-txt" class="form-control mr-sm-2" type="text" placeholder="Passcode" aria-label="mobile number">
-         <button id="passcode" class="btn btn-outline-secondary my-2 my-sm-0" onclick="handleSignInClick(event)" type="button">VERIFY</button>
+         <div class="form-row">
+           <div class="mb-3">
+             <input id="passcode-txt" class="form-control mr-sm-2" type="text" placeholder="Passcode" aria-label="mobile number" onblur="handleSignInBlur(event)">
+             <div id="passcode-feedback">
+             </div>
+           </div>
+           <div class="mb-3">
+             <button id="passcode" class="btn btn-success my-2 my-sm-0" onclick="handleSignInClick(event)" type="button">VERIFY</button>
+             <div id="button-feedback">
+             </div>
+           </div>
+         </div>
        </form>
        <form id="signout" style="display:none" class="form-inline my-2 my-lg-0">
          <!-- <text id="member" class="" aria-label="member">Hi Jeff!&nbsp;&nbsp;</text> -->
