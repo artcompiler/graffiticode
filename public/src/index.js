@@ -185,21 +185,26 @@ window.handleViewClick = function (e) {
   d3.select("#" + id).classed("btn-secondary", show);
   let selector;
   switch (id) {
-  case "repo-btn":
-    window.gcexports.archive = show;
-    selector = "#archive-view";
-    break;
   case "help-btn":
     selector = "#help-view";
+    localStorage.setItem("helpView", show);
+    break;
+  case "find-btn":
+    window.gcexports.archive = show;  // Avoid unnecessary computation.
+    selector = "#archive-view";
+    localStorage.setItem("findView", show);
     break;
   case "code-btn":
     selector = "#src-view";
+    localStorage.setItem("codeView", show);
     break;
   case "form-btn":
     selector = "#graff-view";
+    localStorage.setItem("formView", show);
     break;
   case "data-btn":
     selector = "#obj-view";
+    localStorage.setItem("dataView", show);
     break;
   default:
     break;
@@ -207,8 +212,36 @@ window.handleViewClick = function (e) {
   dispatch({});
   d3.select(selector).style("display", show ? "block" : "none");
 }
+const btnOn = "btn-secondary";
+const btnOff = "btn-outline-secondary";
 window.onload = () => {
   // Restore state of the app.
+  let helpView = localStorage.getItem("helpView") === "true";
+  d3.select("button#help-btn").classed("btn-secondary", helpView);
+  d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
+  d3.select("button#help-btn").style("display", "block");
+  d3.select("div#help-view").style("display", helpView ? "block" : "none");
+  let findView = localStorage.getItem("findView") === "true";
+  d3.select("button#find-btn").classed("btn-secondary", findView);
+  d3.select("button#find-btn").classed("btn-outline-secondary", !findView);
+  d3.select("button#find-btn").style("display", "block");
+  d3.select("div#archive-view").style("display", findView ? "block" : "none");
+  window.gcexports.archive = findView;  // Avoid unnecessary computation.
+  let codeView = localStorage.getItem("codeView") === "true";
+  d3.select("button#code-btn").classed("btn-secondary", codeView);
+  d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
+  d3.select("button#code-btn").style("display", "block");
+  d3.select("div#src-view").style("display", codeView ? "block" : "none");
+  let formView = localStorage.getItem("formView") === "true";
+  d3.select("button#form-btn").classed("btn-secondary", formView);
+  d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
+  d3.select("button#form-btn").style("display", "block");
+  d3.select("div#graff-view").style("display", formView ? "block" : "none");
+  let dataView = localStorage.getItem("dataView") === "true";
+  d3.select("button#data-btn").classed("btn-secondary", dataView);
+  d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
+  d3.select("button#data-btn").style("display", "block");
+  d3.select("div#obj-view").style("display", dataView ? "block" : "none");
   if (localStorage.accessToken) {
     d3.select("form#signout").style("display", "block");
   } else {

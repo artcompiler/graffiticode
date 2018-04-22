@@ -49,28 +49,28 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
-        <!--   <li class="nav-item"> -->
-        <!--     <button id="help-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)"> -->
-        <!--       Help -->
-        <!--     </button> -->
-        <!--   </li> -->
           <li class="nav-item">
-            <button id="repo-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+            <button id="help-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
+              HELP
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="find-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
               FIND
             </button>
           </li>
           <li class="nav-item">
-            <button id="code-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+            <button id="code-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
               CODE
             </button>
           </li>
           <li class="nav-item">
-            <button id="form-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+            <button id="form-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
               FORM
             </button>
           </li>
           <li class="nav-item">
-            <button id="data-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="margin:0 10 0 0" onclick="handleViewClick(event)">
+            <button id="data-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
               DATA
             </button>
           </li>
@@ -119,7 +119,7 @@
     </nav>
 
     <main role="main" class="container-fluid">
-      <div id="tool-view"></div>
+      <div id="help-view"></div>
       <div id="archive-view"></div>
       <div id="src-view"></div>
       <div id="graff-view" class="<%=language%>"></div>
