@@ -35491,28 +35491,28 @@ var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";
 window.onload = function () {
   // Restore state of the app.
-  var helpView = false; //localStorage.getItem("helpView") === "true";
+  var helpView = localStorage.getItem("helpView") === "true";
   d3.select("button#help-btn").classed("btn-secondary", helpView);
   d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
   d3.select("button#help-btn").style("display", "block");
   d3.select("div#help-view").style("display", helpView ? "block" : "none");
-  var findView = false; //localStorage.getItem("findView") === "true";
+  var findView = localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
   d3.select("button#find-btn").classed("btn-outline-secondary", !findView);
   d3.select("button#find-btn").style("display", "block");
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView; // Avoid unnecessary computation.
-  var codeView = true; //localStorage.getItem("codeView") === "true";
+  var codeView = localStorage.getItem("codeView") === "true";
   d3.select("button#code-btn").classed("btn-secondary", codeView);
   d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
   d3.select("button#code-btn").style("display", "block");
   d3.select("div#src-view").style("display", codeView ? "block" : "none");
-  var formView = true; //localStorage.getItem("formView") === "true";
+  var formView = localStorage.getItem("formView") === "true";
   d3.select("button#form-btn").classed("btn-secondary", formView);
   d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
   d3.select("button#form-btn").style("display", "block");
   d3.select("div#graff-view").style("display", formView ? "block" : "none");
-  var dataView = true; //localStorage.getItem("dataView") === "true";
+  var dataView = localStorage.getItem("dataView") === "true";
   d3.select("button#data-btn").classed("btn-secondary", dataView);
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
