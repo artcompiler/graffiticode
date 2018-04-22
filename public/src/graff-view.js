@@ -14,23 +14,23 @@ window.gcexports.encodeID = encodeID;
 let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
 });
-// window.gcexports.compileSrc = (lang, src, resume) => {
-//   $.ajax({
-//     type: "PUT",
-//     url: "/compile",
-//     data: {
-//       "language": lang,
-//       "src": src,
-//     },
-//     dataType: "json",
-//     success: function(data) {
-//       resume(null, data);
-//     },
-//     error: function(xhr, msg, err) {
-//       console.log("ERROR " + msg + " " + err);
-//     }
-//   });
-// };
+window.gcexports.compileSrc = (lang, src, resume) => {
+  $.ajax({
+    type: "PUT",
+    url: "/compile",
+    data: {
+      "language": lang,
+      "src": src,
+    },
+    dataType: "json",
+    success: function(data) {
+      resume(null, data);
+    },
+    error: function(xhr, msg, err) {
+      console.log("ERROR " + msg + " " + err);
+    }
+  });
+};
 
 var GraffContent = React.createClass({
   componentWillUnmount: function() {
