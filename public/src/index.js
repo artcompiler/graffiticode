@@ -227,17 +227,18 @@ window.onload = () => {
   d3.select("button#find-btn").style("display", "block");
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView;  // Avoid unnecessary computation.
-  let codeView = localStorage.getItem("codeView") === "true";
+  // For now, always open code and data views on reload to avoid code loading bug.
+  let codeView = true; //localStorage.getItem("codeView") !== "false";
   d3.select("button#code-btn").classed("btn-secondary", codeView);
   d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
   d3.select("button#code-btn").style("display", "block");
   d3.select("div#src-view").style("display", codeView ? "block" : "none");
-  let formView = localStorage.getItem("formView") === "true";
+  let formView = localStorage.getItem("formView") !== "false";
   d3.select("button#form-btn").classed("btn-secondary", formView);
   d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
   d3.select("button#form-btn").style("display", "block");
   d3.select("div#graff-view").style("display", formView ? "block" : "none");
-  let dataView = localStorage.getItem("dataView") === "true";
+  let dataView = true; //localStorage.getItem("dataView") !== "false";
   d3.select("button#data-btn").classed("btn-secondary", dataView);
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
