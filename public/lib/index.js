@@ -35502,7 +35502,7 @@ window.onload = function () {
   d3.select("button#find-btn").style("display", "block");
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView; // Avoid unnecessary computation.
-  // For now, always open code and data views on reload to avoid code loading bug.
+  // For now, always open code view on reload to avoid code loading bug.
   var codeView = true; //localStorage.getItem("codeView") !== "false";
   d3.select("button#code-btn").classed("btn-secondary", codeView);
   d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
@@ -35513,7 +35513,7 @@ window.onload = function () {
   d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
   d3.select("button#form-btn").style("display", "block");
   d3.select("div#graff-view").style("display", formView ? "block" : "none");
-  var dataView = true; //localStorage.getItem("dataView") !== "false";
+  var dataView = localStorage.getItem("dataView") === "true";
   d3.select("button#data-btn").classed("btn-secondary", dataView);
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
