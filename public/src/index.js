@@ -215,11 +215,13 @@ window.handleViewClick = function (e) {
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 window.onload = () => {
+  let helpID = window.gcexports.helpID || "XZLuq1vYIM";
   // Restore state of the app.
   let helpView = localStorage.getItem("helpView") === "true";
   d3.select("button#help-btn").classed("btn-secondary", helpView);
   d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
   d3.select("button#help-btn").style("display", "block");
+  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='300' src='/form?id=" + helpID + "'></iframe>");
   d3.select("div#help-view").style("display", helpView ? "block" : "none");
   let findView = localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
