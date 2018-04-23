@@ -134,11 +134,15 @@ var ArchiveContent = React.createClass({
         .style("margin", "10 50");
       buttons.append("button")
         .attr("id", "hide-button")
-        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
         .style("margin", "0 20 0 0")
+        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .classed("btn", true)
+        .classed("btn-light", true)
         .on("click", handleButtonClick);
       buttons.append("button")
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .classed("btn", true)
+        .classed("btn-light", true)
         .on("click", handleButtonClick)
         .text("PREV");
       buttons.append("span")
@@ -147,6 +151,8 @@ var ArchiveContent = React.createClass({
         .text(items.length + " of " + items.length);
       buttons.append("button")
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .classed("btn", true)
+        .classed("btn-light", true)
         .on("click", handleButtonClick)
         .text("NEXT");
       let ids = window.gcexports.decodeID(window.gcexports.id);

@@ -34768,13 +34768,13 @@ var ArchiveContent = React.createClass({
       });
 
       var buttons = d3.select("#archive-view").selectAll("div.buttons").data([1]).enter().append("div").attr("class", "buttons").style("margin", "10 50");
-      buttons.append("button").attr("id", "hide-button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
-      .style("margin", "0 20 0 0").on("click", handleButtonClick);
+      buttons.append("button").attr("id", "hide-button").style("margin", "0 20 0 0").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
+      .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
-      .on("click", handleButtonClick).text("PREV");
+      .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("PREV");
       buttons.append("span").attr("id", "counter").style("margin", "20").text(items.length + " of " + items.length);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
-      .on("click", handleButtonClick).text("NEXT");
+      .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("NEXT");
       var ids = window.gcexports.decodeID(window.gcexports.id);
       updateHideButton(ids[1]);
 
