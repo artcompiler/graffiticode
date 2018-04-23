@@ -34712,8 +34712,21 @@ var ArchiveContent = React.createClass({
     if (!window.gcexports.archive) {
       return;
     }
+    function getCurrentIndex(items) {
+      var ids = window.gcexports.decodeID(window.gcexports.id);
+      var filtered = items.filter(function (item) {
+        return item.id === ids[1];
+      });
+      var item = void 0;
+      if (filtered.length === 0) {
+        item = items[items.length - 1];
+      } else {
+        item = filtered[filtered.length - 1];
+      }
+      return item.index;
+    }
     getItems(function (err, items) {
-      var index = items.length - 1;
+      var index = getCurrentIndex(items);
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -34721,7 +34734,7 @@ var ArchiveContent = React.createClass({
       var color = d3.scaleQuantize().domain([0, 100]).range(['#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#006837', '#004529']);
       var startYear = void 0,
           stopYear = void 0;
-      if (index < 0) {
+      if (items.length === 0) {
         // No items to render
         startYear = new Date().getFullYear();
         stopYear = startYear + 1;
@@ -34772,7 +34785,7 @@ var ArchiveContent = React.createClass({
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("PREV");
-      buttons.append("span").attr("id", "counter").style("margin", "20").text(items.length + " of " + items.length);
+      buttons.append("span").attr("id", "counter").style("margin", "20").text(getCurrentIndex(items) + 1 + " of " + items.length);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("NEXT");
       var ids = window.gcexports.decodeID(window.gcexports.id);
@@ -34888,7 +34901,6 @@ var ArchiveContent = React.createClass({
             w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
         return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize + "H" + w0 * cellSize + "V" + 7 * cellSize + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize + "H" + (w1 + 1) * cellSize + "V" + 0 + "H" + (w0 + 1) * cellSize + "Z";
       }
-
       if (items.length > 0) {
         highlightCell(items[index].date);
       }
