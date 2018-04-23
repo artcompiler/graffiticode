@@ -189,7 +189,7 @@ app.get("/", (req, res) => {
   if (aliases["home"]) {
     request([proto, "://", req.headers.host, "/form?id=" + aliases["home"]].join("")).pipe(res);
   } else {
-    request([proto, "://", req.headers.host, "/form?id=1MXTXJgZCN"].join("")).pipe(res);
+    request([proto, "://", req.headers.host, "/form?id=9WyHoWgAid"].join("")).pipe(res);
   }
 });
 
