@@ -36,7 +36,9 @@ var GraffContent = React.createClass({
   componentWillUnmount: function() {
   },
   lastItemID: undefined,
+  pendingRequests: 0,
   compileCode: function(itemID) {
+    console.log("compileCode() itemID=" + itemID);
     let langID, codeID, dataID;
     let ids = decodeID(itemID);
     langID = ids[0];
@@ -51,8 +53,10 @@ var GraffContent = React.createClass({
     }
     if (codeID && itemID && itemID !== this.lastItemID) {
       this.lastItemID = itemID;
+      this.pendingRequests++;
       //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, (err, obj) => {
+        this.pendingRequests--;
         // if (dataID && +dataID !== 0) {
         //   // This is the magic where we collapse the "tail" into a JSON object.
         //   // Next this JSON object gets interned as static data (in L113).
@@ -81,7 +85,9 @@ var GraffContent = React.createClass({
           obj: obj,
           data: {},  // clear data
         };
-        dispatch(state);
+        if (this.pendingRequests === 0) {
+          dispatch(state);
+        }
       });
     }
   },
@@ -129,15 +135,16 @@ var GraffContent = React.createClass({
   postData: function postData(itemID, obj, label, parentID) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
-    let gcexports = window.gcexports;
-    let user = $("#username").data("user");
-    let lang = gcexports.language;
-    let state = this.state[itemID];
-    let updateHistory = state.updateHistory;
-    let self = this;
-    // Append host language to label.
-    label = label ? lang + " " + label : lang;
-    if (Object.keys(obj).length > 0) {
+    if (obj && Object.keys(obj).length > 0) {
+      let gcexports = window.gcexports;
+      let user = $("#username").data("user");
+      let lang = gcexports.language;
+      let state = this.state[itemID];
+      let updateHistory = state.updateHistory;
+      let self = this;
+      // Append host language to label.
+      label = label ? lang + " " + label : lang;
+      this.pendingRequests++;
       $.ajax({
         type: "PUT",
         url: "/code",
@@ -153,6 +160,7 @@ var GraffContent = React.createClass({
         },
         dataType: "json",
         success: function(data) {
+          this.pendingRequests--;
           if (itemID) {
             // Wait until we have an itemID to update URL.
             let ids = decodeID(itemID);

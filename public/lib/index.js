@@ -35038,7 +35038,11 @@ var GraffContent = React.createClass({
 
   componentWillUnmount: function componentWillUnmount() {},
   lastItemID: undefined,
+  pendingCompiles: 0,
   compileCode: function compileCode(itemID) {
+    var _this = this;
+
+    console.log("compileCode() itemID=" + itemID);
     var langID = void 0,
         codeID = void 0,
         dataID = void 0;
@@ -35055,8 +35059,10 @@ var GraffContent = React.createClass({
     }
     if (codeID && itemID && itemID !== this.lastItemID) {
       this.lastItemID = itemID;
+      this.pendingCompiles++;
       //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, function (err, obj) {
+        _this.pendingCompiles--;
         // if (dataID && +dataID !== 0) {
         //   // This is the magic where we collapse the "tail" into a JSON object.
         //   // Next this JSON object gets interned as static data (in L113).
@@ -35085,7 +35091,9 @@ var GraffContent = React.createClass({
           obj: obj,
           data: {} // clear data
         };
-        dispatch(state);
+        if (_this.pendingCompiles === 0) {
+          dispatch(state);
+        }
       });
     }
   },
@@ -35133,15 +35141,16 @@ var GraffContent = React.createClass({
   postData: function postData(itemID, obj, label, parentID) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
-    var gcexports = window.gcexports;
-    var user = $("#username").data("user");
-    var lang = gcexports.language;
-    var state = this.state[itemID];
-    var updateHistory = state.updateHistory;
-    var self = this;
-    // Append host language to label.
-    label = label ? lang + " " + label : lang;
-    if (Object.keys(obj).length > 0) {
+    if (obj && Object.keys(obj).length > 0) {
+      var _gcexports = window.gcexports;
+      var user = $("#username").data("user");
+      var lang = _gcexports.language;
+      var state = this.state[itemID];
+      var updateHistory = state.updateHistory;
+      var self = this;
+      // Append host language to label.
+      label = label ? lang + " " + label : lang;
+      this.pendingCompiles++;
       $.ajax({
         type: "PUT",
         url: "/code",
@@ -35157,6 +35166,7 @@ var GraffContent = React.createClass({
         },
         dataType: "json",
         success: function success(data) {
+          this.pendingCompiles--;
           if (itemID) {
             // Wait until we have an itemID to update URL.
             var ids = (0, _share.decodeID)(itemID);
@@ -35168,16 +35178,16 @@ var GraffContent = React.createClass({
               self.compileCode(itemID);
             }
             if (state.dontUpdateID !== true) {
-              gcexports.id = itemID;
+              _gcexports.id = itemID;
               var history = {
                 language: lang,
-                view: gcexports.view,
+                view: _gcexports.view,
                 itemID: itemID
               };
               if (updateHistory) {
-                window.history.pushState(history, lang, "/" + gcexports.view + "?id=" + itemID);
+                window.history.pushState(history, lang, "/" + _gcexports.view + "?id=" + itemID);
               } else {
-                window.history.replaceState(history, lang, "/" + gcexports.view + "?id=" + itemID);
+                window.history.replaceState(history, lang, "/" + _gcexports.view + "?id=" + itemID);
               }
             }
           }

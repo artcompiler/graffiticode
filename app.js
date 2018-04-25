@@ -618,6 +618,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
+
   var queryStr =
     "INSERT INTO pieces (address, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + clientAddress + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
@@ -1024,7 +1025,6 @@ app.put('/code', (req, response) => {
       var src = body.src ? body.src : row.src;
       var ast = body.ast ? JSON.parse(body.ast) : row.ast;
       var obj = body.obj ? body.obj : row.obj;
-      // var user = body.user_id ? body.user_id : row.user_id;
       var parent = body.parent ? body.parent : row.parent_id;
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
