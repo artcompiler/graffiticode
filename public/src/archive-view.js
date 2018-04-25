@@ -50,8 +50,19 @@ var ArchiveContent = React.createClass({
     if (!window.gcexports.archive) {
       return;
     }
+    function getCurrentIndex(items) {
+      let ids = window.gcexports.decodeID(window.gcexports.id);
+      let filtered = items.filter(item => item.id === ids[1]);
+      let item;
+      if (filtered.length === 0) {
+        item = items[items.length - 1];
+      } else {
+        item = filtered[filtered.length - 1];
+      }
+      return item.index;
+    }
     getItems((err, items) => {
-      let index = items.length - 1;
+      let index = getCurrentIndex(items);
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -60,7 +71,7 @@ var ArchiveContent = React.createClass({
         .domain([0, 100])
         .range(['#f7fcb9','#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529']);
       let startYear, stopYear;
-      if (index < 0) {
+      if (items.length === 0) {
         // No items to render
         startYear = new Date().getFullYear();
         stopYear = startYear + 1;
@@ -134,19 +145,25 @@ var ArchiveContent = React.createClass({
         .style("margin", "10 50");
       buttons.append("button")
         .attr("id", "hide-button")
-        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
         .style("margin", "0 20 0 0")
+        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .classed("btn", true)
+        .classed("btn-light", true)
         .on("click", handleButtonClick);
       buttons.append("button")
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .classed("btn", true)
+        .classed("btn-light", true)
         .on("click", handleButtonClick)
         .text("PREV");
       buttons.append("span")
         .attr("id", "counter")
         .style("margin", "20")
-        .text(items.length + " of " + items.length);
+        .text((getCurrentIndex(items) + 1) + " of " + items.length);
       buttons.append("button")
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
+        .classed("btn", true)
+        .classed("btn-light", true)
         .on("click", handleButtonClick)
         .text("NEXT");
       let ids = window.gcexports.decodeID(window.gcexports.id);
@@ -263,7 +280,6 @@ var ArchiveContent = React.createClass({
           + "H" + (w1 + 1) * cellSize + "V" + 0
           + "H" + (w0 + 1) * cellSize + "Z";
       }
-
       if (items.length > 0) {
         highlightCell(items[index].date);
       }
@@ -272,16 +288,21 @@ var ArchiveContent = React.createClass({
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function getItems(resume) {
-      let filterStr = archiveFilter !== "" 
-                    ? " and src like '%" + archiveFilter + "%'"
-                    : "";
+      let filters = archiveFilter.split(",");
+      let filterStr = "";
+      filters.forEach(f => {
+        filterStr += f !== "" 
+          ? " and src like '%" + f + "%'"
+          : "";
+      });
       $.ajax({
         type: "GET",
         url: "/items",
         data : {
           fields: "id, created",
           where: "language='" + window.gcexports.language +
-                 "' and label in ('show', 'hide')" + filterStr ,
+//                 "' and label in ('show', 'hide')" + filterStr ,
+                 "' and label='show'" + filterStr ,
         },
         dataType: "json",
         success: function(data) {

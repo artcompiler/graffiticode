@@ -34712,8 +34712,21 @@ var ArchiveContent = React.createClass({
     if (!window.gcexports.archive) {
       return;
     }
+    function getCurrentIndex(items) {
+      var ids = window.gcexports.decodeID(window.gcexports.id);
+      var filtered = items.filter(function (item) {
+        return item.id === ids[1];
+      });
+      var item = void 0;
+      if (filtered.length === 0) {
+        item = items[items.length - 1];
+      } else {
+        item = filtered[filtered.length - 1];
+      }
+      return item.index;
+    }
     getItems(function (err, items) {
-      var index = items.length - 1;
+      var index = getCurrentIndex(items);
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -34721,7 +34734,7 @@ var ArchiveContent = React.createClass({
       var color = d3.scaleQuantize().domain([0, 100]).range(['#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#006837', '#004529']);
       var startYear = void 0,
           stopYear = void 0;
-      if (index < 0) {
+      if (items.length === 0) {
         // No items to render
         startYear = new Date().getFullYear();
         stopYear = startYear + 1;
@@ -34768,13 +34781,13 @@ var ArchiveContent = React.createClass({
       });
 
       var buttons = d3.select("#archive-view").selectAll("div.buttons").data([1]).enter().append("div").attr("class", "buttons").style("margin", "10 50");
-      buttons.append("button").attr("id", "hide-button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
-      .style("margin", "0 20 0 0").on("click", handleButtonClick);
+      buttons.append("button").attr("id", "hide-button").style("margin", "0 20 0 0").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
+      .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
-      .on("click", handleButtonClick).text("PREV");
-      buttons.append("span").attr("id", "counter").style("margin", "20").text(items.length + " of " + items.length);
+      .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("PREV");
+      buttons.append("span").attr("id", "counter").style("margin", "20").text(getCurrentIndex(items) + 1 + " of " + items.length);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
-      .on("click", handleButtonClick).text("NEXT");
+      .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("NEXT");
       var ids = window.gcexports.decodeID(window.gcexports.id);
       updateHideButton(ids[1]);
 
@@ -34888,7 +34901,6 @@ var ArchiveContent = React.createClass({
             w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
         return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize + "H" + w0 * cellSize + "V" + 7 * cellSize + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize + "H" + (w1 + 1) * cellSize + "V" + 0 + "H" + (w0 + 1) * cellSize + "Z";
       }
-
       if (items.length > 0) {
         highlightCell(items[index].date);
       }
@@ -34897,13 +34909,19 @@ var ArchiveContent = React.createClass({
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function getItems(resume) {
-      var filterStr = archiveFilter !== "" ? " and src like '%" + archiveFilter + "%'" : "";
+      var filters = archiveFilter.split(",");
+      var filterStr = "";
+      filters.forEach(function (f) {
+        filterStr += f !== "" ? " and src like '%" + f + "%'" : "";
+      });
       $.ajax({
         type: "GET",
         url: "/items",
         data: {
           fields: "id, created",
-          where: "language='" + window.gcexports.language + "' and label in ('show', 'hide')" + filterStr
+          where: "language='" + window.gcexports.language +
+          //                 "' and label in ('show', 'hide')" + filterStr ,
+          "' and label='show'" + filterStr
         },
         dataType: "json",
         success: function success(data) {
@@ -35020,7 +35038,11 @@ var GraffContent = React.createClass({
 
   componentWillUnmount: function componentWillUnmount() {},
   lastItemID: undefined,
+  pendingRequests: 0,
   compileCode: function compileCode(itemID) {
+    var _this = this;
+
+    console.log("compileCode() itemID=" + itemID);
     var langID = void 0,
         codeID = void 0,
         dataID = void 0;
@@ -35037,8 +35059,10 @@ var GraffContent = React.createClass({
     }
     if (codeID && itemID && itemID !== this.lastItemID) {
       this.lastItemID = itemID;
+      this.pendingRequests++;
       //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, function (err, obj) {
+        _this.pendingRequests--;
         // if (dataID && +dataID !== 0) {
         //   // This is the magic where we collapse the "tail" into a JSON object.
         //   // Next this JSON object gets interned as static data (in L113).
@@ -35066,7 +35090,9 @@ var GraffContent = React.createClass({
           id: itemID,
           obj: obj,
           data: {} };
-        dispatch(state);
+        if (_this.pendingRequests === 0) {
+          dispatch(state);
+        }
       });
     }
   },
@@ -35084,6 +35110,9 @@ var GraffContent = React.createClass({
       view: gcexports.view,
       itemID: itemID
     };
+    if (true || gcexports.view === "item") {
+      window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+    }
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;
@@ -35111,15 +35140,16 @@ var GraffContent = React.createClass({
   postData: function postData(itemID, obj, label, parentID) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
-    var gcexports = window.gcexports;
-    var user = $("#username").data("user");
-    var lang = gcexports.language;
-    var state = this.state[itemID];
-    var updateHistory = state.updateHistory;
-    var self = this;
-    // Append host language to label.
-    label = label ? lang + " " + label : lang;
-    if (Object.keys(obj).length > 0) {
+    if (obj && Object.keys(obj).length > 0) {
+      var _gcexports = window.gcexports;
+      var user = $("#username").data("user");
+      var lang = _gcexports.language;
+      var state = this.state[itemID];
+      var updateHistory = state.updateHistory;
+      var self = this;
+      // Append host language to label.
+      label = label ? lang + " " + label : lang;
+      this.pendingRequests++;
       $.ajax({
         type: "PUT",
         url: "/code",
@@ -35135,6 +35165,7 @@ var GraffContent = React.createClass({
         },
         dataType: "json",
         success: function success(data) {
+          this.pendingRequests--;
           if (itemID) {
             // Wait until we have an itemID to update URL.
             var ids = (0, _share.decodeID)(itemID);
@@ -35146,16 +35177,16 @@ var GraffContent = React.createClass({
               self.compileCode(itemID);
             }
             if (state.dontUpdateID !== true) {
-              gcexports.id = itemID;
+              _gcexports.id = itemID;
               var history = {
                 language: lang,
-                view: gcexports.view,
+                view: _gcexports.view,
                 itemID: itemID
               };
               if (updateHistory) {
-                window.history.pushState(history, lang, "/" + gcexports.view + "?id=" + itemID);
+                window.history.pushState(history, lang, "/" + _gcexports.view + "?id=" + itemID);
               } else {
-                window.history.replaceState(history, lang, "/" + gcexports.view + "?id=" + itemID);
+                window.history.replaceState(history, lang, "/" + _gcexports.view + "?id=" + itemID);
               }
             }
           }
@@ -35287,6 +35318,9 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // This is the one and only dispatcher. It is used by embedded views as well.
 window.gcexports.dispatcher = window.parent.gcexports && window.parent.gcexports.dispatcher ? window.parent.gcexports.dispatcher : new _Dispatcher2.default();
+var dispatch = function dispatch(obj) {
+  window.gcexports.dispatcher.dispatch(obj);
+};
 //ReactDOM.render(
 //  React.createElement(ToolView, null),
 //  document.getElementById('tool-view')
@@ -35295,6 +35329,224 @@ ReactDOM.render(React.createElement(_archiveView2.default, null), document.getEl
 ReactDOM.render(React.createElement(_srcView2.default, null), document.getElementById('src-view'));
 ReactDOM.render(React.createElement(_graffView2.default, null), document.getElementById('graff-view'));
 ReactDOM.render(React.createElement(_objView2.default, null), document.getElementById('obj-view'));
+var signInJWT = void 0;
+function signIn(name, number) {
+  var isNew = d3.select("button#signin").classed("is-signup");
+  $.ajax({
+    type: "POST",
+    url: "/signIn",
+    data: {
+      name: name,
+      number: number,
+      isNew: isNew
+    },
+    dataType: "json",
+    success: function success(data) {
+      if (data.err && data.err.code) {
+        switch (data.err.code) {
+          case 1000:
+            if (!isNew) {
+              // signin --> signup
+              d3.select("input#name-txt").classed("is-valid", true);
+              d3.select("input#number-txt").classed("is-valid", true);
+              d3.select("div#name-feedback").classed("valid-feedback", true).text("New user? Sign-up!");
+              d3.select("button#signin").html("SIGN UP");
+              d3.select("button#signin").classed("btn-outline-secondary", false);
+              d3.select("button#signin").classed("btn-success", true);
+              d3.select("button#signin").classed("is-signup", true);
+              return;
+            }
+            break;
+          case 1001:
+            d3.select("input#name-txt").classed("is-invalid", true);
+            d3.select("div#name-feedback").classed("invalid-feedback", true).text("Letters, numbers and spaces only.");
+            break;
+          case 1002:
+            d3.select("input#number-txt").classed("is-invalid", true);
+            d3.select("div#number-feedback").classed("invalid-feedback", true).text("If a non-US, use int'l '+' format.");
+            return;
+          case 1003:
+            d3.select("input#name-txt").classed("is-invalid", true);
+            d3.select("input#number-txt").classed("is-invalid", true);
+            d3.select("div#name-feedback").classed("invalid-feedback", true).text(data.err.message);
+            return;
+          case 1004:
+            d3.select("input#passcode-txt").classed("is-invalid", true);
+            d3.select("div#passcode-feedback").classed("invalid-feedback", true).text(data.err.message);
+
+            return;
+        }
+      }
+      signInJWT = data.jwt;
+      d3.select("form#signin").style("display", "none");
+      d3.select("form#passcode").style("display", "block");
+      d3.select("input#passcode-txt").node().focus();
+    },
+    error: function error(xhr, msg, err) {
+      console.log("ERROR " + msg + " " + err);
+    }
+  });
+}
+function finishSignIn(passcode) {
+  $.ajax({
+    type: "POST",
+    url: "/finishSignIn",
+    data: {
+      jwt: signInJWT,
+      passcode: passcode
+    },
+    dataType: "json",
+    success: function success(data) {
+      if (data.err && data.err.code) {
+        switch (data.err.code) {
+          case 1004:
+            d3.select("input#passcode-txt").classed("is-invalid", true);
+            d3.select("div#passcode-feedback").classed("invalid-feedback", true).text(data.err.message);
+            d3.select("button#passcode").html("RETRY");
+            d3.select("button#passcode").classed("btn-success", false);
+            d3.select("button#passcode").classed("btn-danger", true);
+            d3.select("button#passcode").attr("id", "retry");
+            return;
+        }
+      }
+      data = data;
+      localStorage.setItem("accessToken", data.jwt);
+      d3.select("form#passcode").style("display", "none");
+      d3.select("form#signout").style("display", "block");
+    },
+    error: function error(xhr, msg, err) {
+      console.log("ERROR " + msg + " " + err);
+    }
+  });
+}
+function signOut() {
+  // Restore sign-in state.
+  localStorage.removeItem("accessToken");
+  d3.select("input#name-txt").classed("is-valid", false);
+  d3.select("input#number-txt").classed("is-valid", false);
+  d3.select("div#name-feedback").classed("valid-feedback", false).text("");
+  d3.select("button#signin").html("SIGN IN");
+  d3.select("button#signin").classed("is-signup", false);
+  d3.select("input#passcode-txt")[0][0].value = "";
+}
+window.handleSignInBlur = function (e) {
+  switch (e.target.id) {
+    case "name-txt":
+      d3.select("input#name-txt").classed("is-invalid", false);
+      d3.select("#name-feedback").classed("invalid-feedback", false).text("");
+      break;
+    case "number-txt":
+      d3.select("input#number-txt").classed("is-invalid", false);
+      d3.select("#number-feedback").classed("invalid-feedback", false).text("");
+      break;
+    case "passcode-txt":
+      d3.select("input#passcode-txt").classed("is-invalid", false);
+      d3.select("#passcode-feedback").classed("invalid-feedback", false).text("");
+      break;
+  }
+};
+window.handleSignInClick = function (e) {
+  switch (e.target.id) {
+    case "signin":
+      var name = d3.select("#name-txt")[0][0].value;
+      var number = d3.select("#number-txt")[0][0].value;
+      signIn(name, number);
+      break;
+    case "passcode":
+      var passcode = d3.select("#passcode-txt")[0][0].value;
+      finishSignIn(passcode);
+      break;
+    case "retry":
+      d3.select("button#retry").attr("id", "passcode");
+      d3.select("button#passcode").classed("btn-danger", false);
+      d3.select("button#passcode").classed("btn-success", true);
+      d3.select("button#passcode").html("VERIFY");
+      d3.select("input#passcode-txt").classed("is-invalid", false);
+      d3.select("#passcode-txt")[0][0].value = "";
+      d3.select("div#passcode-feedback").classed("invalid-feedback", false).text("");
+      d3.select("form#passcode").style("display", "none");
+      d3.select("form#signin").style("display", "block");
+      break;
+    case "signout":
+      d3.select("form#signout").style("display", "none");
+      d3.select("form#signin").style("display", "block");
+      signOut();
+      break;
+  }
+};
+window.handleViewClick = function (e) {
+  var id = e.target.id;
+  var show = !d3.select("#" + id).classed("btn-secondary");
+  d3.select("#" + id).classed("btn-outline-secondary", !show);
+  d3.select("#" + id).classed("btn-secondary", show);
+  var selector = void 0;
+  switch (id) {
+    case "help-btn":
+      selector = "#help-view";
+      localStorage.setItem("helpView", show);
+      break;
+    case "find-btn":
+      window.gcexports.archive = show; // Avoid unnecessary computation.
+      selector = "#archive-view";
+      localStorage.setItem("findView", show);
+      break;
+    case "code-btn":
+      selector = "#src-view";
+      localStorage.setItem("codeView", show);
+      break;
+    case "form-btn":
+      selector = "#graff-view";
+      localStorage.setItem("formView", show);
+      break;
+    case "data-btn":
+      selector = "#obj-view";
+      localStorage.setItem("dataView", show);
+      break;
+    default:
+      break;
+  }
+  dispatch({});
+  d3.select(selector).style("display", show ? "block" : "none");
+};
+var btnOn = "btn-secondary";
+var btnOff = "btn-outline-secondary";
+window.onload = function () {
+  var helpID = window.gcexports.helpID || "XZLuq1vYIM";
+  // Restore state of the app.
+  var helpView = localStorage.getItem("helpView") === "true";
+  d3.select("button#help-btn").classed("btn-secondary", helpView);
+  d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
+  d3.select("button#help-btn").style("display", "block");
+  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='300' src='/form?id=" + helpID + "'></iframe>");
+  d3.select("div#help-view").style("display", helpView ? "block" : "none");
+  var findView = localStorage.getItem("findView") === "true";
+  d3.select("button#find-btn").classed("btn-secondary", findView);
+  d3.select("button#find-btn").classed("btn-outline-secondary", !findView);
+  d3.select("button#find-btn").style("display", "block");
+  d3.select("div#archive-view").style("display", findView ? "block" : "none");
+  window.gcexports.archive = findView; // Avoid unnecessary computation.
+  // For now, always open code view on reload to avoid code loading bug.
+  var codeView = true; //localStorage.getItem("codeView") !== "false";
+  d3.select("button#code-btn").classed("btn-secondary", codeView);
+  d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
+  d3.select("button#code-btn").style("display", "block");
+  d3.select("div#src-view").style("display", codeView ? "block" : "none");
+  var formView = localStorage.getItem("formView") !== "false";
+  d3.select("button#form-btn").classed("btn-secondary", formView);
+  d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
+  d3.select("button#form-btn").style("display", "block");
+  d3.select("div#graff-view").style("display", formView ? "block" : "none");
+  var dataView = localStorage.getItem("dataView") === "true";
+  d3.select("button#data-btn").classed("btn-secondary", dataView);
+  d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
+  d3.select("button#data-btn").style("display", "block");
+  d3.select("div#obj-view").style("display", dataView ? "block" : "none");
+  if (localStorage.accessToken) {
+    d3.select("form#signout").style("display", "block");
+  } else {
+    d3.select("form#signin").style("display", "block");
+  }
+};
 
 },{"./Dispatcher":198,"./archive-view":199,"./graff-view":200,"./obj-view":202,"./src-view":204,"./tool-view":205,"react":195,"react-dom":66}],202:[function(require,module,exports){
 "use strict";
@@ -35316,7 +35568,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
 var CodeMirrorEditor = React.createClass({
   displayName: "CodeMirrorEditor",
 
@@ -35330,7 +35581,7 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function componentDidMount() {
-    if (true || this.refs && thie.refs.editor) {
+    if (this.refs && this.refs.editor) {
       this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
         mode: 'javascript',
         lineNumbers: this.props.lineNumbers,
@@ -35371,20 +35622,10 @@ var CodeMirrorEditor = React.createClass({
     }
   },
   render: function render() {
-    if (!window.gcexports.showdata) {
+    if (window.gcexports.showdata === false) {
       return React.createElement("div", null);
     }
-    // wrap in a div to fully contain CodeMirror
-    var editor = void 0;
-    if (IS_MOBILE) {
-      editor = React.createElement(
-        "pre",
-        { style: { overflow: 'scroll' } },
-        ""
-      );
-    } else {
-      editor = React.createElement("textarea", { ref: "editor", defaultValue: "" });
-    }
+    var editor = React.createElement("textarea", { ref: "editor", defaultValue: "" });
     return React.createElement(
       "div",
       { style: this.props.style, className: this.props.className },
@@ -35780,7 +36021,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
 var CodeMirrorEditor = React.createClass({
   displayName: "CodeMirrorEditor",
 
@@ -35837,16 +36077,7 @@ var CodeMirrorEditor = React.createClass({
   },
   render: function render() {
     // wrap in a div to fully contain CodeMirror
-    var editor;
-    if (IS_MOBILE) {
-      editor = React.createElement(
-        "pre",
-        { style: { overflow: 'scroll' } },
-        this.props.codeText
-      );
-    } else {
-      editor = React.createElement("textarea", { ref: "editor", defaultValue: this.props.codeText });
-    }
+    var editor = React.createElement("textarea", { ref: "editor", defaultValue: this.props.codeText });
     return React.createElement(
       "div",
       { style: this.props.style, className: this.props.className },

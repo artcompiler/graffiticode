@@ -209,7 +209,7 @@ app.get('/item', function(req, res) {
     let langID = ids[0];
     let codeID = ids[1];
     if (+langID !== 0) {
-      let lang = "L" + langID;
+      let lang = langName(langID);
       getCompilerVersion(lang, (version) => {
         res.render('views.html', {
           title: 'Graffiti Code',
@@ -401,7 +401,7 @@ app.get('/lang', function(req, res) {
   var id = req.query.id;
   let langID = id;
   var src = req.query.src;
-  var lang = "L" + id;
+  var lang = langName(langID);
   if (src) {
     assert(false, "Should not get here. Call PUT /compile");
   } else {
@@ -453,7 +453,7 @@ app.get('/form', function(req, res) {
     return;
   }
   if (langID !== 0) {
-    let lang = "L" + langID;
+    let lang = langName(langID);
     getCompilerVersion(lang, (version) => {
       res.render('form.html', {
         title: 'Graffiti Code',
@@ -613,13 +613,15 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
   parent = decodeID(parent)[1];
   // ast is a JSON object
   var forks = 0;
+  var views = 0;
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
+
   var queryStr =
-    "INSERT INTO pieces (address, user_id, parent_id, forks, created, src, obj, language, label, img, ast)" +
-    " VALUES ('" + clientAddress + "','" + user + "','" + parent + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
+    "INSERT INTO pieces (address, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
+    " VALUES ('" + clientAddress + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
     label + "','" + img + "','" + ast + "');"
   dbQuery(queryStr, function(err, result) {
     if (err) {
@@ -629,7 +631,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, resume) {
       var queryStr = "SELECT pieces.* FROM pieces ORDER BY pieces.id DESC LIMIT 1";
       dbQuery(queryStr, function (err, result) {
         resume(err, result);
-        dbQuery("UPDATE pieces SET forks = forks + 1 WHERE id = " + parent + ";", () => {});
+        dbQuery("UPDATE pieces SET forks=forks+1 WHERE id=" + parent + ";", () => {});
       });
     }
   });
@@ -654,6 +656,18 @@ function updateItem(id, language, src, ast, obj, img, resume) {
     resume(err, []);
   });
 };
+
+function countView(id) {
+  var query =
+    "UPDATE pieces SET " +
+    "views=views+1 " +
+    "WHERE id='" + id + "'";
+  dbQuery(query, function (err) {
+    if (err && err.length) {
+      console.log("ERROR updateViews() err=" + err);
+    }
+  });
+}
 
 function updateAST(id, ast, resume) {
   ast = cleanAndTrimSrc(JSON.stringify(ast));
@@ -704,13 +718,17 @@ function getCode(ids, resume) {
   });
 }
 
+function langName(id) {
+  id = +id;
+  return "L" + (id < 10 ? "00" + id : id < 100 ? "0" + id : id);
+}
+
 function getLang(ids, resume) {
-  let id = ids[0];
-  if (id !== 0) {
-    resume(null, "L" + id);
+  let langID = ids[0];
+  if (langID !== 0) {
+    resume(null, langName(langID));
   } else {
     getItem(ids[1], (err, item) => {
-      console.log("getLang() item.language=" + item.language);
       resume(err, item.language);
     });
   }
@@ -720,6 +738,8 @@ function compileID(id, refresh, resume) {
   if (id === nilID) {
     resume(null, {});
   } else {
+    let ids = decodeID(id);
+    countView(ids[1]);
     if (refresh) {
       delCache(id);
     }
@@ -728,7 +748,6 @@ function compileID(id, refresh, resume) {
         // Got cached value. We're done.
         resume(err, val);
       } else {
-        let ids = decodeID(id);
         getData(ids, refresh, (err, data) => {
           getCode(ids, (err, code) => {
             if (err && err.length) {
@@ -936,7 +955,8 @@ app.put('/compile', function (req, res) {
             compileID(id, false, (err, obj) => {
               console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
                           (new Date - t0) + "ms");
-              updateOBJ(codeID, obj, (err)=>{ assert(!err) });
+              // This is done by compileID().
+              // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
                 obj: obj,
@@ -958,7 +978,8 @@ app.put('/compile', function (req, res) {
             compileID(id, false, (err, obj) => {
               console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
                           (new Date - t0) + "ms");
-              updateOBJ(codeID, obj, (err)=>{ assert(!err) });
+              // This is done by compileID.
+              // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
               res.json({
                 id: id,
                 obj: obj,
@@ -1004,7 +1025,6 @@ app.put('/code', (req, response) => {
       var src = body.src ? body.src : row.src;
       var ast = body.ast ? JSON.parse(body.ast) : row.ast;
       var obj = body.obj ? body.obj : row.obj;
-      // var user = body.user_id ? body.user_id : row.user_id;
       var parent = body.parent ? body.parent : row.parent_id;
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
@@ -1241,7 +1261,8 @@ function postAuth(path, data, resume) {
       data += chunk;
     }).on('end', function () {
       try {
-        resume(null, JSON.parse(data));
+        data = JSON.parse(data);
+        resume(data.error, data);
       } catch (e) {
         console.log("ERROR " + data);
         console.log(e.stack);
@@ -1256,6 +1277,36 @@ function postAuth(path, data, resume) {
     resume(err);
   });
 }
+
+// Member sign-in
+
+app.post('/signIn', (req, res) => {
+  if (!req.body.name || !req.body.number) {
+    res.sendStatus(400);
+    return;
+  }
+  postAuth("/signIn", req.body, (err, data) => {
+    res.send({
+      err: err,
+      jwt: data.jwt,
+    });
+  });
+});
+
+app.post('/finishSignIn', (req, res) => {
+  if (!req.body.jwt && !req.body.passcode) {
+    res.sendStatus(400);
+    return;
+  }
+  postAuth("/finishSignIn", req.body, (err, data) => {
+    res.send({
+      err: err,
+      jwt: data.jwt,
+    });
+  });
+});
+
+// Client login
 
 const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
   ? process.env.ARTCOMPILER_CLIENT_ADDRESS

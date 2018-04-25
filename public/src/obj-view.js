@@ -4,15 +4,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-var IS_MOBILE = (
-  navigator.userAgent.match(/Android/i)
-    || navigator.userAgent.match(/webOS/i)
-    || navigator.userAgent.match(/iPhone/i)
-    || navigator.userAgent.match(/iPad/i)
-    || navigator.userAgent.match(/iPod/i)
-    || navigator.userAgent.match(/BlackBerry/i)
-    || navigator.userAgent.match(/Windows Phone/i)
-);
 var CodeMirrorEditor = React.createClass({
   propTypes: {
     lineNumbers: React.PropTypes.bool,
@@ -24,7 +15,7 @@ var CodeMirrorEditor = React.createClass({
     };
   },
   componentDidMount: function() {
-    if (true || this.refs && thie.refs.editor) {
+    if (this.refs && this.refs.editor) {
       this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
         mode: 'javascript',
         lineNumbers: this.props.lineNumbers,
@@ -65,16 +56,10 @@ var CodeMirrorEditor = React.createClass({
     }
   },
   render: function() {
-    if (!window.gcexports.showdata) {
+    if (window.gcexports.showdata === false) {
       return <div/>;
     }
-    // wrap in a div to fully contain CodeMirror
-    let editor;
-    if (IS_MOBILE) {
-      editor = <pre style={{overflow: 'scroll'}}>{""}</pre>;
-    } else {
-      editor = <textarea ref="editor" defaultValue={""} />;
-    }
+    let editor = <textarea ref="editor" defaultValue={""} />;
     return (
       <div style={this.props.style} className={this.props.className}>
         {editor}

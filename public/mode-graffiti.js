@@ -15,7 +15,7 @@ CodeMirror.defineMode("graffiti", function() {
       return parser.parse(stream, state);
     },
     startState: function() {
-      window.errors = [];
+      window.gcexports.errors = [];
       return {
         cc: parser.program,   // top level parsing function
         argc: 0,
