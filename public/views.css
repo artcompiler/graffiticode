@@ -4,3 +4,16 @@ body {
 .navbar button {
   font-size: 75%;
 }
+.btn-outline-secondary:hover {
+  color: #6c757d;
+  background-color: transparent;
+  border-color: #6c757d;
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5);
+}
+
+.btn-secondary:hover {
+  color: #fff;
+  background-color: #5a6268;
+  border-color: #545b62;
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5);
+}
