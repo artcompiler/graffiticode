@@ -1762,6 +1762,7 @@ window.gcexports.parser = (function () {
         "language": window.gcexports.language,
         "src": src,
         "jwt": localStorage.getItem("accessToken"),
+        "userID": localStorage.getItem("userID"),
       },
       dataType: "json",
       success: function(data) {

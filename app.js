@@ -899,15 +899,16 @@ const recompileItems = (items, parseOnly) => {
 };
 
 app.put('/compile', function (req, res) {
+  // This end point is hit when code is edited. If the code already exists for
+  // the current user, then recompile it and update the OBJ. If it doesn't exist
+  // for the current user, then create a new item.
   let lang = req.body.language;
   validateUser(req.body.jwt, lang, (err, data) => {
     if (err) {
-      console.log("PUT /compile err=" + err);
       res.sendStatus(err);
     } else {
       // TODO user is known but might not have access to this operation. Check
       // user id against registered user table for this host.
-      console.log("Authorized user: " + data.id);
       // Map AST or SRC into OBJ. Store OBJ and return ID.
       let t0 = new Date;
       // Compile AST or SRC to OBJ. Insert or add item.
@@ -920,7 +921,7 @@ app.put('/compile', function (req, res) {
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
-      let user = dot2num(ip);  // Use IP address for user for now.
+      let user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
       let img = "";
       let obj = "";
       let label = "show";
@@ -929,10 +930,10 @@ app.put('/compile', function (req, res) {
       let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
       if (itemID !== undefined) {
         // Prefer the given id if there is one.
-        query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
+        query = "SELECT * FROM pieces WHERE id='" + itemID + "' AND user_id='" + user + "'";
       } else {
         // Otherwise look for an item with matching source.
-        query = "SELECT * FROM pieces WHERE language='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
+        query = "SELECT * FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + src + "' ORDER BY pieces.id";
       }
       dbQuery(query, function(err, result) {
         var row = result.rows[0];
@@ -963,8 +964,6 @@ app.put('/compile', function (req, res) {
                 compileID(id, false, (err, obj) => {
                   console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
                               (new Date - t0) + "ms");
-                  // This is done by compileID().
-                  // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
                   res.json({
                     id: id,
                     obj: obj,
@@ -986,8 +985,6 @@ app.put('/compile', function (req, res) {
                 compileID(id, false, (err, obj) => {
                   console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
                               (new Date - t0) + "ms");
-                  // This is done by compileID.
-                  // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
                   res.json({
                     id: id,
                     obj: obj,
@@ -1014,7 +1011,7 @@ app.put('/code', (req, response) => {
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  let user = dot2num(ip); //body.user;
+  let user = req.body.userID || dot2num(ip);
   let query;
   let itemID = id && +ids[1] !== 0 ? ids[1] : undefined;
   if (itemID !== undefined) {
@@ -1313,7 +1310,6 @@ app.post('/finishSignIn', (req, res) => {
     return;
   }
   postAuth("/finishSignIn", req.body, (err, data) => {
-    console.log("POST /finishSignIn data=" + JSON.stringify(data));
     res.send({
       err: err,
       userID: data.id,
@@ -1348,13 +1344,15 @@ function validateUser(token, lang, resume) {
         // There is an issue with sign in.
         resume(err);
       } else {
-        if (authorizedUsers.includes(data.id)) {
-          validatedUsers[token] = data;
-          resume(err, data);
-        } else {
-          // Got a valid user, but they don't have access to this resource.
-          resume(403);
-        }
+        // if (authorizedUsers.includes(data.id)) {
+        //   validatedUsers[token] = data;
+        //   resume(err, data);
+        // } else {
+        //   // Got a valid user, but they don't have access to this resource.
+        //   resume(403);
+        // }
+        validatedUsers[token] = data;
+        resume(err, data);
       }
     });
   }

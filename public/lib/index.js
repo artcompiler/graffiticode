@@ -35460,7 +35460,7 @@ function finishSignIn(passcode) {
         }
       }
       localStorage.setItem("accessToken", data.jwt);
-      localStorage.setItem("accessToken", data.userID);
+      localStorage.setItem("userID", data.userID);
       d3.select("form#passcode").style("display", "none");
       d3.select("form#signout").style("display", "block");
     },
