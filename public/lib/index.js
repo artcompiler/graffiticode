@@ -34637,6 +34637,60 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _react = require("react");
+
+var React = _interopRequireWildcard(_react);
+
+var _reactDom = require("react-dom");
+
+var ReactDOM = _interopRequireWildcard(_reactDom);
+
+var _share = require("./share.js");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var AlertView = React.createClass({
+  displayName: "AlertView",
+  componentDidMount: function componentDidMount() {
+    window.gcexports.dispatcher.register(this.onChange);
+  },
+  onChange: function onChange(data) {
+    this.setState(Object.assign({}, this.state, data));
+  },
+  render: function render() {
+    if (this.state && this.state[window.gcexports.id] && this.state[window.gcexports.id].error) {
+      // NOTE These messages can be modified on a per host basis.
+      var status = this.state[window.gcexports.id].status;
+      var _message = void 0;
+      switch (status) {
+        case 401:
+          _message = "You do not have compiling privileges. Sign-in to get compiling privileges.";
+          break;
+        case 403:
+          _message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
+          break;
+        default:
+          _message = "Unknown error.";
+      }
+      return React.createElement(
+        "div",
+        { className: "alert alert-danger", role: "alert" },
+        _message
+      );
+    } else {
+      return React.createElement("div", null);
+    }
+  }
+});
+exports.default = AlertView;
+
+},{"./share.js":204,"react":195,"react-dom":66}],200:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _react = require("react");
@@ -34990,7 +35044,7 @@ var ArchiveView = React.createClass({
 });
 exports.default = ArchiveView;
 
-},{"../d3.v4.min.js":196,"react":195,"react-dom":66}],200:[function(require,module,exports){
+},{"../d3.v4.min.js":196,"react":195,"react-dom":66}],201:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -35241,25 +35295,7 @@ var GraffContent = React.createClass({
     }
   },
   render: function render() {
-    if (this.state && this.state[window.gcexports.id] && this.state[window.gcexports.id].error) {
-      var status = this.state[window.gcexports.id].status;
-      var _message = void 0;
-      switch (status) {
-        case 401:
-          _message = "You do not have compiling privileges. Sign in to get compiling privileges.";
-          break;
-        case 403:
-          _message = "You are not authorized to access this operation. Contact site administrator to get access if you would like to continue.";
-          break;
-        default:
-          _message = "Unknown error.";
-      }
-      return React.createElement(
-        "div",
-        { className: "alert alert-danger", role: "alert" },
-        _message
-      );
-    } else if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
+    if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
       var Viewer = window.gcexports.viewer.Viewer;
       var lang = window.gcexports.language;
       var itemID = window.gcexports.id;
@@ -35294,7 +35330,7 @@ var GraffView = React.createClass({
 });
 exports.default = GraffView;
 
-},{"./share.js":203,"react":195,"react-dom":66}],201:[function(require,module,exports){
+},{"./share.js":204,"react":195,"react-dom":66}],202:[function(require,module,exports){
 "use strict";
 
 var _react = require("react");
@@ -35305,9 +35341,9 @@ var _reactDom = require("react-dom");
 
 var ReactDOM = _interopRequireWildcard(_reactDom);
 
-var _toolView = require("./tool-view");
+var _alertView = require("./alert-view");
 
-var _toolView2 = _interopRequireDefault(_toolView);
+var _alertView2 = _interopRequireDefault(_alertView);
 
 var _srcView = require("./src-view");
 
@@ -35338,10 +35374,7 @@ window.gcexports.dispatcher = window.parent.gcexports && window.parent.gcexports
 var dispatch = function dispatch(obj) {
   window.gcexports.dispatcher.dispatch(obj);
 };
-//ReactDOM.render(
-//  React.createElement(ToolView, null),
-//  document.getElementById('tool-view')
-//);
+ReactDOM.render(React.createElement(_alertView2.default, null), document.getElementById('alert-view'));
 ReactDOM.render(React.createElement(_archiveView2.default, null), document.getElementById('archive-view'));
 ReactDOM.render(React.createElement(_srcView2.default, null), document.getElementById('src-view'));
 ReactDOM.render(React.createElement(_graffView2.default, null), document.getElementById('graff-view'));
@@ -35565,7 +35598,7 @@ window.onload = function () {
   }
 };
 
-},{"./Dispatcher":198,"./archive-view":199,"./graff-view":200,"./obj-view":202,"./src-view":204,"./tool-view":205,"react":195,"react-dom":66}],202:[function(require,module,exports){
+},{"./Dispatcher":198,"./alert-view":199,"./archive-view":200,"./graff-view":201,"./obj-view":203,"./src-view":205,"react":195,"react-dom":66}],203:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -35749,7 +35782,7 @@ var ObjectView = React.createClass({
 });
 exports.default = ObjectView;
 
-},{"react":195,"react-dom":66}],203:[function(require,module,exports){
+},{"react":195,"react-dom":66}],204:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -36018,7 +36051,7 @@ exports.encodeID = encodeID;
 exports.validate = validate;
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":3,"hashids":65,"https":7}],204:[function(require,module,exports){
+},{"buffer":3,"hashids":65,"https":7}],205:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -36034,9 +36067,6 @@ var _reactDom = require("react-dom");
 var ReactDOM = _interopRequireWildcard(_reactDom);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 var CodeMirrorEditor = React.createClass({
   displayName: "CodeMirrorEditor",
@@ -36171,151 +36201,4 @@ var SourceView = React.createClass({
 });
 exports.default = SourceView;
 
-},{"react":195,"react-dom":66}],205:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _react = require("react");
-
-var React = _interopRequireWildcard(_react);
-
-var _graffView = require("./graff-view");
-
-var _graffView2 = _interopRequireDefault(_graffView);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-var IS_MOBILE = navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i);
-var selfCleaningTimeout = {
-  componentDidUpdate: function componentDidUpdate() {
-    clearTimeout(this.timeoutID);
-  },
-  setTimeout: function (_setTimeout) {
-    function setTimeout() {
-      return _setTimeout.apply(this, arguments);
-    }
-
-    setTimeout.toString = function () {
-      return _setTimeout.toString();
-    };
-
-    return setTimeout;
-  }(function () {
-    clearTimeout(this.timeoutID);
-    this.timeoutID = setTimeout.apply(null, arguments);
-  })
-};
-var ToolContent = React.createClass({
-  displayName: "ToolContent",
-
-  hideItem: function hideItem(e, id) {
-    $.ajax({
-      type: "PUT",
-      url: "/label",
-      data: {
-        id: id,
-        label: "hide"
-      },
-      dataType: "text",
-      success: function success(data) {
-        //hideItem(id);
-      },
-      error: function error(xhr, msg, err) {
-        console.log(msg + " " + err);
-      }
-    });
-  },
-  showItem: function showItem() {
-    var gcexports = window.gcexports;
-    var id = gcexports.id;
-    var el = React.findDOMNode(this);
-    $.ajax({
-      type: "PUT",
-      url: "/label",
-      data: {
-        id: id,
-        label: "show"
-      },
-      dataType: "text",
-      success: function success(data) {
-        d3.select(el).select("#save").style("visibility", "hidden");
-      },
-      error: function error(xhr, msg, err) {
-        console.log(msg + " " + err);
-      }
-    });
-  },
-  componentDidMount: function componentDidMount() {
-    var el = React.findDOMNode(this);
-    ToolView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
-    d3.select(el).select("#save").on("click", this.onClick);
-  },
-  componentDidUpdate: function componentDidUpdate() {},
-  onChange: function onChange(data) {
-    return;
-    window.gcexports.dispatcher.waitFor([_graffView2.default.dispatchToken]);
-    var el = React.findDOMNode(this);
-    if (data.id) {
-      $.get(location.origin + "/label/" + state.item, function (data) {
-        d3.select(el).select("#save").style("visibility", data === "show" ? "visible" : "hidden");
-      });
-    } else {
-      d3.select(el).select("#save").style("visibility", "hidden");
-    }
-  },
-  onClick: function onClick(e) {
-    this.showItem();
-  },
-  render: function render() {
-    return React.createElement(
-      "svg",
-      { height: "40", width: "100%", style: { background: "rgb(240, 240, 240)" } },
-      React.createElement(
-        "g",
-        null,
-        React.createElement(
-          "circle",
-          { id: "save", r: "12", cx: "30", cy: "20", style: { fill: "#555", visibility: "hidden" } },
-          React.createElement(
-            "title",
-            null,
-            "Save"
-          )
-        ),
-        React.createElement(
-          "title",
-          null,
-          "Saved"
-        )
-      )
-    );
-  }
-});
-var ToolView = React.createClass({
-  displayName: "ToolView",
-
-  mixins: [selfCleaningTimeout],
-  MODES: {},
-  propTypes: {},
-  getDefaultProps: function getDefaultProps() {
-    return {};
-  },
-  getInitialState: function getInitialState() {
-    return {};
-  },
-  render: function render() {
-    return React.createElement(ToolContent, { className: "toolContentStage" });
-  },
-  componentDidMount: function componentDidMount() {},
-  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {}
-});
-exports.default = ToolView;
-
-},{"./graff-view":200,"react":195}]},{},[201]);
+},{"react":195,"react-dom":66}]},{},[202]);

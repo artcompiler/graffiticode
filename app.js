@@ -1332,12 +1332,14 @@ function validateSignIn(token, lang, resume) {
   } else if (validatedSignIns[token]) {
     //resume(null, validatedSignIns[token]);
     let data = validatedSignIns[token];
-    if (authorizedUsers.includes(data.id)) {
-      resume(null, data);
-    } else {
-      // Got a valid user, but they don't have access to this resource.
-      resume(403);
-    }
+    // NOTE here is an example of how to restrict access to some user.
+    // if (authorizedUsers.includes(data.id)) {
+    //   resume(null, data);
+    // } else {
+    //   // Got a valid user, but they don't have access to this resource.
+    //   resume(403);
+    // }
+    resume(null, data);
   } else {
     postAuth("/validateSignIn", {
       jwt: token,

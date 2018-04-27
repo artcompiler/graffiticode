@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import ToolView from "./tool-view";
+import AlertView from "./alert-view";
 import SourceView from "./src-view";
 import GraffView from "./graff-view";
 import ObjectView from "./obj-view";
@@ -13,10 +13,10 @@ window.gcexports.dispatcher = window.parent.gcexports && window.parent.gcexports
 let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
 });
-//ReactDOM.render(
-//  React.createElement(ToolView, null),
-//  document.getElementById('tool-view')
-//);
+ReactDOM.render(
+ React.createElement(AlertView, null),
+ document.getElementById('alert-view')
+);
 ReactDOM.render(
  React.createElement(ArchiveView, null),
  document.getElementById('archive-view')
