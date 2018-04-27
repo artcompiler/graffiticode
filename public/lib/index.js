@@ -34664,7 +34664,7 @@ var AlertView = React.createClass({
       var _message = void 0;
       switch (status) {
         case 401:
-          _message = "You do not have compiling privileges. Sign-in to get compiling privileges.";
+          _message = "Sign in to enable compiling.";
           break;
         case 403:
           _message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
