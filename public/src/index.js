@@ -113,8 +113,8 @@ function finishSignIn(passcode) {
           return;
         }
       }
-      data = data;
       localStorage.setItem("accessToken", data.jwt);
+      localStorage.setItem("accessToken", data.userID);
       d3.select("form#passcode").style("display", "none");
       d3.select("form#signout").style("display", "block");
     },
@@ -126,6 +126,7 @@ function finishSignIn(passcode) {
 function signOut() {
   // Restore sign-in state.
   localStorage.removeItem("accessToken");
+  localStorage.removeItem("userID");
   d3.select("input#name-txt").classed("is-valid", false);
   d3.select("input#number-txt").classed("is-valid", false);
   d3.select("div#name-feedback").classed("valid-feedback", false).text("");

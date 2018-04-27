@@ -900,7 +900,7 @@ const recompileItems = (items, parseOnly) => {
 
 app.put('/compile', function (req, res) {
   let lang = req.body.language;
-  validateSignIn(req.body.jwt, lang, (err, data) => {
+  validateUser(req.body.jwt, lang, (err, data) => {
     if (err) {
       console.log("PUT /compile err=" + err);
       res.sendStatus(err);
@@ -1313,25 +1313,25 @@ app.post('/finishSignIn', (req, res) => {
     return;
   }
   postAuth("/finishSignIn", req.body, (err, data) => {
+    console.log("POST /finishSignIn data=" + JSON.stringify(data));
     res.send({
       err: err,
+      userID: data.id,
       jwt: data.jwt,
     });
   });
 });
 
-const validatedSignIns = {};
+const validatedUsers = {};
 const authorizedUsers = [
-  33,  // jeff
-  35,  // adam
 ];
-function validateSignIn(token, lang, resume) {
+function validateUser(token, lang, resume) {
   if (token === undefined) {
     // User has not signed in.
     resume(401);
-  } else if (validatedSignIns[token]) {
-    //resume(null, validatedSignIns[token]);
-    let data = validatedSignIns[token];
+  } else if (validatedUsers[token]) {
+    //resume(null, validatedUsers[token]);
+    let data = validatedUsers[token];
     // NOTE here is an example of how to restrict access to some user.
     // if (authorizedUsers.includes(data.id)) {
     //   resume(null, data);
@@ -1349,7 +1349,7 @@ function validateSignIn(token, lang, resume) {
         resume(err);
       } else {
         if (authorizedUsers.includes(data.id)) {
-          validatedSignIns[token] = data;
+          validatedUsers[token] = data;
           resume(err, data);
         } else {
           // Got a valid user, but they don't have access to this resource.
