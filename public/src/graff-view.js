@@ -38,7 +38,6 @@ var GraffContent = React.createClass({
   lastItemID: undefined,
   pendingRequests: 0,
   compileCode: function(itemID) {
-    console.log("compileCode() itemID=" + itemID);
     let langID, codeID, dataID;
     let ids = decodeID(itemID);
     langID = ids[0];

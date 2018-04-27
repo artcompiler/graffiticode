@@ -27201,7 +27201,6 @@ var GraffContent = React.createClass({
   lastItemID: undefined,
   pendingRequests: 0,
   compileCode: function compileCode(itemID) {
-    console.log("compileCode() itemID=" + itemID);
     var langID = void 0,
         codeID = void 0,
         dataID = void 0;
