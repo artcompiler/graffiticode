@@ -34664,7 +34664,7 @@ var AlertView = React.createClass({
       var _message = void 0;
       switch (status) {
         case 401:
-          _message = "Sign in to enable compiling.";
+          _message = "Sign in to start compiling.";
           break;
         case 403:
           _message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
