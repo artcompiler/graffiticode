@@ -237,7 +237,25 @@ var GraffContent = React.createClass({
     }
   },
   render: function () {
-    if (window.gcexports &&
+    if (this.state && this.state[window.gcexports.id] && this.state[window.gcexports.id].error) {
+      let status = this.state[window.gcexports.id].status;
+      let message;
+      switch(status) {
+      case 401:
+        message = "You do not have compiling privileges. Sign in to get compiling privileges.";
+        break;
+      case 403:
+        message = "You are not authorized to access this operation. Contact site administrator to get access if you would like to continue.";
+        break;
+      default:
+        message = "Unknown error.";
+      }
+      return (        
+        <div className="alert alert-danger" role="alert">
+          {message}
+        </div>
+      );
+    } else if (window.gcexports &&
         window.gcexports.viewer &&
         window.gcexports.viewer.Viewer) {
       let Viewer = window.gcexports.viewer.Viewer;

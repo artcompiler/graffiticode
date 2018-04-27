@@ -245,7 +245,7 @@ window.onload = () => {
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
   d3.select("div#obj-view").style("display", dataView ? "block" : "none");
-  if (localStorage.accessToken) {
+  if (localStorage.getItem("accessToken")) {
     d3.select("form#signout").style("display", "block");
   } else {
     d3.select("form#signin").style("display", "block");

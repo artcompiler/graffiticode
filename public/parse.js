@@ -1761,6 +1761,7 @@ window.gcexports.parser = (function () {
         "type": window.gcexports.lexiconType,
         "language": window.gcexports.language,
         "src": src,
+        "jwt": localStorage.getItem("accessToken"),
       },
       dataType: "json",
       success: function(data) {
@@ -1806,6 +1807,13 @@ window.gcexports.parser = (function () {
       },
       error: function(xhr, msg, err) {
         console.log("ERROR " + msg + " " + err);
+        let state = {};
+        state[window.gcexports.id] = {
+          status: xhr.status,
+          message: msg,
+          error: err,
+        };
+        window.gcexports.dispatcher.dispatch(state);
       }
     });
   }

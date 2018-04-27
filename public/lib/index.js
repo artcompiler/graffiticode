@@ -35241,7 +35241,25 @@ var GraffContent = React.createClass({
     }
   },
   render: function render() {
-    if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
+    if (this.state && this.state[window.gcexports.id] && this.state[window.gcexports.id].error) {
+      var status = this.state[window.gcexports.id].status;
+      var _message = void 0;
+      switch (status) {
+        case 401:
+          _message = "You do not have compiling privileges. Sign in to get compiling privileges.";
+          break;
+        case 403:
+          _message = "You are not authorized to access this operation. Contact site administrator to get access if you would like to continue.";
+          break;
+        default:
+          _message = "Unknown error.";
+      }
+      return React.createElement(
+        "div",
+        { className: "alert alert-danger", role: "alert" },
+        _message
+      );
+    } else if (window.gcexports && window.gcexports.viewer && window.gcexports.viewer.Viewer) {
       var Viewer = window.gcexports.viewer.Viewer;
       var lang = window.gcexports.language;
       var itemID = window.gcexports.id;
@@ -35540,7 +35558,7 @@ window.onload = function () {
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
   d3.select("div#obj-view").style("display", dataView ? "block" : "none");
-  if (localStorage.accessToken) {
+  if (localStorage.getItem("accessToken")) {
     d3.select("form#signout").style("display", "block");
   } else {
     d3.select("form#signin").style("display", "block");
