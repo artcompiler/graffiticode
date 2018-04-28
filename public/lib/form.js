@@ -27201,9 +27201,6 @@ var GraffContent = React.createClass({
   lastItemID: undefined,
   pendingRequests: 0,
   compileCode: function compileCode(itemID) {
-    var _this = this;
-
-    console.log("compileCode() itemID=" + itemID);
     var langID = void 0,
         codeID = void 0,
         dataID = void 0;
@@ -27219,11 +27216,11 @@ var GraffContent = React.createClass({
       params += "&refresh=true";
     }
     if (codeID && itemID && itemID !== this.lastItemID) {
-      this.lastItemID = itemID;
-      this.pendingRequests++;
+      self.lastItemID = itemID;
+      self.pendingRequests++;
       //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, function (err, obj) {
-        _this.pendingRequests--;
+        self.pendingRequests--;
         // if (dataID && +dataID !== 0) {
         //   // This is the magic where we collapse the "tail" into a JSON object.
         //   // Next this JSON object gets interned as static data (in L113).
@@ -27251,7 +27248,7 @@ var GraffContent = React.createClass({
           id: itemID,
           obj: obj,
           data: {} };
-        if (_this.pendingRequests === 0) {
+        if (self.pendingRequests === 0) {
           dispatch(state);
         }
       });
@@ -27310,7 +27307,7 @@ var GraffContent = React.createClass({
       var self = this;
       // Append host language to label.
       label = label ? lang + " " + label : lang;
-      this.pendingRequests++;
+      self.pendingRequests++;
       $.ajax({
         type: "PUT",
         url: "/code",
@@ -27326,7 +27323,7 @@ var GraffContent = React.createClass({
         },
         dataType: "json",
         success: function success(data) {
-          this.pendingRequests--;
+          self.pendingRequests--;
           if (itemID) {
             // Wait until we have an itemID to update URL.
             var ids = (0, _share.decodeID)(itemID);

@@ -739,7 +739,6 @@ function compileID(id, refresh, resume) {
     resume(null, {});
   } else {
     let ids = decodeID(id);
-    countView(ids[1]);
     if (refresh) {
       delCache(id);
     }
@@ -769,7 +768,7 @@ function compileID(id, refresh, resume) {
                           resume(err, obj);
                         } catch (e) {
                           // Oops. Missing or invalid obj, so need to recompile after all.
-                          // Let downstream compilers they need to refresh
+                          // Let downstream compilers know they need to refresh
                           // any data used. Prefer true over false.
                           comp(lang, code, data, refresh, (err, obj) => {
                             setCache(lang, id, obj);
@@ -790,6 +789,7 @@ function compileID(id, refresh, resume) {
                           updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
                         }
                         resume(err, obj);
+                        countView(ids[1]);
                       });
                     } else {
                       // Error handling here.
@@ -899,95 +899,102 @@ const recompileItems = (items, parseOnly) => {
 };
 
 app.put('/compile', function (req, res) {
-  // Map AST or SRC into OBJ. Store OBJ and return ID.
-  let t0 = new Date;
-  // Compile AST or SRC to OBJ. Insert or add item.
-  let id = req.body.id;
-  let ids = decodeID(id);
-  let rawSrc = req.body.src;
-  let src = cleanAndTrimSrc(req.body.src);
-  let ast = req.body.ast;
+  // This end point is hit when code is edited. If the code already exists for
+  // the current user, then recompile it and update the OBJ. If it doesn't exist
+  // for the current user, then create a new item.
   let lang = req.body.language;
-  let ip = req.headers['x-forwarded-for'] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress;
-  let user = dot2num(ip);  // Use IP address for user for now.
-  let img = "";
-  let obj = "";
-  let label = "show";
-  let parent = req.body.parent ? req.body.parent : 0;
-  let query;
-  let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
-  if (itemID !== undefined) {
-    // Prefer the given id if there is one.
-    query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
-  } else {
-    // Otherwise look for an item with matching source.
-    query = "SELECT * FROM pieces WHERE language='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
-  }
-  dbQuery(query, function(err, result) {
-    var row = result.rows[0];
-    itemID = itemID ? itemID : row ? row.id : undefined;
-    ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
-    if (!ast) {
-      // No AST, try creating from source.
-      parse(lang, rawSrc, (err, ast) => {
-        compile(ast);
-      });
+  validateUser(req.body.jwt, lang, (err, data) => {
+    if (err) {
+      res.sendStatus(err);
     } else {
-      compile(ast);
-    }
-    function compile(ast) {
-      if (itemID) {
-        let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-        let codeID = row.id;
-        let dataID = 0;
-        let ids = [langID, codeID, dataID];
-        let id = encodeID(ids);
-        // We have an id, so update the item with the current AST.
-        updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
-          // Update the src and ast because they are used by compileID().
-          if (err) {
-            console.log("ERROR [1] PUT /compile err=" + err);
-            res.status(400).send(err);
-          } else {
-            compileID(id, false, (err, obj) => {
-              console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
-                          (new Date - t0) + "ms");
-              // This is done by compileID().
-              // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
-              res.json({
-                id: id,
-                obj: obj,
-              });
-            });
-          }
-        });
+      // TODO user is known but might not have access to this operation. Check
+      // user id against registered user table for this host.
+      // Map AST or SRC into OBJ. Store OBJ and return ID.
+      let t0 = new Date;
+      // Compile AST or SRC to OBJ. Insert or add item.
+      let id = req.body.id;
+      let ids = decodeID(id);
+      let rawSrc = req.body.src;
+      let src = cleanAndTrimSrc(req.body.src);
+      let ast = req.body.ast;
+      let ip = req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+      let user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
+      let img = "";
+      let obj = "";
+      let label = "show";
+      let parent = req.body.parent ? req.body.parent : 0;
+      let query;
+      let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
+      if (itemID !== undefined) {
+        // Prefer the given id if there is one.
+        query = "SELECT * FROM pieces WHERE id='" + itemID + "' AND user_id='" + user + "'";
       } else {
-        postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
-          if (err) {
-            console.log("ERROR [2] PUT /compile err=" + err);
-            response.status(400).send(err);
-          } else {
+        // Otherwise look for an item with matching source.
+        query = "SELECT * FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + src + "' ORDER BY pieces.id";
+      }
+      dbQuery(query, function(err, result) {
+        var row = result.rows[0];
+        itemID = itemID ? itemID : row ? row.id : undefined;
+        ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
+        if (!ast) {
+          // No AST, try creating from source.
+          parse(lang, rawSrc, (err, ast) => {
+            compile(ast);
+          });
+        } else {
+          compile(ast);
+        }
+        function compile(ast) {
+          if (itemID) {
             let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-            let codeID = result.rows[0].id;
+            let codeID = row.id;
             let dataID = 0;
             let ids = [langID, codeID, dataID];
             let id = encodeID(ids);
-            compileID(id, false, (err, obj) => {
-              console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
-                          (new Date - t0) + "ms");
-              // This is done by compileID.
-              // updateOBJ(codeID, obj, (err)=>{ assert(!err) });
-              res.json({
-                id: id,
-                obj: obj,
-              });
+            // We have an id, so update the item with the current AST.
+            updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
+              // Update the src and ast because they are used by compileID().
+              if (err) {
+                console.log("ERROR [1] PUT /compile err=" + err);
+                res.status(400).send(err);
+              } else {
+                compileID(id, false, (err, obj) => {
+                  console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
+                              (new Date - t0) + "ms");
+                  res.json({
+                    id: id,
+                    obj: obj,
+                  });
+                });
+              }
+            });
+          } else {
+            postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
+              if (err) {
+                console.log("ERROR [2] PUT /compile err=" + err);
+                response.status(400).send(err);
+              } else {
+                let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+                let codeID = result.rows[0].id;
+                let dataID = 0;
+                let ids = [langID, codeID, dataID];
+                let id = encodeID(ids);
+                compileID(id, false, (err, obj) => {
+                  console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
+                              (new Date - t0) + "ms");
+                  res.json({
+                    id: id,
+                    obj: obj,
+                  });
+                });
+              }
             });
           }
-        });
-      }
+        }
+      });
     }
   });
 });
@@ -1004,7 +1011,7 @@ app.put('/code', (req, response) => {
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  let user = dot2num(ip); //body.user;
+  let user = req.body.userID || dot2num(ip);
   let query;
   let itemID = id && +ids[1] !== 0 ? ids[1] : undefined;
   if (itemID !== undefined) {
@@ -1260,12 +1267,16 @@ function postAuth(path, data, resume) {
     res.on('data', function (chunk) {
       data += chunk;
     }).on('end', function () {
-      try {
-        data = JSON.parse(data);
-        resume(data.error, data);
-      } catch (e) {
-        console.log("ERROR " + data);
-        console.log(e.stack);
+      if (res.statusCode === 401) {
+        resume(res.statusCode, data);
+      } else {
+        try {
+          data = JSON.parse(data);
+          resume(data.error, data);
+        } catch (e) {
+          console.log("ERROR " + data + " statusCode=" + res.statusCode);
+          console.log(e.stack);
+        }
       }
     }).on("error", function () {
       console.log("error() status=" + res.statusCode + " data=" + data);
@@ -1278,7 +1289,7 @@ function postAuth(path, data, resume) {
   });
 }
 
-// Member sign-in
+// User sign-in
 
 app.post('/signIn', (req, res) => {
   if (!req.body.name || !req.body.number) {
@@ -1301,10 +1312,52 @@ app.post('/finishSignIn', (req, res) => {
   postAuth("/finishSignIn", req.body, (err, data) => {
     res.send({
       err: err,
+      userID: data.id,
       jwt: data.jwt,
     });
   });
 });
+
+const validatedUsers = {};
+const authorizedUsers = [
+];
+function validateUser(token, lang, resume) {
+  if (token === undefined) {
+    // User has not signed in.
+    resume(401);
+  } else if (validatedUsers[token]) {
+    //resume(null, validatedUsers[token]);
+    let data = validatedUsers[token];
+    // NOTE here is an example of how to restrict access to some user.
+    // if (authorizedUsers.includes(data.id)) {
+    //   resume(null, data);
+    // } else {
+    //   // Got a valid user, but they don't have access to this resource.
+    //   resume(403);
+    // }
+    resume(null, data);
+  } else {
+    postAuth("/validateSignIn", {
+      jwt: token,
+    }, (err, data) => {
+      if (err) {
+        // There is an issue with sign in.
+        resume(err);
+      } else {
+        // if (authorizedUsers.includes(data.id)) {
+        //   validatedUsers[token] = data;
+        //   resume(err, data);
+        // } else {
+        //   // Got a valid user, but they don't have access to this resource.
+        //   resume(403);
+        // }
+        validatedUsers[token] = data;
+        resume(err, data);
+      }
+    });
+  }
+}
+
 
 // Client login
 

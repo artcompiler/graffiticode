@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import ToolView from "./tool-view";
+import AlertView from "./alert-view";
 import SourceView from "./src-view";
 import GraffView from "./graff-view";
 import ObjectView from "./obj-view";
@@ -13,10 +13,10 @@ window.gcexports.dispatcher = window.parent.gcexports && window.parent.gcexports
 let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
 });
-//ReactDOM.render(
-//  React.createElement(ToolView, null),
-//  document.getElementById('tool-view')
-//);
+ReactDOM.render(
+ React.createElement(AlertView, null),
+ document.getElementById('alert-view')
+);
 ReactDOM.render(
  React.createElement(ArchiveView, null),
  document.getElementById('archive-view')
@@ -113,8 +113,8 @@ function finishSignIn(passcode) {
           return;
         }
       }
-      data = data;
       localStorage.setItem("accessToken", data.jwt);
+      localStorage.setItem("userID", data.userID);
       d3.select("form#passcode").style("display", "none");
       d3.select("form#signout").style("display", "block");
     },
@@ -126,6 +126,7 @@ function finishSignIn(passcode) {
 function signOut() {
   // Restore sign-in state.
   localStorage.removeItem("accessToken");
+  localStorage.removeItem("userID");
   d3.select("input#name-txt").classed("is-valid", false);
   d3.select("input#number-txt").classed("is-valid", false);
   d3.select("div#name-feedback").classed("valid-feedback", false).text("");
@@ -215,13 +216,13 @@ window.handleViewClick = function (e) {
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 window.onload = () => {
-  let helpID = window.gcexports.helpID || "XZLuq1vYIM";
+  let helpID = window.gcexports.helpID || "wwOUmA8wUq";
   // Restore state of the app.
   let helpView = localStorage.getItem("helpView") === "true";
   d3.select("button#help-btn").classed("btn-secondary", helpView);
   d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
   d3.select("button#help-btn").style("display", "block");
-  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='300' src='/form?id=" + helpID + "'></iframe>");
+  d3.select("div#help-view").html("<iframe frameBorder='0' src='/form?id=" + helpID + "'></iframe>");
   d3.select("div#help-view").style("display", helpView ? "block" : "none");
   let findView = localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
@@ -245,7 +246,7 @@ window.onload = () => {
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
   d3.select("div#obj-view").style("display", dataView ? "block" : "none");
-  if (localStorage.accessToken) {
+  if (localStorage.getItem("accessToken")) {
     d3.select("form#signout").style("display", "block");
   } else {
     d3.select("form#signin").style("display", "block");

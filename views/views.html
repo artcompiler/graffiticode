@@ -6,7 +6,7 @@
     <!-- Bootstrap core CSS -->
     <link href="bootstrap.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
-    <link href="starter-template.css" rel="stylesheet">
+    <link href="views.css" rel="stylesheet">
     <link rel="stylesheet" href="codemirror.css">
     <link rel="stylesheet" href="codemirror-theme.css">
     <link rel="stylesheet" href="lint.css">
@@ -43,35 +43,38 @@
   </head>
   <body>
     <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
-      <a class="navbar-brand" href="https://www.artcompiler.com"><img style="opacity:1" width="50" src="logo.png"></a>
+      <a class="navbar-brand" href="https://www.artcompiler.com"><img style="opacity:1" width="40" src="logo.png"></a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <button id="help-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
-              HELP
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="find-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
-              FIND
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="code-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
+            <button id="code-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
               CODE
             </button>
           </li>
           <li class="nav-item">
-            <button id="form-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
+            <button id="form-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
               FORM
             </button>
           </li>
           <li class="nav-item">
-            <button id="data-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0" onclick="handleViewClick(event)">
+            <button id="data-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
               DATA
+            </button>
+          </li>
+          <li class="nav-item">
+            <span style="padding: 10; height: auto"></span>
+          </li>
+          <li class="nav-item">
+            <button id="find-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
+              FIND
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="help-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
+              HELP
             </button>
           </li>
         </ul>
@@ -117,8 +120,8 @@
        </form>
       </div>
     </nav>
-
     <main role="main" class="container-fluid">
+      <div id="alert-view"></div>
       <div id="help-view"></div>
       <div id="archive-view"></div>
       <div id="src-view"></div>
