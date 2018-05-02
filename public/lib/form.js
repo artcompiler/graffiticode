@@ -27391,13 +27391,15 @@ var GraffContent = React.createClass({
           obj: this.state[_codeID].obj
         };
       }
-      if (this.state.postCode) {
-        // New code so clear (don't copy) old state.
-        _state[itemID] = item;
-      } else {
-        _state[itemID] = Object.assign({}, this.state[itemID], item);
+      if (item) {
+        if (this.state.postCode) {
+          // New code so clear (don't copy) old state.
+          _state[itemID] = item;
+        } else {
+          _state[itemID] = Object.assign({}, this.state[itemID], item);
+        }
+        this.setState(Object.assign({}, this.state, _state));
       }
-      this.setState(Object.assign({}, this.state, _state));
     }
   },
   render: function render() {

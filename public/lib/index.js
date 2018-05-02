@@ -35284,13 +35284,15 @@ var GraffContent = React.createClass({
           obj: this.state[_codeID].obj
         };
       }
-      if (this.state.postCode) {
-        // New code so clear (don't copy) old state.
-        _state[itemID] = item;
-      } else {
-        _state[itemID] = Object.assign({}, this.state[itemID], item);
+      if (item) {
+        if (this.state.postCode) {
+          // New code so clear (don't copy) old state.
+          _state[itemID] = item;
+        } else {
+          _state[itemID] = Object.assign({}, this.state[itemID], item);
+        }
+        this.setState(Object.assign({}, this.state, _state));
       }
-      this.setState(Object.assign({}, this.state, _state));
     }
   },
   render: function render() {
@@ -35543,6 +35545,16 @@ window.handleViewClick = function (e) {
     case "code-btn":
       selector = "#src-view";
       localStorage.setItem("codeView", show);
+      if (show) {
+        var itemID = window.gcexports.id;
+        var ids = window.gcexports.decodeID(itemID);
+        var codeID = ids[1];
+        if (codeID !== 0) {
+          $.get(location.origin + "/code?id=" + codeID, function (data) {
+            window.gcexports.updateSrc(codeID, data.src);
+          });
+        }
+      }
       break;
     case "form-btn":
       selector = "#graff-view";
@@ -35551,6 +35563,12 @@ window.handleViewClick = function (e) {
     case "data-btn":
       selector = "#obj-view";
       localStorage.setItem("dataView", show);
+      if (show) {
+        var _itemID = window.gcexports.id;
+        $.get(location.origin + "/data?id=" + _itemID, function (data) {
+          window.gcexports.updateObj(_itemID, data);
+        });
+      }
       break;
     default:
       break;
@@ -35567,7 +35585,7 @@ window.onload = function () {
   d3.select("button#help-btn").classed("btn-secondary", helpView);
   d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
   d3.select("button#help-btn").style("display", "block");
-  d3.select("div#help-view").html("<iframe frameBorder='0' src='/form?id=" + helpID + "'></iframe>");
+  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
   d3.select("div#help-view").style("display", helpView ? "block" : "none");
   var findView = localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
@@ -35576,7 +35594,7 @@ window.onload = function () {
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView; // Avoid unnecessary computation.
   // For now, always open code view on reload to avoid code loading bug.
-  var codeView = true; //localStorage.getItem("codeView") !== "false";
+  var codeView = localStorage.getItem("codeView") !== "false";
   d3.select("button#code-btn").classed("btn-secondary", codeView);
   d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
   d3.select("button#code-btn").style("display", "block");
@@ -35644,6 +35662,13 @@ var CodeMirrorEditor = React.createClass({
         extraKeys: { "Ctrl-Space": "autocomplete" }
       });
       CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+      self = this;
+      window.gcexports.updateObj = function (id, obj) {
+        if (obj) {
+          obj = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+          self.editor.setValue(obj);
+        }
+      };
     }
   },
   componentDidUpdate: function componentDidUpdate() {

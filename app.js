@@ -232,6 +232,7 @@ app.get('/item', function(req, res) {
     } else {
       getItem(codeID, (err, row) => {
         if (err && err.length) {
+          console.log("[1] GET /item ERROR 404 ");
           res.sendStatus(404);
         } else {
           var rows;
@@ -425,6 +426,7 @@ app.get('/lang', function(req, res) {
             if (rows.length > 0) {
               res.redirect("/form?id=" + rows[0].id);
             } else {
+              console.log("[1] GET /lang ERROR 404 ");
               res.sendStatus(404);
             }
           });
@@ -445,6 +447,7 @@ app.get('/form', function(req, res) {
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   if (codeID === 0) {
+    console.log("[1] GET /form ERROR 404 id=" + req.query.id + " ids=" + ids.join("+"));
     res.sendStatus(404);
     return;
   }
@@ -475,6 +478,7 @@ app.get('/form', function(req, res) {
     // Don't have a langID, so get it from the database item.
     getItem(codeID, function(err, row) {
       if (!row) {
+        console.log("[2] GET /form ERROR 404 ");
         res.sendStatus(404);
       } else {
         var lang = row.language;
@@ -526,6 +530,7 @@ app.get('/code', (req, res) => {
   var codeID = ids[1];
   getItem(codeID, (err, row) => {
     if (!row) {
+      console.log("[1] GET /code ERROR 404 ");
       res.sendStatus(404);
     } else {
       // No data provided, so obj code won't change.

@@ -28,6 +28,13 @@ var CodeMirrorEditor = React.createClass({
         extraKeys: {"Ctrl-Space": "autocomplete"},
       });
       CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+      self = this;
+      window.gcexports.updateObj = (id, obj) => {
+        if (obj) {
+          obj = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+          self.editor.setValue(obj);
+        }
+      };
     }
   },
   componentDidUpdate: function() {

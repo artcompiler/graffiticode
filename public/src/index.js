@@ -198,6 +198,16 @@ window.handleViewClick = function (e) {
   case "code-btn":
     selector = "#src-view";
     localStorage.setItem("codeView", show);
+    if (show) {
+      let itemID = window.gcexports.id;
+      let ids = window.gcexports.decodeID(itemID);
+      let codeID = ids[1];
+      if (codeID !== 0) {
+        $.get(location.origin + "/code?id=" + codeID, function (data) {
+          window.gcexports.updateSrc(codeID, data.src);
+        });
+      }
+    }
     break;
   case "form-btn":
     selector = "#graff-view";
@@ -206,6 +216,12 @@ window.handleViewClick = function (e) {
   case "data-btn":
     selector = "#obj-view";
     localStorage.setItem("dataView", show);
+    if (show) {
+      let itemID = window.gcexports.id;
+      $.get(location.origin + "/data?id=" + itemID, function (data) {
+        window.gcexports.updateObj(itemID, data);
+      });
+    }
     break;
   default:
     break;
@@ -222,7 +238,7 @@ window.onload = () => {
   d3.select("button#help-btn").classed("btn-secondary", helpView);
   d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
   d3.select("button#help-btn").style("display", "block");
-  d3.select("div#help-view").html("<iframe frameBorder='0' src='/form?id=" + helpID + "'></iframe>");
+  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
   d3.select("div#help-view").style("display", helpView ? "block" : "none");
   let findView = localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
@@ -231,7 +247,7 @@ window.onload = () => {
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView;  // Avoid unnecessary computation.
   // For now, always open code view on reload to avoid code loading bug.
-  let codeView = true; //localStorage.getItem("codeView") !== "false";
+  let codeView = localStorage.getItem("codeView") !== "false";
   d3.select("button#code-btn").classed("btn-secondary", codeView);
   d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
   d3.select("button#code-btn").style("display", "block");
