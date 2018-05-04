@@ -238,7 +238,7 @@ window.onload = () => {
     d3.select("#alert-view").html(
       "<div class='alert alert-danger' role='alert'>" +
       "Language " + window.gcexports.language +
-      " is not currently available.</div>");
+      " is currently unavailable.</div>");
     hideViews = true;
   }
   let helpID = window.gcexports.helpID || "wwOUmA8wUq";
