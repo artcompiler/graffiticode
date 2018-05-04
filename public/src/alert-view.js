@@ -16,11 +16,11 @@ var AlertView = React.createClass({
     this.setState(Object.assign({}, this.state, data));
   },
   render() {
+    let message;
     if (this.state && this.state[window.gcexports.id] &&
         this.state[window.gcexports.id].error) {
       // NOTE These messages can be modified on a per host basis.
       let status = this.state[window.gcexports.id].status;
-      let message;
       switch(status) {
       case 401:
         message = "Sign in to start compiling.";
@@ -31,6 +31,8 @@ var AlertView = React.createClass({
       default:
         message = "Unknown error.";
       }
+    }
+    if (message) {
       return (        
         <div className="alert alert-danger" role="alert">
           {message}
@@ -38,7 +40,7 @@ var AlertView = React.createClass({
       );
     } else {
       return (
-        <div />
+          <div />
       );
     }
   },

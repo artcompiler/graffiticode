@@ -34658,24 +34658,26 @@ var AlertView = React.createClass({
     this.setState(Object.assign({}, this.state, data));
   },
   render: function render() {
+    var message = void 0;
     if (this.state && this.state[window.gcexports.id] && this.state[window.gcexports.id].error) {
       // NOTE These messages can be modified on a per host basis.
       var status = this.state[window.gcexports.id].status;
-      var _message = void 0;
       switch (status) {
         case 401:
-          _message = "Sign in to start compiling.";
+          message = "Sign in to start compiling.";
           break;
         case 403:
-          _message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
+          message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
           break;
         default:
-          _message = "Unknown error.";
+          message = "Unknown error.";
       }
+    }
+    if (message) {
       return React.createElement(
         "div",
         { className: "alert alert-danger", role: "alert" },
-        _message
+        message
       );
     } else {
       return React.createElement("div", null);
@@ -35579,32 +35581,38 @@ window.handleViewClick = function (e) {
 var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";
 window.onload = function () {
+  var hideViews = void 0;
+  if (!window.gcexports.globalLexicon) {
+    // Apparently this language is not available. Tell user.
+    d3.select("#alert-view").html("<div class='alert alert-danger' role='alert'>" + "Language " + window.gcexports.language + " is not currently available.</div>");
+    hideViews = true;
+  }
   var helpID = window.gcexports.helpID || "wwOUmA8wUq";
   // Restore state of the app.
-  var helpView = localStorage.getItem("helpView") === "true";
+  var helpView = hideViews ? false : localStorage.getItem("helpView") === "true";
   d3.select("button#help-btn").classed("btn-secondary", helpView);
   d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
   d3.select("button#help-btn").style("display", "block");
   d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
   d3.select("div#help-view").style("display", helpView ? "block" : "none");
-  var findView = localStorage.getItem("findView") === "true";
+  var findView = hideViews ? false : localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
   d3.select("button#find-btn").classed("btn-outline-secondary", !findView);
   d3.select("button#find-btn").style("display", "block");
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView; // Avoid unnecessary computation.
   // For now, always open code view on reload to avoid code loading bug.
-  var codeView = localStorage.getItem("codeView") !== "false";
+  var codeView = hideViews ? false : localStorage.getItem("codeView") !== "false";
   d3.select("button#code-btn").classed("btn-secondary", codeView);
   d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
   d3.select("button#code-btn").style("display", "block");
   d3.select("div#src-view").style("display", codeView ? "block" : "none");
-  var formView = localStorage.getItem("formView") !== "false";
+  var formView = hideViews ? false : localStorage.getItem("formView") !== "false";
   d3.select("button#form-btn").classed("btn-secondary", formView);
   d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
   d3.select("button#form-btn").style("display", "block");
   d3.select("div#graff-view").style("display", formView ? "block" : "none");
-  var dataView = localStorage.getItem("dataView") === "true";
+  var dataView = hideViews ? false : localStorage.getItem("dataView") === "true";
   d3.select("button#data-btn").classed("btn-secondary", dataView);
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
