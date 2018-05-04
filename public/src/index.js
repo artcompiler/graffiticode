@@ -237,7 +237,7 @@ window.onload = () => {
     // Apparently this language is not available. Tell user.
     d3.select("#alert-view").html(
       "<div class='alert alert-danger' role='alert'>" +
-      "Language " + window.gcexports.language +
+      window.gcexports.language +
       " is currently unavailable.</div>");
     hideViews = true;
   }

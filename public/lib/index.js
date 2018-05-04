@@ -35584,7 +35584,7 @@ window.onload = function () {
   var hideViews = void 0;
   if (!window.gcexports.globalLexicon) {
     // Apparently this language is not available. Tell user.
-    d3.select("#alert-view").html("<div class='alert alert-danger' role='alert'>" + "Language " + window.gcexports.language + " is currently unavailable.</div>");
+    d3.select("#alert-view").html("<div class='alert alert-danger' role='alert'>" + window.gcexports.language + " is currently unavailable.</div>");
     hideViews = true;
   }
   var helpID = window.gcexports.helpID || "wwOUmA8wUq";
