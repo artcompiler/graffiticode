@@ -27182,7 +27182,9 @@ window.gcexports.compileSrc = function (lang, src, resume) {
     url: "/compile",
     data: {
       "language": lang,
-      "src": src
+      "src": src,
+      "jwt": localStorage.getItem("accessToken"),
+      "userID": localStorage.getItem("userID")
     },
     dataType: "json",
     success: function success(data) {
