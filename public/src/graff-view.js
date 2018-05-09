@@ -219,7 +219,10 @@ var GraffContent = React.createClass({
       let item = data[itemID];
       if (item && !item.obj) {
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
-        item.obj = this.state[itemID] && this.state[itemID].obj || this.state[codeID].obj;
+        item.obj = 
+          this.state[itemID] && this.state[itemID].obj ||
+          this.state[codeID] && this.state[codeID].obj ||
+          assert(false, "Missing obj for " + ids.join("+"));
         item.id = itemID;
       } else if (this.state[codeID] && !this.state[codeID].obj) {
         // Don't have the base obj set yet.

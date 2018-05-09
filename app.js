@@ -830,7 +830,7 @@ function compileID(id, refresh, resume) {
                     });
                   } else {
                     if (lang && code) {
-                      assert(code.root !== undefined, "Invalid code.");
+                      assert(code.root !== undefined, "Invalid code for item " + ids[1]);
                       // Let downstream compilers know they need to refresh
                       // any data used.
                       comp(lang, code, data, refresh, (err, obj) => {
