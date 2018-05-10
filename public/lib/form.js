@@ -27182,7 +27182,9 @@ window.gcexports.compileSrc = function (lang, src, resume) {
     url: "/compile",
     data: {
       "language": lang,
-      "src": src
+      "src": src,
+      "jwt": localStorage.getItem("accessToken"),
+      "userID": localStorage.getItem("userID")
     },
     dataType: "json",
     success: function success(data) {
@@ -27381,7 +27383,7 @@ var GraffContent = React.createClass({
       var item = data[itemID];
       if (item && !item.obj) {
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
-        item.obj = this.state[itemID] && this.state[itemID].obj || this.state[_codeID].obj;
+        item.obj = this.state[itemID] && this.state[itemID].obj || this.state[_codeID] && this.state[_codeID].obj || (0, _share.assert)(false, "Missing obj for " + _ids.join("+"));
         item.id = itemID;
       } else if (this.state[_codeID] && !this.state[_codeID].obj) {
         // Don't have the base obj set yet.
@@ -27390,13 +27392,15 @@ var GraffContent = React.createClass({
           obj: this.state[_codeID].obj
         };
       }
-      if (this.state.postCode) {
-        // New code so clear (don't copy) old state.
-        _state[itemID] = item;
-      } else {
-        _state[itemID] = Object.assign({}, this.state[itemID], item);
+      if (item) {
+        if (this.state.postCode) {
+          // New code so clear (don't copy) old state.
+          _state[itemID] = item;
+        } else {
+          _state[itemID] = Object.assign({}, this.state[itemID], item);
+        }
+        this.setState(Object.assign({}, this.state, _state));
       }
-      this.setState(Object.assign({}, this.state, _state));
     }
   },
   render: function render() {

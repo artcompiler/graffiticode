@@ -84,7 +84,7 @@ app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
 app.use(function (err, req, res, next) {
   console.error(err.stack)
-  res.status(500).send('Something broke!')
+  res.sendStatus(500);
 });
 app.engine('html', function (templateFile, options, callback) {
   fs.readFile(templateFile, function (err, templateData) {
@@ -223,7 +223,7 @@ app.get('/item', function(req, res) {
         }, function (error, html) {
           if (error) {
             console.log("ERROR [1] GET /item err=" + error);
-            res.status(400).send(error);
+            res.sendStatus(400);
           } else {
             res.send(html);
           }
@@ -232,6 +232,7 @@ app.get('/item', function(req, res) {
     } else {
       getItem(codeID, (err, row) => {
         if (err && err.length) {
+          console.log("[1] GET /item ERROR 404 ");
           res.sendStatus(404);
         } else {
           var rows;
@@ -250,7 +251,7 @@ app.get('/item', function(req, res) {
             }, function (error, html) {
               if (error) {
                 console.log("ERROR [2] GET /item err=" + error);
-                res.status(400).send(error);
+                res.sendStatus(400);
               } else {
                 res.send(html);
               }
@@ -402,38 +403,53 @@ app.get('/lang', function(req, res) {
   let langID = id;
   var src = req.query.src;
   var lang = langName(langID);
-  if (src) {
-    assert(false, "Should not get here. Call PUT /compile");
-  } else {
-    let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
-    dbQuery(queryString, (err, result) => {
-      let rows = result.rows;
-      if (rows.length === 0) {
-        var insertStr =
-          "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-          " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-          " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-          " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-        dbQuery(insertStr, function(err, result) {
-          if (err) {
-            console.log("ERROR GET /pieces/:lang err=" + err);
-            res.status(400).send(err);
-            return;
-          }
-          dbQuery(queryString, (err, result) => {
-            let rows = result.rows;
-            if (rows.length > 0) {
-              res.redirect("/form?id=" + rows[0].id);
-            } else {
-              res.sendStatus(404);
-            }
-          });
-        });
+  pingLang(lang, (pong) => {
+    if (pong) {
+      if (src) {
+        assert(false, "Should not get here. Call PUT /compile");
       } else {
-        res.redirect("/item?id=" + encodeID([langID, rows[0].id, 0]));
+        let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
+        dbQuery(queryString, (err, result) => {
+          let rows = result.rows;
+          if (rows.length === 0) {
+            getCompilerVersion(lang, (version) => {
+              console.log("GET /lang version=" + version);
+              if (version) {
+                var insertStr =
+                  "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+                  " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+                  " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+                  " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+                dbQuery(insertStr, function(err, result) {
+                  if (err) {
+                    console.log("ERROR GET /pieces/:lang err=" + err);
+                    res.sendStatus(400);
+                    return;
+                  }
+                  dbQuery(queryString, (err, result) => {
+                    let rows = result.rows;
+                    if (rows.length > 0) {
+                      res.redirect("/form?id=" + rows[0].id);
+                    } else {
+                      console.log("[1] GET /lang ERROR 404 ");
+                      res.sendStatus(404);
+                    }
+                  });
+                });
+              } else {
+                res.sendStatus(404);
+              }
+            });
+          } else {
+            res.redirect("/item?id=" + encodeID([langID, rows[0].id, 0]));
+          }
+        });
       }
-    });
-  }
+    } else {
+      res.sendStatus(404);
+      return false;
+    }
+  });
 });
 
 app.get('/form', function(req, res) {
@@ -445,6 +461,7 @@ app.get('/form', function(req, res) {
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   if (codeID === 0) {
+    console.log("[1] GET /form ERROR 404 id=" + req.query.id + " ids=" + ids.join("+"));
     res.sendStatus(404);
     return;
   }
@@ -465,7 +482,7 @@ app.get('/form', function(req, res) {
       }, function (error, html) {
         if (error) {
           console.log("ERROR [1] GET /form err=" + error);
-          res.status(400).send(error);
+          res.sendStatus(400);
         } else {
           res.send(html);
         }
@@ -475,6 +492,7 @@ app.get('/form', function(req, res) {
     // Don't have a langID, so get it from the database item.
     getItem(codeID, function(err, row) {
       if (!row) {
+        console.log("[2] GET /form ERROR 404 ");
         res.sendStatus(404);
       } else {
         var lang = row.language;
@@ -490,7 +508,7 @@ app.get('/form', function(req, res) {
           }, function (error, html) {
             if (error) {
               console.log("ERROR [2] GET /form error=" + error);
-              res.status(400).send(error);
+              res.sendStatus(400);
             } else {
               res.send(html);
             }
@@ -510,7 +528,7 @@ app.get('/data', function(req, res) {
   compileID(id, refresh, (err, obj) => {
     if (err) {
       console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
-      res.status(400).send(err);
+      res.sendStatus(400);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
@@ -526,6 +544,7 @@ app.get('/code', (req, res) => {
   var codeID = ids[1];
   getItem(codeID, (err, row) => {
     if (!row) {
+      console.log("[1] GET /code ERROR 404 ");
       res.sendStatus(404);
     } else {
       // No data provided, so obj code won't change.
@@ -538,28 +557,55 @@ app.get('/code', (req, res) => {
 });
 
 let compilerVersions = {};
-function getCompilerVersion(language, resume) {
+function getCompilerVersion(lang, resume) {
   // Compiler version tells which parser to use.
-  if (compilerVersions[language]) {
-    resume(compilerVersions[language]);
+  if (compilerVersions[lang]) {
+    resume(compilerVersions[lang]);
   } else {
-    var data = [];
-    var options = {
-      host: getCompilerHost(language),
-      port: getCompilerPort(language),
-      path: "/version",
-    };
-    var req = protocol.get(options, function(res) {
-      res.on("data", function (chunk) {
-        data.push(chunk);
-      }).on("end", function () {
-        let str = data.join("");
-        let version = parseInt(str.substring(1));
-        version = compilerVersions[language] = isNaN(version) ? 0 : version;
-        resume(version);
-      });
+    pingLang(lang, (pong) => {
+      if (pong) {
+        var data = [];
+        var options = {
+          host: getCompilerHost(lang),
+          port: getCompilerPort(lang),
+          path: "/version",
+        };
+        try {
+          var req = protocol.get(options, function(res) {
+            res.on("data", function (chunk) {
+              data.push(chunk);
+            }).on("end", function () {
+              let str = data.join("");
+              let version = parseInt(str.substring(1));
+              version = compilerVersions[lang] = isNaN(version) ? 0 : version;
+              resume(version);
+            }).on("error", () => {
+              resume(null);
+            });
+          });
+        } catch (e) {
+          console.log("ERROR " + e.stack);
+          resume(null);
+        }
+      } else {
+        resume(null);
+      }
     });
   }
+}
+function pingLang(lang, resume) {
+  let options = {
+    method: 'HEAD',
+    host: getCompilerHost(lang),
+    port: getCompilerPort(lang),
+    path: '/'
+  };
+  req = protocol.request(options, function(r) {
+    resume(true);
+  }).on("error", (e) => {
+    console.log("ERROR language unavailable: " + lang);
+    resume(false);
+  }).end();
 }
 
 function get(language, path, resume) {
@@ -728,6 +774,7 @@ function getLang(ids, resume) {
   if (langID !== 0) {
     resume(null, langName(langID));
   } else {
+    // Get the language name from the item.
     getItem(ids[1], (err, item) => {
       resume(err, item.language);
     });
@@ -771,25 +818,33 @@ function compileID(id, refresh, resume) {
                           // Let downstream compilers know they need to refresh
                           // any data used. Prefer true over false.
                           comp(lang, code, data, refresh, (err, obj) => {
-                            setCache(lang, id, obj);
-                            resume(err, obj);
+                            if (err) {
+                              resume(err);
+                            } else {
+                              setCache(lang, id, obj);
+                              resume(null, obj);
+                            }
                           });
                         }
                       }
                     });
                   } else {
                     if (lang && code) {
-                      assert(code.root !== undefined, "Invalid code.");
+                      assert(code.root !== undefined, "Invalid code for item " + ids[1]);
                       // Let downstream compilers know they need to refresh
                       // any data used.
                       comp(lang, code, data, refresh, (err, obj) => {
-                        setCache(lang, id, obj);
-                        if (ids[2] === 0 && ids.length === 3) {
-                          // If this is pure code, then update OBJ.
-                          updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                        if (err) {
+                          resume(err);
+                        } else {
+                          setCache(lang, id, obj);
+                          if (ids[2] === 0 && ids.length === 3) {
+                            // If this is pure code, then update OBJ.
+                            updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                          }
+                          resume(null, obj);
+                          countView(ids[1]);
                         }
-                        resume(err, obj);
-                        countView(ids[1]);
                       });
                     } else {
                       // Error handling here.
@@ -807,43 +862,49 @@ function compileID(id, refresh, resume) {
   }
 }
 function comp(lang, code, data, refresh, resume) {
-  // Compile ast to obj.
-  var path = "/compile";
-  var encodedData = JSON.stringify({
-    "description": "graffiticode",
-    "language": lang,
-    "src": code,
-    "data": data,
-    "refresh": refresh,
-    "auth": authToken,
-  });
-  var options = {
-    host: getCompilerHost(lang),
-    port: getCompilerPort(lang),
-    path: path,
-    method: 'GET',
-    headers: {
-      'Content-Type': 'text/plain',
-      'Content-Length': Buffer.byteLength(encodedData),
-    },
-  };
-  var req = protocol.request(options, function(res) {
-    var data = "";
-    res.on('data', function (chunk) {
-      data += chunk;
-    });
-    res.on('end', function () {
-      resume(null, parseJSON(data));
-    });
-    res.on('error', function (err) {
-      resume(err);
-    });
-  });
-  req.write(encodedData);
-  req.end();
-  req.on('error', function(err) {
-    console.log("ERROR " + err);
-    resume(err);
+  pingLang(lang, pong => {
+    if (pong) {
+      // Compile ast to obj.
+      var path = "/compile";
+      var encodedData = JSON.stringify({
+        "description": "graffiticode",
+        "language": lang,
+        "src": code,
+        "data": data,
+        "refresh": refresh,
+        "auth": authToken,
+      });
+      var options = {
+        host: getCompilerHost(lang),
+        port: getCompilerPort(lang),
+        path: path,
+        method: 'GET',
+        headers: {
+          'Content-Type': 'text/plain',
+          'Content-Length': Buffer.byteLength(encodedData),
+        },
+      };
+      var req = protocol.request(options, function(res) {
+        var data = "";
+        res.on('data', function (chunk) {
+          data += chunk;
+        });
+        res.on('end', function () {
+          resume(null, parseJSON(data));
+        });
+        res.on('error', function (err) {
+          resume(err);
+        });
+      });
+      req.write(encodedData);
+      req.end();
+      req.on('error', function(err) {
+        console.log("ERROR " + err);
+        resume(err);
+      });
+    } else {
+      resume(404);
+    }
   });
 }
 
@@ -959,7 +1020,7 @@ app.put('/compile', function (req, res) {
               // Update the src and ast because they are used by compileID().
               if (err) {
                 console.log("ERROR [1] PUT /compile err=" + err);
-                res.status(400).send(err);
+                res.sendStatus(400);
               } else {
                 compileID(id, false, (err, obj) => {
                   console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
@@ -975,7 +1036,7 @@ app.put('/compile', function (req, res) {
             postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
               if (err) {
                 console.log("ERROR [2] PUT /compile err=" + err);
-                response.status(400).send(err);
+                response.sendStatus(400);
               } else {
                 let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
                 let codeID = result.rows[0].id;
@@ -1067,7 +1128,7 @@ app.put('/code', (req, response) => {
         let id = encodeID(ids);
         if (err) {
           console.log("ERROR PUT /code err=" + err);
-          response.status(400).send(err);
+          response.sendStatus(400);
         } else {
           console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")* in " +
                       (new Date - t0) + "ms");
@@ -1099,7 +1160,7 @@ app.get('/items', function(req, res) {
       (limit ? " LIMIT " + limit : "");
   } else {
     console.log("ERROR [1] GET /items");
-    res.status(400).send("bad request");
+    res.sendStatus(400);
   }
   dbQuery(queryStr, function (err, result) {
     var rows;
@@ -1113,7 +1174,7 @@ app.get('/items', function(req, res) {
   req.on('error', function(e) {
     console.log("ERROR " + e);
     console.log("ERROR [2] GET /items err=" + err);
-    res.status(400).send(e);
+    res.sendStatus(400);
   });
 });
 
@@ -1167,7 +1228,7 @@ app.get('/pieces/:lang', function (req, res) {
       dbQuery(insertStr, function(err, result) {
         if (err) {
           console.log("ERROR GET /pieces/:lang err=" + err);
-          res.status(400).send(err);
+          res.sendStatus(400);
           return;
         }
         dbQuery(queryString, function (err, result) {
@@ -1199,21 +1260,27 @@ function num2dot(num) {
 
 app.get("/:lang/*", function (req, response) {
   // /L106/lexicon.js
-  var lang = req.params.lang;
-  let url = req.url;
-  let path = url.substring(url.indexOf(lang) + lang.length + 1);
-  var data = [];
-  var options = {
-    host: getCompilerHost(lang),
-    port: getCompilerPort(lang),
-    path: "/" + path,
-  };
-  var req = protocol.get(options, function(res) {
-    res.on("data", function (chunk) {
-      data.push(chunk);
-    }).on("end", function () {
-      response.send(data.join(""));
-    });
+  let lang = req.params.lang;
+  pingLang(lang, pong => {
+    if (pong) {
+      let url = req.url;
+      let path = url.substring(url.indexOf(lang) + lang.length + 1);
+      var data = [];
+      var options = {
+        host: getCompilerHost(lang),
+        port: getCompilerPort(lang),
+        path: "/" + path,
+      };
+      req = protocol.get(options, function(res) {
+        res.on("data", function (chunk) {
+          data.push(chunk);
+        }).on("end", function () {
+          response.send(data.join(""));
+        });
+      });
+    } else {
+      response.sendStatus(404);
+    }
   });
 });
 

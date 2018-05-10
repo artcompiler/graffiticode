@@ -30,9 +30,10 @@ if (typeof CodeMirror === "undefined") {
 
 if (typeof window === "undefined") {
   window = {};
-  window.gcexports = {
-    coords: {},
-    gcexports: {},
+  window = {
+    gcexports: {
+      coords: {},
+    },
     isSynthetic: true,
   };
 }
@@ -930,7 +931,7 @@ window.gcexports.parser = (function () {
     "null" : { "tk": 0x15, "cls": "val", "length": 0 },
   };
   function addError(ctx, str) {
-    let ln = ctx.scan.stream.lineOracle.line;
+    let ln = ctx.scan.stream.lineOracle && ctx.scan.stream.lineOracle.line || 0;
     ctx.state.errors.push({
       from: CodeMirror.Pos(ln, ctx.scan.stream.start),
       to: CodeMirror.Pos(ln, ctx.scan.stream.pos),
@@ -1092,7 +1093,7 @@ window.gcexports.parser = (function () {
   }
 
   function getCoord(ctx) {
-    let ln = ctx.scan.stream.lineOracle.line;
+    let ln = ctx.scan.stream.lineOracle && ctx.scan.stream.lineOracle.line || 0;
     return {
       from: CodeMirror.Pos(ln, ctx.scan.stream.start),
       to: CodeMirror.Pos(ln, ctx.scan.stream.pos),
@@ -2169,10 +2170,11 @@ window.gcexports.parser = (function () {
   }
 
   window.gcexports.parse = parser.parse
-  if (window.gcexports.isSynthetic) {
+  if (window.isSynthetic) {
     // Export in node.
     exports.parse = window.gcexports.parse;
     exports.StringStream = window.gcexports.StringStream;
+    exports.program = program;
   }
 
   return parser

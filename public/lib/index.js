@@ -34658,24 +34658,26 @@ var AlertView = React.createClass({
     this.setState(Object.assign({}, this.state, data));
   },
   render: function render() {
+    var message = void 0;
     if (this.state && this.state[window.gcexports.id] && this.state[window.gcexports.id].error) {
       // NOTE These messages can be modified on a per host basis.
       var status = this.state[window.gcexports.id].status;
-      var _message = void 0;
       switch (status) {
         case 401:
-          _message = "Sign in to start compiling.";
+          message = "Sign in to start compiling.";
           break;
         case 403:
-          _message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
+          message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
           break;
         default:
-          _message = "Unknown error.";
+          message = "Unknown error.";
       }
+    }
+    if (message) {
       return React.createElement(
         "div",
         { className: "alert alert-danger", role: "alert" },
-        _message
+        message
       );
     } else {
       return React.createElement("div", null);
@@ -35075,7 +35077,9 @@ window.gcexports.compileSrc = function (lang, src, resume) {
     url: "/compile",
     data: {
       "language": lang,
-      "src": src
+      "src": src,
+      "jwt": localStorage.getItem("accessToken"),
+      "userID": localStorage.getItem("userID")
     },
     dataType: "json",
     success: function success(data) {
@@ -35274,7 +35278,7 @@ var GraffContent = React.createClass({
       var item = data[itemID];
       if (item && !item.obj) {
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
-        item.obj = this.state[itemID] && this.state[itemID].obj || this.state[_codeID].obj;
+        item.obj = this.state[itemID] && this.state[itemID].obj || this.state[_codeID] && this.state[_codeID].obj || (0, _share.assert)(false, "Missing obj for " + _ids.join("+"));
         item.id = itemID;
       } else if (this.state[_codeID] && !this.state[_codeID].obj) {
         // Don't have the base obj set yet.
@@ -35283,13 +35287,15 @@ var GraffContent = React.createClass({
           obj: this.state[_codeID].obj
         };
       }
-      if (this.state.postCode) {
-        // New code so clear (don't copy) old state.
-        _state[itemID] = item;
-      } else {
-        _state[itemID] = Object.assign({}, this.state[itemID], item);
+      if (item) {
+        if (this.state.postCode) {
+          // New code so clear (don't copy) old state.
+          _state[itemID] = item;
+        } else {
+          _state[itemID] = Object.assign({}, this.state[itemID], item);
+        }
+        this.setState(Object.assign({}, this.state, _state));
       }
-      this.setState(Object.assign({}, this.state, _state));
     }
   },
   render: function render() {
@@ -35542,6 +35548,16 @@ window.handleViewClick = function (e) {
     case "code-btn":
       selector = "#src-view";
       localStorage.setItem("codeView", show);
+      if (show) {
+        var itemID = window.gcexports.id;
+        var ids = window.gcexports.decodeID(itemID);
+        var codeID = ids[1];
+        if (codeID !== 0) {
+          $.get(location.origin + "/code?id=" + codeID, function (data) {
+            window.gcexports.updateSrc(codeID, data.src);
+          });
+        }
+      }
       break;
     case "form-btn":
       selector = "#graff-view";
@@ -35550,6 +35566,12 @@ window.handleViewClick = function (e) {
     case "data-btn":
       selector = "#obj-view";
       localStorage.setItem("dataView", show);
+      if (show) {
+        var _itemID = window.gcexports.id;
+        $.get(location.origin + "/data?id=" + _itemID, function (data) {
+          window.gcexports.updateObj(_itemID, data);
+        });
+      }
       break;
     default:
       break;
@@ -35560,32 +35582,38 @@ window.handleViewClick = function (e) {
 var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";
 window.onload = function () {
+  var hideViews = void 0;
+  if (!window.gcexports.globalLexicon) {
+    // Apparently this language is not available. Tell user.
+    d3.select("#alert-view").html("<div class='alert alert-danger' role='alert'>" + window.gcexports.language + " is currently unavailable.</div>");
+    hideViews = true;
+  }
   var helpID = window.gcexports.helpID || "wwOUmA8wUq";
   // Restore state of the app.
-  var helpView = localStorage.getItem("helpView") === "true";
+  var helpView = hideViews ? false : localStorage.getItem("helpView") === "true";
   d3.select("button#help-btn").classed("btn-secondary", helpView);
   d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
   d3.select("button#help-btn").style("display", "block");
-  d3.select("div#help-view").html("<iframe frameBorder='0' src='/form?id=" + helpID + "'></iframe>");
+  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
   d3.select("div#help-view").style("display", helpView ? "block" : "none");
-  var findView = localStorage.getItem("findView") === "true";
+  var findView = hideViews ? false : localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
   d3.select("button#find-btn").classed("btn-outline-secondary", !findView);
   d3.select("button#find-btn").style("display", "block");
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView; // Avoid unnecessary computation.
   // For now, always open code view on reload to avoid code loading bug.
-  var codeView = true; //localStorage.getItem("codeView") !== "false";
+  var codeView = hideViews ? false : localStorage.getItem("codeView") !== "false";
   d3.select("button#code-btn").classed("btn-secondary", codeView);
   d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
   d3.select("button#code-btn").style("display", "block");
   d3.select("div#src-view").style("display", codeView ? "block" : "none");
-  var formView = localStorage.getItem("formView") !== "false";
+  var formView = hideViews ? false : localStorage.getItem("formView") !== "false";
   d3.select("button#form-btn").classed("btn-secondary", formView);
   d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
   d3.select("button#form-btn").style("display", "block");
   d3.select("div#graff-view").style("display", formView ? "block" : "none");
-  var dataView = localStorage.getItem("dataView") === "true";
+  var dataView = hideViews ? false : localStorage.getItem("dataView") === "true";
   d3.select("button#data-btn").classed("btn-secondary", dataView);
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
@@ -35643,6 +35671,13 @@ var CodeMirrorEditor = React.createClass({
         extraKeys: { "Ctrl-Space": "autocomplete" }
       });
       CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+      self = this;
+      window.gcexports.updateObj = function (id, obj) {
+        if (obj) {
+          obj = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+          self.editor.setValue(obj);
+        }
+      };
     }
   },
   componentDidUpdate: function componentDidUpdate() {
