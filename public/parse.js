@@ -1790,10 +1790,12 @@ window.gcexports.parser = (function () {
         } else if (data.id) {
           window.gcexports.lastErrors = [];
           // We have a good id, so use it.
+          let dataIDs = gcexports.decodeID(gcexports.id).slice(2);
           let ids = gcexports.decodeID(data.id);
-          let id = gcexports.encodeID(ids);
+          let id = gcexports.encodeID(ids.slice(0,2).concat(dataIDs));
           window.gcexports.id = id;
-          window.history.pushState(id, window.gcexports.language, "/" + window.gcexports.view + "?id=" + id);
+          let location = "/" + window.gcexports.view + "?id=" + id;
+          window.history.pushState(id, window.gcexports.language, location);
           let state = {};
           state[window.gcexports.id] = {
             id: id,
@@ -1802,7 +1804,7 @@ window.gcexports.parser = (function () {
             postCode: postCode,
             errors: errors,
             obj: obj,
-            data: {}, // Clear state
+//            data: {}, // Clear state
           };
           window.gcexports.dispatcher.dispatch(state);
         }

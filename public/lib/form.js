@@ -27294,7 +27294,12 @@ var GraffContent = React.createClass({
         viewer.update(el, obj, src, ast);
       }
       gcexports.id = itemID;
-      this.postData(itemID, data, label, parentID);
+      if (data && Object.keys(data).length) {
+        this.postData(itemID, data, label, parentID);
+      } else if (gcexports.decodeID(itemID)[2] !== 0) {
+        // Got an itemID with data that is not in memory.
+        this.compileCode(itemID);
+      }
     }
   },
   postData: function postData(itemID, obj, label, parentID) {
