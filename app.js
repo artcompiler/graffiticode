@@ -113,7 +113,7 @@ function decodeID(id) {
   let parts = id.split(" ");
   let ids = [];
   // Concatenate the first two integer ids and the last hash id. Everything
-  // else gets erased.
+  // else gets erased. This is to enable updating the dataID.
   for (let i = 0; i < parts.length; i++) {
     let n;
     if (ids.length > 2) {

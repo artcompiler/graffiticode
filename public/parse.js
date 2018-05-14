@@ -1746,9 +1746,10 @@ window.gcexports.parser = (function () {
   }
 
   function compileCode(ast, postCode) {
+    const gcexports = window.gcexports;
     lastAST = ast;
     ast = JSON.stringify(ast);
-    var src = window.gcexports.editor.getValue();
+    var src = gcexports.editor.getValue();
     // HACK need general support for unicode.
     src = src.replace(/[\u2212]/g, "-");
     ast = ast.replace(/[\u2212]/g, "-");
@@ -1756,11 +1757,11 @@ window.gcexports.parser = (function () {
       type: "PUT",
       url: "/compile",
       data: {
-        "id": postCode ? null : window.gcexports.id,
-        "parent": postCode ? window.gcexports.id : null,
+        "id": postCode ? null : gcexports.id,
+        "parent": postCode ? gcexports.id : null,
         "ast": ast,
-        "type": window.gcexports.lexiconType,
-        "language": window.gcexports.language,
+        "type": gcexports.lexiconType,
+        "language": gcexports.language,
         "src": src,
         "jwt": localStorage.getItem("accessToken"),
         "userID": localStorage.getItem("userID"),
@@ -1772,7 +1773,7 @@ window.gcexports.parser = (function () {
         if (obj.error && obj.error.length) {
           errors = [];
           obj.error.forEach(function (err) {
-            var coord = window.gcexports.coords[err.nid];
+            var coord = gcexports.coords[err.nid];
             if (!coord || !coord.from || !coord.to) {
               coord = {};
               coord.from = CodeMirror.Pos(0, 0);
@@ -1785,39 +1786,40 @@ window.gcexports.parser = (function () {
               severity : "error",
             });
           });
-          window.gcexports.lastErrors = window.gcexports.errors = errors;
-          window.gcexports.editor.performLint();
+          gcexports.lastErrors = gcexports.errors = errors;
+          gcexports.editor.performLint();
         } else if (data.id) {
-          window.gcexports.lastErrors = [];
+          gcexports.lastErrors = [];
           // We have a good id, so use it.
-          let dataIDs = gcexports.decodeID(gcexports.id).slice(2);
           let ids = gcexports.decodeID(data.id);
-          let id = gcexports.encodeID(ids.slice(0,2).concat(dataIDs));
-          window.gcexports.id = id;
-          let location = "/" + window.gcexports.view + "?id=" + id;
-          window.history.pushState(id, window.gcexports.language, location);
+          let codeIDs = ids.slice(0, 2);
+          let dataIDs = gcexports.decodeID(gcexports.id).slice(2);
+          let id = gcexports.encodeID(codeIDs.concat(dataIDs));
+          gcexports.id = id;
+          let location = "/" + gcexports.view + "?id=" + id;
+          window.history.pushState(id, gcexports.language, location);
+          console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
           let state = {};
-          state[window.gcexports.id] = {
+          state[gcexports.id] = {
             id: id,
             src: src,
             ast: ast,
             postCode: postCode,
             errors: errors,
             obj: obj,
-//            data: {}, // Clear state
           };
-          window.gcexports.dispatcher.dispatch(state);
+          gcexports.dispatcher.dispatch(state);
         }
       },
       error: function(xhr, msg, err) {
         console.log("ERROR " + msg + " " + err);
         let state = {};
-        state[window.gcexports.id] = {
+        state[gcexports.id] = {
           status: xhr.status,
           message: msg,
           error: err,
         };
-        window.gcexports.dispatcher.dispatch(state);
+        gcexports.dispatcher.dispatch(state);
       }
     });
   }

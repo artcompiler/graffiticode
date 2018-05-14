@@ -95,9 +95,6 @@ var SourceView = React.createClass({
       code: this.props.codeText,
     };
   },
-  handleKeyDown: function (e) {
-    console.log("handleKeyDown() e=" + e.keyCode);
-  },
   render: function() {
     return (
       <div className="playground">
