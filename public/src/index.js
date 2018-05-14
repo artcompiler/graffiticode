@@ -229,6 +229,14 @@ window.handleViewClick = function (e) {
   dispatch({});
   d3.select(selector).style("display", show ? "block" : "none");
 }
+window.handleOpenClick = function (e) {
+  let url = "/form?id=" + window.gcexports.id;
+  window.open(url);
+}
+window.handleSaveClick = function (e) {
+  let url = "/form?id=" + window.gcexports.id;
+  window.open().document.write(d3.select("#graff-view").html())
+}
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 window.onload = () => {
