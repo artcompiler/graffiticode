@@ -35166,8 +35166,12 @@ var GraffContent = React.createClass({
       view: gcexports.view,
       itemID: itemID
     };
-    if (true || gcexports.view === "item") {
-      window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+    if (gcexports.view === "item") {
+      var ids = gcexports.decodeID(itemID);
+      var codeIDs = ids.slice(0, 2);
+      var dataIDs = ids.slice(2);
+      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(window.gcexports.encodeID(dataIDs)).join("+"));
     }
   },
   componentDidUpdate: function componentDidUpdate() {
@@ -36215,9 +36219,6 @@ var SourceView = React.createClass({
     return {
       code: this.props.codeText
     };
-  },
-  handleKeyDown: function handleKeyDown(e) {
-    console.log("handleKeyDown() e=" + e.keyCode);
   },
   render: function render() {
     return React.createElement(

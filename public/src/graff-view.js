@@ -106,8 +106,12 @@ var GraffContent = React.createClass({
       view: gcexports.view,
       itemID: itemID,
     };
-    if (true || gcexports.view === "item") {
-      window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+    window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
+    if (gcexports.view === "item") {
+      let ids = gcexports.decodeID(itemID);
+      let codeIDs = ids.slice(0, 2);
+      let dataIDs = ids.slice(2);
+      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(window.gcexports.encodeID(dataIDs)).join("+"));
     }
   },
   componentDidUpdate: function() {
