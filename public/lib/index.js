@@ -35590,8 +35590,10 @@ window.handleViewClick = function (e) {
   d3.select(selector).style("display", show ? "block" : "none");
 };
 window.handleOpenClick = function (e) {
-  var url = "/form?id=" + window.gcexports.id;
-  window.open(url);
+  e.preventDefault();
+  var id = window.gcexports.id;
+  var url = "/form?id=" + id;
+  window.open(url, id);
 };
 window.handleSaveClick = function (e) {
   var url = "/form?id=" + window.gcexports.id;
