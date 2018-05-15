@@ -132,7 +132,7 @@ function signOut() {
   d3.select("div#name-feedback").classed("valid-feedback", false).text("");
   d3.select("button#signin").html("SIGN IN");
   d3.select("button#signin").classed("is-signup", false);
-  d3.select("input#passcode-txt")[0][0].value = "";
+  d3.select("input#passcode-txt").node().value = "";
 }
 window.handleSignInBlur = (e) => {
   switch (e.target.id) {
@@ -153,12 +153,12 @@ window.handleSignInBlur = (e) => {
 window.handleSignInClick = (e) => {
   switch (e.target.id) {
   case "signin":
-    let name = d3.select("#name-txt")[0][0].value
-    let number = d3.select("#number-txt")[0][0].value
+    let name = d3.select("input#name-txt").node().value
+    let number = d3.select("input#number-txt").node().value
     signIn(name, number);
     break;
   case "passcode":
-    let passcode = d3.select("#passcode-txt")[0][0].value
+    let passcode = d3.select("input#passcode-txt").node().value
     finishSignIn(passcode);
     break;
   case "retry":
@@ -167,7 +167,7 @@ window.handleSignInClick = (e) => {
     d3.select("button#passcode").classed("btn-success", true);
     d3.select("button#passcode").html("VERIFY");
     d3.select("input#passcode-txt").classed("is-invalid", false);
-    d3.select("#passcode-txt")[0][0].value = "";
+    d3.select("#passcode-txt").node().value = "";
     d3.select("div#passcode-feedback").classed("invalid-feedback", false).text("");
     d3.select("form#passcode").style("display", "none");
     d3.select("form#signin").style("display", "block");
