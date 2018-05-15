@@ -4,6 +4,9 @@ body {
 .navbar button {
   font-size: 80%;
 }
+.navbar a {
+  font-size: 90%;
+}
 .navbar input {
   font-size: 80%;
 }
@@ -19,4 +22,7 @@ body {
   background-color: #5a6268;
   border-color: #545b62;
   box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5);
+}
+.nav-link {
+  padding: 5 0 0 0;
 }
