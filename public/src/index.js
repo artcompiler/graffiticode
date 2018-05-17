@@ -230,8 +230,10 @@ window.handleViewClick = function (e) {
   d3.select(selector).style("display", show ? "block" : "none");
 }
 window.handleOpenClick = function (e) {
-  let url = "/form?id=" + window.gcexports.id;
-  window.open(url);
+  e.preventDefault();
+  let id = window.gcexports.id;
+  let url = "/form?id=" + id;
+  window.open(url, id);
 }
 window.handleSaveClick = function (e) {
   let url = "/form?id=" + window.gcexports.id;
