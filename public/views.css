@@ -2,13 +2,11 @@ body {
   padding-top: 5rem;
 }
 .navbar button {
-  font-size: 80%;
+  font-size: 11;
 }
-.navbar a {
-  font-size: 90%;
-}
+.navbar a,
 .navbar input {
-  font-size: 80%;
+  font-size: 13;
 }
 .btn-outline-secondary:hover {
   color: #6c757d;
