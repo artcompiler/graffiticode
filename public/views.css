@@ -3,6 +3,7 @@ body {
 }
 .navbar button {
   font-size: 11;
+  font-family: "Helvetica Neue", Helvetica;
 }
 .navbar a,
 .navbar input {
