@@ -231,9 +231,21 @@ window.handleViewClick = function (e) {
 }
 window.handleOpenClick = function (e) {
   e.preventDefault();
-  let id = window.gcexports.id;
-  let url = "/form?id=" + id;
-  window.open(url, id);
+  let url, name;
+  let id;
+  switch (e.target.id) {
+  case "open-data":
+    id = gcexports.encodeID(gcexports.decodeID(window.gcexports.id).slice(2));
+    url = "/data?id=" + id;
+    name = "data " + id;
+    break;
+  case "open-form":
+    id = window.gcexports.id;
+    url = "/form?id=" + id;
+    name = "form " + id;
+    break;
+  }
+  window.open(url, name);
 }
 window.handleSaveClick = function (e) {
   let url = "/form?id=" + window.gcexports.id;
@@ -251,14 +263,16 @@ window.onload = () => {
       " is currently unavailable.</div>");
     hideViews = true;
   }
-  let helpID = window.gcexports.helpID || "wwOUmA8wUq";
+  let helpID = window.gcexports.helpID;
   // Restore state of the app.
-  let helpView = hideViews ? false : localStorage.getItem("helpView") === "true";
-  d3.select("button#help-btn").classed("btn-secondary", helpView);
-  d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
-  d3.select("button#help-btn").style("display", "block");
-  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
-  d3.select("div#help-view").style("display", helpView ? "block" : "none");
+  if (helpID) {
+    let helpView = hideViews ? false : localStorage.getItem("helpView") === "true";
+    d3.select("button#help-btn").classed("btn-secondary", helpView);
+    d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
+    d3.select("button#help-btn").style("display", helpID ? "block" : "none");
+    d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
+    d3.select("div#help-view").style("display", helpView ? "block" : "none");
+  }
   let findView = hideViews ? false : localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
   d3.select("button#find-btn").classed("btn-outline-secondary", !findView);

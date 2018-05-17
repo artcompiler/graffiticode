@@ -35590,9 +35590,22 @@ window.handleViewClick = function (e) {
 };
 window.handleOpenClick = function (e) {
   e.preventDefault();
-  var id = window.gcexports.id;
-  var url = "/form?id=" + id;
-  window.open(url, id);
+  var url = void 0,
+      name = void 0;
+  var id = void 0;
+  switch (e.target.id) {
+    case "open-data":
+      id = gcexports.encodeID(gcexports.decodeID(window.gcexports.id).slice(2));
+      url = "/data?id=" + id;
+      name = "data " + id;
+      break;
+    case "open-form":
+      id = window.gcexports.id;
+      url = "/form?id=" + id;
+      name = "form " + id;
+      break;
+  }
+  window.open(url, name);
 };
 window.handleSaveClick = function (e) {
   var url = "/form?id=" + window.gcexports.id;
@@ -35607,14 +35620,16 @@ window.onload = function () {
     d3.select("#alert-view").html("<div class='alert alert-danger' role='alert'>" + window.gcexports.language + " is currently unavailable.</div>");
     hideViews = true;
   }
-  var helpID = window.gcexports.helpID || "wwOUmA8wUq";
+  var helpID = window.gcexports.helpID;
   // Restore state of the app.
-  var helpView = hideViews ? false : localStorage.getItem("helpView") === "true";
-  d3.select("button#help-btn").classed("btn-secondary", helpView);
-  d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
-  d3.select("button#help-btn").style("display", "block");
-  d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
-  d3.select("div#help-view").style("display", helpView ? "block" : "none");
+  if (helpID) {
+    var helpView = hideViews ? false : localStorage.getItem("helpView") === "true";
+    d3.select("button#help-btn").classed("btn-secondary", helpView);
+    d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
+    d3.select("button#help-btn").style("display", helpID ? "block" : "none");
+    d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
+    d3.select("div#help-view").style("display", helpView ? "block" : "none");
+  }
   var findView = hideViews ? false : localStorage.getItem("findView") === "true";
   d3.select("button#find-btn").classed("btn-secondary", findView);
   d3.select("button#find-btn").classed("btn-outline-secondary", !findView);
