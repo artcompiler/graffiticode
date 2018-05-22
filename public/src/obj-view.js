@@ -27,39 +27,19 @@ var CodeMirrorEditor = React.createClass({
         viewportMargin: Infinity,
         extraKeys: {"Ctrl-Space": "autocomplete"},
       });
-      CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
       self = this;
-      window.gcexports.updateObj = (id, obj) => {
+      let updateObj = window.gcexports.updateObj = (id, obj) => {
         if (obj) {
           obj = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
           self.editor.setValue(obj);
         }
       };
-    }
-  },
-  componentDidUpdate: function() {
-    this.editor.setValue(this.props.codeText);
-  },
-  onChange: function (data) {
-    let objectCode = "";
-    let lang = window.gcexports.language;
-    let itemID = window.gcexports.id;
-    if (data[itemID] && data[itemID].obj) {
-      let obj = data[itemID].obj;
-      if (obj.objectCode) {
-        objectCode = JSON.stringify(obj.objectCode, null, 2);
-      } else {
-        objectCode = JSON.stringify(obj, null, 2);
-      }
-      this.editor.setValue(objectCode);
-    } else if (data && !data.error && window.gcexports.viewer.getObjectCode) {
-      objectCode = window.gcexports.viewer.getObjectCode(data.obj);
-      this.editor.setValue(objectCode);
-    }
-  },
-  handleChange: function() {
-    if (!this.props.readOnly) {
-      this.props.onChange && this.props.onChange(this.editor.getValue());
+      let itemID = window.gcexports.id;
+      let dataID = window.gcexports.encodeID(window.gcexports.decodeID(itemID).slice(2));      
+      $.get(location.origin + "/data?id=" + dataID, function (data) {
+        updateObj(dataID, data);
+      });
+
     }
   },
   render: function() {
