@@ -519,6 +519,73 @@ app.get('/form', function(req, res) {
   }
 });
 
+app.get('/snap', function(req, res) {
+  let ids = decodeID(req.query.id);
+  if (ids[1] === 0 && aliases[req.query.id]) {
+    // ID is an invalid ID but a valid alias, so get aliased ID.
+    ids = decodeID(aliases[req.query.id]);
+  }
+  let langID = ids[0] ? ids[0] : 0;
+  let codeID = ids[1] ? ids[1] : 0;
+  if (codeID === 0) {
+    console.log("[1] GET /snap ERROR 404 id=" + req.query.id + " ids=" + ids.join("+"));
+    res.sendStatus(404);
+    return;
+  }
+  if (!/[a-zA-Z]/.test(req.query.id)) {
+    res.redirect("/snap?id=" + encodeID(ids));
+    return;
+  }
+  if (langID !== 0) {
+    let lang = langName(langID);
+    getCompilerVersion(lang, (version) => {
+      res.render('form.html', {
+        title: 'Graffiti Code',
+        language: lang,
+        item: encodeID(ids),
+        view: "snap",
+        version: version,
+        refresh: req.query.refresh,
+      }, function (error, html) {
+        if (error) {
+          console.log("ERROR [1] GET /snap err=" + error);
+          res.sendStatus(400);
+        } else {
+          res.send(html);
+        }
+      });
+    });
+  } else {
+    // Don't have a langID, so get it from the database item.
+    getItem(codeID, function(err, row) {
+      if (!row) {
+        console.log("[2] GET /snap ERROR 404 ");
+        res.sendStatus(404);
+      } else {
+        var lang = row.language;
+        getCompilerVersion(lang, (version) => {
+          langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+          res.render('form.html', {
+            title: 'Graffiti Code',
+            language: lang,
+            item: encodeID(ids),
+            view: "snap",
+            version: version,
+            refresh: req.query.refresh,
+          }, function (error, html) {
+            if (error) {
+              console.log("ERROR [2] GET /snap error=" + error);
+              res.sendStatus(400);
+            } else {
+              res.send(html);
+            }
+          });
+        });
+      }
+    });
+  }
+});
+
 app.get('/data', function(req, res) {
   // If data id is supplied, then recompile with that data.
   let id = req.query.id;

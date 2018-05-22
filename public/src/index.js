@@ -218,8 +218,9 @@ window.handleViewClick = function (e) {
     localStorage.setItem("dataView", show);
     if (show) {
       let itemID = window.gcexports.id;
-      $.get(location.origin + "/data?id=" + itemID, function (data) {
-        window.gcexports.updateObj(itemID, data);
+      let dataID = window.gcexports.encodeID(window.gcexports.decodeID(itemID).slice(2));
+      $.get(location.origin + "/data?id=" + dataID, function (data) {
+        window.gcexports.updateObj(dataID, data);
       });
     }
     break;
@@ -235,7 +236,7 @@ window.handleOpenClick = function (e) {
   let id;
   switch (e.target.id) {
   case "open-data":
-    id = gcexports.encodeID(gcexports.decodeID(window.gcexports.id).slice(2));
+    id = window.gcexports.id;
     url = "/data?id=" + id;
     name = "data " + id;
     break;
@@ -243,6 +244,11 @@ window.handleOpenClick = function (e) {
     id = window.gcexports.id;
     url = "/form?id=" + id;
     name = "form " + id;
+    break;
+  case "open-snap":
+    id = window.gcexports.id;
+    url = "/snap?id=" + id;
+    name = "snap " + id;
     break;
   }
   window.open(url, name);

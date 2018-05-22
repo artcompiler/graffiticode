@@ -35577,8 +35577,9 @@ window.handleViewClick = function (e) {
       localStorage.setItem("dataView", show);
       if (show) {
         var _itemID = window.gcexports.id;
-        $.get(location.origin + "/data?id=" + _itemID, function (data) {
-          window.gcexports.updateObj(_itemID, data);
+        var dataID = window.gcexports.encodeID(window.gcexports.decodeID(_itemID).slice(2));
+        $.get(location.origin + "/data?id=" + dataID, function (data) {
+          window.gcexports.updateObj(dataID, data);
         });
       }
       break;
@@ -35595,7 +35596,7 @@ window.handleOpenClick = function (e) {
   var id = void 0;
   switch (e.target.id) {
     case "open-data":
-      id = gcexports.encodeID(gcexports.decodeID(window.gcexports.id).slice(2));
+      id = window.gcexports.id;
       url = "/data?id=" + id;
       name = "data " + id;
       break;
@@ -35603,6 +35604,11 @@ window.handleOpenClick = function (e) {
       id = window.gcexports.id;
       url = "/form?id=" + id;
       name = "form " + id;
+      break;
+    case "open-snap":
+      id = window.gcexports.id;
+      url = "/snap?id=" + id;
+      name = "snap " + id;
       break;
   }
   window.open(url, name);
@@ -35705,39 +35711,18 @@ var CodeMirrorEditor = React.createClass({
         viewportMargin: Infinity,
         extraKeys: { "Ctrl-Space": "autocomplete" }
       });
-      CodeMirrorEditor.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
       self = this;
-      window.gcexports.updateObj = function (id, obj) {
+      var updateObj = window.gcexports.updateObj = function (id, obj) {
         if (obj) {
           obj = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
           self.editor.setValue(obj);
         }
       };
-    }
-  },
-  componentDidUpdate: function componentDidUpdate() {
-    this.editor.setValue(this.props.codeText);
-  },
-  onChange: function onChange(data) {
-    var objectCode = "";
-    var lang = window.gcexports.language;
-    var itemID = window.gcexports.id;
-    if (data[itemID] && data[itemID].obj) {
-      var obj = data[itemID].obj;
-      if (obj.objectCode) {
-        objectCode = JSON.stringify(obj.objectCode, null, 2);
-      } else {
-        objectCode = JSON.stringify(obj, null, 2);
-      }
-      this.editor.setValue(objectCode);
-    } else if (data && !data.error && window.gcexports.viewer.getObjectCode) {
-      objectCode = window.gcexports.viewer.getObjectCode(data.obj);
-      this.editor.setValue(objectCode);
-    }
-  },
-  handleChange: function handleChange() {
-    if (!this.props.readOnly) {
-      this.props.onChange && this.props.onChange(this.editor.getValue());
+      var itemID = window.gcexports.id;
+      var dataID = window.gcexports.encodeID(window.gcexports.decodeID(itemID).slice(2));
+      $.get(location.origin + "/data?id=" + dataID, function (data) {
+        updateObj(dataID, data);
+      });
     }
   },
   render: function render() {
