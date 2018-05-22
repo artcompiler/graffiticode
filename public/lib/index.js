@@ -35597,7 +35597,6 @@ window.handleOpenClick = function (e) {
   var id = void 0;
   switch (e.target.id) {
     case "open-data":
-      //    id = gcexports.encodeID(gcexports.decodeID(window.gcexports.id).slice(2));
       id = window.gcexports.id;
       url = "/data?id=" + id;
       name = "data " + id;
@@ -35606,6 +35605,11 @@ window.handleOpenClick = function (e) {
       id = window.gcexports.id;
       url = "/form?id=" + id;
       name = "form " + id;
+      break;
+    case "open-snap":
+      id = window.gcexports.id;
+      url = "/snap?id=" + id;
+      name = "snap " + id;
       break;
   }
   window.open(url, name);

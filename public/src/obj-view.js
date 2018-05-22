@@ -39,7 +39,6 @@ var CodeMirrorEditor = React.createClass({
       $.get(location.origin + "/data?id=" + dataID, function (data) {
         updateObj(dataID, data);
       });
-
     }
   },
   render: function() {
