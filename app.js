@@ -856,6 +856,7 @@ function compileID(id, refresh, resume) {
     if (refresh) {
       delCache(id);
     }
+    countView(ids[1]);
     getCache(id, (err, val) => {
       if (val) {
         // Got cached value. We're done.
@@ -910,7 +911,6 @@ function compileID(id, refresh, resume) {
                             updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
                           }
                           resume(null, obj);
-                          countView(ids[1]);
                         }
                       });
                     } else {
