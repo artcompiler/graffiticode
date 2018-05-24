@@ -35593,29 +35593,22 @@ window.handleOpenClick = function (e) {
   e.preventDefault();
   var url = void 0,
       name = void 0;
-  var id = void 0;
+  var id = window.gcexports.id;
   switch (e.target.id) {
     case "open-data":
-      id = window.gcexports.id;
       url = "/data?id=" + id;
-      name = "data " + id;
       break;
     case "open-form":
-      id = window.gcexports.id;
       url = "/form?id=" + id;
-      name = "form " + id;
       break;
     case "open-snap":
-      id = window.gcexports.id;
-      url = "/snap?id=" + id;
-      name = "snap " + id;
+      // url = "/snap?id=" + id;
+      var _win = window.open(url, id);
+      _win.document.write(d3.select("#graff-view").html());
+      _win.document.title = id;
       break;
   }
-  window.open(url, name);
-};
-window.handleSaveClick = function (e) {
-  var url = "/form?id=" + window.gcexports.id;
-  window.open().document.write(d3.select("#graff-view").html());
+  var win = window.open(url, id);
 };
 var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";

@@ -233,29 +233,22 @@ window.handleViewClick = function (e) {
 window.handleOpenClick = function (e) {
   e.preventDefault();
   let url, name;
-  let id;
+  let id = window.gcexports.id;
   switch (e.target.id) {
   case "open-data":
-    id = window.gcexports.id;
     url = "/data?id=" + id;
-    name = "data " + id;
     break;
   case "open-form":
-    id = window.gcexports.id;
     url = "/form?id=" + id;
-    name = "form " + id;
     break;
   case "open-snap":
-    id = window.gcexports.id;
-    url = "/snap?id=" + id;
-    name = "snap " + id;
+    // url = "/snap?id=" + id;
+    let win = window.open(url, id);
+    win.document.write(d3.select("#graff-view").html());
+    win.document.title = id;
     break;
   }
-  window.open(url, name);
-}
-window.handleSaveClick = function (e) {
-  let url = "/form?id=" + window.gcexports.id;
-  window.open().document.write(d3.select("#graff-view").html())
+  let win = window.open(url, id);
 }
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
