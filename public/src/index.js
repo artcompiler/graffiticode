@@ -305,20 +305,17 @@ window.onload = () => {
   }
 };
 function snap() {
-  let node = d3.select('#graff-view').node();
+  let div = d3.select('#graff-view');
+  div.select("svg").style("shape-rendering", "crispEdges");
   // domtoimage.toBlob(node)
   //   .then(function (blob) {
   //     blob = blob;
   //   })
-  domtoimage.toPng(node)
+  domtoimage.toPng(div.node())
     .then(function (dataUrl) {
-      const link = document.createElement('a');
-      link.download = 'image.png';
-      link.href = dataUrl;
-      link.click();
-      // var img = new Image();
-      // img.src = dataUrl;
-      // document.body.appendChild(img);
+      var img = new Image();
+      img.src = dataUrl;
+      document.body.appendChild(img);
     })
   // domtoimage.toJpeg(node)
   //   .then(function (dataUrl) {

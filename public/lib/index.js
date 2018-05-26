@@ -36437,19 +36437,16 @@ window.onload = function () {
   }
 };
 function snap() {
-  var node = d3.select('#graff-view').node();
+  var div = d3.select('#graff-view');
+  div.select("svg").style("shape-rendering", "crispEdges");
   // domtoimage.toBlob(node)
   //   .then(function (blob) {
   //     blob = blob;
   //   })
-  _domToImage2.default.toPng(node).then(function (dataUrl) {
-    var link = document.createElement('a');
-    link.download = 'image.png';
-    link.href = dataUrl;
-    link.click();
-    // var img = new Image();
-    // img.src = dataUrl;
-    // document.body.appendChild(img);
+  _domToImage2.default.toPng(div.node()).then(function (dataUrl) {
+    var img = new Image();
+    img.src = dataUrl;
+    document.body.appendChild(img);
   })
   // domtoimage.toJpeg(node)
   //   .then(function (dataUrl) {
