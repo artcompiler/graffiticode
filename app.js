@@ -350,24 +350,26 @@ const delCache = function (id) {
     cache.del(id);
   }
 };
-const getCache = function (id, resume) {
+const getCache = function (id, type, resume) {
+  let key = id + type;
   let val;
-  if ((val = localCache[id])) {
+  if ((val = localCache[key])) {
     resume(null, val);
   } else if (cache) {
-    cache.get(id, (err, val) => {
-      resume(null, parseJSON(val));
+    cache.get(key, (err, val) => {
+      resume(null, type === "data" ? parseJSON(val) : val);
     });
   } else {
     resume(null, null);
   }
 };
 const dontCache = ["L124"];
-const setCache = function (lang, id, val) {
+const setCache = function (lang, id, type, val) {
   if (!DEBUG && !dontCache.includes(lang)) {
-    localCache[id] = val;
+    let key = id + type;
+    localCache[key] = val;
     if (cache) {
-      cache.set(id, JSON.stringify(val));
+      cache.set(key, type === "data" ? JSON.stringify(val) : val);
     }
   }
 };
@@ -413,7 +415,6 @@ app.get('/lang', function(req, res) {
           let rows = result.rows;
           if (rows.length === 0) {
             getCompilerVersion(lang, (version) => {
-              console.log("GET /lang version=" + version);
               if (version) {
                 var insertStr =
                   "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
@@ -521,24 +522,29 @@ app.get('/form', function(req, res) {
 
 // Update a img.
 app.put('/snap', function (req, res) {
-  let ids = decodeID(req.body.id);
-  let id = ids[1];
+  let id = req.body.id;
+  let ids = decodeID(id);
+  let lang = "L" + langName(ids[0]);
   let img = req.body.img;
-  dbQuery("UPDATE pieces SET img = '" + img + "' WHERE id='" + id + "'", (err, val) => {
-    res.sendStatus(200)
-  });
+  setCache(lang, id, "snap", img);
+  res.sendStatus(200);
+  // dbQuery("UPDATE pieces SET img = '" + img + "' WHERE id='" + id + "'", (err, val) => {
+  //   res.sendStatus(200)
+  // });
 });
 
 app.get('/snap', function (req, res) {
-  let ids = decodeID(req.query.id);
-  let id = ids[1];
-  dbQuery("SELECT img FROM pieces WHERE id = '" + id + "'",  function (err, result) {
-    var img = "";
-    if (result && result.rows.length === 1) {
-      img = result.rows[0].img;
-    }
-    res.send(img)
+  let id = req.query.id;
+  getCache(id, "snap", (err, val) => {
+    res.send(val);
   });
+  // dbQuery("SELECT img FROM pieces WHERE id = '" + id + "'",  function (err, result) {
+  //   var img = "";
+  //   if (result && result.rows.length === 1) {
+  //     img = result.rows[0].img;
+  //   }
+  //   res.send(img)
+  // });
 });
 
 app.get('/data', function(req, res) {
@@ -812,7 +818,7 @@ function compileID(id, refresh, resume) {
       delCache(id);
     }
     countView(ids[1]);
-    getCache(id, (err, val) => {
+    getCache(id, "data", (err, val) => {
       if (val) {
         // Got cached value. We're done.
         resume(err, val);
@@ -834,7 +840,7 @@ function compileID(id, refresh, resume) {
                       } else {
                         try {
                           let obj = JSON.parse(item.obj);
-                          setCache(lang, id, obj);
+                          setCache(lang, id, "data", obj);
                           resume(err, obj);
                         } catch (e) {
                           // Oops. Missing or invalid obj, so need to recompile after all.
@@ -844,7 +850,7 @@ function compileID(id, refresh, resume) {
                             if (err) {
                               resume(err);
                             } else {
-                              setCache(lang, id, obj);
+                              setCache(lang, id, "data", obj);
                               resume(null, obj);
                             }
                           });
@@ -860,7 +866,7 @@ function compileID(id, refresh, resume) {
                         if (err) {
                           resume(err);
                         } else {
-                          setCache(lang, id, obj);
+                          setCache(lang, id, "data", obj);
                           if (ids[2] === 0 && ids.length === 3) {
                             // If this is pure code, then update OBJ.
                             updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
