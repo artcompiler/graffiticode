@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import domtoimage from 'dom-to-image';
 import AlertView from "./alert-view";
 import SourceView from "./src-view";
 import GraffView from "./graff-view";
@@ -77,7 +78,6 @@ function signIn(name, number) {
         case 1004:
           d3.select("input#passcode-txt").classed("is-invalid", true);
           d3.select("div#passcode-feedback").classed("invalid-feedback", true).text(data.err.message);
-          
           return;
         }
       }
@@ -242,13 +242,32 @@ window.handleOpenClick = function (e) {
     url = "/form?id=" + id;
     break;
   case "open-snap":
-    // url = "/snap?id=" + id;
-    let win = window.open(url, id);
-    win.document.write(d3.select("#graff-view").html());
-    win.document.title = id;
-    break;
+    snap();
+    let html = d3.select("#graff-view").html();
+    putSnap(html, (err, val) => {
+      url = "/snap?id=" + id;
+      let win = window.open(url, id);
+    });
+    return;
   }
   let win = window.open(url, id);
+}
+function putSnap(img, resume) {
+  $.ajax({
+    type: "PUT",
+    url: "/snap",
+    data: {
+      id: window.gcexports.id,
+      img: img,
+    },
+    dataType: "text",
+    success: function(data) {
+      resume(null, data);
+    },
+    error: function(xhr, msg, err) {
+      console.log("Unable to submit code. Probably due to a SQL syntax error");
+    }
+  });
 }
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
@@ -301,3 +320,39 @@ window.onload = () => {
     d3.select("form#signin").style("display", "block");
   }
 };
+function snap() {
+  let div = d3.select('#graff-view');
+  div.select("svg").style("shape-rendering", "crispEdges");
+  // domtoimage.toPng(div.node())
+  //   .then(function (dataUrl) {
+  //     var img = new Image();
+  //     img.src = dataUrl;
+  //     document.body.appendChild(img);
+  //   })
+  //   .catch(function (error) {
+  //     console.error('oops, something went wrong!', error);
+  //   });  // Load up our image.
+  // // My SVG file as s string.
+  // var mySVG = "<svg>" + d3.select("#graff-view svg").html() + "</svg>";
+  // // Create a Data URI.
+  // // Load up our image.
+  // // Set up our canvas on the page before doing anything.
+  // var old = document.getElementById('graff-view').children[0];
+  // var myCanvas = document.createElement('canvas');
+  // var bbox = $("#graff-view svg g")[0].getBBox();
+  // myCanvas.height = bbox.height + 12;
+  // myCanvas.width = bbox.width + 40;
+  // document.getElementById('graff-view').replaceChild(myCanvas, old);
+  // // Get drawing context for the Canvas
+  // var myCanvasContext = myCanvas.getContext('2d');
+  // // Load up our image.
+  // // Render our SVG image to the canvas once it loads.
+  // var source = new Image();
+  // source.src = "data:image/svg+xml;base64," + window.btoa(mySVG);
+  // myCanvasContext.drawImage(source,0,0);
+  // var dataURL = myCanvas.toDataURL();
+  // document.getElementById('graff-view').replaceChild(old, myCanvas);
+  // let win = window.open();
+  // // win.document.write("<svg>" + d3.select("#graff-view svg").html() + "</svg>");
+  // win.document.write('<html><img src="' + dataURL + '"/></html>');
+}
