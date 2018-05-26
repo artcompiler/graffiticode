@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import domtoimage from 'dom-to-image';
 import AlertView from "./alert-view";
 import SourceView from "./src-view";
 import GraffView from "./graff-view";
@@ -242,11 +243,13 @@ window.handleOpenClick = function (e) {
     url = "/form?id=" + id;
     break;
   case "open-snap":
-    // url = "/snap?id=" + id;
-    let win = window.open(url, id);
-    win.document.write(d3.select("#graff-view").html());
-    win.document.title = id;
-    break;
+    snap();
+    // // url = "/snap?id=" + id;
+    // let win = window.open(url, id);
+    // win.document.write("<svg>" + d3.select("#graff-view svg").html() + "</svg>");
+    // win.document.title = id;
+    // break;
+    return;
   }
   let win = window.open(url, id);
 }
@@ -301,3 +304,54 @@ window.onload = () => {
     d3.select("form#signin").style("display", "block");
   }
 };
+function snap() {
+  let node = d3.select('#graff-view').node();
+  // domtoimage.toBlob(node)
+  //   .then(function (blob) {
+  //     blob = blob;
+  //   })
+  domtoimage.toPng(node)
+    .then(function (dataUrl) {
+      const link = document.createElement('a');
+      link.download = 'image.png';
+      link.href = dataUrl;
+      link.click();
+      // var img = new Image();
+      // img.src = dataUrl;
+      // document.body.appendChild(img);
+    })
+  // domtoimage.toJpeg(node)
+  //   .then(function (dataUrl) {
+  //       var link = document.createElement('a');
+  //       link.download = 'my-image-name.jpeg';
+  //       link.href = dataUrl;
+  //       link.click();
+  //   })
+    .catch(function (error) {
+      console.error('oops, something went wrong!', error);
+    });  // Load up our image.
+  
+    // // My SVG file as s string.
+    // var mySVG = "<svg>" + d3.select("#graff-view svg").html() + "</svg>";
+    // // Create a Data URI.
+    // // Load up our image.
+    // // Set up our canvas on the page before doing anything.
+    // var old = document.getElementById('graff-view').children[0];
+    // var myCanvas = document.createElement('canvas');
+    // var bbox = $("#graff-view svg g")[0].getBBox();
+    // myCanvas.height = bbox.height + 12;
+    // myCanvas.width = bbox.width + 40;
+    // document.getElementById('graff-view').replaceChild(myCanvas, old);
+    // // Get drawing context for the Canvas
+    // var myCanvasContext = myCanvas.getContext('2d');
+    // // Load up our image.
+    // // Render our SVG image to the canvas once it loads.
+    // var source = new Image();
+    // source.src = "data:image/svg+xml;base64," + window.btoa(mySVG);
+    // myCanvasContext.drawImage(source,0,0);
+    // var dataURL = myCanvas.toDataURL();
+    // document.getElementById('graff-view').replaceChild(old, myCanvas);
+    // let win = window.open();
+    // // win.document.write("<svg>" + d3.select("#graff-view svg").html() + "</svg>");
+    // win.document.write('<html><img src="' + dataURL + '"/></html>');
+}

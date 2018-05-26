@@ -297,6 +297,16 @@ app.put('/label', function (req, res) {
   res.sendStatus(200)
 });
 
+// Update a img.
+app.put('/snap', function (req, res) {
+  let ids = decodeID(req.body.id);
+  let itemID = ids[1];
+  var image = req.body.image;
+  dbQuery("UPDATE pieces SET img = '" + image + "' WHERE id = '" + itemID + "'", (err, val) => {
+  });
+  res.sendStatus(200)
+});
+
 const dbQuery = function(query, resume) {
   let conString = getConStr(0);
   // Query Helper -- https://github.com/brianc/node-postgres/issues/382
