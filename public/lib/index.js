@@ -36212,7 +36212,6 @@ function signIn(name, number) {
           case 1004:
             d3.select("input#passcode-txt").classed("is-invalid", true);
             d3.select("div#passcode-feedback").classed("invalid-feedback", true).text(data.err.message);
-
             return;
         }
       }
@@ -36379,15 +36378,32 @@ window.handleOpenClick = function (e) {
       break;
     case "open-snap":
       snap();
-      // // url = "/snap?id=" + id;
-      // let win = window.open(url, id);
-      // win.document.write("<svg>" + d3.select("#graff-view svg").html() + "</svg>");
-      // win.document.title = id;
-      // break;
+      var html = d3.select("#graff-view").html();
+      putSnap(html, function (err, val) {
+        url = "/snap?id=" + id;
+        var win = window.open(url, id);
+      });
       return;
   }
   var win = window.open(url, id);
 };
+function putSnap(img, resume) {
+  $.ajax({
+    type: "PUT",
+    url: "/snap",
+    data: {
+      id: window.gcexports.id,
+      img: img
+    },
+    dataType: "text",
+    success: function success(data) {
+      resume(null, data);
+    },
+    error: function error(xhr, msg, err) {
+      console.log("Unable to submit code. Probably due to a SQL syntax error");
+    }
+  });
+}
 var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";
 window.onload = function () {
@@ -36439,26 +36455,15 @@ window.onload = function () {
 function snap() {
   var div = d3.select('#graff-view');
   div.select("svg").style("shape-rendering", "crispEdges");
-  // domtoimage.toBlob(node)
-  //   .then(function (blob) {
-  //     blob = blob;
-  //   })
-  _domToImage2.default.toPng(div.node()).then(function (dataUrl) {
-    var img = new Image();
-    img.src = dataUrl;
-    document.body.appendChild(img);
-  })
-  // domtoimage.toJpeg(node)
+  // domtoimage.toPng(div.node())
   //   .then(function (dataUrl) {
-  //       var link = document.createElement('a');
-  //       link.download = 'my-image-name.jpeg';
-  //       link.href = dataUrl;
-  //       link.click();
+  //     var img = new Image();
+  //     img.src = dataUrl;
+  //     document.body.appendChild(img);
   //   })
-  .catch(function (error) {
-    console.error('oops, something went wrong!', error);
-  }); // Load up our image.
-
+  //   .catch(function (error) {
+  //     console.error('oops, something went wrong!', error);
+  //   });  // Load up our image.
   // // My SVG file as s string.
   // var mySVG = "<svg>" + d3.select("#graff-view svg").html() + "</svg>";
   // // Create a Data URI.
