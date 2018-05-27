@@ -196,84 +196,6 @@ app.get("/", (req, res) => {
 
 const aliases = {};
 
-app.get('/item', function(req, res) {
-  const hasEditingRights = true;   // Compute based on authorization.
-  if (req.query.alias) {
-    aliases[req.query.alias] = req.query.id;
-  }
-  if (hasEditingRights) {
-    let ids = decodeID(req.query.id);
-    if (ids[1] === 0 && aliases[req.query.id]) {
-      // ID is an invalid ID but a valid alias, so get aliased ID.
-      ids = decodeID(aliases[req.query.id]);
-    }
-    let langID = ids[0];
-    let codeID = ids[1];
-    if (+langID !== 0) {
-      let lang = langName(langID);
-      getCompilerVersion(lang, (version) => {
-        res.render('views.html', {
-          title: 'Graffiti Code',
-          language: lang,
-          item: encodeID(ids),
-          view: "item",
-          version: version,
-          refresh: req.query.refresh,
-          archive: req.query.archive,
-          showdata: req.query.data,
-        }, function (error, html) {
-          if (error) {
-            console.log("ERROR [1] GET /item err=" + error);
-            res.sendStatus(400);
-          } else {
-            res.send(html);
-          }
-        });
-      });
-    } else {
-      getItem(codeID, (err, row) => {
-        if (err && err.length) {
-          console.log("[1] GET /item ERROR 404 ");
-          res.sendStatus(404);
-        } else {
-          var rows;
-          var lang = row.language;
-          getCompilerVersion(lang, (version) => {
-            langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
-            res.render('views.html', {
-              title: 'Graffiti Code',
-              language: lang,
-              item: encodeID(ids),
-              view: "item",
-              version: version,
-              refresh: req.query.refresh,
-              archive: req.query.archive,
-              showdata: req.query.data,
-            }, function (error, html) {
-              if (error) {
-                console.log("ERROR [2] GET /item err=" + error);
-                res.sendStatus(400);
-              } else {
-                res.send(html);
-              }
-            });
-          });
-        }
-      });
-    }
-  } else {
-    // Redirect to form view.
-    let protocol;
-    if (req.headers.host.match(/^localhost/) === null) {
-      protocol = "https://";
-    } else {
-      protocol = "http://";
-    }
-    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
-    res.redirect(url);
-  }
-});
-
 // Get a label
 app.get('/label', function (req, res) {
   let ids = decodeID(req.query.id);
@@ -454,20 +376,106 @@ app.get('/lang', function(req, res) {
   });
 });
 
-app.get('/form', function(req, res) {
-  let ids = decodeID(req.query.id);
-  if (ids[1] === 0 && aliases[req.query.id]) {
+const sendItem = (id, req, res) => {
+  const hasEditingRights = true;   // Compute based on authorization.
+  if (req.query.alias) {
+    aliases[req.query.alias] = id;
+  }
+  if (hasEditingRights) {
+    let ids = decodeID(id);
+    if (ids[1] === 0 && aliases[id]) {
+      // ID is an invalid ID but a valid alias, so get aliased ID.
+      ids = decodeID(aliases[id]);
+    }
+    let langID = ids[0];
+    let codeID = ids[1];
+    if (+langID !== 0) {
+      let lang = langName(langID);
+      getCompilerVersion(lang, (version) => {
+        res.render('views.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          item: encodeID(ids),
+          view: "item",
+          version: version,
+          refresh: req.query.refresh,
+          archive: req.query.archive,
+          showdata: req.query.data,
+        }, function (error, html) {
+          if (error) {
+            console.log("ERROR [1] GET /item err=" + error);
+            res.sendStatus(400);
+          } else {
+            res.send(html);
+          }
+        });
+      });
+    } else {
+      getItem(codeID, (err, row) => {
+        if (err && err.length) {
+          console.log("[1] GET /item ERROR 404 ");
+          res.sendStatus(404);
+        } else {
+          var rows;
+          var lang = row.language;
+          getCompilerVersion(lang, (version) => {
+            langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+            res.render('views.html', {
+              title: 'Graffiti Code',
+              language: lang,
+              item: encodeID(ids),
+              view: "item",
+              version: version,
+              refresh: req.query.refresh,
+              archive: req.query.archive,
+              showdata: req.query.data,
+            }, function (error, html) {
+              if (error) {
+                console.log("ERROR [2] GET /item err=" + error);
+                res.sendStatus(400);
+              } else {
+                res.send(html);
+              }
+            });
+          });
+        }
+      });
+    }
+  } else {
+    // Redirect to form view.
+    let protocol;
+    if (req.headers.host.match(/^localhost/) === null) {
+      protocol = "https://";
+    } else {
+      protocol = "http://";
+    }
+    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
+    res.redirect(url);
+  }
+};
+
+app.get("/item", function (req, res) {
+  sendItem(req.query.id, req, res);
+});
+
+// app.get("/i/:id", function (req, res) {
+//   sendItem(req.params.id, req, res);
+// });
+
+const sendForm = (id, req, res) => {
+  let ids = decodeID(id);
+  if (ids[1] === 0 && aliases[id]) {
     // ID is an invalid ID but a valid alias, so get aliased ID.
-    ids = decodeID(aliases[req.query.id]);
+    ids = decodeID(aliases[id]);
   }
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   if (codeID === 0) {
-    console.log("[1] GET /form ERROR 404 id=" + req.query.id + " ids=" + ids.join("+"));
+    console.log("[1] GET /form ERROR 404 id=" + id + " ids=" + ids.join("+"));
     res.sendStatus(404);
     return;
   }
-  if (!/[a-zA-Z]/.test(req.query.id)) {
+  if (!/[a-zA-Z]/.test(id)) {
     res.redirect("/form?id=" + encodeID(ids));
     return;
   }
@@ -519,9 +527,17 @@ app.get('/form', function(req, res) {
       }
     });
   }
+};
+
+app.get("/form", function (req, res) {
+  sendForm(req.query.id, req, res);
 });
 
-// Update a img.
+// app.get("/f/:id", function (req, res) {
+//   sendForm(req.params.id, req, res);
+// });
+
+// Update a snap image.
 app.put('/snap', function (req, res) {
   let id = req.body.id;
   let ids = decodeID(id);
@@ -534,23 +550,21 @@ app.put('/snap', function (req, res) {
   // });
 });
 
-app.get('/snap', function (req, res) {
-  let id = req.query.id;
+const sendSnap = (id, req, res) => {
   getCache(id, "snap", (err, val) => {
     res.send(val);
   });
-  // dbQuery("SELECT img FROM pieces WHERE id = '" + id + "'",  function (err, result) {
-  //   var img = "";
-  //   if (result && result.rows.length === 1) {
-  //     img = result.rows[0].img;
-  //   }
-  //   res.send(img)
-  // });
+};
+
+app.get("/snap", function (req, res) {
+  sendSnap(req.query.id, req, res);
 });
 
-app.get('/data', function(req, res) {
-  // If data id is supplied, then recompile with that data.
-  let id = req.query.id;
+app.get("/s/:id", function (req, res) {
+  sendSnap(req.params.id, req, res);
+});
+
+const sendData = (id, req, res) => {
   let ids = decodeID(id);
   let refresh = !!req.query.refresh;
   let t0 = new Date;
@@ -564,11 +578,19 @@ app.get('/data', function(req, res) {
       res.json(obj);
     }
   });
+};
+
+app.get("/data", (req, res) => {
+  sendData(req.query.id, req, res);
 });
 
-app.get('/code', (req, res) => {
-  // Get the source code for an item.
-  var ids = decodeID(req.query.id);
+app.get("/d/:id", (req, res) => {
+  sendData(req.params.id, req, res);
+});
+
+const sendCode = (id, req, res) => {
+  // Send the source code for an item.
+  var ids = decodeID(id);
   var langID = ids[0];
   var codeID = ids[1];
   getItem(codeID, (err, row) => {
@@ -583,6 +605,14 @@ app.get('/code', (req, res) => {
       });
     }
   });
+};
+
+app.get('/code', (req, res) => {
+  sendCode(req.query.id, req, res);
+});
+
+app.get("/c/:id", (req, res) => {
+  sendCode(req.params.id, req, res);
 });
 
 let compilerVersions = {};
