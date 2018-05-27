@@ -55,10 +55,11 @@ let protocol = http; // Default. Set to http if localhost.
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
-    if (req.headers.host.match(/^www/) === null) {
-      console.log("app.all redirecting headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
-      res.redirect('https://www.'+ req.headers.host + req.url);
-    } else if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
+    // if (req.headers.host.match(/^www/) === null) {
+    //   console.log("app.all redirecting headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
+    //   res.redirect('https://www.'+ req.headers.host + req.url);
+    // } else
+    if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
       console.log("app.all redirecting headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
       res.redirect(['https://', req.headers.host, req.url].join(''));
     } else {
