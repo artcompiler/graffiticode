@@ -26,6 +26,9 @@ var redis = require('redis');
 var cache = undefined; //redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
+var d3 = require('d3');
+var jsdom = require('jsdom');
+
 
 // Configuration
 

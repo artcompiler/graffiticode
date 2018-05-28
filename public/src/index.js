@@ -236,7 +236,7 @@ window.handleOpenClick = function (e) {
   let id = window.gcexports.id;
   switch (e.target.id) {
   case "open-data":
-    url = "/data?id=" + id;
+    url = "/d/" + id;
     break;
   case "open-form":
     url = "/form?id=" + id;
@@ -245,7 +245,7 @@ window.handleOpenClick = function (e) {
     snap();
     let html = d3.select("#graff-view").html();
     putSnap(html, (err, val) => {
-      url = "/snap?id=" + id;
+      url = "/s/" + id;
       let win = window.open(url, id);
     });
     return;
