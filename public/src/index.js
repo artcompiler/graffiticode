@@ -245,7 +245,7 @@ window.handleOpenClick = function (e) {
     snap();
     let html = d3.select("#graff-view").html();
     putSnap(html, (err, val) => {
-      url = "/s/" + id;
+      url = "https://acx.ac/s/" + id;
       let win = window.open(url, id);
     });
     return;
