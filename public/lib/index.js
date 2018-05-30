@@ -36453,7 +36453,7 @@ window.onload = function () {
 };
 function snap() {
   var div = d3.select('#graff-view');
-  div.select("svg").style("shape-rendering", "crispEdges");
+  div.select("svg").style("shape-rendering", "auto");
   // domtoimage.toPng(div.node())
   //   .then(function (dataUrl) {
   //     var img = new Image();
