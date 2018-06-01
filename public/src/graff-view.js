@@ -93,14 +93,15 @@ var GraffContent = React.createClass({
     }
   },
   componentDidMount: function() {
-    GraffView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
-    let itemID = window.gcexports.id;
+    let gcexports = window.gcexports;
+    GraffView.dispatchToken = gcexports.dispatcher.register(this.onChange);
+    let itemID = gcexports.id;
     if (!itemID) {
       // Wait for valid id.
       return;
     }
     this.compileCode(itemID);
-    let language = window.gcexports.language;
+    let language = gcexports.language;
     let history = {
       language: language,
       view: gcexports.view,
@@ -111,7 +112,7 @@ var GraffContent = React.createClass({
       let ids = gcexports.decodeID(itemID);
       let codeIDs = ids.slice(0, 2);
       let dataIDs = ids.slice(2);
-      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(window.gcexports.encodeID(dataIDs)).join("+"));
+      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
     }
   },
   componentDidUpdate: function() {
@@ -140,6 +141,7 @@ var GraffContent = React.createClass({
         // Got an itemID with data that is not in memory.
         this.compileCode(itemID);
       }
+      gcexports.doneLoading = true;
     }
   },
   postData: function postData(itemID, obj, label, parentID) {
@@ -282,6 +284,7 @@ var GraffContent = React.createClass({
 });
 var GraffView = React.createClass({
   render: function() {
+    gcexports.onDidUpdate && gcexports.onDidUpdate();
     return (
       <GraffContent className="graffContentStage" />
     );
