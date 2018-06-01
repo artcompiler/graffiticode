@@ -1,6 +1,5 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import domtoimage from 'dom-to-image';
 import AlertView from "./alert-view";
 import SourceView from "./src-view";
 import GraffView from "./graff-view";
@@ -323,15 +322,6 @@ window.onload = () => {
 function snap() {
   let div = d3.select('#graff-view');
   div.select("svg").style("shape-rendering", "auto");
-  // domtoimage.toPng(div.node())
-  //   .then(function (dataUrl) {
-  //     var img = new Image();
-  //     img.src = dataUrl;
-  //     document.body.appendChild(img);
-  //   })
-  //   .catch(function (error) {
-  //     console.error('oops, something went wrong!', error);
-  //   });  // Load up our image.
   // // My SVG file as s string.
   // var mySVG = "<svg>" + d3.select("#graff-view svg").html() + "</svg>";
   // // Create a Data URI.

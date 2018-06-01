@@ -27,7 +27,8 @@ var cache = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 // var d3 = require('d3');
-// var jsdom = require('jsdom');
+var jsdom = require('jsdom');
+var { JSDOM } = jsdom;
 
 // Configuration
 
@@ -552,51 +553,53 @@ app.put('/snap', function (req, res) {
   // });
 });
 
-// const makeSnap = () => {
-//   jsdom.env({
-//     html:'',
-//     features:{ QuerySelector:true }, //you need query selector for D3 to work
-//     done:function(errors, window){
-//       window.d3 = d3.select(window.document); //get d3 into the dom
-//       //do yr normal d3 stuff
-//       var svg = window.d3.select('body')
-// 	.append('div').attr('class','container') //make a container div to ease the saving process
-// 	.append('svg')
-// 	.attr({
-// 	  xmlns:'http://www.w3.org/2000/svg',
-// 	  width:chartWidth,
-// 	  height:chartHeight
-// 	})
-// 	.append('g')
-// 	.attr('transform','translate(' + chartWidth/2 + ',' + chartWidth/2 + ')');
-
-//       svg.selectAll('.arc')
-// 	.data( d3.layout.pie()(pieData) )
-// 	.enter()
-// 	.append('path')
-// 	.attr({
-// 	  'class':'arc',
-// 	  'd':arc,
-// 	  'fill':function(d,i){
-// 	    return colours[i];
-// 	  },
-// 	  'stroke':'#fff'
-// 	});
-      
-//       //write out the children of the container div
-//       fs.writeFileSync(outputLocation, window.d3.select('.container').html()) //using sync to keep the code simple
-      
-//     }
-//   });
-// };
-
-// if (require.main === module) {
-//     module.exports();
-// }};
+const makeSnap = (id, resume) => {
+  let t0 = new Date;
+  let options = {
+    includeNodeLocations: true,
+    runScripts: "dangerously",
+    pretendToBeVisual: true,
+    resources: "usable",
+  };
+  JSDOM.fromURL("https://www.artcompiler.com/form?id=" + id, options).then(dom => {
+    let window = dom.window;
+    let interval = setInterval(() => {
+      let svg = window.document.querySelector("svg");
+      let td = new Date - t0;
+      if (td > 10000) {
+        clearInterval(interval);
+        console.log("Aborting. Page taking too long to load.");
+      }
+      if (svg) {
+        console.log("Snap scraped in " + td + "ms");
+        let graffView = window.document.querySelector("#graff-view");
+        let img = graffView.outerHTML;
+        let ids = decodeID(id);
+        let lang = "L" + langName(ids[0]);
+        setCache(lang, id, "snap", img);
+        resume(null, img);
+        clearInterval(interval);
+      }
+    }, 100);
+  });
+}
 
 const sendSnap = (id, req, res) => {
+  let t0 = new Date;
   getCache(id, "snap", (err, val) => {
-    res.send(val);
+    let refresh = !!req.query.refresh;
+    let ids = decodeID(id);
+    if (val) {
+      res.send(val);
+      console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
+                  (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
+    } else {
+      makeSnap(id, (err, val) => {
+        res.send(val);
+        console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
+                    (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
+      });
+    }
   });
 };
 
