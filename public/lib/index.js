@@ -35605,7 +35605,6 @@ window.handleOpenClick = function (e) {
       url = "/form?id=" + id;
       break;
     case "open-snap":
-      snap();
       var html = d3.select("#graff-view").html();
       putSnap(html, function (err, val) {
         url = "https://acx.ac/s/" + id;
@@ -35680,33 +35679,6 @@ window.onload = function () {
     d3.select("form#signin").style("display", "block");
   }
 };
-function snap() {
-  var div = d3.select('#graff-view');
-  div.select("svg").style("shape-rendering", "auto");
-  // // My SVG file as s string.
-  // var mySVG = "<svg>" + d3.select("#graff-view svg").html() + "</svg>";
-  // // Create a Data URI.
-  // // Load up our image.
-  // // Set up our canvas on the page before doing anything.
-  // var old = document.getElementById('graff-view').children[0];
-  // var myCanvas = document.createElement('canvas');
-  // var bbox = $("#graff-view svg g")[0].getBBox();
-  // myCanvas.height = bbox.height + 12;
-  // myCanvas.width = bbox.width + 40;
-  // document.getElementById('graff-view').replaceChild(myCanvas, old);
-  // // Get drawing context for the Canvas
-  // var myCanvasContext = myCanvas.getContext('2d');
-  // // Load up our image.
-  // // Render our SVG image to the canvas once it loads.
-  // var source = new Image();
-  // source.src = "data:image/svg+xml;base64," + window.btoa(mySVG);
-  // myCanvasContext.drawImage(source,0,0);
-  // var dataURL = myCanvas.toDataURL();
-  // document.getElementById('graff-view').replaceChild(old, myCanvas);
-  // let win = window.open();
-  // // win.document.write("<svg>" + d3.select("#graff-view svg").html() + "</svg>");
-  // win.document.write('<html><img src="' + dataURL + '"/></html>');
-}
 
 },{"./Dispatcher":198,"./alert-view":199,"./archive-view":200,"./graff-view":201,"./obj-view":203,"./src-view":205,"react":195,"react-dom":66}],203:[function(require,module,exports){
 "use strict";
