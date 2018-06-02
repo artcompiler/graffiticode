@@ -548,9 +548,6 @@ app.put('/snap', function (req, res) {
   let img = req.body.img;
   setCache(lang, id, "snap", img);
   res.sendStatus(200);
-  // dbQuery("UPDATE pieces SET img = '" + img + "' WHERE id='" + id + "'", (err, val) => {
-  //   res.sendStatus(200)
-  // });
 });
 
 const makeSnap = (id, resume) => {
