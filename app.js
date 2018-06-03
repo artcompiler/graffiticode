@@ -558,17 +558,20 @@ const makeSnap = (id, resume) => {
     pretendToBeVisual: true,
     resources: "usable",
   };
-  JSDOM.fromURL("https://www.artcompiler.com/form?id=" + id, options).then(dom => {
+  JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
     let window = dom.window;
     let interval = setInterval(() => {
-      let svg = window.document.querySelector("svg");
+      // let graffView = window.document.querySelector("#graff-view");
+      // console.log("makeSnap() graffView=" + graffView.outerHTML);
+      // TODO need a more robust way to detect loading.
+      let isLoaded = window.document.querySelector("#graff-view link") ||
+                     window.document.querySelector("#graff-view svg");
       let td = new Date - t0;
       if (td > 10000) {
         clearInterval(interval);
         console.log("Aborting. Page taking too long to load.");
       }
-      if (svg) {
-        console.log("Snap scraped in " + td + "ms");
+      if (isLoaded) {
         let graffView = window.document.querySelector("#graff-view");
         let img = graffView.outerHTML;
         let ids = decodeID(id);
@@ -576,6 +579,7 @@ const makeSnap = (id, resume) => {
         setCache(lang, id, "snap", img);
         resume(null, img);
         clearInterval(interval);
+        console.log("Snap scraped in " + td + "ms");
       }
     }, 100);
   });
