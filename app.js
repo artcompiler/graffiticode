@@ -10,7 +10,6 @@ function assert(b, str) {
     throw new Error(str);
   }
 }
-
 var express = require('express');
 var _ = require('underscore');
 var fs = require('fs');
@@ -26,9 +25,7 @@ var redis = require('redis');
 var cache = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
-// var d3 = require('d3');
-var jsdom = require('jsdom');
-var { JSDOM } = jsdom;
+const atob = require("atob");
 
 // Configuration
 
@@ -551,47 +548,91 @@ app.put('/snap', function (req, res) {
 });
 
 const makeSnap = (id, resume) => {
+  var jsdom = require("./jsdom");
+  var { JSDOM } = jsdom;
   let t0 = new Date;
   let options = {
-    includeNodeLocations: true,
     runScripts: "dangerously",
     pretendToBeVisual: true,
     resources: "usable",
   };
-  JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
+
+  // request("http://localhost:3000/form?id=" + id, function (error, response, body) {
+  //   console.log('error:', error);
+  //   console.log('statusCode:', response && response.statusCode);
+  //   console.log('body:', body);
+  //   let dom = new JSDOM(body, options);
+  JSDOM.fromURL("http://localhost:3000/form?id=" + id, options).then(dom => {
     let window = dom.window;
-    let interval = setInterval(() => {
-      // let graffView = window.document.querySelector("#graff-view");
-      // console.log("makeSnap() graffView=" + graffView.outerHTML);
-      // TODO need a more robust way to detect loading.
-      let isLoaded = window.document.querySelector("#graff-view link") ||
-                     window.document.querySelector("#graff-view svg");
+    const checkLoaded = (t0) => {
       let td = new Date - t0;
       if (td > 10000) {
-        clearInterval(interval);
         console.log("Aborting. Page taking too long to load.");
+        return;
       }
+      let graffView = window.document.querySelector("#graff-view");
+      let isLoaded = window.document.querySelector("#graff-view .done-rendering");
       if (isLoaded) {
         let graffView = window.document.querySelector("#graff-view");
         let img = graffView.outerHTML;
         let ids = decodeID(id);
         let lang = "L" + langName(ids[0]);
         setCache(lang, id, "snap", img);
+        window.close();
         resume(null, img);
-        clearInterval(interval);
         console.log("Snap scraped in " + td + "ms");
+      } else {
+        window.setTimeout(() => {
+          checkLoaded(t0);
+        }, 100);
       }
-    }, 100);
+    };
+    checkLoaded(t0);
   });
-}
+//  JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
+  // JSDOM.fromURL("http://localhost:3000/form?id=" + id, options).then(dom => {
+  //   let window = dom.window;
+  //   let interval = window.setInterval(() => {
+  //     let td = new Date - t0;
+  //     if (td > 10000) {
+  //       window.clearInterval(interval);
+  //       console.log("Aborting. Page taking too long to load.");
+  //     }
+  //     let graffView = window.document.querySelector("#graff-view");
+  //     console.log("makeSnap() graffView=" + (graffView && graffView.outerHTML));
+  //     // TODO need a more robust way to detect loading.
+  //     let isLoaded =
+  //       //        window.document.querySelector("#graff-view link") ||
+  //       window.document.querySelector("#graff-view svg");
+  //     if (isLoaded) {
+  //       let graffView = window.document.querySelector("#graff-view");
+  //       let img = graffView.outerHTML;
+  //       let ids = decodeID(id);
+  //       let lang = "L" + langName(ids[0]);
+  //       setCache(lang, id, "snap", img);
+  //       window.clearInterval(interval);
+  //       window.close();;
+  //       resume(null, img);
+  //       console.log("Snap scraped in " + td + "ms");
+  //     }
+  //   }, 100);
+  // });
+};
 
-const sendSnap = (id, req, res) => {
+const sendSnap = (id, fmt, req, res) => {
   let t0 = new Date;
-  getCache(id, "snap", (err, val) => {
+  let type = fmt.toLowerCase() === "png" ? "snap-base64-png" : "snap";
+  getCache(id, type, (err, val) => {
     let refresh = !!req.query.refresh;
     let ids = decodeID(id);
     if (val) {
-      res.send(val);
+      if (fmt === "PNG") {
+        let img = atob(val);
+        res.writeHead(200, {'Content-Type': 'image/png' });
+        res.end(img, 'binary');
+      } else {
+        res.send(val);
+      }
       console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
     } else {
@@ -605,11 +646,15 @@ const sendSnap = (id, req, res) => {
 };
 
 app.get("/snap", function (req, res) {
-  sendSnap(req.query.id, req, res);
+  let id = req.query.id;
+  let fmt = req.query.fmt;
+  sendSnap(id, fmt, req, res);
 });
 
 app.get("/s/:id", function (req, res) {
-  sendSnap(req.params.id, req, res);
+  let id = req.params.id;
+  let fmt = req.query.fmt;
+  sendSnap(id, fmt, req, res);
 });
 
 const sendData = (id, req, res) => {
@@ -1066,6 +1111,53 @@ const recompileItems = (items, parseOnly) => {
   });
 };
 
+const batchScrape = (ids, count) => {
+  const phantom = require('phantom');
+  count = count || 1;
+  // For each datum, get the dataID and concat with id.
+  if (ids.length > 0) {
+    let t0 = new Date;
+    let id = ids.pop();
+    (async function() {
+      const instance = await phantom.create();
+      const page = await instance.createPage();
+      const status = await page.open("https://acx.ac/s/" + id);
+      const size = await page.property('viewportSize');
+      const html = await page.property('content');
+      await page.property("clipRect", {
+        top: 7,
+        left: 9,
+        width: 144,
+        height: 30,
+      });
+//      await page.property("zoomFactor", 4);
+      var base64 = await page.renderBase64('PNG');
+      setCache(null, id, "snap-base64-png", base64)
+      await instance.exit();
+      console.log(id + " scaped in " + (new Date - t0) + "ms");
+      batchScrape(ids, count + 1);
+    }());
+  }
+};
+const batchCompile = (codeID, data, count) => {
+  count = count || 1;
+  // For each datum, get the dataID and concat with id.
+  if (data.length > 0) {
+    let d = data.pop();
+    putData(d, (err, dataID) => {
+      let codeIDs = decodeID(codeID);
+      let dataIDs = decodeID(dataID);
+      let id = encodeID(codeIDs.slice(0,2).concat(dataIDs));
+      compileID(id, true, (err, obj) => {
+        console.log("row [one-column cspan \"" + count +
+                    "\", three-columns height 100 snap \"" + id +
+                    "\", eight-columns cspan \"" + d.business_uid + "\"],");
+      });
+      batchCompile(codeID, data, count + 1);
+    });
+  }
+};
+
 app.put('/compile', function (req, res) {
   // This end point is hit when code is edited. If the code already exists for
   // the current user, then recompile it and update the OBJ. If it doesn't exist
@@ -1167,13 +1259,69 @@ app.put('/compile', function (req, res) {
   });
 });
 
+const putData = (data, resume) => {
+  let t0 = new Date;
+  let rawSrc = JSON.stringify(data) + "..";
+  let src = cleanAndTrimSrc(rawSrc);
+  let obj = JSON.stringify(data);
+  let lang = "L113";
+  let user = 0;
+  let query =
+    "SELECT * FROM pieces WHERE language='" + lang +
+    "' AND src = '" + src + "' ORDER BY pieces.id";
+  dbQuery(query, function(err, result) {
+    // See if there is already an item with the same source for the same
+    // language. If so, pass it on.
+    var row = result.rows[0];
+    let itemID = row && row.id ? row.id : undefined;
+    // Might still be undefined if there is no match.
+    if (itemID) {
+      var src = row.src;
+      var ast = row.ast;
+      var img = row.img;
+      var label = row.label;
+      updateItem(itemID, lang, rawSrc, ast, obj, img, function (err, data) {
+        if (err) {
+          console.log("ERROR " + err);
+        }
+      });
+      // Don't wait for update. We have what we need to respond.
+      let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+      let codeID = row.id;
+      let dataID = 0;
+      let ids = [langID, codeID, dataID];
+      let id = encodeID(ids);
+      resume(null, id);
+    } else {
+      var ast = null;
+      var label = "data";
+      var parent = 0;
+      var img = "";
+      postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
+        let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+        let codeID = result.rows[0].id;
+        let dataID = 0;
+        let ids = [langID, codeID, dataID];
+        let id = encodeID(ids);
+        if (err) {
+          console.log("ERROR putData() err=" + err);
+          resume(err);
+        } else {
+          resume(null, id);
+        }
+      });
+    }
+  });
+};
+
 app.put('/code', (req, response) => {
   // Insert or update code without recompiling.
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
   let ids = id !== undefined ? decodeID(id) : [0, 0, 0];
-  let src = cleanAndTrimSrc(body.src);
+  let rawSrc = body.src
+  let src = cleanAndTrimSrc(rawSrc);
   let lang = body.language;
   let ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
@@ -1203,7 +1351,7 @@ app.put('/code', (req, response) => {
       var parent = body.parent ? body.parent : row.parent_id;
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
-      updateItem(itemID, lang, src, ast, obj, img, function (err, data) {
+      updateItem(itemID, lang, rawSrc, ast, obj, img, function (err, data) {
         if (err) {
           console.log("ERROR " + err);
         }
@@ -1227,7 +1375,7 @@ app.put('/code', (req, response) => {
       var label = body.label;
       var parent = body.parent ? body.parent : 0;
       var img = "";
-      postItem(lang, src, ast, obj, user, parent, img, label, (err, result) => {
+      postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
         let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
         let codeID = result.rows[0].id;
         let dataID = 0;
@@ -1555,7 +1703,23 @@ if (!module.parent) {
         authToken = data.jwt;
       });
     });
-    recompileItems([]);
+    // recompileItems([]);
+    // batchCompile("rVvUp2gRs0", batchData);
+    // batchScrape([
+    //   "l1aFezP0T5oIZp3acL",
+    //   "epMFRQjztPRIRj4qCV",
+    //   "BqmFry74Iz4HjWZYU0",
+    // ]);
   });
 }
+
+const batchData = [
+  {
+    "type": "area",
+    "business_uid": "001adaae6aca484bbff254b7895ec205",
+    "chart_name": "in_store_signups",
+    "data":[["Signup Date","In-Store Signups"],["2018-05-27",4],["2018-05-28",3],["2018-05-29",3],["2018-05-30",1],["2018-05-31",0],["2018-06-01",1],["2018-06-02",4]]
+  },
+];
+
 
