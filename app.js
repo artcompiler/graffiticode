@@ -1705,11 +1705,11 @@ if (!module.parent) {
     });
     // recompileItems([]);
     // batchCompile("rVvUp2gRs0", batchData);
-    // batchScrape([
-    //   "l1aFezP0T5oIZp3acL",
-    //   "epMFRQjztPRIRj4qCV",
-    //   "BqmFry74Iz4HjWZYU0",
-    // ]);
+    batchScrape([
+      "l1aFezP0T5oIZp3acL",
+      "epMFRQjztPRIRj4qCV",
+      "BqmFry74Iz4HjWZYU0",
+    ]);
   });
 }
 
