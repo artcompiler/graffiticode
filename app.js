@@ -274,7 +274,7 @@ const delCache = function (id) {
   }
 };
 const getCache = function (id, type, resume) {
-  let key = id + type;
+  let key = id + "." + type;
   let val;
   if ((val = localCache[key])) {
     resume(null, val);
@@ -289,7 +289,7 @@ const getCache = function (id, type, resume) {
 const dontCache = ["L124"];
 const setCache = function (lang, id, type, val) {
   if (!DEBUG && !dontCache.includes(lang)) {
-    let key = id + type;
+    let key = id + "." + type;
     localCache[key] = val;
     if (cache) {
       cache.set(key, type === "data" ? JSON.stringify(val) : val);
