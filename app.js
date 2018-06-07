@@ -1124,13 +1124,14 @@ const batchScrape = (ids, count) => {
       const status = await page.open("https://acx.ac/s/" + id);
       const size = await page.property('viewportSize');
       const html = await page.property('content');
+      // Area chart.
       await page.property("clipRect", {
-        top: 7,
-        left: 9,
-        width: 144,
-        height: 30,
+        top: 17, // 8.5
+        left: 17, // 8.5
+        width: 288, //144,
+        height: 60, //30,
       });
-//      await page.property("zoomFactor", 4);
+      await page.property("zoomFactor", 2);
       var base64 = await page.renderBase64('PNG');
       setCache(null, id, "snap-base64-png", base64)
       await instance.exit();
@@ -1706,9 +1707,73 @@ if (!module.parent) {
     // recompileItems([]);
     // batchCompile("rVvUp2gRs0", batchData);
     batchScrape([
-      "l1aFezP0T5oIZp3acL",
-      "epMFRQjztPRIRj4qCV",
-      "BqmFry74Iz4HjWZYU0",
+"l1aFezP0T5oIZp3acL",
+"epMFRQjztPRIRj4qCV",
+"BqmFry74Iz4HjWZYU0",
+"0vmFOZ60f13TAYjxc1",
+"xV2UdojPc5nIaBNoF7",
+"wwbFmljbIByIQ3ogI0",
+"nKpHNwm3TgZt1o6pu4",
+"KzgFdayrcl9I9z03So",
+"3LyiMNrxcNYs8Zq5cM",
+"AKgHZYjbuQOCr1MzcB",
+"gpbFrzjQIAmUqNVxhv",
+"PqgF7ZP4spLHR5Z6uL",
+"872fde2mczdHN0AMFz",
+"jRQtPbj3SmzCadWqHm",
+"RQRSm8BPId8T1aWzFz",
+"VpRFQJKBc40sAy3aTK",
+"XZRiqeArSOoUj75JUX",
+"o5dSOQjVfL5fx97QiA",
+"0vmFOZ60f13TAYjMC1",
+"xV2UdojPc5nIaBNqf7",
+"wwbFmljbIByIQ3oaU0",
+"nKpHNwm3TgZt1o6qc4",
+"KzgFdayrcl9I9z0nho",
+"3LyiMNrxcNYs8ZqviM",
+"AKgHZYjbuQOCr1M1iB",
+"gpbFrzjQIAmUqNVVTv",
+"PqgF7ZP4spLHR5ZvcL",
+"872fde2mczdHN0Awhz",
+"jRQtPbj3SmzCadW6Cm",
+"RQRSm8BPId8T1aWnfz",
+"VpRFQJKBc40sAy3wiK",
+"XZRiqeArSOoUj75wtX",
+"o5dSOQjVfL5fx97PHA",
+"mrqF63joIoWiZ5wxUB",
+"zVQUWdjaTyKHmL96Ud",
+"YnRFdBwNc0rcAmgpsJ",
+"6KLHMYZpca2iPq9bug",
+"vwLFb0j7iPwIVBNKCV",
+"y5OSqQjKSNMsRMXeTg",
+"WzRF7lZRsQzC5XW7SB",
+"MxRF0pY4uJXSBMJmF9",
+"LOgTZqVduXQS903NHq",
+"b1vFa1jKsxwHKxPKhW",
+"2MvcV1q7uzYHqKB0Tr",
+"ObgFg8QqT7Jib2qaCa",
+"QVRU84mgS4OsJl6rt7",
+"7ObTolmzsqMHw8V5tV",
+"aL6i8VdPSlYIZK0ASm",
+"q16F9BjJT2wSg8XyCL",
+"p1rFMrgbcL4fzAlbSp",
+"dOWTnxjRc4gsJ7gZc8",
+"rVvUp2gRsOoUeVN5H7",
+"ZzRFz0LXuZRfXpoKHy",
+"4LWia9y2sPWINZpotO",
+"1M6cX41WhvbHr5PBCL",
+"NVgU4dyNsRQHrxKPIa",
+"9WOIoBNZsQvCV7RnfK",
+"p1rFMrgbcL4fzAAxFp",
+"dOWTnxjRc4gsJ77Mh8",
+"rVvUp2gRsOoUeV1nu7",
+"ZzRFz0LXuZRfXpR6uy",
+"4LWia9y2sPWINZMzCO",
+"1M6cX41WhvbHr5w0cL",
+"NVgU4dyNsRQHrxY3ia",
+"9WOIoBNZsQvCV7v8UK",
+"5bMFn5maceZhMopMFV",
+"JePIZ7bpuRaHvleMfp",
     ]);
   });
 }
