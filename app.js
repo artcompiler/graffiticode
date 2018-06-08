@@ -636,11 +636,19 @@ const sendSnap = (id, fmt, req, res) => {
       console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
     } else {
-      makeSnap(id, (err, val) => {
-        res.send(val);
+      if (fmt === "PNG") {
+        let img = atob("");
+        res.writeHead(200, {'Content-Type': 'image/png' });
+        res.end(img, 'binary');
         console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                     (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-      });
+      } else {
+        makeSnap(id, (err, val) => {
+          res.send(val);
+          console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
+                      (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
+        });
+      }
     }
   });
 };
@@ -1140,25 +1148,43 @@ const batchScrape = (ids, count) => {
     }());
   }
 };
-const batchCompile = (codeID, data, count) => {
-  count = count || 1;
-  // For each datum, get the dataID and concat with id.
-  if (data.length > 0) {
-    let d = data.pop();
-    putData(d, (err, dataID) => {
+const getIDFromAlias = (alias) => {
+  switch (alias) {
+  case "area":
+    return "YnRFdBaBce";
+  default:
+    console.log("ERROR unknown alias " + alias);
+    return "";
+  }
+};
+const batchCompile = (items, index, resume) => {
+  index = +index || 0;
+  // For each item, get the dataID and concat with codeID of alias.
+  if (index < items.length) {
+    let item = items[index];
+    let codeID = getIDFromAlias(item.type);
+    let data = item.data;
+    putData(data, (err, dataID) => {
       let codeIDs = decodeID(codeID);
       let dataIDs = decodeID(dataID);
       let id = encodeID(codeIDs.slice(0,2).concat(dataIDs));
-      compileID(id, true, (err, obj) => {
-        console.log("row [one-column cspan \"" + count +
-                    "\", three-columns height 100 snap \"" + id +
-                    "\", eight-columns cspan \"" + d.business_uid + "\"],");
-      });
-      batchCompile(codeID, data, count + 1);
+      item.image_url = "https://acx.ac/s/" + id + "?fmt=PNG";
+      delete item.data;
+      batchCompile(items, index + 1, resume);
+      // console.log("image_url=" + item.image_url);
     });
+  } else {
+    resume(null, items);
   }
 };
-
+app.put('/comp', function (req, res) {
+  let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  let data = body;
+  batchCompile(data, 0, (err, val) => {
+    res.writeHead(202, {"Content-Type": "application/json"});
+    res.end(JSON.stringify(data));
+  });
+});
 app.put('/compile', function (req, res) {
   // This end point is hit when code is edited. If the code already exists for
   // the current user, then recompile it and update the OBJ. If it doesn't exist
@@ -1705,86 +1731,25 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    // batchCompile("rVvUp2gRs0", batchData);
-    batchScrape([
-"l1aFezP0T5oIZp3acL",
-"epMFRQjztPRIRj4qCV",
-"BqmFry74Iz4HjWZYU0",
-"0vmFOZ60f13TAYjxc1",
-"xV2UdojPc5nIaBNoF7",
-"wwbFmljbIByIQ3ogI0",
-"nKpHNwm3TgZt1o6pu4",
-"KzgFdayrcl9I9z03So",
-"3LyiMNrxcNYs8Zq5cM",
-"AKgHZYjbuQOCr1MzcB",
-"gpbFrzjQIAmUqNVxhv",
-"PqgF7ZP4spLHR5Z6uL",
-"872fde2mczdHN0AMFz",
-"jRQtPbj3SmzCadWqHm",
-"RQRSm8BPId8T1aWzFz",
-"VpRFQJKBc40sAy3aTK",
-"XZRiqeArSOoUj75JUX",
-"o5dSOQjVfL5fx97QiA",
-"0vmFOZ60f13TAYjMC1",
-"xV2UdojPc5nIaBNqf7",
-"wwbFmljbIByIQ3oaU0",
-"nKpHNwm3TgZt1o6qc4",
-"KzgFdayrcl9I9z0nho",
-"3LyiMNrxcNYs8ZqviM",
-"AKgHZYjbuQOCr1M1iB",
-"gpbFrzjQIAmUqNVVTv",
-"PqgF7ZP4spLHR5ZvcL",
-"872fde2mczdHN0Awhz",
-"jRQtPbj3SmzCadW6Cm",
-"RQRSm8BPId8T1aWnfz",
-"VpRFQJKBc40sAy3wiK",
-"XZRiqeArSOoUj75wtX",
-"o5dSOQjVfL5fx97PHA",
-"mrqF63joIoWiZ5wxUB",
-"zVQUWdjaTyKHmL96Ud",
-"YnRFdBwNc0rcAmgpsJ",
-"6KLHMYZpca2iPq9bug",
-"vwLFb0j7iPwIVBNKCV",
-"y5OSqQjKSNMsRMXeTg",
-"WzRF7lZRsQzC5XW7SB",
-"MxRF0pY4uJXSBMJmF9",
-"LOgTZqVduXQS903NHq",
-"b1vFa1jKsxwHKxPKhW",
-"2MvcV1q7uzYHqKB0Tr",
-"ObgFg8QqT7Jib2qaCa",
-"QVRU84mgS4OsJl6rt7",
-"7ObTolmzsqMHw8V5tV",
-"aL6i8VdPSlYIZK0ASm",
-"q16F9BjJT2wSg8XyCL",
-"p1rFMrgbcL4fzAlbSp",
-"dOWTnxjRc4gsJ7gZc8",
-"rVvUp2gRsOoUeVN5H7",
-"ZzRFz0LXuZRfXpoKHy",
-"4LWia9y2sPWINZpotO",
-"1M6cX41WhvbHr5PBCL",
-"NVgU4dyNsRQHrxKPIa",
-"9WOIoBNZsQvCV7RnfK",
-"p1rFMrgbcL4fzAAxFp",
-"dOWTnxjRc4gsJ77Mh8",
-"rVvUp2gRsOoUeV1nu7",
-"ZzRFz0LXuZRfXpR6uy",
-"4LWia9y2sPWINZMzCO",
-"1M6cX41WhvbHr5w0cL",
-"NVgU4dyNsRQHrxY3ia",
-"9WOIoBNZsQvCV7v8UK",
-"5bMFn5maceZhMopMFV",
-"JePIZ7bpuRaHvleMfp",
-    ]);
+    // let t0 = new Date;
+    // batchCompile(batchData, 0, (err, val) => {
+    //   console.log("batchCompile() val=" + JSON.stringify(val, null, 2));
+    //   console.log("Compiled in " + (new Date - t0) + "ms");
+    // });
+    // batchScrape([
+    //   "l1aFezP0T5oIZp3acL",
+    //   "epMFRQjztPRIRj4qCV",
+    //   "BqmFry74Iz4HjWZYU0",
+    // ]);
   });
 }
 
-const batchData = [
-  {
-    "type": "area",
-    "business_uid": "001adaae6aca484bbff254b7895ec205",
-    "chart_name": "in_store_signups",
-    "data":[["Signup Date","In-Store Signups"],["2018-05-27",4],["2018-05-28",3],["2018-05-29",3],["2018-05-30",1],["2018-05-31",0],["2018-06-01",1],["2018-06-02",4]]
-  },
-];
-
-
+// const batchData = [
+//   {
+//     "type": "area",
+//     "business_uid": "001adaae6aca484bbff254b7895ec205",
+//     "chart_name": "in_store_signups", 
+//     "url": "https://acx.ac/s/JePIZ7bpuRaHvleMfp?fmt=PNG",
+//     "data":[["Signup Date","In-Store Signups"],["2018-05-27",17],["2018-05-28",10],["2018-05-29",12],["2018-05-30",11],["2018-05-31",13],["2018-06-01",8],["2018-06-02",9]]
+//   },
+// ];
