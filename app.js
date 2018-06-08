@@ -1170,18 +1170,28 @@ const batchCompile = (items, index, resume) => {
       item.image_url = "https://acx.ac/s/" + id + "?fmt=PNG";
       delete item.data;
       batchCompile(items, index + 1, resume);
-      // console.log("image_url=" + item.image_url);
+      compileID(id, false, (err, val) => {
+        // Nothing to do.
+      });
     });
   } else {
     resume(null, items);
   }
 };
 app.put('/comp', function (req, res) {
+  let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let data = body;
-  batchCompile(data, 0, (err, val) => {
-    res.writeHead(202, {"Content-Type": "application/json"});
-    res.end(JSON.stringify(data));
+  postAuth("/validate", { jwt: req.headers.authorization }, (err, val) => {
+    if (err) {
+      res.sendStatus(err);
+    } else {
+      batchCompile(data, 0, (err, val) => {
+        res.writeHead(202, {"Content-Type": "application/json"});
+        res.end(JSON.stringify(data));
+        console.log("PUT /comp (" + data.length + " items) in " + (new Date - t0) + "ms");
+      });
+    }
   });
 });
 app.put('/compile', function (req, res) {
@@ -1294,7 +1304,7 @@ const putData = (data, resume) => {
   let user = 0;
   let query =
     "SELECT * FROM pieces WHERE language='" + lang +
-    "' AND src = '" + src + "' ORDER BY pieces.id";
+    "' AND src='" + src + "' LIMIT 1";
   dbQuery(query, function(err, result) {
     // See if there is already an item with the same source for the same
     // language. If so, pass it on.
@@ -1726,6 +1736,7 @@ if (!module.parent) {
       postAuth("/finishLogin", {
         "jwt": data.jwt,
       }, (err, data) => {
+        // FIXME this needs to be stateless.
         authToken = data.jwt;
       });
     });
