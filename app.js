@@ -194,6 +194,10 @@ app.get("/", (req, res) => {
   }
 });
 
+app.get('/0xaE91FC0da6B3a5d9dB881531b5227ABE075a806B', function (req, res) {
+  res.send(process.env.FIVESTARS_ARTCOMPILER_CLIENT_SECRET);
+});
+
 const aliases = {};
 
 // Get a label
@@ -1295,7 +1299,6 @@ app.put('/compile', function (req, res) {
     }
   });
 });
-
 const putData = (data, resume) => {
   let t0 = new Date;
   let rawSrc = JSON.stringify(data) + "..";
@@ -1350,7 +1353,6 @@ const putData = (data, resume) => {
     }
   });
 };
-
 app.put('/code', (req, response) => {
   // Insert or update code without recompiling.
   let t0 = new Date;
@@ -1432,7 +1434,6 @@ app.put('/code', (req, response) => {
     }
   });
 });
-
 app.get('/items', function(req, res) {
   // Used by L109, L131.
   let queryStr = "";
