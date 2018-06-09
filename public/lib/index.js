@@ -35606,7 +35606,7 @@ window.handleOpenClick = function (e) {
     case "open-snap":
       var html = d3.select("#graff-view").html();
       putSnap(html, function (err, val) {
-        url = "https://acx.ac/s/" + id;
+        url = "/snap?id=" + id;
         var win = window.open(url, id);
       });
       return;
