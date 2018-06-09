@@ -643,11 +643,12 @@ const sendSnap = (id, fmt, req, res) => {
         console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                     (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
       } else {
-        makeSnap(id, (err, val) => {
-          res.send(val);
-          console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
-                      (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-        });
+        res.sendStatus(404);
+        // makeSnap(id, (err, val) => {
+        //   res.send(val);
+        //   console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
+        //               (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
+        // });
       }
     }
   });
@@ -1739,11 +1740,6 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    // let t0 = new Date;
-    // batchCompile(batchData, 0, (err, val) => {
-    //   console.log("batchCompile() val=" + JSON.stringify(val, null, 2));
-    //   console.log("Compiled in " + (new Date - t0) + "ms");
-    // });
     // batchScrape([
     //   "l1aFezP0T5oIZp3acL",
     //   "epMFRQjztPRIRj4qCV",
