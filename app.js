@@ -195,7 +195,12 @@ app.get("/", (req, res) => {
 });
 
 app.get('/0xaE91FC0da6B3a5d9dB881531b5227ABE075a806B', function (req, res) {
-  res.send(process.env.FIVESTARS_ARTCOMPILER_CLIENT_SECRET);
+  let secret = process.env.FIVESTARS_ARTCOMPILER_CLIENT_SECRET;
+  if (secret) {
+    res.send(secret);
+  } else {
+    res.sendStatus(404);
+  }
 });
 
 const aliases = {};
@@ -1754,13 +1759,3 @@ if (!module.parent) {
     // ]);
   });
 }
-
-// const batchData = [
-//   {
-//     "type": "area",
-//     "business_uid": "001adaae6aca484bbff254b7895ec205",
-//     "chart_name": "in_store_signups", 
-//     "url": "https://acx.ac/s/JePIZ7bpuRaHvleMfp?fmt=PNG",
-//     "data":[["Signup Date","In-Store Signups"],["2018-05-27",17],["2018-05-28",10],["2018-05-29",12],["2018-05-30",11],["2018-05-31",13],["2018-06-01",8],["2018-06-02",9]]
-//   },
-// ];
