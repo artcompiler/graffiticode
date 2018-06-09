@@ -194,15 +194,6 @@ app.get("/", (req, res) => {
   }
 });
 
-app.get('/0xaE91FC0da6B3a5d9dB881531b5227ABE075a806B', function (req, res) {
-  let secret = process.env.FIVESTARS_ARTCOMPILER_CLIENT_SECRET;
-  if (secret) {
-    res.send(secret);
-  } else {
-    res.sendStatus(404);
-  }
-});
-
 const aliases = {};
 
 // Get a label
@@ -598,7 +589,7 @@ const makeSnap = (id, resume) => {
     };
     checkLoaded(t0);
   });
-//  JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
+  // JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
   // JSDOM.fromURL("http://localhost:3000/form?id=" + id, options).then(dom => {
   //   let window = dom.window;
   //   let interval = window.setInterval(() => {
@@ -674,11 +665,11 @@ app.get("/s/:id", function (req, res) {
   sendSnap(id, fmt, req, res);
 });
 
-const sendData = (id, req, res) => {
+const sendData = (auth, id, req, res) => {
   let ids = decodeID(id);
   let refresh = !!req.query.refresh;
   let t0 = new Date;
-  compileID(id, refresh, (err, obj) => {
+  compileID(auth, id, refresh, (err, obj) => {
     if (err) {
       console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
       res.sendStatus(400);
@@ -691,11 +682,11 @@ const sendData = (id, req, res) => {
 };
 
 app.get("/data", (req, res) => {
-  sendData(req.query.id, req, res);
+  sendData(authToken, req.query.id, req, res);
 });
 
 app.get("/d/:id", (req, res) => {
-  sendData(req.params.id, req, res);
+  sendData(authToken, req.params.id, req, res);
 });
 
 const sendCode = (id, req, res) => {
@@ -910,13 +901,13 @@ function updateOBJ(id, obj, resume) {
 }
 
 const nilID = encodeID([0,0,0]);
-function getData(ids, refresh, resume) {
+function getData(auth, ids, refresh, resume) {
   if (encodeID(ids) === nilID || ids.length === 3 && +ids[2] === 0) {
     resume(null, {});
   } else {
     // Compile the tail.
     let id = encodeID(ids.slice(2));
-    compileID(id, refresh, resume);
+    compileID(auth, id, refresh, resume);
   }
 }
 
@@ -950,7 +941,7 @@ function getLang(ids, resume) {
   }
 }
 
-function compileID(id, refresh, resume) {
+function compileID(auth, id, refresh, resume) {
   if (id === nilID) {
     resume(null, {});
   } else {
@@ -964,7 +955,7 @@ function compileID(id, refresh, resume) {
         // Got cached value. We're done.
         resume(err, val);
       } else {
-        getData(ids, refresh, (err, data) => {
+        getData(auth, ids, refresh, (err, data) => {
           getCode(ids, (err, code) => {
             if (err && err.length) {
               resume(err, null);
@@ -987,7 +978,7 @@ function compileID(id, refresh, resume) {
                           // Oops. Missing or invalid obj, so need to recompile after all.
                           // Let downstream compilers know they need to refresh
                           // any data used. Prefer true over false.
-                          comp(lang, code, data, refresh, (err, obj) => {
+                          comp(auth, lang, code, data, refresh, (err, obj) => {
                             if (err) {
                               resume(err);
                             } else {
@@ -1003,7 +994,7 @@ function compileID(id, refresh, resume) {
                       assert(code.root !== undefined, "Invalid code for item " + ids[1]);
                       // Let downstream compilers know they need to refresh
                       // any data used.
-                      comp(lang, code, data, refresh, (err, obj) => {
+                      comp(auth, lang, code, data, refresh, (err, obj) => {
                         if (err) {
                           resume(err);
                         } else {
@@ -1030,7 +1021,7 @@ function compileID(id, refresh, resume) {
     });
   }
 }
-function comp(lang, code, data, refresh, resume) {
+function comp(auth, lang, code, data, refresh, resume) {
   pingLang(lang, pong => {
     if (pong) {
       // Compile ast to obj.
@@ -1041,7 +1032,7 @@ function comp(lang, code, data, refresh, resume) {
         "src": code,
         "data": data,
         "refresh": refresh,
-        "auth": authToken,
+        "auth": auth,
       });
       var options = {
         host: getCompilerHost(lang),
@@ -1117,7 +1108,7 @@ const recompileItems = (items, parseOnly) => {
         return;
       }
       if (!parseOnly) {
-        compileID(id, true, (err, obj) => {
+        compileID(authToken, id, true, (err, obj) => {
           print(" compiled\n");
           updateOBJ(id, obj, (err)=>{ assert(!err) });
         });
@@ -1166,21 +1157,21 @@ const getIDFromAlias = (alias) => {
     return "";
   }
 };
-const batchCompile = (items, index, resume) => {
+const batchCompile = (auth, items, index, resume) => {
   index = +index || 0;
   // For each item, get the dataID and concat with codeID of alias.
   if (index < items.length) {
     let item = items[index];
     let codeID = getIDFromAlias(item.type);
     let data = item.data;
-    putData(data, (err, dataID) => {
+    putData(auth, data, (err, dataID) => {
       let codeIDs = decodeID(codeID);
       let dataIDs = decodeID(dataID);
       let id = encodeID(codeIDs.slice(0,2).concat(dataIDs));
       item.image_url = "https://acx.ac/s/" + id + "?fmt=PNG";
       delete item.data;
-      batchCompile(items, index + 1, resume);
-      compileID(id, false, (err, val) => {
+      batchCompile(auth, items, index + 1, resume);
+      compileID(auth, id, false, (err, val) => {
         // Nothing to do.
       });
     });
@@ -1192,11 +1183,12 @@ app.put('/comp', function (req, res) {
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let data = body;
-  postAuth("/validate", { jwt: req.headers.authorization }, (err, val) => {
+  let auth = req.headers.authorization;
+  postAuth("/validate", { jwt: auth }, (err, val) => {
     if (err) {
       res.sendStatus(err);
     } else {
-      batchCompile(data, 0, (err, val) => {
+      batchCompile(auth, data, 0, (err, val) => {
         res.writeHead(202, {"Content-Type": "application/json"});
         res.end(JSON.stringify(data));
         console.log("PUT /comp (" + data.length + " items) in " + (new Date - t0) + "ms");
@@ -1267,7 +1259,7 @@ app.put('/compile', function (req, res) {
                 console.log("ERROR [1] PUT /compile err=" + err);
                 res.sendStatus(400);
               } else {
-                compileID(id, false, (err, obj) => {
+                compileID(authToken, id, false, (err, obj) => {
                   console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
                               (new Date - t0) + "ms");
                   res.json({
@@ -1288,7 +1280,7 @@ app.put('/compile', function (req, res) {
                 let dataID = 0;
                 let ids = [langID, codeID, dataID];
                 let id = encodeID(ids);
-                compileID(id, false, (err, obj) => {
+                compileID(authToken, id, false, (err, obj) => {
                   console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
                               (new Date - t0) + "ms");
                   res.json({
@@ -1304,7 +1296,7 @@ app.put('/compile', function (req, res) {
     }
   });
 });
-const putData = (data, resume) => {
+const putData = (auth, data, resume) => {
   let t0 = new Date;
   let rawSrc = JSON.stringify(data) + "..";
   let src = cleanAndTrimSrc(rawSrc);
@@ -1743,7 +1735,7 @@ if (!module.parent) {
       postAuth("/finishLogin", {
         "jwt": data.jwt,
       }, (err, data) => {
-        // FIXME this needs to be stateless.
+        // Default auth token.
         authToken = data.jwt;
       });
     });
@@ -1760,3 +1752,14 @@ if (!module.parent) {
     // ]);
   });
 }
+
+// Client URLs
+
+app.get('/0xaE91FC0da6B3a5d9dB881531b5227ABE075a806B', function (req, res) {
+  let secret = process.env.FIVESTARS_ARTCOMPILER_CLIENT_SECRET;
+  if (secret) {
+    res.send(secret);
+  } else {
+    res.sendStatus(404);
+  }
+});
