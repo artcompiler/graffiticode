@@ -682,11 +682,11 @@ const sendData = (auth, id, req, res) => {
 };
 
 app.get("/data", (req, res) => {
-  sendData(req.query.id, req, res);
+  sendData(authToken, req.query.id, req, res);
 });
 
 app.get("/d/:id", (req, res) => {
-  sendData(req.params.id, req, res);
+  sendData(authToken, req.params.id, req, res);
 });
 
 const sendCode = (id, req, res) => {
