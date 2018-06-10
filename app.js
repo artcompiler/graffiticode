@@ -225,11 +225,13 @@ const sendPing = (id, req, res) => {
         urls["snap"] = (useShort ? "/s/" : "/snap/id=") + id;
       }
       getCache(id, "snap-base64-png", (err, val) => {
+        console.log("snap-base64-png=" + val);
         if (val) {
           urls["snap-png"] = (useShort ? "/s/" : "/snap/id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
           res.json(urls);
         } else {
           getCache(id, "snap-base64-png-pending", (err, val) => {
+            console.log("snap-base64-png-pending=" + val);
             if (val) {
               urls["snap-png"] = "PENDING";
             }
@@ -1190,7 +1192,7 @@ const batchScrape = (ids, index) => {
       await page.property("zoomFactor", 2);
       var base64 = await page.renderBase64('PNG');
       setCache(null, id, "snap-base64-png-pending", base64)
-      console.log("batchScrape() caching " + id + "snap-png-pending");
+      console.log("batchScrape() caching " + id + "snap-base64-png-pending");
       await instance.exit();
       console.log(id + " scraped in " + (new Date - t0) + "ms");
       batchScrape(ids, index + 1);
