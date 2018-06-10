@@ -273,6 +273,15 @@ const delCache = function (id) {
     cache.del(id);
   }
 };
+const renCache = function (id, oldType, newType) {
+  let oldKey = id + "." + oldType;
+  let newKey = id + "." + newType;
+  localCache[newKey] = localCache[oldKey];
+  delete localCache[oldKey];
+  if (cache) {
+    cache.rename(oldKey, newKey);
+  }
+};
 const getCache = function (id, type, resume) {
   let key = id + type;
   let val;
@@ -1120,11 +1129,11 @@ const recompileItems = (items, parseOnly) => {
   });
 };
 
-const batchScrape = (ids, count) => {
+const batchScrape = (ids, index) => {
   const phantom = require('phantom');
-  count = count || 1;
+  index = index || 0;
   // For each datum, get the dataID and concat with id.
-  if (ids.length > 0) {
+  if (index < ids.length) {
     let t0 = new Date;
     let id = ids.pop();
     (async function() {
@@ -1142,11 +1151,18 @@ const batchScrape = (ids, count) => {
       });
       await page.property("zoomFactor", 2);
       var base64 = await page.renderBase64('PNG');
-      setCache(null, id, "snap-base64-png", base64)
+      setCache(null, id, "snap-base64-png-pending", base64)
+      console.log("batchScrape() caching " + id + "snap-png-pending");
       await instance.exit();
-      console.log(id + " scaped in " + (new Date - t0) + "ms");
-      batchScrape(ids, count + 1);
+      console.log(id + " scraped in " + (new Date - t0) + "ms");
+      batchScrape(ids, index + 1);
     }());
+  } else {
+    // Rename *-pending keys to *.
+    ids.forEach(id => {
+      console.log("batchScrape() ren " + id + "snap-png-pending" + " => " + id + "snap-png");
+      renCache(id, "snap-png-pending", "snap-png");
+    });
   }
 };
 const getIDFromAlias = (alias) => {
@@ -1740,7 +1756,7 @@ if (!module.parent) {
         authToken = data.jwt;
       });
     });
-    // recompileItems([]);
+    // // recompileItems([]);
     // batchScrape([
     //   "l1aFezP0T5oIZp3acL",
     //   "epMFRQjztPRIRj4qCV",
