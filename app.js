@@ -1135,11 +1135,11 @@ const batchScrape = (ids, index) => {
   // For each datum, get the dataID and concat with id.
   if (index < ids.length) {
     let t0 = new Date;
-    let id = ids.pop();
+    let id = ids[index];
     (async function() {
       const instance = await phantom.create();
       const page = await instance.createPage();
-      const status = await page.open("https://acx.ac/s/" + id);
+      const status = await page.open("/snap?id=" + id);
       const size = await page.property('viewportSize');
       const html = await page.property('content');
       // Area chart.
