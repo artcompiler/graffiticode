@@ -672,7 +672,7 @@ const sendSnap = (id, fmt, req, res) => {
       console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
     } else {
-      if (fmt === "PNG") {
+      if (fmt === "png") {
         let img = atob("");
         res.writeHead(200, {'Content-Type': 'image/png' });
         res.end(img, 'binary');
@@ -1785,11 +1785,11 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    batchScrape([
-      "l1aFezP0T5oIZp3acL",
-      "epMFRQjztPRIRj4qCV",
-      "BqmFry74Iz4HjWZYU0",
-    ]);
+    // batchScrape([
+    //   "l1aFezP0T5oIZp3acL",
+    //   "epMFRQjztPRIRj4qCV",
+    //   "BqmFry74Iz4HjWZYU0",
+    // ]);
   });
 }
 
