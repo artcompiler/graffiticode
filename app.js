@@ -1166,7 +1166,7 @@ const batchScrape = (ids, index) => {
     (async function() {
       const instance = await phantom.create();
       const page = await instance.createPage();
-      const status = await page.open("/snap?id=" + id);
+      const status = await page.open("https://acx.ac/s/" + id);
       const size = await page.property('viewportSize');
       const html = await page.property('content');
       // Area chart.
