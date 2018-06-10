@@ -1178,7 +1178,8 @@ const batchScrape = (ids, index) => {
       });
       await page.property("zoomFactor", 2);
       var base64 = await page.renderBase64('PNG');
-      setCache(null, id, "snap-base64-png-pending", base64)
+//      setCache(null, id, "snap-base64-png-pending", base64)
+      setCache(null, id, "snap-base64-png", base64)
       console.log("batchScrape() caching " + id + "snap-png-pending");
       await instance.exit();
       console.log(id + " scraped in " + (new Date - t0) + "ms");
@@ -1187,8 +1188,8 @@ const batchScrape = (ids, index) => {
   } else {
     // Rename *-pending keys to *.
     ids.forEach(id => {
-      console.log("batchScrape() ren " + id + "snap-base64-png-pending" + " => " + id + "snap-base64-png");
-      renCache(id, "snap-base64-png-pending", "snap-base64-png");
+      // console.log("batchScrape() ren " + id + "snap-base64-png-pending" + " => " + id + "snap-base64-png");
+      // renCache(id, "snap-base64-png-pending", "snap-base64-png");
     });
   }
 };
