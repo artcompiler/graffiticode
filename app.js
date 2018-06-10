@@ -1161,7 +1161,7 @@ const batchScrape = (ids, index) => {
     // Rename *-pending keys to *.
     ids.forEach(id => {
       console.log("batchScrape() ren " + id + "snap-png-pending" + " => " + id + "snap-png");
-      renCache(id, "snap-png-pending", "snap-png");
+//      renCache(id, "snap-png-pending", "snap-png");
     });
   }
 };
@@ -1757,11 +1757,11 @@ if (!module.parent) {
       });
     });
     // // recompileItems([]);
-    // batchScrape([
-    //   "l1aFezP0T5oIZp3acL",
-    //   "epMFRQjztPRIRj4qCV",
-    //   "BqmFry74Iz4HjWZYU0",
-    // ]);
+    batchScrape([
+      "l1aFezP0T5oIZp3acL",
+      "epMFRQjztPRIRj4qCV",
+      "BqmFry74Iz4HjWZYU0",
+    ]);
   });
 }
 
