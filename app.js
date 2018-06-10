@@ -212,31 +212,39 @@ app.get('/label', function (req, res) {
 
 // Get ping
 const sendPing = (id, req, res) => {
+  let useShort = req.path.indexOf("/p/") === 0;
   let ids = decodeID(id);
   let t0 = new Date;
-  let urls = [];
+  let urls = {};
   getCache(id, "data", (err, val) => {
     if (val) {
-      // urls.push("/data?id=" + id);
-      urls.push("/d/" + id);
+      urls["data"] = (useShort ? "/d/" : "/data/id=") + id;
     }
     getCache(id, "snap", (err, val) => {
       if (val) {
-        // urls.push("/snap?id=" + id);
-        urls.push("/s/" + id);
+        urls["snap"] = (useShort ? "/s/" : "/snap/id=") + id;
       }
       getCache(id, "snap-base64-png", (err, val) => {
         if (val) {
-          // urls.push("/snap?id=" + id + "&fmt=PNG");
-          urls.push("/s/" + id + "?fmt=PNG");
+          urls["snap-png"] = (useShort ? "/s/" : "/snap/id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
+          res.json(urls);
+        } else {
+          getCache(id, "snap-base64-png-pending", (err, val) => {
+            if (val) {
+              urls["snap-png"] = "PENDING";
+            }
+            res.json(urls);
+          });
         }
-        res.json(urls);
       });
     });
   });
 };
 app.get("/ping", (req, res) => {
   sendPing(req.query.id, req, res);
+});
+app.get("/p/:id", (req, res) => {
+  sendPing(req.params.id, req, res);
 });
 
 // Update a label
