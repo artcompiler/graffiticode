@@ -656,7 +656,8 @@ const makeSnap = (id, resume) => {
 
 const sendSnap = (id, fmt, req, res) => {
   let t0 = new Date;
-  let type = fmt && fmt.toLowerCase() === "png" ? "snap-base64-png" : "snap";
+  fmt = fmt && fmt.toLowerCase();
+  let type = fmt === "png" ? "snap-base64-png" : "snap";
   getCache(id, type, (err, val) => {
     let refresh = !!req.query.refresh;
     let ids = decodeID(id);
