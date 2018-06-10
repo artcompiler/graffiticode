@@ -1198,8 +1198,8 @@ const batchScrape = (ids, index) => {
   } else {
     // Rename *-pending keys to *.
     ids.forEach(id => {
-      console.log("batchScrape() ren " + id + "snap-base64-png-pending" + " => " + id + "snap-base64-png");
-      renCache(id, "snap-base64-png-pending", "snap-base64-png");
+//      console.log("batchScrape() ren " + id + "snap-base64-png-pending" + " => " + id + "snap-base64-png");
+//      renCache(id, "snap-base64-png-pending", "snap-base64-png");
     });
   }
 };
