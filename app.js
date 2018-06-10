@@ -656,7 +656,8 @@ const makeSnap = (id, resume) => {
 
 const sendSnap = (id, fmt, req, res) => {
   let t0 = new Date;
-  let type = fmt && fmt.toLowerCase() === "png" ? "snap-base64-png" : "snap";
+  fmt = fmt && fmt.toLowerCase();
+  let type = fmt === "png" ? "snap-base64-png" : "snap";
   getCache(id, type, (err, val) => {
     let refresh = !!req.query.refresh;
     let ids = decodeID(id);
@@ -1169,10 +1170,10 @@ const batchScrape = (ids, index) => {
       const size = await page.property('viewportSize');
       const html = await page.property('content');
       await page.property("clipRect", {
-        top: 7,
-        left: 9,
-        width: 144,
-        height: 30,
+        top: 17, // 8.5
+        left: 17, // 8.5
+        width: 288, //144,
+        height: 60, //30,
       });
       await page.property("zoomFactor", 2);
       var base64 = await page.renderBase64('PNG');
