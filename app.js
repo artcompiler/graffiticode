@@ -1221,6 +1221,7 @@ const batchCompile = (auth, items, index, resume) => {
       let codeIDs = decodeID(codeID);
       let dataIDs = decodeID(dataID);
       let id = encodeID(codeIDs.slice(0,2).concat(dataIDs));
+      item.id = id;
       item.image_url = "https://acx.ac/s/" + id + "?fmt=PNG";
       delete item.data;
       batchCompile(auth, items, index + 1, resume);
