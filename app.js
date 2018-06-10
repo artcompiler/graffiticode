@@ -226,12 +226,12 @@ const sendPing = (id, req, res) => {
       }
       getCache(id, "snap-base64-png-pending", (err, val) => {
         if (val) {
-          urls["snap-png"] = "PENDING";
+          urls["snap/png"] = "PENDING";
           res.json(urls);
         } else {
           getCache(id, "snap-base64-png", (err, val) => {
             if (val) {
-              urls["snap-png"] = (useShort ? "/s/" : "/snap/id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
+              urls["snap/png"] = (useShort ? "/s/" : "/snap/id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
             }
             res.json(urls);
           });
@@ -1198,8 +1198,7 @@ const batchScrape = (ids, index) => {
   } else {
     // Rename *-pending keys to *.
     ids.forEach(id => {
-//      console.log("batchScrape() ren " + id + "snap-base64-png-pending" + " => " + id + "snap-base64-png");
-//      renCache(id, "snap-base64-png-pending", "snap-base64-png");
+      renCache(id, "snap-base64-png-pending", "snap-base64-png");
     });
   }
 };
