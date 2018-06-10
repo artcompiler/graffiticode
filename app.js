@@ -210,6 +210,32 @@ app.get('/label', function (req, res) {
   });
 });
 
+// Get ping
+const sendPing = (id, req, res) => {
+  let ids = decodeID(id);
+  let t0 = new Date;
+  let urls = [];
+  getCache(id, "data", (err, val) => {
+    if (val) {
+      urls.push("/data?id=" + id);
+    }
+    getCache(id, "snap", (err, val) => {
+      if (val) {
+        urls.push("/snap?id=" + id);
+      }
+      getCache(id, "snap-base64-png", (err, val) => {
+        if (val) {
+          urls.push("/snap?id=" + id + "?fmt=PNG");
+        }
+        res.json(urls);
+      });
+    });
+  });
+};
+app.get("/ping", (req, res) => {
+  sendPing(req.query.id, req, res);
+});
+
 // Update a label
 app.put('/label', function (req, res) {
   let ids = decodeID(req.body.id);
