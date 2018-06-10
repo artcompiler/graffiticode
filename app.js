@@ -672,7 +672,7 @@ const sendSnap = (id, fmt, req, res) => {
       console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
     } else {
-      if (fmt === "PNG") {
+      if (fmt === "png") {
         let img = atob("");
         res.writeHead(200, {'Content-Type': 'image/png' });
         res.end(img, 'binary');
@@ -1166,7 +1166,7 @@ const batchScrape = (ids, index) => {
     (async function() {
       const instance = await phantom.create();
       const page = await instance.createPage();
-      const status = await page.open("/snap?id=" + id);
+      const status = await page.open("https://acx.ac/s/" + id);
       const size = await page.property('viewportSize');
       const html = await page.property('content');
       await page.property("clipRect", {
