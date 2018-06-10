@@ -662,7 +662,7 @@ const sendSnap = (id, fmt, req, res) => {
     let refresh = !!req.query.refresh;
     let ids = decodeID(id);
     if (val) {
-      if (fmt === "PNG") {
+      if (fmt === "png") {
         let img = atob(val);
         res.writeHead(200, {'Content-Type': 'image/png' });
         res.end(img, 'binary');
@@ -1784,11 +1784,11 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    // batchScrape([
-    //   "l1aFezP0T5oIZp3acL",
-    //   "epMFRQjztPRIRj4qCV",
-    //   "BqmFry74Iz4HjWZYU0",
-    // ]);
+    batchScrape([
+      "l1aFezP0T5oIZp3acL",
+      "epMFRQjztPRIRj4qCV",
+      "BqmFry74Iz4HjWZYU0",
+    ]);
   });
 }
 
