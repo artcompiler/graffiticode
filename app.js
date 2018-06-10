@@ -274,8 +274,8 @@ const delCache = function (id) {
   }
 };
 const renCache = function (id, oldType, newType) {
-  let oldKey = id + "." + oldType;
-  let newKey = id + "." + newType;
+  let oldKey = id + oldType;
+  let newKey = id + newType;
   localCache[newKey] = localCache[oldKey];
   delete localCache[oldKey];
   if (cache) {
