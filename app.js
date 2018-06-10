@@ -218,14 +218,17 @@ const sendPing = (id, req, res) => {
   getCache(id, "data", (err, val) => {
     if (val) {
       urls.push("/data?id=" + id);
+      urls.push("/d/" + id);
     }
     getCache(id, "snap", (err, val) => {
       if (val) {
         urls.push("/snap?id=" + id);
+        urls.push("/s/" + id);
       }
       getCache(id, "snap-base64-png", (err, val) => {
         if (val) {
-          urls.push("/snap?id=" + id + "?fmt=PNG");
+          urls.push("/snap?id=" + id + "&fmt=PNG");
+          urls.push("/s/" + id + "?fmt=PNG");
         }
         res.json(urls);
       });
