@@ -1225,6 +1225,7 @@ const batchCompile = (auth, items, index, resume) => {
       item.image_url = "https://acx.ac/s/" + id + "?fmt=PNG";
       delete item.data;
       batchCompile(auth, items, index + 1, resume);
+      setCache(null, id, "snap-base64-png-pending", "need to render png")
       compileID(auth, id, false, (err, val) => {
         // Nothing to do.
       });
