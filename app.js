@@ -1221,7 +1221,7 @@ const getIDFromType = (type) => {
   case "horizontal_bar":
     return "nKpHNj2WfV";
   case "table_2":
-    return "ZzRFzWBauQ";
+    return "dOWTnyAaca";
   default:
     console.log("ERROR unknown type " + type);
     return "";
