@@ -1201,12 +1201,22 @@ const batchScrape = (ids, index) => {
     });
   }
 };
-const getIDFromAlias = (alias) => {
-  switch (alias) {
+const getIDFromType = (type) => {
+  switch (type) {
+  case "bar_2":
+    return "RQRSmwxdCr";
+  case "bar":
+    return "VpRFQv8lsJ";
+  case "bar_stacked":
+    return "vwLFb9zpCg";
   case "area":
     return "YnRFdBaBce";
+  case "horizontal_bar":
+    return "nKpHNj2WfV";
+  case "table_2":
+    return "ZzRFzWBauQ";
   default:
-    console.log("ERROR unknown alias " + alias);
+    console.log("ERROR unknown type " + type);
     return "";
   }
 };
@@ -1215,7 +1225,7 @@ const batchCompile = (auth, items, index, resume) => {
   // For each item, get the dataID and concat with codeID of alias.
   if (index < items.length) {
     let item = items[index];
-    let codeID = getIDFromAlias(item.type);
+    let codeID = getIDFromType(item.type);
     let data = item.data;
     putData(auth, data, (err, dataID) => {
       let codeIDs = decodeID(codeID);
