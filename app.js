@@ -1177,19 +1177,26 @@ const batchScrape = (ids, index) => {
     (async function() {
       const instance = await phantom.create();
       const page = await instance.createPage();
-      const status = await page.open("https://acx.ac/s/" + id);
+      const status = await page.open("https://acx.ac/snap?id=" + id);
       const size = await page.property('viewportSize');
       const html = await page.property('content');
-      await page.property("clipRect", {
-        top: 17, // 8.5
-        left: 17, // 8.5
-        width: 288, //144,
-        height: 60, //30,
+      const zoomFactor = 2;
+      await page.property("zoomFactor", zoomFactor);
+      let svg = await page.evaluate(function() {
+        var svg = window.document.querySelector("svg");
+        return svg;
       });
-      await page.property("zoomFactor", 2);
+      let width = svg.offsetWidth;
+      let height = svg.offsetHeight;
+      await page.property("clipRect", {
+        top: 8.5 * zoomFactor,
+        left: 8.5 * zoomFactor,
+        width: width * zoomFactor,
+        height: height * zoomFactor,
+      });
       var base64 = await page.renderBase64('PNG');
       setCache(null, id, "snap-base64-png-pending", base64)
-      console.log("batchScrape() caching " + id + "snap-png-pending");
+      console.log("batchScrape() " + width + "x" + height + ": " + id + "snap-png-pending");
       await instance.exit();
       console.log(id + " scraped in " + (new Date - t0) + "ms");
       batchScrape(ids, index + 1);
@@ -1805,11 +1812,17 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    // batchScrape([
-    //   "l1aFezP0T5oIZp3acL",
-    //   "epMFRQjztPRIRj4qCV",
-    //   "BqmFry74Iz4HjWZYU0",
-    // ]);
+    batchScrape([
+      "PqgF7ObNFpLHRZnquL",
+      "jRQtPOLdhmzCaWgKhm",
+      "6KLHMJlNFa2iPdr3Hg",
+      "YnRFdBaBc0rcAgRRFJ",
+      "6KLHMYwYUa2iPdrLIg",
+      "vwLFb0r0FPwIVqlRcV",
+      "y5OSqQPQiNMsR4eQUg",
+      "LOgTZPn3sXQS9ZpqCq",
+      "5bMFn7LKCeZhMplnsV",
+    ]);
   });
 }
 
