@@ -608,7 +608,7 @@ const makeSnap = (id, resume) => {
   //   console.log('statusCode:', response && response.statusCode);
   //   console.log('body:', body);
   //   let dom = new JSDOM(body, options);
-  JSDOM.fromURL("http://localhost:3000/form?id=" + id, options).then(dom => {
+  JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
     let window = dom.window;
     const checkLoaded = (t0) => {
       let td = new Date - t0;
@@ -1146,7 +1146,6 @@ const parseID = (id, resume) => {
     }
   });
 };
-
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
     parseID(id, (err, ast) => {
@@ -1166,7 +1165,6 @@ const recompileItems = (items, parseOnly) => {
     });
   });
 };
-
 const batchScrape = (ids, index) => {
   const phantom = require('phantom');
   index = index || 0;
@@ -1174,33 +1172,66 @@ const batchScrape = (ids, index) => {
   if (index < ids.length) {
     let t0 = new Date;
     let id = ids[index];
-    (async function() {
-      const instance = await phantom.create();
-      const page = await instance.createPage();
-      const status = await page.open("https://acx.ac/snap?id=" + id);
-      const size = await page.property('viewportSize');
-      const html = await page.property('content');
-      const zoomFactor = 2;
-      await page.property("zoomFactor", zoomFactor);
-      let svg = await page.evaluate(function() {
-        var svg = window.document.querySelector("svg");
-        return svg;
-      });
-      let width = svg.offsetWidth;
-      let height = svg.offsetHeight;
-      await page.property("clipRect", {
-        top: 8.5 * zoomFactor,
-        left: 8.5 * zoomFactor,
-        width: width * zoomFactor,
-        height: height * zoomFactor,
-      });
-      var base64 = await page.renderBase64('PNG');
-      setCache(null, id, "snap-base64-png-pending", base64)
-      console.log("batchScrape() " + width + "x" + height + ": " + id + "snap-png-pending");
-      await instance.exit();
-      console.log(id + " scraped in " + (new Date - t0) + "ms");
-      batchScrape(ids, index + 1);
-    }());
+    makeSnap(id, () => {
+      (async function() {
+        const instance = await phantom.create();
+        const page = await instance.createPage();
+        page.on("onConsoleMessage", function(msg) {
+          console.log('CONSOLE: ' + msg);
+        });
+        page.on("onResourceError", function(msg) {
+          console.log('RESOURCE: ' + JSON.stringify(msg));
+        });
+        page.on("onError", function(msg) {
+          console.log('ERROR: ' + msg);
+        });
+//        const status = await page.open("https://acx.ac/snap?id=" + id);
+        const status = await page.open("http://localhost:3000/snap?id=" + id);
+        //const status = await page.open("https://acx.ac/form?id=" + id);
+        const checkLoaded = async (t0) => {
+          let td = new Date - t0;
+          if (td > 60000) {
+            console.log("Aborting. Page taking too long to load.");
+            return;
+          }
+          let isLoaded = await page.evaluate(function() {
+            var done = !!window.document.querySelector(".c3-legend-item-tile");
+            console.log("isLoaded() done=" + done);
+            return done;
+          });
+          if (isLoaded) {
+            console.log("Loaded. Starting scraping...");
+            const size = await page.property('viewportSize');
+            const html = await page.property('content');
+            const zoomFactor = 2;
+            await page.property("zoomFactor", zoomFactor);
+            let svg = await page.evaluate(function() {
+              var svg = window.document.querySelector("svg");
+              return svg;
+            });
+            let width = svg.offsetWidth;
+            let height = svg.offsetHeight;
+            await page.property("clipRect", {
+              top: 8.5 * zoomFactor,
+              left: 8.5 * zoomFactor,
+              width: width * zoomFactor,
+              height: height * zoomFactor,
+            });
+            var base64 = await page.renderBase64('PNG');
+            setCache(null, id, "snap-base64-png-pending", base64)
+            console.log("batchScrape() " + width + "x" + height + ": " + id + "snap-png-pending");
+            await instance.exit();
+            console.log(id + " scraped in " + (new Date - t0) + "ms");
+            batchScrape(ids, index + 1);
+          } else {
+            setTimeout(() => {
+              checkLoaded(t0);
+            }, 100);
+          }
+        };
+        checkLoaded(t0);
+      }());
+    });
   } else {
     // Rename *-pending keys to *.
     ids.forEach(id => {
@@ -1814,14 +1845,14 @@ if (!module.parent) {
     // recompileItems([]);
     batchScrape([
       "PqgF7ObNFpLHRZnquL",
-      "jRQtPOLdhmzCaWgKhm",
-      "6KLHMJlNFa2iPdr3Hg",
-      "YnRFdBaBc0rcAgRRFJ",
-      "6KLHMYwYUa2iPdrLIg",
-      "vwLFb0r0FPwIVqlRcV",
-      "y5OSqQPQiNMsR4eQUg",
-      "LOgTZPn3sXQS9ZpqCq",
-      "NVgU4npAHRQHrYyaUa",
+      // "jRQtPOLdhmzCaWgKhm",
+      // "6KLHMJlNFa2iPdr3Hg",
+      // "YnRFdBaBc0rcAgRRFJ",
+      // "6KLHMYwYUa2iPdrLIg",
+      // "vwLFb0r0FPwIVqlRcV",
+      // "y5OSqQPQiNMsR4eQUg",
+      // "LOgTZPn3sXQS9ZpqCq",
+      // "NVgU4npAHRQHrYyaUa",
     ]);
   });
 }
