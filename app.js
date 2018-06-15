@@ -1287,6 +1287,8 @@ app.put('/comp', function (req, res) {
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let data = body;
   let auth = req.headers.authorization;
+  console.log("PUT /comp auth=" + auth);
+  console.log("PUT /comp body=" + JSON.stringify(body));
   postAuth("/validate", { jwt: auth }, (err, val) => {
     if (err) {
       res.sendStatus(err);
