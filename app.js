@@ -1845,17 +1845,17 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    batchScrape([
-      "PqgF7ObNFpLHRZnquL",
-      // "jRQtPOLdhmzCaWgKhm",
-      // "6KLHMJlNFa2iPdr3Hg",
-      // "YnRFdBaBc0rcAgRRFJ",
-      // "6KLHMYwYUa2iPdrLIg",
-      // "vwLFb0r0FPwIVqlRcV",
-      // "y5OSqQPQiNMsR4eQUg",
-      // "LOgTZPn3sXQS9ZpqCq",
-      // "NVgU4npAHRQHrYyaUa",
-    ]);
+    // batchScrape([
+    //   "PqgF7ObNFpLHRZnquL",
+    //   // "jRQtPOLdhmzCaWgKhm",
+    //   // "6KLHMJlNFa2iPdr3Hg",
+    //   // "YnRFdBaBc0rcAgRRFJ",
+    //   // "6KLHMYwYUa2iPdrLIg",
+    //   // "vwLFb0r0FPwIVqlRcV",
+    //   // "y5OSqQPQiNMsR4eQUg",
+    //   // "LOgTZPn3sXQS9ZpqCq",
+    //   // "NVgU4npAHRQHrYyaUa",
+    // ]);
   });
 }
 
