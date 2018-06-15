@@ -1,3 +1,3 @@
 [submodule "jsdom"]
 	path = jsdom
-	url = git@github.com:jsdom/jsdom.git
+	url = git@github.com:marinho/jsdom.git

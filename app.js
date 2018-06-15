@@ -214,6 +214,7 @@ app.get('/label', function (req, res) {
 const sendPing = (id, req, res) => {
   let useShort = req.path.indexOf("/p/") === 0;
   let ids = decodeID(id);
+  console.log("GET /ping?id=" + ids.join("+") + " (" + id + ")");
   let t0 = new Date;
   let urls = {};
   getCache(id, "data", (err, val) => {
@@ -1843,17 +1844,92 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    batchScrape([
-      "PqgF7ObNFpLHRZnquL",
-      // "jRQtPOLdhmzCaWgKhm",
-      // "6KLHMJlNFa2iPdr3Hg",
-      // "YnRFdBaBc0rcAgRRFJ",
-      // "6KLHMYwYUa2iPdrLIg",
-      // "vwLFb0r0FPwIVqlRcV",
-      // "y5OSqQPQiNMsR4eQUg",
-      // "LOgTZPn3sXQS9ZpqCq",
-      // "NVgU4npAHRQHrYyaUa",
-    ]);
+    // batchScrape([
+    //   "7ObTolnliqMHw8mzsV",
+    //   "zVQUWdodUyKHmLJYUd",
+    //   "dOWTnxOxT4gsJ7BqH8",
+    //   "1M6cX4l4UvbHr5g7UL",
+    //   "LOgTZqNqfXQS90myuq",
+    //   "QVRU8494c4OsJlvYH7",
+    //   "0vmFOZJZU13TAYlnH1",
+    //   "3LyiMNBNUNYs8ZJyiM",
+    //   "YnRFdBaBc0rcAmZeUJ",
+    //   "ObgFg8x8C7Jib2VMFa",
+    //   "q16F9BYBt2wSg8KbHL",
+    //   "rVvUp2v2TOoUeVA2u7",
+    //   "XZRiqebeiOoUj7pMFX",
+    //   "KzgFdanacl9I9zvAfo",
+    //   "l1aFezOzU5oIZpnKfL",
+    //   "ZzRFz020CZRfXpgbty",
+    //   "6KLHMJlNFa2iPdr3Hg",
+    //   "jRQtPbVbCmzCadz0fm",
+    //   "2MvcV1e1SzYHqKAoCr",
+    //   "QVRU8494c4OsJlNYI7",
+    //   "y5OSqQPQiNMsRM54Ug",
+    //   "p1rFMrxrUL4fzAnmIp",
+    //   "rVvUp2v2TOoUeVv2C7",
+    //   "4LWia909iPWINZg8SO",
+    //   "9WOIoB3BiQvCV7mbFK",
+    //   "b1vFa151ixwHKx77IW",
+    //   "gpbFrzazIAmUqN12uv",
+    //   "mrqF63A3UoWiZ5BgSB",
+    //   "nKpHNw6wugZt1oj9F4",
+    //   "jRQtPOLdhmzCaWgKhm",
+    //   "YnRFdBaBc0rcAgRRFJ",
+    //   "ZzRFz020CZRfXpAbhy",
+    //   "2MvcV1e1SzYHqKdoir",
+    //   "MxRF0pLpiJXSBMAVH9",
+    //   "7ObTolnliqMHw8LzfV",
+    //   "6KLHMYwYUa2iPdrLIg",
+    //   "b1vFa151ixwHKxL7SW",
+    //   "RQRSm8K8Ud8T1anMUz",
+    //   "vwLFb0r0FPwIVBgBHV",
+    //   "ObgFg8x8C7Jib2AMsa",
+    //   "aL6i8VgVclYIZKv8fm",
+    //   "9WOIoB3BiQvCV7ebUK",
+    //   "4LWia909iPWINZj8UO",
+    //   "epMFRQVQfPRIRjl5hV",
+    //   "wwbFmlelUByIQ3Npc0",
+    //   "5bMFn5x5TeZhMoZyCV",
+    //   "WzRF7l6liQzC5XoWUB",
+    //   "872fdeKeczdHN0gBTz",
+    //   "RQRSmwxdCd8T1a9yUz",
+    //   "zVQUWdodUyKHmLPocd",
+    //   "VpRFQJ0JC40sAy2LcK",
+    //   "PqgF7ObNFpLHRZnquL",
+    //   "zVQUWdodUyKHmLNoTd",
+    //   "PqgF7ZQZipLHR5YoFL",
+    //   "AKgHZYzYfQOCr186UB",
+    //   "aL6i8VgVclYIZKL8Sm",
+    //   "1M6cX4l4UvbHr567HL",
+    //   "q16F9BYBt2wSg8dbIL",
+    //   "xV2Udo0oc5nIaB5xi7",
+    //   "LOgTZPn3sXQS9ZpqCq",
+    //   "MxRF0pLpiJXSBMeVU9",
+    //   "LOgTZqNqfXQS90yyiq",
+    //   "NVgU4npAHRQHrYyaUa",
+    //   "BqmFryZyIz4HjWvAF0",
+    //   "vwLFb0r0FPwIVqlRcV",
+    //   "dOWTnxOxT4gsJ70qF8",
+    //   "6KLHMYwYUa2iPqweSg",
+    //   "l1aFezOzU5oIZprKsL",
+    //   "p1rFMrxrUL4fzAXmsp",
+    //   "NVgU4dgdURQHrxlrsa",
+    //   "NVgU4dgdURQHrxzrCa",
+    //   "y5OSqQPQiNMsR4eQUg",
+    //   "5bMFn5x5TeZhMoByhV",
+    //   "JePIZ7m7fRaHvldJtp",
+    //   "o5dSOQmQUL5fx9qOcA",
+    //   "JePIZ7m7fRaHvlzJhp",
+    // ]);
+    // putComp([{
+    //     "type": "bar_2",
+    //     "business_uid": "uid for river trail roasters",
+    //     "chart_name": "retention_rate",
+    //     "id": "PqgF7ObNFpLHRZnquL",
+    //     "image_url": "https://acx.ac/s/PqgF7ObNFpLHRZnquL?fmt=PNG",
+    // }], "<secret here>");
+
   });
 }
 
@@ -1867,3 +1943,37 @@ app.get('/0xaE91FC0da6B3a5d9dB881531b5227ABE075a806B', function (req, res) {
     res.sendStatus(404);
   }
 });
+
+
+function putComp(data, secret, resume) {
+  let encodedData = JSON.stringify(data);
+  var options = {
+    host: "acx.ac",
+    port: "443",
+    path: "/comp",
+    method: "PUT",
+    headers: {
+      "Content-Type": "text/plain",
+      "Content-Length": Buffer.byteLength(encodedData),
+      "Authorization": secret,
+    },
+  };
+  var req = https.request(options);
+  req.on("response", (res) => {
+    var data = "";
+    res.on('data', function (chunk) {
+      data += chunk;
+    }).on('end', function () {
+      console.log("statusCode=" + res.statusCode);
+      console.log("data=" + JSON.stringify(JSON.parse(data), null, 2));
+    }).on("error", function (err) {
+      console.log("ERROR " + err);
+    });
+  });
+  req.end(encodedData);
+  req.on('error', function(err) {
+    console.log("ERROR " + err);
+    resume(err);
+  });
+}
+
