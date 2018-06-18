@@ -1193,7 +1193,7 @@ const batchScrape = (ids, index) => {
             return;
           }
           let isLoaded = await page.evaluate(function() {
-            var done = !!window.document.querySelector(".c3-legend-item-tile");
+            var done = !!window.document.querySelector(".done-rendering");
             console.log("isLoaded() done=" + done);
             return done;
           });
