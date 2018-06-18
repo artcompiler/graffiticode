@@ -305,10 +305,11 @@ const getItem = function (itemID, resume) {
 };
 
 const localCache = {};
-const delCache = function (id) {
-  delete localCache[id];
+const delCache = function (id, type) {
+  let key = id + type;
+  delete localCache[key];
   if (cache) {
-    cache.del(id);
+    cache.del(key);
   }
 };
 const renCache = function (id, oldType, newType) {
@@ -996,7 +997,7 @@ function compileID(auth, id, refresh, resume) {
   } else {
     let ids = decodeID(id);
     if (refresh) {
-      delCache(id);
+      delCache(id, "data");
     }
     countView(ids[1]);
     getCache(id, "data", (err, val) => {
@@ -1132,13 +1133,14 @@ const parseID = (id, resume) => {
             console.log("NO AST for SRC " + src);
           }
           if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-            print("*");
-            updateAST(id, ast, (err)=>{
-              assert(!err);
+            if (+id) {
+              updateAST(id, ast, (err)=>{
+                assert(!err);
+                resume(err, ast);
+              });
+            } else {
               resume(err, ast);
-            });
-          } else {
-            resume(err, ast);
+            }
           }
         });
       } else {
@@ -1150,19 +1152,14 @@ const parseID = (id, resume) => {
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
     parseID(id, (err, ast) => {
-      print(id + " parsed");
+      console.log(id + " parsed");
       if (err.length) {
         console.log("ERROR " + err);
         return;
       }
-      if (!parseOnly) {
-        compileID(authToken, id, true, (err, obj) => {
-          print(" compiled\n");
-          updateOBJ(id, obj, (err)=>{ assert(!err) });
-        });
-      } else {
-        print("\n");
-      }
+      compileID(authToken, id, true, (err, obj) => {
+        print(id + " compiled\n");
+      });
     });
   });
 };
@@ -1845,7 +1842,84 @@ if (!module.parent) {
         authToken = data.jwt;
       });
     });
-    // recompileItems([]);
+    recompileItems([
+      "7ObTolnliqMHw8mzsV",
+      "zVQUWdodUyKHmLJYUd",
+      "dOWTnxOxT4gsJ7BqH8",
+      "1M6cX4l4UvbHr5g7UL",
+      "LOgTZqNqfXQS90myuq",
+      "QVRU8494c4OsJlvYH7",
+      "0vmFOZJZU13TAYlnH1",
+      "3LyiMNBNUNYs8ZJyiM",
+      "YnRFdBaBc0rcAmZeUJ",
+      "ObgFg8x8C7Jib2VMFa",
+      "q16F9BYBt2wSg8KbHL",
+      "rVvUp2v2TOoUeVA2u7",
+      "XZRiqebeiOoUj7pMFX",
+      "KzgFdanacl9I9zvAfo",
+      "l1aFezOzU5oIZpnKfL",
+      "ZzRFz020CZRfXpgbty",
+      "6KLHMJlNFa2iPdr3Hg",
+      "jRQtPbVbCmzCadz0fm",
+      "2MvcV1e1SzYHqKAoCr",
+      "QVRU8494c4OsJlNYI7",
+      "y5OSqQPQiNMsRM54Ug",
+      "p1rFMrxrUL4fzAnmIp",
+      "rVvUp2v2TOoUeVv2C7",
+      "4LWia909iPWINZg8SO",
+      "9WOIoB3BiQvCV7mbFK",
+      "b1vFa151ixwHKx77IW",
+      "gpbFrzazIAmUqN12uv",
+      "mrqF63A3UoWiZ5BgSB",
+      "nKpHNw6wugZt1oj9F4",
+      "jRQtPOLdhmzCaWgKhm",
+      "YnRFdBaBc0rcAgRRFJ",
+      "ZzRFz020CZRfXpAbhy",
+      "2MvcV1e1SzYHqKdoir",
+      "MxRF0pLpiJXSBMAVH9",
+      "7ObTolnliqMHw8LzfV",
+      "6KLHMYwYUa2iPdrLIg",
+      "b1vFa151ixwHKxL7SW",
+      "RQRSm8K8Ud8T1anMUz",
+      "vwLFb0r0FPwIVBgBHV",
+      "ObgFg8x8C7Jib2AMsa",
+      "aL6i8VgVclYIZKv8fm",
+      "9WOIoB3BiQvCV7ebUK",
+      "4LWia909iPWINZj8UO",
+      "epMFRQVQfPRIRjl5hV",
+      "wwbFmlelUByIQ3Npc0",
+      "5bMFn5x5TeZhMoZyCV",
+      "WzRF7l6liQzC5XoWUB",
+      "872fdeKeczdHN0gBTz",
+      "RQRSmwxdCd8T1a9yUz",
+      "zVQUWdodUyKHmLPocd",
+      "VpRFQJ0JC40sAy2LcK",
+      "PqgF7ObNFpLHRZnquL",
+      "zVQUWdodUyKHmLNoTd",
+      "PqgF7ZQZipLHR5YoFL",
+      "AKgHZYzYfQOCr186UB",
+      "aL6i8VgVclYIZKL8Sm",
+      "1M6cX4l4UvbHr567HL",
+      "q16F9BYBt2wSg8dbIL",
+      "xV2Udo0oc5nIaB5xi7",
+      "LOgTZPn3sXQS9ZpqCq",
+      "MxRF0pLpiJXSBMeVU9",
+      "LOgTZqNqfXQS90yyiq",
+      "NVgU4npAHRQHrYyaUa",
+      "BqmFryZyIz4HjWvAF0",
+      "vwLFb0r0FPwIVqlRcV",
+      "dOWTnxOxT4gsJ70qF8",
+      "6KLHMYwYUa2iPqweSg",
+      "l1aFezOzU5oIZprKsL",
+      "p1rFMrxrUL4fzAXmsp",
+      "NVgU4dgdURQHrxlrsa",
+      "NVgU4dgdURQHrxzrCa",
+      "y5OSqQPQiNMsR4eQUg",
+      "5bMFn5x5TeZhMoByhV",
+      "JePIZ7m7fRaHvldJtp",
+      "o5dSOQmQUL5fx9qOcA",
+      "JePIZ7m7fRaHvlzJhp",
+    ]);
     // batchScrape([
     //   "7ObTolnliqMHw8mzsV",
     //   "zVQUWdodUyKHmLJYUd",
