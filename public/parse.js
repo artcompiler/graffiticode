@@ -69,6 +69,7 @@ var Ast = (function () {
     number: number,
     string: string,
     name: name,
+    nameRef: nameRef,
     apply: apply,
     fold: fold,
     expr: expr,
@@ -173,7 +174,10 @@ var Ast = (function () {
 
   function node(ctx, nid) {
     var n = ctx.state.nodePool[nid];
-    if (!n) {
+    if (!nid) {
+      return null;
+    } else if (!n) {
+//      assert(false, "node() ERROR shouldn't get here.")
       return {};
     }
     var elts = [];
@@ -281,10 +285,12 @@ var Ast = (function () {
   }
 
   function fold(ctx, fn, args) {
+    // Local defs:
+    // -- put bindings in env
     // Three cases:
     // -- full application, all args are available at parse time
     // -- partial application, only some args are available at parse time
-    // -- late application, args are available at compile time
+    // -- late application, args are available at compile time (not parse time)
     //        apply <[x y]: add x y> data..
     //    x: val 0 data
     //    y: val 1 data
@@ -292,8 +298,8 @@ var Ast = (function () {
     if (fn.env) {
       var lexicon = fn.env.lexicon;
       var pattern = Ast.node(ctx, fn.env.pattern);
+      var outerEnv = null;
       // setup inner environment record (lexicon)
-      var outerEnv = {};
       if (pattern && pattern.elts &&
           pattern.elts.length === 1 &&
           pattern.elts[0].tag === "LIST") {
@@ -322,18 +328,23 @@ var Ast = (function () {
                 }]
               }]
           });
-        } else {
-          word.nid = args[index];  // offsets are from end of args
+        } else if (index >= 0 && index < args.length) {
+          word.nid = args[index];
         }
-        if (index < 0) {
+        if (index < 0 && !word.nid) {
+          // We've got an unbound variable, so add it to the unbound variable list.
           // <x:x> => <x:x>
-          // <x y: add x y> 10. => <y: add 10 y>.
+          // (<x y: add x y> 10) => <y: add 10 y>
+          // (<y: let x = 10.. add x y>) => <y: add 10 y>
+          if (!outerEnv) {
+            outerEnv = {};
+          }
           outerEnv[id] = word;
         }
         env.addWord(ctx, id, word);
       }
       folder.fold(ctx, fn.nid);
-      if (index < 0) {
+      if (outerEnv) {
         lambda(ctx, {
           lexicon: outerEnv,
           pattern: pattern,  // FIXME need to trim pattern if some args where applied.
@@ -369,13 +380,21 @@ var Ast = (function () {
     // }
     // Construct a lexicon
     var lexicon = {};
+    var paramc = 0;
     fn.elts[0].elts.forEach(function (n, i) {
       var name = n.elts[0];
+      var nid = Ast.intern(ctx, fn.elts[3].elts[i]);
       lexicon[name] = {
         cls: "val",
         name: name,
-        offset: i
+        offset: i,
+        nid: nid,
       };
+      if (!nid) {
+        // Parameters don't have nids.
+        // assert that there are parameters after a binding without a nid.
+        paramc++;
+      }
     });
     var def = {
       name: "lambda",
@@ -386,7 +405,6 @@ var Ast = (function () {
       },
     };
     var len = fn.elts[0].elts.length;
-    var paramc = len;
     var elts = [];
     // While there are args on the stack, pop them.
     while (argc-- > 0 && paramc-- > 0) {
@@ -434,12 +452,25 @@ var Ast = (function () {
     });
   }
 
-  function name(ctx, str, coord) {
+  function name(ctx, name, coord) {
     push(ctx, {
       tag: "IDENT",
-      elts: [str],
+      elts: [name],
       coord: coord,
     });
+  }
+
+  function nameRef(ctx, name, coord) {
+    // var word = env.findWord(ctx, name);
+    // if (word.nid && ctx.state.env.length > 1) {
+    //   Ast.fold(ctx, word, []);
+    // } else {
+      push(ctx, {
+        tag: "IDENT",
+        elts: [name],
+        coord: coord,
+      });
+    // }
   }
 
   function expr(ctx, argc) {
@@ -700,12 +731,14 @@ var Ast = (function () {
   function lambda(ctx, env, nid) {
     // Ast.lambda
     var names = [];
+    var nids = [];
     for (var id in env.lexicon) {
       var word = env.lexicon[id];
       names.push({
         tag: "IDENT",
         elts: [word.name]
       });
+      nids.push(word.nid || 0);
     }
     var pattern = env.pattern;
     push(ctx, {
@@ -716,6 +749,9 @@ var Ast = (function () {
       }, nid, {
         tag: "LIST",
         elts: pattern
+      }, {
+        tag: "LIST",
+        elts: nids
       }]
     });
   }
@@ -753,11 +789,16 @@ var Ast = (function () {
   }
 
   function letDef(ctx) {
-    pop(ctx)  // name
-    pop(ctx)  // body
+    // Clean up stack and produce initializer.
+    let bodyNid = pop(ctx);
+    let nameNid = pop(ctx);
     for (var i = 0; i < ctx.state.paramc; i++) {
-      pop(ctx) // params
+      pop(ctx); // params
     }
+    // push(ctx, {
+    //   tag: "LET",
+    //   elts: [nameId],
+    // });
     ctx.state.exprc--; // don't count as expr.
   }
 
@@ -1217,6 +1258,7 @@ window.gcexports.parser = (function () {
         cls: "val",
         name: lexeme,
         offset: ctx.state.paramc,
+        nid: 0,
       });
       ctx.state.paramc++;
       Ast.name(ctx, lexeme);
@@ -1235,7 +1277,7 @@ window.gcexports.parser = (function () {
       } else if (word.cls==="string" && word.val) {
         Ast.string(ctx, word.val, coord);
       } else {
-        Ast.name(ctx, lexeme, coord);
+        Ast.nameRef(ctx, lexeme, coord);
       }
     } else {
       cc.cls = "comment";
@@ -1674,10 +1716,10 @@ window.gcexports.parser = (function () {
 
   function letDef(ctx, cc) {
     if (match(ctx, TK_LET)) {
-      eat(ctx, TK_LET)
+      eat(ctx, TK_LET);
       var ret = function (ctx) {
         var ret = defName(ctx, function (ctx) {
-          var name = Ast.node(ctx, Ast.topNode(ctx)).elts[0]
+          var name = Ast.node(ctx, Ast.topNode(ctx)).elts[0];
           // nid=0 means def not finished yet
           env.addWord(ctx, name, {
             tk: TK_IDENT,
@@ -1686,33 +1728,33 @@ window.gcexports.parser = (function () {
             nid: 0,
             name: name
           });
-          ctx.state.paramc = 0
-          env.enterEnv(ctx, name)  // FIXME need to link to outer env
+          ctx.state.paramc = 0;
+          env.enterEnv(ctx, name);  // FIXME need to link to outer env
           return params(ctx, TK_EQUAL, function (ctx) {
-            var func = env.findWord(ctx, topEnv(ctx).name)
-            func.length = ctx.state.paramc
-            func.env = topEnv(ctx)
-            eat(ctx, TK_EQUAL)
+            var func = env.findWord(ctx, topEnv(ctx).name);
+            func.length = ctx.state.paramc;
+            func.env = topEnv(ctx);
+            eat(ctx, TK_EQUAL);
             var ret = function(ctx) {
               return exprsStart(ctx, TK_DOT, function (ctx) {
-                var def = env.findWord(ctx, topEnv(ctx).name)
-                def.nid = Ast.peek(ctx)   // save node id for aliased code
+                var def = env.findWord(ctx, topEnv(ctx).name);
+                def.nid = Ast.peek(ctx);   // save node id for aliased code
                 env.exitEnv(ctx);
                 Ast.letDef(ctx);  // Clean up stack
                 return cc;
-              })
+              });
             }
-            ret.cls = "punc"
-            return ret
+            ret.cls = "punc";
+            return ret;
           })
         })
-        ret.cls = "def"
-        return ret
+        ret.cls = "def";
+        return ret;
       }
-      ret.cls = "keyword"
-      return ret
+      ret.cls = "keyword";
+      return ret;
     }
-    return name(ctx, cc)
+    return name(ctx, cc);
   }
 
   // TODO add argument for specifying the break token.
@@ -2344,7 +2386,6 @@ var folder = function() {
 
   function lambda(node) {
     var fnId = Ast.intern(ctx, node);
-//    var argc = Ast.node(ctx, node.elts[0]).elts.length;
     var argc = ctx.state.nodeStack.length;
     Ast.apply(ctx, fnId, argc);
   }
