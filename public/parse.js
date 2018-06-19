@@ -69,7 +69,6 @@ var Ast = (function () {
     number: number,
     string: string,
     name: name,
-    nameRef: nameRef,
     apply: apply,
     fold: fold,
     expr: expr,
@@ -177,7 +176,6 @@ var Ast = (function () {
     if (!nid) {
       return null;
     } else if (!n) {
-//      assert(false, "node() ERROR shouldn't get here.")
       return {};
     }
     var elts = [];
@@ -458,19 +456,6 @@ var Ast = (function () {
       elts: [name],
       coord: coord,
     });
-  }
-
-  function nameRef(ctx, name, coord) {
-    // var word = env.findWord(ctx, name);
-    // if (word.nid && ctx.state.env.length > 1) {
-    //   Ast.fold(ctx, word, []);
-    // } else {
-      push(ctx, {
-        tag: "IDENT",
-        elts: [name],
-        coord: coord,
-      });
-    // }
   }
 
   function expr(ctx, argc) {
@@ -790,15 +775,11 @@ var Ast = (function () {
 
   function letDef(ctx) {
     // Clean up stack and produce initializer.
-    let bodyNid = pop(ctx);
-    let nameNid = pop(ctx);
+    pop(ctx); // body
+    pop(ctx); // name
     for (var i = 0; i < ctx.state.paramc; i++) {
       pop(ctx); // params
     }
-    // push(ctx, {
-    //   tag: "LET",
-    //   elts: [nameId],
-    // });
     ctx.state.exprc--; // don't count as expr.
   }
 
@@ -1277,7 +1258,7 @@ window.gcexports.parser = (function () {
       } else if (word.cls==="string" && word.val) {
         Ast.string(ctx, word.val, coord);
       } else {
-        Ast.nameRef(ctx, lexeme, coord);
+        Ast.name(ctx, lexeme, coord);
       }
     } else {
       cc.cls = "comment";
@@ -1719,7 +1700,7 @@ window.gcexports.parser = (function () {
       eat(ctx, TK_LET);
       var ret = function (ctx) {
         var ret = defName(ctx, function (ctx) {
-          var name = Ast.node(ctx, Ast.topNode(ctx)).elts[0];
+          var name = Ast.node(ctx, Ast.pop(ctx)).elts[0];
           // nid=0 means def not finished yet
           env.addWord(ctx, name, {
             tk: TK_IDENT,
@@ -2085,7 +2066,6 @@ window.gcexports.parser = (function () {
             //return TK_NUM;
             return number(c);
           } else {
-            //assert(false, "'" + String.fromCharCode(c) + "' has no meaning in this language.");
             return 0;
           }
         }
