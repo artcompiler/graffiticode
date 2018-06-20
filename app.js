@@ -1209,11 +1209,12 @@ const batchScrape = (ids, index) => {
             });
             let width = svg.offsetWidth;
             let height = svg.offsetHeight;
+            let padding = 5;
             await page.property("clipRect", {
-              top: 8.5 * zoomFactor,
-              left: 8.5 * zoomFactor,
-              width: width * zoomFactor,
-              height: height * zoomFactor,
+              top: (8.5 - padding) * zoomFactor,
+              left: (8.5 - padding) * zoomFactor,
+              width: (width + padding) * zoomFactor,
+              height: (height + padding) * zoomFactor,
             });
             var base64 = await page.renderBase64('PNG');
             setCache(null, id, "snap-base64-png-pending", base64)
@@ -1241,15 +1242,15 @@ const batchScrape = (ids, index) => {
 const getIDFromType = (type) => {
   switch (type) {
   case "bar_2":
-    return "RQRSmwxdCr";
+    return "o5dSOpgVcj";
   case "bar":
-    return "VpRFQv8lsJ";
+    return "vwLFb9qJIg";
   case "bar_stacked":
-    return "vwLFb9zpCg";
+    return "WzRF7AO9up";
   case "area":
     return "YnRFdBaBce";
   case "horizontal_bar":
-    return "nKpHNj2WfV";
+    return "RQRSmwvmir";
   case "table_2":
     return "dOWTnyAaca";
   default:
