@@ -1856,7 +1856,6 @@ if (!module.parent) {
 "PqgF7ObNFpLHRZnquL",
 "y5OSqQPQiNMsR4m7Ug",
 "zVQUWdodUyKHm9VBud",
-"6yiLia2iPqx7sg",
     ]);
     // putComp([{
     //     "type": "bar_2",
