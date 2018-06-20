@@ -1212,7 +1212,7 @@ const batchScrape = (ids, index) => {
             });
             let width = svg.offsetWidth;
             let height = svg.offsetHeight;
-            let padding = 5;
+            let padding = 0;
             await page.property("clipRect", {
               top: (8.5 - padding) * zoomFactor,
               left: (8.5 - padding) * zoomFactor,
