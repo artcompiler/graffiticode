@@ -899,6 +899,7 @@ var env = (function () {
       //return;  // just stop recursing
       throw new Error("runaway recursion");
     }
+    window.gcexports.topEnv(ctx).paramc = ctx.state.paramc;
     ctx.state.env.push({
       name: name,
       lexicon: {},
@@ -908,6 +909,7 @@ var env = (function () {
 
   function exitEnv(ctx) {
     ctx.state.env.pop();
+    ctx.state.paramc = window.gcexports.topEnv(ctx).paramc;
   }
 
 })();
@@ -1241,7 +1243,6 @@ window.gcexports.parser = (function () {
         offset: ctx.state.paramc,
         nid: 0,
       });
-      ctx.state.paramc++;
       Ast.name(ctx, lexeme);
       cc.cls = "val";
       return cc;
@@ -1747,6 +1748,7 @@ window.gcexports.parser = (function () {
     }
     var ret = function (ctx) {
       var ret = defName(ctx, (ctx) => {
+        ctx.state.paramc++;
         return params(ctx, brk, cc);
       });
       ret.cls = "param";
@@ -1763,10 +1765,6 @@ window.gcexports.parser = (function () {
   }
 
   // Drive the parser
-
-  function topEnv(ctx) {
-    return ctx.state.env[ctx.state.env.length-1]
-  }
 
   function compileCode(ast, postCode) {
     const gcexports = window.gcexports;
@@ -1869,7 +1867,12 @@ window.gcexports.parser = (function () {
     });
   }
 
-  window.gcexports.topEnv = topEnv
+  function topEnv(ctx) {
+    return ctx.state.env[ctx.state.env.length-1]
+  }
+
+  window.gcexports.topEnv = topEnv;
+
   var lastAST;
   var lastTimer;
   var firstTime = true;
@@ -1937,7 +1940,7 @@ window.gcexports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-//      console.log(x.stack);
+      console.log(x.stack);
 //      console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
