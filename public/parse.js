@@ -1243,7 +1243,7 @@ window.gcexports.parser = (function () {
         offset: ctx.state.paramc,
         nid: 0,
       });
-//      Ast.name(ctx, lexeme);
+      Ast.name(ctx, lexeme);
       cc.cls = "val";
       return cc;
     }
@@ -1743,6 +1743,7 @@ window.gcexports.parser = (function () {
     }
     var ret = function (ctx) {
       var ret = defName(ctx, (ctx) => {
+        Ast.pop(ctx); // Throw away name.
         ctx.state.paramc++;
         return params(ctx, brk, cc);
       });
