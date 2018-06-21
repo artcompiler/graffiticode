@@ -1259,7 +1259,11 @@ window.gcexports.parser = (function () {
       } else if (word.cls==="string" && word.val) {
         Ast.string(ctx, word.val, coord);
       } else {
-        Ast.name(ctx, lexeme, coord);
+        if (word.nid) {
+          Ast.push(ctx, word.nid);
+        } else {
+          Ast.name(ctx, lexeme, coord);
+        }
       }
     } else {
       cc.cls = "comment";
