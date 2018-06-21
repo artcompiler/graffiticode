@@ -1243,7 +1243,7 @@ window.gcexports.parser = (function () {
         offset: ctx.state.paramc,
         nid: 0,
       });
-      Ast.name(ctx, lexeme);
+//      Ast.name(ctx, lexeme);
       cc.cls = "val";
       return cc;
     }
@@ -1325,12 +1325,7 @@ window.gcexports.parser = (function () {
         var ret = function(ctx) {
           return exprsStart(ctx, TK_RIGHTANGLE, function (ctx) {
             eat(ctx, TK_RIGHTANGLE);
-            var nid = Ast.peek(ctx)   // save node id for aliased code
-            // Clean up stack.
-            Ast.pop(ctx)  // body
-            for (var i = 0; i < ctx.state.paramc; i++) {
-              env.addPattern(ctx, Ast.pop(ctx)); // params
-            }
+            var nid = Ast.pop(ctx);   // save body node id for aliased code
             Ast.lambda(ctx, topEnv(ctx), nid);
             env.exitEnv(ctx);
             return cc

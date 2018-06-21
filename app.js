@@ -29,9 +29,9 @@ const atob = require("atob");
 
 // Configuration
 
-const DEBUG = false;
+const DEBUG = true;
 const LOCAL_COMPILES = true;
-const LOCAL_DATABASE = false;
+const LOCAL_DATABASE = true;
 
 if (LOCAL_DATABASE) {
   pg.defaults.ssl = false;
@@ -1787,8 +1787,7 @@ function validateUser(token, lang, resume) {
   if (token === undefined) {
     // User has not signed in.
     resume(401);
-  } else if (validatedUsers[token]) {
-    //resume(null, validatedUsers[token]);
+  } else if (DEBUG || validatedUsers[token]) {
     let data = validatedUsers[token];
     // NOTE here is an example of how to restrict access to some user.
     // if (authorizedUsers.includes(data.id)) {
