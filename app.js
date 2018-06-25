@@ -31,7 +31,7 @@ const atob = require("atob");
 
 const DEBUG = true;
 const LOCAL_COMPILES = true;
-const LOCAL_DATABASE = true;
+const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
   pg.defaults.ssl = false;
