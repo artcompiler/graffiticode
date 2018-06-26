@@ -1944,7 +1944,7 @@ if (!module.parent) {
 "7ObTojbBsqMHw0xZTV",
 "1M6cX0xrivbHrwbahL",
 "l1aFezOzU5oIZ3V1SL",
-
+]);
     // putComp([{
     //     "type": "bar_2",
     //     "business_uid": "uid for river trail roasters",
