@@ -1845,15 +1845,15 @@ if (!module.parent) {
     });
     // recompileItems([
     // ]);
-    batchScrape([
-"AKgHZr9QuQOCrM8lhB",
-"5bMFn5x5TeZhMpVgFV",
-"p1rFMrxrUL4fze2Bcp",
-"epMFRW0OUPRIR4KnSV",
-"RQRSmwAaId8T1WjXsz",
-"PqgF7O95upLHRZYWUL",
-"5bMFn7J3FeZhMpB3sV",
-]);
+    // batchScrape([
+    //   "AKgHZr9QuQOCrM8lhB",
+    //   "5bMFn5x5TeZhMpVgFV",
+    //   "p1rFMrxrUL4fze2Bcp",
+    //   "epMFRW0OUPRIR4KnSV",
+    //   "RQRSmwAaId8T1WjXsz",
+    //   "PqgF7O95upLHRZYWUL",
+    //   "5bMFn7J3FeZhMpB3sV",
+    // ]);
     // putComp([{
     //     "type": "bar_2",
     //     "business_uid": "uid for river trail roasters",
