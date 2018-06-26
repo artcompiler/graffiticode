@@ -329,8 +329,10 @@ var Ast = (function () {
         } else if (index >= 0 && index < args.length) {
           word.nid = args[index];
         }
-        if (index < 0 && !word.nid) {
-          // We've got an unbound variable, so add it to the unbound variable list.
+//        if (index < 0 && !word.nid) {
+        if (index < 0) {
+          // We've got an unbound variable or a variable with a default value,
+          // so add it to the new variable list.
           // <x:x> => <x:x>
           // (<x y: add x y> 10) => <y: add 10 y>
           // (<y: let x = 10.. add x y>) => <y: add 10 y>
