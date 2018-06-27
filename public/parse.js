@@ -310,26 +310,27 @@ var Ast = (function () {
         if (!id) continue;
         var word = JSON.parse(JSON.stringify(lexicon[id])); // poor man's copy.
         var index = args.length - word.offset - 1;
-        if (isListPattern) {
-          // <[x y]: ...> foo..
-          word.nid = Ast.intern(ctx, {
-            tag: "VAL",
-            elts: [{
-              tag: "NUM",
-              elts: [
-                String(word.offset),
-              ]}, {
-                tag: "ARG",
-                elts: [{
-                  tag: "NUM",
-                  elts: ["0"]
-                }]
-              }]
-          });
-        } else if (index >= 0 && index < args.length) {
+        // TODO we currently ignore list patterns
+        // if (isListPattern) {
+        //   // <[x y]: ...> foo..
+        //   word.nid = Ast.intern(ctx, {
+        //     tag: "VAL",
+        //     elts: [{
+        //       tag: "NUM",
+        //       elts: [
+        //         String(word.offset),
+        //       ]}, {
+        //         tag: "ARG",
+        //         elts: [{
+        //           tag: "NUM",
+        //           elts: ["0"]
+        //         }]
+        //       }]
+        //   });
+        // } else
+        if (index >= 0 && index < args.length) {
           word.nid = args[index];
         }
-//        if (index < 0 && !word.nid) {
         if (index < 0) {
           // We've got an unbound variable or a variable with a default value,
           // so add it to the new variable list.
@@ -1943,19 +1944,21 @@ window.gcexports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-      console.log(x.stack);
+//      console.log(x.stack);
 //      console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
         addError(ctx, x.message);
         state.cc = null;  // done for now.
         cls = "error"
+        console.log(x.stack);
       } else if (x === "comment") {
         cls = x
       } else {
         //throw x
         next(ctx)
         cls = "error"
+        console.log(x.stack);
       }
 //      console.log(x)
     }

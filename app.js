@@ -293,7 +293,7 @@ const getItem = function (itemID, resume) {
     // Here we get the language associated with the id. The code is gotten by
     // the view after it is loaded.
     let val;
-    if (!result || result.rows.length === 0 || result.rows[0].id < 1000) {
+    if (!result || !result.rows || result.rows.length === 0 || result.rows[0].id < 1000) {
       // Any id before 1000 was experimental
       resume("Bad ID", null);
     } else {

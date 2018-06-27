@@ -35115,7 +35115,6 @@ var GraffContent = React.createClass({
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
       self.pendingRequests++;
-      //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, function (err, obj) {
         self.pendingRequests--;
         // if (dataID && +dataID !== 0) {
@@ -35733,9 +35732,13 @@ var CodeMirrorEditor = React.createClass({
       };
       var itemID = window.gcexports.id;
       var dataID = window.gcexports.encodeID(window.gcexports.decodeID(itemID).slice(2));
-      $.get(location.origin + "/data?id=" + dataID, function (data) {
-        updateObj(dataID, data);
-      });
+      if (dataID !== "0") {
+        $.get(location.origin + "/data?id=" + dataID, function (data) {
+          updateObj(dataID, data);
+        });
+      } else {
+        updateObj(dataID, {});
+      }
     }
   },
   render: function render() {
@@ -36044,6 +36047,7 @@ var encodeID = function encodeID(ids) {
   }
   if (length === 1) {
     if (+ids[0] === 0) {
+      // console.log("[2] encodeID() << 0");
       return "0";
     }
     ids = [0, +ids[0], 0];
