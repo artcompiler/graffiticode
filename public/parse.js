@@ -329,8 +329,10 @@ var Ast = (function () {
         } else if (index >= 0 && index < args.length) {
           word.nid = args[index];
         }
-        if (index < 0 && !word.nid) {
-          // We've got an unbound variable, so add it to the unbound variable list.
+//        if (index < 0 && !word.nid) {
+        if (index < 0) {
+          // We've got an unbound variable or a variable with a default value,
+          // so add it to the new variable list.
           // <x:x> => <x:x>
           // (<x y: add x y> 10) => <y: add 10 y>
           // (<y: let x = 10.. add x y>) => <y: add 10 y>
@@ -899,6 +901,7 @@ var env = (function () {
       //return;  // just stop recursing
       throw new Error("runaway recursion");
     }
+    window.gcexports.topEnv(ctx).paramc = ctx.state.paramc;
     ctx.state.env.push({
       name: name,
       lexicon: {},
@@ -908,6 +911,7 @@ var env = (function () {
 
   function exitEnv(ctx) {
     ctx.state.env.pop();
+    ctx.state.paramc = window.gcexports.topEnv(ctx).paramc;
   }
 
 })();
@@ -1241,7 +1245,6 @@ window.gcexports.parser = (function () {
         offset: ctx.state.paramc,
         nid: 0,
       });
-      ctx.state.paramc++;
       Ast.name(ctx, lexeme);
       cc.cls = "val";
       return cc;
@@ -1258,7 +1261,11 @@ window.gcexports.parser = (function () {
       } else if (word.cls==="string" && word.val) {
         Ast.string(ctx, word.val, coord);
       } else {
-        Ast.name(ctx, lexeme, coord);
+        if (word.nid) {
+          Ast.push(ctx, word.nid);
+        } else {
+          Ast.name(ctx, lexeme, coord);
+        }
       }
     } else {
       cc.cls = "comment";
@@ -1324,12 +1331,7 @@ window.gcexports.parser = (function () {
         var ret = function(ctx) {
           return exprsStart(ctx, TK_RIGHTANGLE, function (ctx) {
             eat(ctx, TK_RIGHTANGLE);
-            var nid = Ast.peek(ctx)   // save node id for aliased code
-            // Clean up stack.
-            Ast.pop(ctx)  // body
-            for (var i = 0; i < ctx.state.paramc; i++) {
-              env.addPattern(ctx, Ast.pop(ctx)); // params
-            }
+            var nid = Ast.pop(ctx);   // save body node id for aliased code
             Ast.lambda(ctx, topEnv(ctx), nid);
             env.exitEnv(ctx);
             return cc
@@ -1687,6 +1689,7 @@ window.gcexports.parser = (function () {
       return cc;
     });
   }
+
   window.gcexports.program = program;
 
   /*
@@ -1747,6 +1750,8 @@ window.gcexports.parser = (function () {
     }
     var ret = function (ctx) {
       var ret = defName(ctx, (ctx) => {
+        Ast.pop(ctx); // Throw away name.
+        ctx.state.paramc++;
         return params(ctx, brk, cc);
       });
       ret.cls = "param";
@@ -1763,10 +1768,6 @@ window.gcexports.parser = (function () {
   }
 
   // Drive the parser
-
-  function topEnv(ctx) {
-    return ctx.state.env[ctx.state.env.length-1]
-  }
 
   function compileCode(ast, postCode) {
     const gcexports = window.gcexports;
@@ -1869,7 +1870,12 @@ window.gcexports.parser = (function () {
     });
   }
 
-  window.gcexports.topEnv = topEnv
+  function topEnv(ctx) {
+    return ctx.state.env[ctx.state.env.length-1]
+  }
+
+  window.gcexports.topEnv = topEnv;
+
   var lastAST;
   var lastTimer;
   var firstTime = true;
@@ -1913,7 +1919,7 @@ window.gcexports.parser = (function () {
           if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
             // Compile code if not first time (newly loaded) and no edit
             // activity after 1 sec.
-            if (!firstTime) {
+            if (!firstTime || window.gcexports.refresh) {
               lastTimer = window.setTimeout(function () {
                 compileCode(thisAST, true);
               }, 1000);
@@ -1937,7 +1943,7 @@ window.gcexports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-//      console.log(x.stack);
+      console.log(x.stack);
 //      console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
@@ -2365,6 +2371,17 @@ var folder = function() {
   }
 
   function lambda(node) {
+    // Fold initializers and apply args.
+    var inits = Ast.node(ctx, node.elts[3]).elts;
+    inits.forEach((init, i) => {
+      if (init) {
+        // If we have an init then fold it and replace in inits list.
+        folder.fold(ctx, Ast.intern(ctx, init));
+        inits[i] = Ast.pop(ctx);
+      }
+    });
+    // FIXME don't patch old node. construct a new one.
+    node.elts[3] = Ast.intern(ctx, {tag: "LIST", elts: inits});
     var fnId = Ast.intern(ctx, node);
     var argc = ctx.state.nodeStack.length;
     Ast.apply(ctx, fnId, argc);
