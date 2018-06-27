@@ -1689,6 +1689,7 @@ window.gcexports.parser = (function () {
       return cc;
     });
   }
+
   window.gcexports.program = program;
 
   /*
@@ -2370,6 +2371,17 @@ var folder = function() {
   }
 
   function lambda(node) {
+    // Fold initializers and apply args.
+    var inits = Ast.node(ctx, node.elts[3]).elts;
+    inits.forEach((init, i) => {
+      if (init) {
+        // If we have an init then fold it and replace in inits list.
+        folder.fold(ctx, Ast.intern(ctx, init));
+        inits[i] = Ast.pop(ctx);
+      }
+    });
+    // FIXME don't patch old node. construct a new one.
+    node.elts[3] = Ast.intern(ctx, {tag: "LIST", elts: inits});
     var fnId = Ast.intern(ctx, node);
     var argc = ctx.state.nodeStack.length;
     Ast.apply(ctx, fnId, argc);
