@@ -1149,6 +1149,7 @@ const parseID = (id, resume) => {
 };
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
+    delCache(id);
     parseID(id, (err, ast) => {
       print(id + " parsed");
       if (err.length) {
@@ -1164,6 +1165,24 @@ const recompileItems = (items, parseOnly) => {
         print("\n");
       }
     });
+  });
+};
+const recompileItem = (id, parseOnly) => {
+  delCache(id);
+  parseID(id, (err, ast) => {
+    print(id + " parsed");
+    if (err.length) {
+      console.log("ERROR " + err);
+      return;
+    }
+    if (!parseOnly) {
+      compileID(authToken, id, true, (err, obj) => {
+        print(" compiled\n");
+        updateOBJ(id, obj, (err)=>{ assert(!err) });
+      });
+    } else {
+      print("\n");
+    }
   });
 };
 const batchScrape = (ids, index) => {

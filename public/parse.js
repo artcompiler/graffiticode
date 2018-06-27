@@ -1919,7 +1919,7 @@ window.gcexports.parser = (function () {
           if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
             // Compile code if not first time (newly loaded) and no edit
             // activity after 1 sec.
-            if (!firstTime) {
+            if (!firstTime || window.gcexports.refresh) {
               lastTimer = window.setTimeout(function () {
                 compileCode(thisAST, true);
               }, 1000);
