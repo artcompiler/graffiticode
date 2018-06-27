@@ -55,7 +55,6 @@ var GraffContent = React.createClass({
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
       self.pendingRequests++;
-      //let itemID = encodeID(ids);
       d3.json(location.origin + "/data?id=" + itemID + params, (err, obj) => {
         self.pendingRequests--;
         // if (dataID && +dataID !== 0) {

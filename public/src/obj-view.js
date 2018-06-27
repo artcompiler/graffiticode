@@ -35,10 +35,14 @@ var CodeMirrorEditor = React.createClass({
         }
       };
       let itemID = window.gcexports.id;
-      let dataID = window.gcexports.encodeID(window.gcexports.decodeID(itemID).slice(2));      
-      $.get(location.origin + "/data?id=" + dataID, function (data) {
-        updateObj(dataID, data);
-      });
+      let dataID = window.gcexports.encodeID(window.gcexports.decodeID(itemID).slice(2));
+      if (dataID !== "0") {
+        $.get(location.origin + "/data?id=" + dataID, function (data) {
+          updateObj(dataID, data);
+        });
+      } else {
+        updateObj(dataID, {});
+      }
     }
   },
   render: function() {

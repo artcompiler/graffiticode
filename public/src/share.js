@@ -179,6 +179,7 @@ const encodeID = (ids) => {
   }
   if (length === 1) {
     if (+ids[0] === 0) {
+      // console.log("[2] encodeID() << 0");
       return "0";
     }
     ids = [0, +ids[0], 0];
