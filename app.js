@@ -1263,9 +1263,9 @@ const getIDFromType = (type) => {
   case "bar_2":
     return "o5dSOpgVcj";
   case "bar":
-    return "6KLHMJN9c4";
+    return "RQRSmd3nHr";
   case "bar_stacked":
-    return "KzgFdxnXuN";
+    return "zVQUWzbLuO";
   case "area":
     return "YnRFdBaBce";
   case "horizontal_bar":
