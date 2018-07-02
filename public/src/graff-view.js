@@ -55,13 +55,13 @@ var GraffContent = React.createClass({
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
       self.pendingRequests++;
-      d3.json(location.origin + "/data?id=" + itemID + params, (err, obj) => {
+      d3.json(location.origin + "/data/?id=" + itemID + params, (err, obj) => {
         self.pendingRequests--;
         // if (dataID && +dataID !== 0) {
         //   // This is the magic where we collapse the "tail" into a JSON object.
         //   // Next this JSON object gets interned as static data (in L113).
         //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID);
-        //   d3.json(location.origin + "/data?id=" + encodeID(dataID) + params, (err, data) => {
+        //   d3.json(location.origin + "/data/?id=" + encodeID(dataID) + params, (err, data) => {
         //     let state = {};
         //     state[lang] = {
         //       id: itemID,
