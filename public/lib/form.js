@@ -27220,39 +27220,43 @@ var GraffContent = React.createClass({
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
       self.pendingRequests++;
-      d3.json(location.origin + "/data/?id=" + itemID + params, function (err, obj) {
-        self.pendingRequests--;
-        // if (dataID && +dataID !== 0) {
-        //   // This is the magic where we collapse the "tail" into a JSON object.
-        //   // Next this JSON object gets interned as static data (in L113).
-        //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID);
-        //   d3.json(location.origin + "/data/?id=" + encodeID(dataID) + params, (err, data) => {
-        //     let state = {};
-        //     state[lang] = {
-        //       id: itemID,
-        //       obj: obj,
-        //       data: data,
-        //     };
-        //     dispatch(state);
-        //   });
-        // } else {
-        //   let state = {};
-        //   state[lang] = {
-        //     id: itemID,
-        //     obj: obj,
-        //     data: {},  // clear data
-        //   };
-        //   dispatch(state);
-        // }
-        var state = {};
-        state[itemID] = {
-          id: itemID,
-          obj: obj,
-          data: {} };
-        if (self.pendingRequests === 0) {
-          dispatch(state);
-        }
-      });
+      try {
+        d3.json(location.origin + "/data/?id=" + itemID + params, function (err, obj) {
+          self.pendingRequests--;
+          // if (dataID && +dataID !== 0) {
+          //   // This is the magic where we collapse the "tail" into a JSON object.
+          //   // Next this JSON object gets interned as static data (in L113).
+          //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID);
+          //   d3.json(location.origin + "/data/?id=" + encodeID(dataID) + params, (err, data) => {
+          //     let state = {};
+          //     state[lang] = {
+          //       id: itemID,
+          //       obj: obj,
+          //       data: data,
+          //     };
+          //     dispatch(state);
+          //   });
+          // } else {
+          //   let state = {};
+          //   state[lang] = {
+          //     id: itemID,
+          //     obj: obj,
+          //     data: {},  // clear data
+          //   };
+          //   dispatch(state);
+          // }
+          var state = {};
+          state[itemID] = {
+            id: itemID,
+            obj: obj,
+            data: {} };
+          if (self.pendingRequests === 0) {
+            dispatch(state);
+          }
+        });
+      } catch (x) {
+        console.log("x=" + x.stack);
+      }
     }
   },
   componentDidMount: function componentDidMount() {

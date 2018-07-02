@@ -55,6 +55,7 @@ var GraffContent = React.createClass({
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
       self.pendingRequests++;
+      try {
       d3.json(location.origin + "/data/?id=" + itemID + params, (err, obj) => {
         self.pendingRequests--;
         // if (dataID && +dataID !== 0) {
@@ -89,6 +90,9 @@ var GraffContent = React.createClass({
           dispatch(state);
         }
       });
+      } catch (x) {
+        console.log("x=" + x.stack);
+      }
     }
   },
   componentDidMount: function() {
