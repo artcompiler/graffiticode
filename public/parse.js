@@ -566,23 +566,23 @@ var Ast = (function () {
     }
   }
 
-  // function mul(ctx) {
-  //   var n2 = node(ctx, pop(ctx));
-  //   var n1 = node(ctx, pop(ctx));
-  //   var v2 = n2.elts[0];
-  //   var v1 = n1.elts[0];
-  //   if (n1.tag === undefined) {
-  //     n1 = n1.elts[0];
-  //   }
-  //   if (n2.tag === undefined) {
-  //     n2 = n2.elts[0];
-  //   }
-  //   if (n1.tag !== "NUM" || n2.tag !== "NUM") {
-  //     push(ctx, {tag: "MUL", elts: [n2, n1]});
-  //   } else {
-  //     number(ctx, +v1 * +v2);
-  //   }
-  // }
+  function mul(ctx) {
+    var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
+    var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
+    if (n1.tag === undefined) {
+      n1 = n1.elts[0];
+    }
+    if (n2.tag === undefined) {
+      n2 = n2.elts[0];
+    }
+    if (n1.tag !== "NUM" || n2.tag !== "NUM") {
+      push(ctx, {tag: "MUL", elts: [n2, n1]});
+    } else {
+      number(ctx, +v1 * +v2);
+    }
+  }
 
   function div(ctx) {
     var n1 = node(ctx, pop(ctx));
@@ -1457,7 +1457,7 @@ window.gcexports.parser = (function () {
       , "CONCAT": 5
       , "ADD": 5
       , "SUB": 5
-//      , "MUL": 6
+      , "MUL": 6
       , "DIV": 6
       , "MOD": 6
       , "POW": 7
@@ -2235,9 +2235,9 @@ var folder = function() {
     "PARENS" : unaryExpr,
     "APPLY" : apply,
     "LAMBDA" : lambda,
-//    "MUL": mul,
-    "DIV": div,
-    "SUB": sub,
+    // "MUL": mul,
+    // "DIV": div,
+    // "SUB": sub,
     "ADD": add,
     "POW": pow,
     "MOD": mod,
@@ -2435,11 +2435,11 @@ var folder = function() {
     Ast.sub(ctx);
   }
 
-  // function mul(node) {
-  //   visit(node.elts[0]);
-  //   visit(node.elts[1]);
-  //   Ast.mul(ctx);
-  // }
+  function mul(node) {
+    visit(node.elts[0]);
+    visit(node.elts[1]);
+    Ast.mul(ctx);
+  }
 
   function div(node) {
     visit(node.elts[0]);
