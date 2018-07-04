@@ -594,7 +594,12 @@ app.put('/snap', function (req, res) {
   let lang = "L" + langName(ids[0]);
   let img = req.body.img;
   setCache(lang, id, "snap", img);
-  batchScrape([id]); // Make PNG.
+  getCache(id, "snap-base64-png", (err, val) => {
+    if (!val) {
+      // If we don't have a PNG yet, then make one.
+      batchScrape([id]); // Make PNG.
+    }
+  });
   res.sendStatus(200);
 });
 
