@@ -30,7 +30,7 @@ const atob = require("atob");
 // Configuration
 
 const DEBUG = false;
-const LOCAL_COMPILES = false;
+const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
@@ -1707,7 +1707,7 @@ function getCompilerHost(lang) {
 
 function getCompilerPort(lang) {
   if (LOCAL_COMPILES && port === 3002) {
-    return "5" + language.substring(1);  // e.g. L103 -> 5103
+    return "5" + lang.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
   }
@@ -1863,107 +1863,8 @@ if (!module.parent) {
     });
     // recompileItems([
     // ]);
-    batchScrape([
-"5bMFn7oNceZhMv3xSV",
-"wwbFmlelUByIQdBnf0",
-"KzgFdL3wHl9I9NeeCo",
-"ZzRFzWBMSZRfXo4aIy",
-"JePIZ28wsRaHvpKQsp",
-"NVgU4npAHRQHrKjpfa",
-"5bMFn7LVceZhMvArCV",
-"WzRF7AOPhQzC5WOQcB",
-"p1rFMrxrUL4fzle5Ip",
-"BqmFryZyIz4Hj44Ji0",
-"YnRFdBaBc0rcA3dztJ",
-"LOgTZqNqfXQS93BZIq",
-"p1rFMdX5iL4fzldVIp",
-"o5dSOQmQUL5fxL5quA",
-"q16F9rWxT2wSgXjYIL",
-"rVvUpZXKhOoUeNRmT7",
-"wwbFmlelUByIQd30S0",
-"ObgFg8x8C7JibqqQUa",
-"nKpHNw6wugZt1R5Nc4",
-"KzgFdanacl9I9NzBTo",
-"4LWiawMQTPWINpm2uO",
-"BqmFryZyIz4Hj4V2i0",
-"3LyiMNBNUNYs8XqLsM",
-"dOWTnxOxT4gsJg8yu8",
-"1M6cX4l4UvbHrPP5tL",
-"NVgU4npAHRQHrK75sa",
-"ZzRFzWVriZRfXoPqhy",
-"wwbFm5oZIByIQdnbT0",
-"gpbFrzazIAmUqBVNtv",
-"RQRSm8K8Ud8T1L41Cz",
-"PqgF7Ol2upLHRvAxcL",
-"3LyiMNBNUNYs8XZLFM",
-"1M6cX4l4UvbHrPwvhL",
-"872fdAbwszdHN7Jriz",
-"l1aFezOzU5oIZONQtL",
-"VpRFQJ0JC40sAO32SK",
-"epMFRQVQfPRIRZaluV",
-"q16F9BYBt2wSgX8BTL",
-"0vmFOZJZU13TAOr9s1",
-"zVQUWdodUyKHmABrfd",
-"nKpHN7gpfgZt1Rnpt4",
-"NVgU4dgdURQHrKv5Sa",
-"xV2Udo0oc5nIaZR4I7",
-"WzRF7g4QCQzC5WBXhB",
-"3LyiMRnQfNYs8XKRSM",
-"KzgFdLMjhl9I9Njxso",
-"YnRFdqvMs0rcA32ySJ",
-"YnRFdBaBc0rcA3goiJ",
-"JePIZ2gWuRaHvpb8ip",
-"dOWTnyAac4gsJgPxc8",
-"rVvUpZX1uOoUeNoxs7",
-"JePIZ7m7fRaHvppZhp",
-"4LWia909iPWINpnqFO",
-"872fdJYrIzdHN7a2Uz",
-"9WOIoB3BiQvCVRRxUK",
-"dOWTnxOxT4gsJggYc8",
-"4LWiawMQTPWINpV2fO",
-"BqmFr1WpFz4Hj4lvH0",
-"wwbFmlelUByIQdo0T0",
-"dOWTnyv7c4gsJgXdT8",
-"vwLFb0r0FPwIVNmbCV",
-"epMFRQVQfPRIRZj6sV",
-"3LyiMNBNUNYs8XozsM",
-"3LyiMNBNUNYs8Xv4FM",
-"mrqF63A3UoWiZXAjsB",
-"dOWTnxOxT4gsJg9xC8",
-"JePIZQrlSRaHvpnZUp",
-"4LWia909iPWINpm1fO",
-"gpbFrLbdFAmUqB2Ziv",
-"xV2Udo0oc5nIaZqvi7",
-"zVQUWzbYfyKHmA4Mid",
-"rVvUp2v2TOoUeNNZs7",
-"1M6cXvPQsvbHrPenCL",
-"JePIZ2gRhRaHvpoRIp",
-"rVvUpnj7HOoUeNRps7",
-"JePIZQr1URaHvpPoSp",
-"vwLFb9qJIPwIVNn5CV",
-"VpRFQvWxh40sAO1vSK",
-"NVgU4dgdURQHrKOxTa",
-"MxRF0pLpiJXSBJ3yt9",
-"q16F9rQAF2wSgXvnHL",
-"WzRF7AOPhQzC5WyQTB",
-"4LWia909iPWINpA1uO",
-"7ObToZKaTqMHwVnlhV",
-"7ObTolnliqMHwVVQIV",
-"1M6cX08esvbHrPVYUL",
-"ZzRFzWvYSZRfXorRUy",
-"b1vFa151ixwHKPrOHW",
-"0vmFOmaqt13TAOLbc1",
-"3LyiMqVbfNYs8XPaTM",
-"QVRU8494c4OsJ6ZJT7",
-"mrqF63A3UoWiZXgjuB",
-"MxRF0mOWhJXSBJ3OF9",
-"PqgF7ZQZipLHRv5ZHL",
-"aL6i8vXqHlYIZ0Xeim",
-"jRQtPbVbCmzCa8VjSm",
-"5bMFn5x5TeZhMvvPIV",
-"y5OSqlydCNMsRX60ig",
-"rVvUpZAqsOoUeNbVU7",
-    ]);
+    // batchScrape([
+    // ]);
     // putComp([{
     //     "type": "bar_2",
     //     "business_uid": "uid for river trail roasters",
