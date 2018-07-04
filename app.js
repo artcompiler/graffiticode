@@ -386,12 +386,14 @@ app.get('/lang', function(req, res) {
           let rows = result.rows;
           if (rows.length === 0) {
             getCompilerVersion(lang, (version) => {
-              if (version) {
+              console.log("GET /lang version=" + version);
+              if (version !== undefined) {
                 var insertStr =
                   "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
                   " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
                   " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
                   " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+                console.log("GET /lang insertStr=" + insertStr);
                 dbQuery(insertStr, function(err, result) {
                   if (err) {
                     console.log("ERROR GET /pieces/:lang err=" + err);
@@ -592,6 +594,7 @@ app.put('/snap', function (req, res) {
   let lang = "L" + langName(ids[0]);
   let img = req.body.img;
   setCache(lang, id, "snap", img);
+  batchScrape([id]); // Make PNG.
   res.sendStatus(200);
 });
 
