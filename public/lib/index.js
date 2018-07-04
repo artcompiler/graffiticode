@@ -34977,7 +34977,7 @@ var ArchiveContent = React.createClass({
           fields: "id, created",
           where: "language='" + window.gcexports.language +
           //                 "' and label in ('show', 'hide')" + filterStr ,
-          "' and label='show'" + filterStr
+          "' and label!='hide'" + filterStr
         },
         dataType: "json",
         success: function success(data) {

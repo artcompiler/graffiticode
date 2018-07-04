@@ -1319,10 +1319,16 @@ app.put('/comp', function (req, res) {
     if (err) {
       res.sendStatus(err);
     } else {
+      let address = val.address;
       batchCompile(auth, data, 0, (err, val) => {
         res.writeHead(202, {"Content-Type": "application/json"});
         res.end(JSON.stringify(data));
-        console.log("PUT /comp (" + data.length + " items) in " + (new Date - t0) + "ms");
+        console.log("PUT /comp " + address + " (" + data.length + " items) in " + (new Date - t0) + "ms");        putData(authToken, {
+          address: address,
+          type: "batchCompile",
+          date: new Date().toUTCString(),
+          data: data,
+        }, () => {}); // Record batch.
       });
     }
   });
