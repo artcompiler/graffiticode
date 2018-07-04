@@ -29,7 +29,7 @@ const atob = require("atob");
 
 // Configuration
 
-const DEBUG = true;
+const DEBUG = false;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
