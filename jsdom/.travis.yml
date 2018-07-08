@@ -1,0 +1,87 @@
+language: node_js
+node_js:
+  - 6
+  - 8
+sudo: false
+
+git:
+  submodules: false
+
+script:
+  - yarn lint
+  - yarn test --retries 1
+
+branches:
+  only:
+    - master
+
+addons:
+  hosts:
+    - web-platform.test
+    - www.web-platform.test
+    - www1.web-platform.test
+    - www2.web-platform.test
+    - xn--n8j6ds53lwwkrqhv28a.web-platform.test
+    - xn--lve-6lad.web-platform.test
+
+matrix:
+  include:
+    - node_js: 6
+      env: TEST_SUITE=node-canvas-prebuilt
+      script: "export CXX=g++-4.8 && yarn add canvas-prebuilt && yarn test --retries 1"
+      addons:
+        hosts:
+          - web-platform.test
+          - www.web-platform.test
+          - www1.web-platform.test
+          - www2.web-platform.test
+          - xn--n8j6ds53lwwkrqhv28a.web-platform.test
+          - xn--lve-6lad.web-platform.test
+    - node_js: 6
+      env: TEST_SUITE=node-canvas
+      script: "export CXX=g++-4.8 && yarn add canvas && yarn test --retries 1"
+      addons:
+        hosts:
+          - web-platform.test
+          - www.web-platform.test
+          - www1.web-platform.test
+          - www2.web-platform.test
+          - xn--n8j6ds53lwwkrqhv28a.web-platform.test
+          - xn--lve-6lad.web-platform.test
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
+            - libcairo2-dev
+            - libjpeg8-dev
+            - libpango1.0-dev
+            - libgif-dev
+            - build-essential
+    - node_js: 8
+      env: TEST_SUITE=node-canvas
+      script: "export CXX=g++-4.8 && yarn add canvas && yarn test --retries 1"
+      addons:
+        hosts:
+          - web-platform.test
+          - www.web-platform.test
+          - www1.web-platform.test
+          - www2.web-platform.test
+          - xn--n8j6ds53lwwkrqhv28a.web-platform.test
+          - xn--lve-6lad.web-platform.test
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
+            - libcairo2-dev
+            - libjpeg8-dev
+            - libpango1.0-dev
+            - libgif-dev
+            - build-essential
+    - script: '[ "${TRAVIS_PULL_REQUEST}" != "false" ] || (yarn pretest && yarn test-browser)'
+      env: TEST_SUITE=browser
+      addons:
+        sauce_connect:
+          username: "jsdom"
+          access_key: "7d402b1d-0388-467c-8d99-edf195456eee"
