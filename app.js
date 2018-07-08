@@ -606,7 +606,8 @@ app.put('/snap', function (req, res) {
 });
 
 const makeSnap = (id, resume) => {
-  var jsdom = require("jsdom");
+  console.log("makeSnap() id=" + id);
+  var jsdom = require("./jsdom");
   var { JSDOM } = jsdom;
   let t0 = new Date;
   let options = {
@@ -1883,8 +1884,9 @@ if (!module.parent) {
       });
     });
     // recompileItems([]);
-    // batchScrape([
-    // ]);
+    batchScrape([
+      "7ObTolnliqMHw8mzsV",
+    ]);
     // putComp([{
     //     "type": "bar_2",
     //     "business_uid": "uid for river trail roasters",
