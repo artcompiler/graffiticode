@@ -606,7 +606,7 @@ app.put('/snap', function (req, res) {
 });
 
 const makeSnap = (id, resume) => {
-  var jsdom = require("./jsdom/lib/api.js");
+  var jsdom = require("jsdom");
   var { JSDOM } = jsdom;
   let t0 = new Date;
   let options = {
