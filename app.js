@@ -322,8 +322,10 @@ const renCache = function (id, oldType, newType) {
 };
 const getCache = function (id, type, resume) {
   let key = id + type;
+  console.log("getCache() key=" + key);
   let val;
   if ((val = localCache[key])) {
+    console.log("key found " + key);
     resume(null, val);
   } else if (cache) {
     cache.get(key, (err, val) => {
@@ -337,6 +339,7 @@ const dontCache = ["L124"];
 const setCache = function (lang, id, type, val) {
   if (!DEBUG && !dontCache.includes(lang)) {
     let key = id + type;
+    console.log("setCache() key=" + key);
     localCache[key] = val;
     if (cache) {
       cache.set(key, type === "data" ? JSON.stringify(val) : val);
@@ -635,7 +638,7 @@ const makeSnap = (id, resume) => {
         setCache(lang, id, "snap", img);
         window.close();
         resume(null, img);
-        console.log("Snap scraped in " + td + "ms");
+        console.log("Snap scraped in " + td + "ms img=" + img);
       } else {
         window.setTimeout(() => {
           checkLoaded(t0);
@@ -679,6 +682,7 @@ const sendSnap = (id, fmt, req, res) => {
   fmt = fmt && fmt.toLowerCase();
   let type = fmt === "png" ? "snap-base64-png" : "snap";
   getCache(id, type, (err, val) => {
+    console.log("sendSnap() val=" + val);
     let refresh = !!req.query.refresh;
     let ids = decodeID(id);
     if (val) {
@@ -1200,7 +1204,7 @@ const batchScrape = (ids, index) => {
   if (index < ids.length) {
     let t0 = new Date;
     let id = ids[index];
-//    makeSnap(id, () => {
+    makeSnap(id, () => {
       (async function() {
         const instance = await phantom.create();
         const page = await instance.createPage();
@@ -1214,8 +1218,8 @@ const batchScrape = (ids, index) => {
           console.log('ERROR: ' + msg);
         });
         console.log("batchScrape() id=" + id);
-        const status = await page.open("https://acx.ac/snap?id=" + id);
-//        const status = await page.open("http://localhost:3000/item?id=" + id);
+//        const status = await page.open("https://acx.ac/snap?id=" + id);
+        const status = await page.open("http://localhost:3000/snap?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
           if (td > 60000) {
@@ -1225,6 +1229,7 @@ const batchScrape = (ids, index) => {
           console.log("batchScrape content=" + await page.content);
           let isLoaded = await page.evaluate(function() {
             var done = !!window.document.querySelector(".c3-legend-item-tile");
+//            var done = !!window.document.querySelector(".done-rendering");
             console.log("isLoaded() done=" + done);
             return done;
           });
@@ -1261,7 +1266,7 @@ const batchScrape = (ids, index) => {
         };
         checkLoaded(t0);
       }());
-//    });
+    });
   } else {
     // Rename *-pending keys to *.
     ids.forEach(id => {
@@ -1879,7 +1884,8 @@ if (!module.parent) {
     });
     // recompileItems([]);
     batchScrape([
-      "7ObTolnliqMHw8mzsV",
+      "m5i6ZP4FX",
+//      "7ObTolnliqMHw8mzsV",
       // "zVQUWdodUyKHmLJYUd",
       // "dOWTnxOxT4gsJ7BqH8",
       // "1M6cX4l4UvbHr5g7UL",
