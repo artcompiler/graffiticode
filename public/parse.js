@@ -2330,7 +2330,8 @@ var folder = function() {
       var patternNode = ofNode.elts[1];
       visit(patternNode);
       var pattern = Ast.pop(ctx);
-      if (Ast.intern(expr) === Ast.intern(pattern)) {
+//      if (Ast.intern(expr) === Ast.intern(pattern)) {
+      if (expr === pattern) {
         visit(ofNode.elts[0]);
         return;
       }
