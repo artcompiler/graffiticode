@@ -593,14 +593,19 @@ app.put('/snap', function (req, res) {
   let ids = decodeID(id);
   let lang = "L" + langName(ids[0]);
   let img = req.body.img;
-  setCache(lang, id, "snap", img);
-  getCache(id, "snap-base64-png", (err, val) => {
-    if (!val) {
-      // If we don't have a PNG yet, then make one.
-      batchScrape([id]); // Make PNG.
+  getCache(id, "snap", (err, val) => {
+    if (!val || val !== img) {
+      setCache(lang, id, "snap", img);
+      delCache(id, "snap-base64-png"); // Clear cached PNG.
+      getCache(id, "snap-base64-png", (err, val) => {
+        if (!val) {
+          // If we don't have a PNG yet, then make one.
+          batchScrape([id]); // Make PNG.
+        }
+      });
     }
+    res.sendStatus(200);
   });
-  res.sendStatus(200);
 });
 
 const makeSnap = (id, resume) => {
@@ -1163,7 +1168,7 @@ const parseID = (id, resume) => {
 };
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
-    delCache(id);
+    delCache(id, "data");
     parseID(id, (err, ast) => {
       console.log(id + " parsed");
       if (err.length) {
@@ -1177,7 +1182,7 @@ const recompileItems = (items, parseOnly) => {
   });
 };
 const recompileItem = (id, parseOnly) => {
-  delCache(id);
+  delCache(id, "data");
   parseID(id, (err, ast) => {
     print(id + " parsed");
     if (err.length) {
