@@ -1230,9 +1230,9 @@ const batchScrape = (ids, index) => {
           }
           let isLoaded = await page.evaluate(function() {
             var done = !!(window.document.querySelector(".c3-legend-item-tile") ||
-                          window.document.querySelector("circle.c3-shape"));  // area chart
+                          window.document.querySelector("circle.c3-shape") ||  // area chart
+                          window.document.querySelector(".y-values"));  // table and horizontal ar chart
 //            var done = !!window.document.querySelector(".done-rendering");
-//            var done = !!window.document.querySelector(".c3-event-rects");
             console.log("isLoaded() done=" + done);
             return done;
           });
