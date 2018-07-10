@@ -630,8 +630,11 @@ const makeSnap = (id, resume) => {
         console.log("Aborting. Page taking too long to load.");
         return;
       }
-      let graffView = window.document.querySelector("#graff-view");
-      let isLoaded = window.document.querySelector("#graff-view .done-rendering");
+      //    let graffView = window.document.querySelector("#graff-view");
+      let isLoaded = 
+//        !!window.document.querySelector(".c3-legend-item-tile") ||
+        !!window.document.querySelector(".c3-shape");  // area chart
+        console.log("isLoaded=" + isLoaded);
       if (isLoaded) {
         let graffView = window.document.querySelector("#graff-view");
         let img = graffView.outerHTML;
@@ -640,7 +643,7 @@ const makeSnap = (id, resume) => {
         setCache(lang, id, "snap", img);
         window.close();
         resume(null, img);
-        console.log("Snap scraped in " + td + "ms img=" + img);
+        console.log("Snap scraped in " + td + "ms");
       } else {
         window.setTimeout(() => {
           checkLoaded(t0);
@@ -1202,7 +1205,7 @@ const batchScrape = (ids, index) => {
   if (index < ids.length) {
     let t0 = new Date;
     let id = ids[index];
-    makeSnap(id, () => {
+//    makeSnap(id, () => {
       (async function() {
         const instance = await phantom.create();
         const page = await instance.createPage();
@@ -1215,19 +1218,21 @@ const batchScrape = (ids, index) => {
         page.on("onError", function(msg) {
           console.log('ERROR: ' + msg);
         });
-        const status = await page.open("https://acx.ac/snap?id=" + id);
-        // const status = await page.open("http://localhost:3000/snap?id=" + id);
-        // const status = await page.open("https://acx.ac/form?id=" + id);
+        //const status = await page.open("https://acx.ac/snap?id=" + id);
+        const status = await page.open("http://localhost:3002/snap?id=" + id);
+        //const status = await page.open("https://acx.ac/form?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
-          if (td > 10000) {
+          if (td > 30000) {
             console.log("Aborting. Page taking too long to load.");
             return;
           }
           console.log("batchScrape content=" + await page.content);
           let isLoaded = await page.evaluate(function() {
-            var done = !!window.document.querySelector(".c3-legend-item-tile");
+            var done = !!(window.document.querySelector(".c3-legend-item-tile") ||
+                          window.document.querySelector("circle.c3-shape"));  // area chart
 //            var done = !!window.document.querySelector(".done-rendering");
+//            var done = !!window.document.querySelector(".c3-event-rects");
             console.log("isLoaded() done=" + done);
             return done;
           });
@@ -1264,7 +1269,7 @@ const batchScrape = (ids, index) => {
         };
         checkLoaded(t0);
       }());
-    });
+//    });
   } else {
     // Rename *-pending keys to *.
     console.log("Renaming batch snap-base64-png-pending => snap-base64-png");
@@ -1884,9 +1889,10 @@ if (!module.parent) {
     });
     // recompileItems([
     // ]);
-    batchScrape([
-      "7ObTolnliqMHw8mzsV",
-    ]);
+    // batchScrape([
+    //   "RQRSmd37Fd8T1LyzCz",
+    //   "7ObTolnliqMHw8mzsV",
+    // ]);
     // putComp([{
     //     "type": "bar_2",
     //     "business_uid": "uid for river trail roasters",
