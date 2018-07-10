@@ -1214,8 +1214,8 @@ const batchScrape = (ids, index) => {
         page.on("onError", function(msg) {
           console.log('ERROR: ' + msg);
         });
-        //const status = await page.open("https://acx.ac/snap?id=" + id);
-        const status = await page.open("http://localhost:3002/snap?id=" + id);
+        const status = await page.open("https://acx.ac/snap?id=" + id);
+        //const status = await page.open("http://localhost:3002/snap?id=" + id);
         //const status = await page.open("https://acx.ac/form?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
