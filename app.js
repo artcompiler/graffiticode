@@ -323,10 +323,8 @@ const renCache = function (id, oldType, newType) {
 };
 const getCache = function (id, type, resume) {
   let key = id + type;
-  console.log("getCache() key=" + key);
   let val;
   if ((val = localCache[key])) {
-    console.log("key found " + key);
     resume(null, val);
   } else if (cache) {
     cache.get(key, (err, val) => {
@@ -340,7 +338,6 @@ const dontCache = ["L124"];
 const setCache = function (lang, id, type, val) {
   if (!DEBUG && !dontCache.includes(lang)) {
     let key = id + type;
-    console.log("setCache() key=" + key);
     localCache[key] = val;
     if (cache) {
       cache.set(key, type === "data" ? JSON.stringify(val) : val);
@@ -687,7 +684,6 @@ const sendSnap = (id, fmt, req, res) => {
   fmt = fmt && fmt.toLowerCase();
   let type = fmt === "png" ? "snap-base64-png" : "snap";
   getCache(id, type, (err, val) => {
-    console.log("sendSnap() val=" + val);
     let refresh = !!req.query.refresh;
     let ids = decodeID(id);
     if (val) {
@@ -1227,7 +1223,6 @@ const batchScrape = (ids, index) => {
             console.log("Aborting. Page taking too long to load.");
             return;
           }
-          console.log("batchScrape content=" + await page.content);
           let isLoaded = await page.evaluate(function() {
             var done = !!(window.document.querySelector(".c3-legend-item-tile") ||
                           window.document.querySelector("circle.c3-shape"));  // area chart
