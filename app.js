@@ -623,7 +623,10 @@ const makeSnap = (id, resume) => {
         resume("Aborting. Page taking too long to load.");
         return;
       }
-      let isLoaded = await page.$(".done-rendering");
+//      let isLoaded = await page.$(".done-rendering");
+      let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
+                    await page.$("circle.c3-shape") ||  // area chart
+                    await.$(".y-values"));  // table and horizontal ar chart
       console.log("isLoaded=" + isLoaded);
       if (isLoaded) {
         // Viewer save snap, so our job is done here.
