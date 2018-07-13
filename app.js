@@ -614,7 +614,7 @@ const makeSnap = (id, resume) => {
     console.log("makeSnap() id=" + id);
     const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
-    // await page.goto("http://localhost:3000/form?id=" + id);
+    //await page.goto("http://localhost:3000/form?id=" + id);
     await page.goto("https://acx.ac/form?id=" + id);
     const checkLoaded = async (t0) => {
       let td = new Date - t0;
@@ -1157,7 +1157,7 @@ const batchScrape = (ids, index) => {
   const phantom = require('phantom');
   index = index || 0;
   // For each datum, get the dataID and concat with id.
-  console.log("batchScrape() index=" + index);
+  console.log("batchScrape() index=" + index + " ids=" + ids);
   if (index < ids.length) {
     let t0 = new Date;
     let id = ids[index];
@@ -1175,12 +1175,13 @@ const batchScrape = (ids, index) => {
         page.on("onError", function(msg) {
           console.log('ERROR: ' + msg);
         });
-        // const status = await page.open("http://localhost:3000/snap?id=" + id);
+        //const status = await page.open("http://localhost:3000/snap?id=" + id);
         const status = await page.open("https://acx.ac/snap?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
-          if (td > 30000) {
+          if (td > 10000) {
             console.log("Aborting. Page taking too long to load.");
+            batchScrape(ids, index + 1);
             return;
           }
           let isLoaded = await page.evaluate(function() {
@@ -1220,7 +1221,6 @@ const batchScrape = (ids, index) => {
             }, 100);
           }
         };
-
         checkLoaded(t0);
       }());
     });
@@ -1286,15 +1286,21 @@ app.put('/comp', function (req, res) {
       res.sendStatus(err);
     } else {
       let address = val.address;
-      batchCompile(auth, data, 0, (err, val) => {
+      putData(authToken, {
+        address: address,
+        type: "batchCompile",
+        date: new Date().toUTCString(),
+        data: data,
+      }, () => {}); // Record batch.
+      batchCompile(auth, data, 0, (err, data) => {
         res.writeHead(202, {"Content-Type": "application/json"});
         res.end(JSON.stringify(data));
-        console.log("PUT /comp " + address + " (" + data.length + " items) in " + (new Date - t0) + "ms");        putData(authToken, {
-          address: address,
-          type: "batchCompile",
-          date: new Date().toUTCString(),
-          data: data,
-        }, () => {}); // Record batch.
+        console.log("PUT /comp " + address + " (" + data.length + " items) in " + (new Date - t0) + "ms");
+        let itemIDs = [];
+        data.forEach(val => {
+          itemIDs.push(val.id);
+        });
+        batchScrape(itemIDs);
       });
     }
   });
@@ -1843,17 +1849,11 @@ if (!module.parent) {
     });
     // recompileItems([
     // ]);
-    batchScrape([
-      "RQRSmd37Fd8T1LyzCz",
-      "7ObTolnliqMHw8mzsV",
-    ]);
-    // putComp([{
-    //     "type": "bar_2",
-    //     "business_uid": "uid for river trail roasters",
-    //     "chart_name": "retention_rate",
-    //     "id": "PqgF7ObNFpLHRZnquL",
-    //     "image_url": "https://acx.ac/s/PqgF7ObNFpLHRZnquL?fmt=PNG",
-    // }], "<secret here>");
+    // batchScrape([
+    //   "RQRSmd37Fd8T1LyzCz",
+    //   "7ObTolnliqMHw8mzsV",
+    // ]);
+    // putComp([], clientSecret);
   });
 }
 
