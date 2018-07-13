@@ -612,7 +612,7 @@ const makeSnap = (id, resume) => {
   let puppeteer = require("puppeteer");
   (async() => {
     console.log("makeSnap() id=" + id);
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
     // await page.goto("http://localhost:3000/form?id=" + id);
     await page.goto("https://acx.ac/form?id=" + id);
