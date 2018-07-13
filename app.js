@@ -615,7 +615,7 @@ const makeSnap = (id, resume) => {
     console.log("makeSnap() id=" + id);
     const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
-    //await page.goto("http://localhost:3000/form?id=" + id);
+    //await page.goto("http://localhost:3002/form?id=" + id);
     await page.goto("https://acx.ac/form?id=" + id);
     const checkLoaded = async (t0) => {
       let td = new Date - t0;
@@ -630,8 +630,10 @@ const makeSnap = (id, resume) => {
       console.log("isLoaded=" + isLoaded);
       if (isLoaded) {
         // Viewer save snap, so our job is done here.
-        await browser.close();
-        resume();
+        setTimeout(() => {
+          browser.close();
+          resume();
+        }, 1000);  // Wait a second to let viewer do its thing before existing.
       } else {
         setTimeout(() => {
           checkLoaded(t0);
@@ -1179,7 +1181,7 @@ const batchScrape = (ids, index) => {
         page.on("onError", function(msg) {
           console.log('ERROR: ' + msg);
         });
-        //const status = await page.open("http://localhost:3000/snap?id=" + id);
+        //const status = await page.open("http://localhost:3002/snap?id=" + id);
         const status = await page.open("https://acx.ac/snap?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
@@ -1688,7 +1690,7 @@ app.get("/:lang/*", function (req, response) {
 });
 
 function getCompilerHost(lang) {
-  if (LOCAL_COMPILES && port === 3000) {
+  if (LOCAL_COMPILES && port === 3002) {
     return "localhost";
   } else {
     return lang + ".artcompiler.com";
@@ -1696,7 +1698,7 @@ function getCompilerHost(lang) {
 }
 
 function getCompilerPort(lang) {
-  if (LOCAL_COMPILES && port === 3000) {
+  if (LOCAL_COMPILES && port === 3002) {
     return "5" + lang.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
@@ -1837,7 +1839,7 @@ const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
 let authToken;
 
 if (!module.parent) {
-  var port = process.env.PORT || 3000;
+  var port = process.env.PORT || 3002;
   app.listen(port, function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
