@@ -610,50 +610,54 @@ app.put('/snap', function (req, res) {
 
 const makeSnap = (id, resume) => {
   console.log("makeSnap() id=" + id);
-  var jsdom = require("./jsdom");
-  var { JSDOM } = jsdom;
-  let t0 = new Date;
-  let options = {
-    runScripts: "dangerously",
-    pretendToBeVisual: true,
-    resources: "usable",
-  };
-
+//  var jsdom = require("./jsdom");
+  let puppeteer = require("puppeteer");
+  (async() => {
+    const browser = await puppeteer.launch();
+    console.log("puppeteer launched");
+    const page = await browser.newPage();
+    await page.goto("https://acx.ac/form?id=" + id);
+    console.log("page loaded");
+    await page.screenshot({path: id + ".png"});
+    console.log("screen scraped");
+    await browser.close();
+    resume();
+  });
   // request("http://localhost:3000/form?id=" + id, function (error, response, body) {
   //   console.log('error:', error);
   //   console.log('statusCode:', response && response.statusCode);
   //   console.log('body:', body);
   //   let dom = new JSDOM(body, options);
-  JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
-    let window = dom.window;
-    const checkLoaded = (t0) => {
-      let td = new Date - t0;
-      if (td > 10000) {
-        console.log("Aborting. Page taking too long to load.");
-        return;
-      }
-      //    let graffView = window.document.querySelector("#graff-view");
-      let isLoaded = 
-//        !!window.document.querySelector(".c3-legend-item-tile") ||
-        !!window.document.querySelector(".c3-shape");  // area chart
-        console.log("isLoaded=" + isLoaded);
-      if (isLoaded) {
-        let graffView = window.document.querySelector("#graff-view");
-        let img = graffView.outerHTML;
-        let ids = decodeID(id);
-        let lang = "L" + langName(ids[0]);
-        setCache(lang, id, "snap", img);
-        window.close();
-        resume(null, img);
-        console.log("Snap scraped in " + td + "ms");
-      } else {
-        window.setTimeout(() => {
-          checkLoaded(t0);
-        }, 100);
-      }
-    };
-    checkLoaded(t0);
-  });
+//   JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
+//     let window = dom.window;
+//     const checkLoaded = (t0) => {
+//       let td = new Date - t0;
+//       if (td > 10000) {
+//         console.log("Aborting. Page taking too long to load.");
+//         return;
+//       }
+//       //    let graffView = window.document.querySelector("#graff-view");
+//       let isLoaded = 
+// //        !!window.document.querySelector(".c3-legend-item-tile") ||
+//         !!window.document.querySelector(".c3-shape");  // area chart
+//         console.log("isLoaded=" + isLoaded);
+//       if (isLoaded) {
+//         let graffView = window.document.querySelector("#graff-view");
+//         let img = graffView.outerHTML;
+//         let ids = decodeID(id);
+//         let lang = "L" + langName(ids[0]);
+//         setCache(lang, id, "snap", img);
+//         window.close();
+//         resume(null, img);
+//         console.log("Snap scraped in " + td + "ms");
+//       } else {
+//         window.setTimeout(() => {
+//           checkLoaded(t0);
+//         }, 100);
+//       }
+//     };
+//     checkLoaded(t0);
+//   });
   // JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
   // JSDOM.fromURL("http://localhost:3000/form?id=" + id, options).then(dom => {
   //   let window = dom.window;
@@ -1206,7 +1210,8 @@ const batchScrape = (ids, index) => {
   if (index < ids.length) {
     let t0 = new Date;
     let id = ids[index];
-//    makeSnap(id, () => {
+    makeSnap(id, () => {
+      console.log("snapped() id=" + id);
       (async function() {
         const instance = await phantom.create();
         const page = await instance.createPage();
@@ -1269,7 +1274,7 @@ const batchScrape = (ids, index) => {
         };
         checkLoaded(t0);
       }());
-//    });
+    });
   } else {
     // Rename *-pending keys to *.
     console.log("Renaming batch snap-base64-png-pending => snap-base64-png");
@@ -1889,10 +1894,10 @@ if (!module.parent) {
     });
     // recompileItems([
     // ]);
-    // batchScrape([
-    //   "RQRSmd37Fd8T1LyzCz",
-    //   "7ObTolnliqMHw8mzsV",
-    // ]);
+    batchScrape([
+      "RQRSmd37Fd8T1LyzCz",
+      "7ObTolnliqMHw8mzsV",
+    ]);
     // putComp([{
     //     "type": "bar_2",
     //     "business_uid": "uid for river trail roasters",
