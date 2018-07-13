@@ -1220,6 +1220,7 @@ const batchScrape = (ids, index) => {
             }, 100);
           }
         };
+
         checkLoaded(t0);
       }());
     });
