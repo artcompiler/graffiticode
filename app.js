@@ -614,24 +614,18 @@ const makeSnap = (id, resume) => {
     console.log("makeSnap() id=" + id);
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-//    await page.goto("https://acx.ac/form?id=" + id);
-    await page.goto("http://localhost:3000/form?id=" + id);
+    // await page.goto("http://localhost:3000/form?id=" + id);
+    await page.goto("https://acx.ac/form?id=" + id);
     const checkLoaded = async (t0) => {
       let td = new Date - t0;
       if (td > 10000) {
         resume("Aborting. Page taking too long to load.");
         return;
       }
-      //    let graffView = window.document.querySelector("#graff-view");
       let isLoaded = await page.$(".done-rendering");
       console.log("isLoaded=" + isLoaded);
       if (isLoaded) {
-        // let graffView = await page.$("#graff-view");
-        // let img = graffView.outerHTML;
-        // console.log("Snap scraped in " + td + "ms, img=" + img);
-        // let ids = decodeID(id);
-        // //let lang = "L" + langName(ids[0]);
-        // //setCache(lang, id, "snap", img);
+        // Viewer save snap, so our job is done here.
         await browser.close();
         resume();
       } else {
@@ -641,76 +635,7 @@ const makeSnap = (id, resume) => {
       }
     };
     checkLoaded(new Date);
-    // setTimeout(async () => {
-    //   await page.screenshot({path: id + ".png"});
-    //   console.log("screen scraped");
-    //   await browser.close();
-    //   resume();
-    // }, 10000);
   })();
-  // request("http://localhost:3000/form?id=" + id, function (error, response, body) {
-  //   console.log('error:', error);
-  //   console.log('statusCode:', response && response.statusCode);
-  //   console.log('body:', body);
-  //   let dom = new JSDOM(body, options);
-//   JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
-//     let window = dom.window;
-//     const checkLoaded = (t0) => {
-//       let td = new Date - t0;
-//       if (td > 10000) {
-//         console.log("Aborting. Page taking too long to load.");
-//         return;
-//       }
-//       //    let graffView = window.document.querySelector("#graff-view");
-//       let isLoaded = 
-// //        !!window.document.querySelector(".c3-legend-item-tile") ||
-//         !!window.document.querySelector(".c3-shape");  // area chart
-//         console.log("isLoaded=" + isLoaded);
-//       if (isLoaded) {
-//         let graffView = window.document.querySelector("#graff-view");
-//         let img = graffView.outerHTML;
-//         let ids = decodeID(id);
-//         let lang = "L" + langName(ids[0]);
-//         setCache(lang, id, "snap", img);
-//         window.close();
-//         resume(null, img);
-//         console.log("Snap scraped in " + td + "ms");
-//       } else {
-//         window.setTimeout(() => {
-//           checkLoaded(t0);
-//         }, 100);
-//       }
-//     };
-//     checkLoaded(t0);
-//   });
-  // JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
-  // JSDOM.fromURL("http://localhost:3000/form?id=" + id, options).then(dom => {
-  //   let window = dom.window;
-  //   let interval = window.setInterval(() => {
-  //     let td = new Date - t0;
-  //     if (td > 10000) {
-  //       window.clearInterval(interval);
-  //       console.log("Aborting. Page taking too long to load.");
-  //     }
-  //     let graffView = window.document.querySelector("#graff-view");
-  //     console.log("makeSnap() graffView=" + (graffView && graffView.outerHTML));
-  //     // TODO need a more robust way to detect loading.
-  //     let isLoaded =
-  //       //        window.document.querySelector("#graff-view link") ||
-  //       window.document.querySelector("#graff-view svg");
-  //     if (isLoaded) {
-  //       let graffView = window.document.querySelector("#graff-view");
-  //       let img = graffView.outerHTML;
-  //       let ids = decodeID(id);
-  //       let lang = "L" + langName(ids[0]);
-  //       setCache(lang, id, "snap", img);
-  //       window.clearInterval(interval);
-  //       window.close();;
-  //       resume(null, img);
-  //       console.log("Snap scraped in " + td + "ms");
-  //     }
-  //   }, 100);
-  // });
 };
 
 const sendSnap = (id, fmt, req, res) => {
@@ -1250,9 +1175,8 @@ const batchScrape = (ids, index) => {
         page.on("onError", function(msg) {
           console.log('ERROR: ' + msg);
         });
-        //const status = await page.open("https://acx.ac/snap?id=" + id);
-        const status = await page.open("http://localhost:3000/snap?id=" + id);
-        //const status = await page.open("https://acx.ac/form?id=" + id);
+        // const status = await page.open("http://localhost:3000/snap?id=" + id);
+        const status = await page.open("https://acx.ac/snap?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
           if (td > 30000) {
@@ -1260,10 +1184,8 @@ const batchScrape = (ids, index) => {
             return;
           }
           let isLoaded = await page.evaluate(function() {
-            var done = !!(window.document.querySelector(".c3-legend-item-tile") ||
-                          window.document.querySelector("circle.c3-shape") ||  // area chart
+            var done = !!(window.document.querySelector(".c3-legend-item-tile") ||                                        window.document.querySelector("circle.c3-shape") ||  // area chart
                           window.document.querySelector(".y-values"));  // table and horizontal ar chart
-//            var done = !!window.document.querySelector(".done-rendering");
             console.log("isLoaded() done=" + done);
             return done;
           });
