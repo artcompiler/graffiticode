@@ -593,10 +593,11 @@ app.put('/snap', function (req, res) {
   let ids = decodeID(id);
   let lang = "L" + langName(ids[0]);
   let img = req.body.img;
+  console.log("PUT /snap id=" + id + " img=" + img);
   getCache(id, "snap", (err, val) => {
-    if (!val || val !== img) {
+    if (val !== img) {
       setCache(lang, id, "snap", img);
-      delCache(id, "snap-base64-png"); // Clear cached PNG.
+      // delCache(id, "snap-base64-png"); // Clear cached PNG.
       // getCache(id, "snap-base64-png", (err, val) => {
       //   if (!val) {
       //     // If we don't have a PNG yet, then make one.

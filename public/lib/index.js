@@ -35144,8 +35144,7 @@ var GraffContent = React.createClass({
           state[itemID] = {
             id: itemID,
             obj: obj,
-            data: {} // clear data
-          };
+            data: {} };
           if (self.pendingRequests === 0) {
             dispatch(state);
           }
