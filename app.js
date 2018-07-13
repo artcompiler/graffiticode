@@ -597,32 +597,57 @@ app.put('/snap', function (req, res) {
     if (!val || val !== img) {
       setCache(lang, id, "snap", img);
       delCache(id, "snap-base64-png"); // Clear cached PNG.
-      getCache(id, "snap-base64-png", (err, val) => {
-        if (!val) {
-          // If we don't have a PNG yet, then make one.
-          batchScrape([id]); // Make PNG.
-        }
-      });
+      // getCache(id, "snap-base64-png", (err, val) => {
+      //   if (!val) {
+      //     // If we don't have a PNG yet, then make one.
+      //     batchScrape([id]); // Make PNG.
+      //   }
+      // });
     }
     res.sendStatus(200);
   });
 });
 
 const makeSnap = (id, resume) => {
-  console.log("makeSnap() id=" + id);
-//  var jsdom = require("./jsdom");
   let puppeteer = require("puppeteer");
   (async() => {
+    console.log("makeSnap() id=" + id);
     const browser = await puppeteer.launch();
-    console.log("puppeteer launched");
     const page = await browser.newPage();
-    await page.goto("https://acx.ac/form?id=" + id);
-    console.log("page loaded");
-    await page.screenshot({path: id + ".png"});
-    console.log("screen scraped");
-    await browser.close();
-    resume();
-  });
+//    await page.goto("https://acx.ac/form?id=" + id);
+    await page.goto("http://localhost:3000/form?id=" + id);
+    const checkLoaded = async (t0) => {
+      let td = new Date - t0;
+      if (td > 10000) {
+        resume("Aborting. Page taking too long to load.");
+        return;
+      }
+      //    let graffView = window.document.querySelector("#graff-view");
+      let isLoaded = await page.$(".done-rendering");
+      console.log("isLoaded=" + isLoaded);
+      if (isLoaded) {
+        // let graffView = await page.$("#graff-view");
+        // let img = graffView.outerHTML;
+        // console.log("Snap scraped in " + td + "ms, img=" + img);
+        // let ids = decodeID(id);
+        // //let lang = "L" + langName(ids[0]);
+        // //setCache(lang, id, "snap", img);
+        await browser.close();
+        resume();
+      } else {
+        setTimeout(() => {
+          checkLoaded(t0);
+        }, 100);
+      }
+    };
+    checkLoaded(new Date);
+    // setTimeout(async () => {
+    //   await page.screenshot({path: id + ".png"});
+    //   console.log("screen scraped");
+    //   await browser.close();
+    //   resume();
+    // }, 10000);
+  })();
   // request("http://localhost:3000/form?id=" + id, function (error, response, body) {
   //   console.log('error:', error);
   //   console.log('statusCode:', response && response.statusCode);
@@ -1207,6 +1232,7 @@ const batchScrape = (ids, index) => {
   const phantom = require('phantom');
   index = index || 0;
   // For each datum, get the dataID and concat with id.
+  console.log("batchScrape() index=" + index);
   if (index < ids.length) {
     let t0 = new Date;
     let id = ids[index];
@@ -1224,8 +1250,8 @@ const batchScrape = (ids, index) => {
         page.on("onError", function(msg) {
           console.log('ERROR: ' + msg);
         });
-        const status = await page.open("https://acx.ac/snap?id=" + id);
-        //const status = await page.open("http://localhost:3002/snap?id=" + id);
+        //const status = await page.open("https://acx.ac/snap?id=" + id);
+        const status = await page.open("http://localhost:3000/snap?id=" + id);
         //const status = await page.open("https://acx.ac/form?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
@@ -1729,7 +1755,7 @@ app.get("/:lang/*", function (req, response) {
 });
 
 function getCompilerHost(lang) {
-  if (LOCAL_COMPILES && port === 3002) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
     return lang + ".artcompiler.com";
@@ -1737,7 +1763,7 @@ function getCompilerHost(lang) {
 }
 
 function getCompilerPort(lang) {
-  if (LOCAL_COMPILES && port === 3002) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "5" + lang.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
@@ -1878,7 +1904,7 @@ const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
 let authToken;
 
 if (!module.parent) {
-  var port = process.env.PORT || 3002;
+  var port = process.env.PORT || 3000;
   app.listen(port, function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
