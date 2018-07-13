@@ -22,7 +22,7 @@ var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
 var pg = require('pg');
 var redis = require('redis');
-var cache = redis.createClient(process.env.REDIS_URL);
+var cache; // = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 const atob = require("atob");
@@ -597,91 +597,45 @@ app.put('/snap', function (req, res) {
     if (!val || val !== img) {
       setCache(lang, id, "snap", img);
       delCache(id, "snap-base64-png"); // Clear cached PNG.
-      getCache(id, "snap-base64-png", (err, val) => {
-        if (!val) {
-          // If we don't have a PNG yet, then make one.
-          batchScrape([id]); // Make PNG.
-        }
-      });
+      // getCache(id, "snap-base64-png", (err, val) => {
+      //   if (!val) {
+      //     // If we don't have a PNG yet, then make one.
+      //     batchScrape([id]); // Make PNG.
+      //   }
+      // });
     }
     res.sendStatus(200);
   });
 });
 
 const makeSnap = (id, resume) => {
-  console.log("makeSnap() id=" + id);
-  var jsdom = require("./jsdom");
-  var { JSDOM } = jsdom;
-  let t0 = new Date;
-  let options = {
-    runScripts: "dangerously",
-    pretendToBeVisual: true,
-    resources: "usable",
-  };
-
-  // request("http://localhost:3000/form?id=" + id, function (error, response, body) {
-  //   console.log('error:', error);
-  //   console.log('statusCode:', response && response.statusCode);
-  //   console.log('body:', body);
-  //   let dom = new JSDOM(body, options);
-  JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
-    let window = dom.window;
-    const checkLoaded = (t0) => {
+  let puppeteer = require("puppeteer");
+  (async() => {
+    console.log("makeSnap() id=" + id);
+    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    const page = await browser.newPage();
+    // await page.goto("http://localhost:3000/form?id=" + id);
+    await page.goto("https://acx.ac/form?id=" + id);
+    const checkLoaded = async (t0) => {
       let td = new Date - t0;
       if (td > 10000) {
-        console.log("Aborting. Page taking too long to load.");
+        resume("Aborting. Page taking too long to load.");
         return;
       }
-      //    let graffView = window.document.querySelector("#graff-view");
-      let isLoaded = 
-//        !!window.document.querySelector(".c3-legend-item-tile") ||
-        !!window.document.querySelector(".c3-shape");  // area chart
-        console.log("isLoaded=" + isLoaded);
+      let isLoaded = await page.$(".done-rendering");
+      console.log("isLoaded=" + isLoaded);
       if (isLoaded) {
-        let graffView = window.document.querySelector("#graff-view");
-        let img = graffView.outerHTML;
-        let ids = decodeID(id);
-        let lang = "L" + langName(ids[0]);
-        setCache(lang, id, "snap", img);
-        window.close();
-        resume(null, img);
-        console.log("Snap scraped in " + td + "ms");
+        // Viewer save snap, so our job is done here.
+        await browser.close();
+        resume();
       } else {
-        window.setTimeout(() => {
+        setTimeout(() => {
           checkLoaded(t0);
         }, 100);
       }
     };
-    checkLoaded(t0);
-  });
-  // JSDOM.fromURL("https://acx.ac/form?id=" + id, options).then(dom => {
-  // JSDOM.fromURL("http://localhost:3000/form?id=" + id, options).then(dom => {
-  //   let window = dom.window;
-  //   let interval = window.setInterval(() => {
-  //     let td = new Date - t0;
-  //     if (td > 10000) {
-  //       window.clearInterval(interval);
-  //       console.log("Aborting. Page taking too long to load.");
-  //     }
-  //     let graffView = window.document.querySelector("#graff-view");
-  //     console.log("makeSnap() graffView=" + (graffView && graffView.outerHTML));
-  //     // TODO need a more robust way to detect loading.
-  //     let isLoaded =
-  //       //        window.document.querySelector("#graff-view link") ||
-  //       window.document.querySelector("#graff-view svg");
-  //     if (isLoaded) {
-  //       let graffView = window.document.querySelector("#graff-view");
-  //       let img = graffView.outerHTML;
-  //       let ids = decodeID(id);
-  //       let lang = "L" + langName(ids[0]);
-  //       setCache(lang, id, "snap", img);
-  //       window.clearInterval(interval);
-  //       window.close();;
-  //       resume(null, img);
-  //       console.log("Snap scraped in " + td + "ms");
-  //     }
-  //   }, 100);
-  // });
+    checkLoaded(new Date);
+  })();
 };
 
 const sendSnap = (id, fmt, req, res) => {
@@ -1203,10 +1157,12 @@ const batchScrape = (ids, index) => {
   const phantom = require('phantom');
   index = index || 0;
   // For each datum, get the dataID and concat with id.
+  console.log("batchScrape() index=" + index);
   if (index < ids.length) {
     let t0 = new Date;
     let id = ids[index];
-//    makeSnap(id, () => {
+    makeSnap(id, () => {
+      console.log("snapped() id=" + id);
       (async function() {
         const instance = await phantom.create();
         const page = await instance.createPage();
@@ -1219,9 +1175,8 @@ const batchScrape = (ids, index) => {
         page.on("onError", function(msg) {
           console.log('ERROR: ' + msg);
         });
+        // const status = await page.open("http://localhost:3000/snap?id=" + id);
         const status = await page.open("https://acx.ac/snap?id=" + id);
-        //const status = await page.open("http://localhost:3002/snap?id=" + id);
-        //const status = await page.open("https://acx.ac/form?id=" + id);
         const checkLoaded = async (t0) => {
           let td = new Date - t0;
           if (td > 30000) {
@@ -1229,10 +1184,8 @@ const batchScrape = (ids, index) => {
             return;
           }
           let isLoaded = await page.evaluate(function() {
-            var done = !!(window.document.querySelector(".c3-legend-item-tile") ||
-                          window.document.querySelector("circle.c3-shape") ||  // area chart
+            var done = !!(window.document.querySelector(".c3-legend-item-tile") ||                                        window.document.querySelector("circle.c3-shape") ||  // area chart
                           window.document.querySelector(".y-values"));  // table and horizontal ar chart
-//            var done = !!window.document.querySelector(".done-rendering");
             console.log("isLoaded() done=" + done);
             return done;
           });
@@ -1267,9 +1220,10 @@ const batchScrape = (ids, index) => {
             }, 100);
           }
         };
+
         checkLoaded(t0);
       }());
-//    });
+    });
   } else {
     // Rename *-pending keys to *.
     console.log("Renaming batch snap-base64-png-pending => snap-base64-png");
@@ -1724,7 +1678,7 @@ app.get("/:lang/*", function (req, response) {
 });
 
 function getCompilerHost(lang) {
-  if (LOCAL_COMPILES && port === 3002) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
     return lang + ".artcompiler.com";
@@ -1732,7 +1686,7 @@ function getCompilerHost(lang) {
 }
 
 function getCompilerPort(lang) {
-  if (LOCAL_COMPILES && port === 3002) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "5" + lang.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
@@ -1873,7 +1827,7 @@ const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
 let authToken;
 
 if (!module.parent) {
-  var port = process.env.PORT || 3002;
+  var port = process.env.PORT || 3000;
   app.listen(port, function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
@@ -1889,10 +1843,10 @@ if (!module.parent) {
     });
     // recompileItems([
     // ]);
-    // batchScrape([
-    //   "RQRSmd37Fd8T1LyzCz",
-    //   "7ObTolnliqMHw8mzsV",
-    // ]);
+    batchScrape([
+      "RQRSmd37Fd8T1LyzCz",
+      "7ObTolnliqMHw8mzsV",
+    ]);
     // putComp([{
     //     "type": "bar_2",
     //     "business_uid": "uid for river trail roasters",
