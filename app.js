@@ -1210,7 +1210,7 @@ const getIDFromType = (type) => {
   case "area":
     return "YnRFdBaBce";
   case "horizontal_bar":
-    return "aL6i8JogHJ";
+    return "wwbFmJAMcq";
   case "table_2":
     return "dOWTnyAaca";
   default:
