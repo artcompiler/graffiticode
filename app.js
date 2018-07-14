@@ -613,15 +613,14 @@ const makeSnap = (browser, id, resume) => {
   (async() => {
     let t0 = new Date;
     const page = await browser.newPage();
-    //await page.goto("http://localhost:3002/form?id=" + id);
-    await page.goto("https://acx.ac/form?id=" + id);
+    await page.goto("http://localhost:3002/form?id=" + id);
+    //await page.goto("https://acx.ac/form?id=" + id);
     const checkLoaded = async (t0) => {
       let td = new Date - t0;
       if (td > 10000) {
         resume("Aborting. Page taking too long to load.");
         return;
       }
-      // let isLoaded = await page.$(".done-rendering");
       let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
                     await page.$("circle.c3-shape") ||  // area chart
                     await page.$(".y-values"));  // table and horizontal ar chart
