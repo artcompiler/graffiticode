@@ -1188,7 +1188,7 @@ const batchScrape = async (ids, index, browser) => {
   if (index < ids.length) {
     let id = ids[index];
     makeSnap(browser, id, () => {
-      batchScrape(ids, index + 1);
+      batchScrape(ids, index + 1, browser);
     });
   } else {
     await browser.close();
