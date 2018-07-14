@@ -627,8 +627,7 @@ const makeSnap = (browser, id, resume) => {
       console.log("makeSnap() loading...");
       if (isLoaded) {
         // Viewer save snap, so our job is done here.
-        setTimeout(
-        (async () => {
+        setTimeout(async () => {
           const svg = await page.$("svg");
           const boxModel = await svg.boxModel();
           const box = boxModel.content[2];
@@ -655,7 +654,7 @@ const makeSnap = (browser, id, resume) => {
           console.log("snap " + id + ", " + width + "x" + height + " in " + (new Date() - t0) + "ms");
           await page.close();
           resume();
-        }), 100);  // Wait a second to let viewer do its thing before existing.
+        }, 100);  // Wait a second to let viewer do its thing before existing.
       } else {
         setTimeout(() => {
           checkLoaded(t0);
