@@ -26,6 +26,7 @@ var cache = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 const atob = require("atob");
+const puppeteer = require("puppeteer");
 
 // Configuration
 
@@ -608,21 +609,19 @@ app.put('/snap', function (req, res) {
   });
 });
 
-const makeSnap = (id, resume) => {
-  let puppeteer = require("puppeteer");
+const makeSnap = (browser, id, resume) => {
   (async() => {
-    console.log("makeSnap() id=" + id);
-    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    let t0 = new Date;
     const page = await browser.newPage();
-    await page.goto("http://localhost:3002/form?id=" + id);
-    //await page.goto("https://acx.ac/form?id=" + id);
+    //await page.goto("http://localhost:3002/form?id=" + id);
+    await page.goto("https://acx.ac/form?id=" + id);
     const checkLoaded = async (t0) => {
       let td = new Date - t0;
       if (td > 10000) {
         resume("Aborting. Page taking too long to load.");
         return;
       }
-//      let isLoaded = await page.$(".done-rendering");
+      // let isLoaded = await page.$(".done-rendering");
       let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
                     await page.$("circle.c3-shape") ||  // area chart
                     await page.$(".y-values"));  // table and horizontal ar chart
@@ -631,16 +630,12 @@ const makeSnap = (id, resume) => {
         // Viewer save snap, so our job is done here.
         setTimeout(async () => {
           const svg = await page.$("svg");
-          console.log("makeSnap() svg=" + svg);
           const boxModel = await svg.boxModel();
           const box = boxModel.content[2];
-          console.log("makeSnap() boxModel=" + JSON.stringify(boxModel));
-          const zoom = 2;
-          const x = 0; //8.5 * zoom;
-          const y = 0; //8.5 * zoom;
+          const x = 0;
+          const y = 0;
           const width = box.x;
           const height = box.y;
-          console.log("makeSnap() width=" + width + " height=" + height);
           await page.setViewport({
             width: width,
             height: height,
@@ -656,8 +651,8 @@ const makeSnap = (id, resume) => {
             },
             omitBackground: true,
           });
-          setCache(null, id, "snap-base64-png-pending", base64)
-          await browser.close();
+          setCache(null, id, "snap-base64-png-pending", base64);
+          console.log("snap " + id + ", " + width + "x" + height + " in " + (new Date() - t0) + "ms");
           resume();
         }, 1000);  // Wait a second to let viewer do its thing before existing.
       } else {
@@ -1185,81 +1180,20 @@ const recompileItem = (id, parseOnly) => {
     }
   });
 };
-const batchScrape = (ids, index) => {
-  const phantom = require('phantom');
+const batchScrape = async (ids, index, browser) => {
+  if (!browser) {
+    browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+  }
   index = index || 0;
-  // For each datum, get the dataID and concat with id.
-  console.log("batchScrape() index=" + index + " ids=" + ids);
   if (index < ids.length) {
-    let t0 = new Date;
     let id = ids[index];
-    makeSnap(id, () => {
-      console.log("snapped() id=" + id);
+    makeSnap(browser, id, () => {
       batchScrape(ids, index + 1);
-//       (async function() {
-//         const instance = await phantom.create();
-//         const page = await instance.createPage();
-//         page.on("onConsoleMessage", function(msg) {
-//           console.log('CONSOLE: ' + msg);
-//         });
-//         page.on("onResourceError", function(msg) {
-//           console.log('RESOURCE: ' + JSON.stringify(msg));
-//         });
-//         page.on("onError", function(msg) {
-//           console.log('ERROR: ' + msg);
-//         });
-//         //const status = await page.open("http://localhost:3002/snap?id=" + id);
-//         const status = await page.open("https://acx.ac/snap?id=" + id);
-//         const checkLoaded = async (t0) => {
-//           let td = new Date - t0;
-//           if (td > 10000) {
-//             console.log("Aborting. Page taking too long to load.");
-//             batchScrape(ids, index + 1);
-//             return;
-//           }
-//           let isLoaded = await page.evaluate(function() {
-//             var done = !!(window.document.querySelector(".c3-legend-item-tile") ||                                        window.document.querySelector("circle.c3-shape") ||  // area chart
-//                           window.document.querySelector(".y-values"));  // table and horizontal ar chart
-//             console.log("isLoaded() done=" + done);
-//             return done;
-//           });
-//           if (isLoaded) {
-//             console.log("Loaded. Starting scraping...");
-//             const size = await page.property('viewportSize');
-//             const html = await page.property('content');
-//             const zoomFactor = 2;
-//             await page.property("zoomFactor", zoomFactor);
-//             let svg = await page.evaluate(function() {
-//               var svg = window.document.querySelector("svg");
-//               return svg;
-//             });
-//             let width = svg.offsetWidth;
-//             let height = svg.offsetHeight;
-//             let padding = 0;
-//             await page.property("clipRect", {
-//               top: (8.5 - padding) * zoomFactor,
-//               left: (8.5 - padding) * zoomFactor,
-//               width: (width + padding) * zoomFactor,
-//               height: (height + padding) * zoomFactor,
-//             });
-//             var base64 = await page.renderBase64('PNG');
-// //            setCache(null, id, "snap-base64-png-pending", base64)
-//             console.log("batchScrape() " + width + "x" + height + ": " + id + "snap-base64-png-pending");
-//             await instance.exit();
-//             console.log(id + " scraped in " + (new Date - t0) + "ms");
-//             batchScrape(ids, index + 1);
-//           } else {
-//             setTimeout(() => {
-//               checkLoaded(t0);
-//             }, 100);
-//           }
-//         };
-//         checkLoaded(t0);
-//       }());
     });
   } else {
+    await browser.close();
     // Rename *-pending keys to *.
-    console.log("Renaming batch snap-base64-png-pending => snap-base64-png");
+    console.log("Renaming batch of " + ids.length + ", snap-base64-png-pending => snap-base64-png");
     ids.forEach(id => {
       renCache(id, "snap-base64-png-pending", "snap-base64-png");
     });
