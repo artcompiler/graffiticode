@@ -625,7 +625,7 @@ const makeSnap = (browser, id, resume) => {
       let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
                     await page.$("circle.c3-shape") ||  // area chart
                     await page.$(".y-values"));  // table and horizontal ar chart
-      console.log("isLoaded=" + isLoaded);
+      console.log("makeSnap() loading...");
       if (isLoaded) {
         // Viewer save snap, so our job is done here.
         setTimeout(async () => {
@@ -653,6 +653,7 @@ const makeSnap = (browser, id, resume) => {
           });
           setCache(null, id, "snap-base64-png-pending", base64);
           console.log("snap " + id + ", " + width + "x" + height + " in " + (new Date() - t0) + "ms");
+          await page.close();
           resume();
         }, 1000);  // Wait a second to let viewer do its thing before existing.
       } else {
