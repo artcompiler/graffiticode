@@ -593,7 +593,6 @@ app.put('/snap', function (req, res) {
   let ids = decodeID(id);
   let lang = "L" + langName(ids[0]);
   let img = req.body.img;
-  console.log("PUT /snap id=" + id + " img=" + img);
   getCache(id, "snap", (err, val) => {
     if (val !== img) {
       setCache(lang, id, "snap", img);
@@ -615,8 +614,8 @@ const makeSnap = (id, resume) => {
     console.log("makeSnap() id=" + id);
     const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
-    //await page.goto("http://localhost:3002/form?id=" + id);
-    await page.goto("https://acx.ac/form?id=" + id);
+    await page.goto("http://localhost:3002/form?id=" + id);
+    //await page.goto("https://acx.ac/form?id=" + id);
     const checkLoaded = async (t0) => {
       let td = new Date - t0;
       if (td > 10000) {
@@ -630,8 +629,35 @@ const makeSnap = (id, resume) => {
       console.log("isLoaded=" + isLoaded);
       if (isLoaded) {
         // Viewer save snap, so our job is done here.
-        setTimeout(() => {
-          browser.close();
+        setTimeout(async () => {
+          const svg = await page.$("svg");
+          console.log("makeSnap() svg=" + svg);
+          const boxModel = await svg.boxModel();
+          const box = boxModel.content[2];
+          console.log("makeSnap() boxModel=" + JSON.stringify(boxModel));
+          const zoom = 2;
+          const x = 0; //8.5 * zoom;
+          const y = 0; //8.5 * zoom;
+          const width = box.x;
+          const height = box.y;
+          console.log("makeSnap() width=" + width + " height=" + height);
+          await page.setViewport({
+            width: width,
+            height: height,
+            deviceScaleFactor: 2,
+          });
+          const base64 = await page.screenshot({
+            encoding: "base64",
+            clip: {
+              x: x,
+              y: y,
+              width: width,
+              height: height,
+            },
+            omitBackground: true,
+          });
+          setCache(null, id, "snap-base64-png-pending", base64)
+          await browser.close();
           resume();
         }, 1000);  // Wait a second to let viewer do its thing before existing.
       } else {
@@ -1169,66 +1195,67 @@ const batchScrape = (ids, index) => {
     let id = ids[index];
     makeSnap(id, () => {
       console.log("snapped() id=" + id);
-      (async function() {
-        const instance = await phantom.create();
-        const page = await instance.createPage();
-        page.on("onConsoleMessage", function(msg) {
-          console.log('CONSOLE: ' + msg);
-        });
-        page.on("onResourceError", function(msg) {
-          console.log('RESOURCE: ' + JSON.stringify(msg));
-        });
-        page.on("onError", function(msg) {
-          console.log('ERROR: ' + msg);
-        });
-        //const status = await page.open("http://localhost:3002/snap?id=" + id);
-        const status = await page.open("https://acx.ac/snap?id=" + id);
-        const checkLoaded = async (t0) => {
-          let td = new Date - t0;
-          if (td > 10000) {
-            console.log("Aborting. Page taking too long to load.");
-            batchScrape(ids, index + 1);
-            return;
-          }
-          let isLoaded = await page.evaluate(function() {
-            var done = !!(window.document.querySelector(".c3-legend-item-tile") ||                                        window.document.querySelector("circle.c3-shape") ||  // area chart
-                          window.document.querySelector(".y-values"));  // table and horizontal ar chart
-            console.log("isLoaded() done=" + done);
-            return done;
-          });
-          if (isLoaded) {
-            console.log("Loaded. Starting scraping...");
-            const size = await page.property('viewportSize');
-            const html = await page.property('content');
-            const zoomFactor = 2;
-            await page.property("zoomFactor", zoomFactor);
-            let svg = await page.evaluate(function() {
-              var svg = window.document.querySelector("svg");
-              return svg;
-            });
-            let width = svg.offsetWidth;
-            let height = svg.offsetHeight;
-            let padding = 0;
-            await page.property("clipRect", {
-              top: (8.5 - padding) * zoomFactor,
-              left: (8.5 - padding) * zoomFactor,
-              width: (width + padding) * zoomFactor,
-              height: (height + padding) * zoomFactor,
-            });
-            var base64 = await page.renderBase64('PNG');
-            setCache(null, id, "snap-base64-png-pending", base64)
-            console.log("batchScrape() " + width + "x" + height + ": " + id + "snap-base64-png-pending");
-            await instance.exit();
-            console.log(id + " scraped in " + (new Date - t0) + "ms");
-            batchScrape(ids, index + 1);
-          } else {
-            setTimeout(() => {
-              checkLoaded(t0);
-            }, 100);
-          }
-        };
-        checkLoaded(t0);
-      }());
+      batchScrape(ids, index + 1);
+//       (async function() {
+//         const instance = await phantom.create();
+//         const page = await instance.createPage();
+//         page.on("onConsoleMessage", function(msg) {
+//           console.log('CONSOLE: ' + msg);
+//         });
+//         page.on("onResourceError", function(msg) {
+//           console.log('RESOURCE: ' + JSON.stringify(msg));
+//         });
+//         page.on("onError", function(msg) {
+//           console.log('ERROR: ' + msg);
+//         });
+//         //const status = await page.open("http://localhost:3002/snap?id=" + id);
+//         const status = await page.open("https://acx.ac/snap?id=" + id);
+//         const checkLoaded = async (t0) => {
+//           let td = new Date - t0;
+//           if (td > 10000) {
+//             console.log("Aborting. Page taking too long to load.");
+//             batchScrape(ids, index + 1);
+//             return;
+//           }
+//           let isLoaded = await page.evaluate(function() {
+//             var done = !!(window.document.querySelector(".c3-legend-item-tile") ||                                        window.document.querySelector("circle.c3-shape") ||  // area chart
+//                           window.document.querySelector(".y-values"));  // table and horizontal ar chart
+//             console.log("isLoaded() done=" + done);
+//             return done;
+//           });
+//           if (isLoaded) {
+//             console.log("Loaded. Starting scraping...");
+//             const size = await page.property('viewportSize');
+//             const html = await page.property('content');
+//             const zoomFactor = 2;
+//             await page.property("zoomFactor", zoomFactor);
+//             let svg = await page.evaluate(function() {
+//               var svg = window.document.querySelector("svg");
+//               return svg;
+//             });
+//             let width = svg.offsetWidth;
+//             let height = svg.offsetHeight;
+//             let padding = 0;
+//             await page.property("clipRect", {
+//               top: (8.5 - padding) * zoomFactor,
+//               left: (8.5 - padding) * zoomFactor,
+//               width: (width + padding) * zoomFactor,
+//               height: (height + padding) * zoomFactor,
+//             });
+//             var base64 = await page.renderBase64('PNG');
+// //            setCache(null, id, "snap-base64-png-pending", base64)
+//             console.log("batchScrape() " + width + "x" + height + ": " + id + "snap-base64-png-pending");
+//             await instance.exit();
+//             console.log(id + " scraped in " + (new Date - t0) + "ms");
+//             batchScrape(ids, index + 1);
+//           } else {
+//             setTimeout(() => {
+//               checkLoaded(t0);
+//             }, 100);
+//           }
+//         };
+//         checkLoaded(t0);
+//       }());
     });
   } else {
     // Rename *-pending keys to *.
