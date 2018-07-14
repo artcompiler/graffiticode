@@ -613,8 +613,8 @@ const makeSnap = (browser, id, resume) => {
   (async() => {
     let t0 = new Date;
     const page = await browser.newPage();
-    await page.goto("http://localhost:3002/form?id=" + id);
-    //await page.goto("https://acx.ac/form?id=" + id);
+    //await page.goto("http://localhost:3002/form?id=" + id);
+    await page.goto("https://acx.ac/form?id=" + id);
     const checkLoaded = async (t0) => {
       let td = new Date - t0;
       if (td > 10000) {
@@ -1247,7 +1247,6 @@ app.put('/comp', function (req, res) {
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let data = body;
   let auth = req.headers.authorization;
-  console.log("PUT /comp auth=" + auth);
   postAuth("/validate", { jwt: auth }, (err, val) => {
     if (err) {
       res.sendStatus(err);
