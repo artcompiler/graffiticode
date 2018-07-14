@@ -654,7 +654,7 @@ const makeSnap = (browser, id, resume) => {
           console.log("snap " + id + ", " + width + "x" + height + " in " + (new Date() - t0) + "ms");
           await page.close();
           resume();
-        }, 1000);  // Wait a second to let viewer do its thing before existing.
+        }, 100);  // Wait a second to let viewer do its thing before existing.
       } else {
         setTimeout(() => {
           checkLoaded(t0);
