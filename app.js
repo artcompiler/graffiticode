@@ -651,7 +651,6 @@ const makeSnap = (browser, id, resume) => {
             omitBackground: true,
           });
           setCache(null, id, "snap-base64-png-pending", base64);
-          console.log("snap " + id + ", " + width + "x" + height + " in " + (new Date() - t0) + "ms");
           await page.close();
           resume();
         }, 100);  // Wait a second to let viewer do its thing before existing.
@@ -1187,7 +1186,9 @@ const batchScrape = async (ids, index, browser) => {
   index = index || 0;
   if (index < ids.length) {
     let id = ids[index];
+    let t0 = new Date;
     makeSnap(browser, id, () => {
+      console.log("snap " + (index + 1) + "/" + ids.length + ", " + id + " in " + (new Date() - t0) + "ms");
       batchScrape(ids, index + 1, browser);
     });
   } else {
