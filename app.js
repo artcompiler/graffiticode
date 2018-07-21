@@ -1219,10 +1219,12 @@ const getIDFromType = (type) => {
     return "";
   }
 };
-const batchCompile = (auth, items, index, resume) => {
+const batchCompile = (auth, items, index, res, resume) => {
   index = +index || 0;
   // For each item, get the dataID and concat with codeID of alias.
   if (index < items.length) {
+    res.write(" ");
+    let t0 = new Date;
     let item = items[index];
     let codeID = getIDFromType(item.type);
     let data = item.data;
@@ -1233,9 +1235,9 @@ const batchCompile = (auth, items, index, resume) => {
       item.id = id;
       item.image_url = "https://acx.ac/s/" + id + "?fmt=PNG";
       delete item.data;
-      batchCompile(auth, items, index + 1, resume);
-      setCache(null, id, "snap-base64-png-pending", "need to render png")
+      batchCompile(auth, items, index + 1, res, resume);
       compileID(auth, id, false, (err, val) => { /* nothing to do here */ });
+      console.log("compiled " + id + " in " + (new Date - t0) + "ms");
     });
   } else {
     resume(null, items);
@@ -1258,8 +1260,8 @@ app.put('/comp', function (req, res) {
         date: date,
         data: data,
       }, () => {
-        batchCompile(auth, data, 0, (err, data) => {
-          res.writeHead(202, {"Content-Type": "application/json"});
+        res.writeHead(202, {"Content-Type": "application/json"});
+        batchCompile(auth, data, 0, res, (err, data) => {
           res.end(JSON.stringify(data));
           console.log("PUT /comp " + address + " (" + data.length + " items) in " + (new Date - t0) + "ms");
           let itemIDs = [];
