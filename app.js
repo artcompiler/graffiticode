@@ -624,7 +624,7 @@ const makeSnap = (browser, id, resume) => {
       let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
                         await page.$("circle.c3-shape") ||  // area chart
                         await page.$(".y-values"));  // table and horizontal ar chart
-      console.log("makeSnap() loading...");
+      process.stdout.write(".");
       if (isLoaded) {
         // Viewer save snap, so our job is done here.
         setTimeout(async () => {
@@ -1187,7 +1187,6 @@ const batchScrape = async (ids, index, browser) => {
   index = index || 0;
   if (index < ids.length) {
     let id = ids[index];
-    console.log("batchScrape index=" + index);
     makeSnap(browser, id, () => {
       batchScrape(ids, index + 1, browser);
     });
@@ -1276,6 +1275,7 @@ app.put('/comp', function (req, res) {
           putData(authToken, {
             address: address,
             type: "batchCompile",
+            date: new Date,
             items: itemIDs,
           }, () => {}); // Record batch.
         });
