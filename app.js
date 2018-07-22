@@ -1237,7 +1237,7 @@ const batchCompile = (auth, items, index, res, resume) => {
       delete item.data;
       batchCompile(auth, items, index + 1, res, resume);
       compileID(auth, id, false, (err, val) => { /* nothing to do here */ });
-      console.log("compiled " + id + " in " + (new Date - t0) + "ms");
+      console.log("compile " + index + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
     });
   } else {
     resume(null, items);
