@@ -22,7 +22,7 @@ var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
 var pg = require('pg');
 var redis = require('redis');
-var cache = redis.createClient(process.env.REDIS_URL);
+var cache; // = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 const atob = require("atob");
@@ -1237,7 +1237,7 @@ const batchCompile = (auth, items, index, res, resume) => {
       delete item.data;
       batchCompile(auth, items, index + 1, res, resume);
       compileID(auth, id, false, (err, val) => { /* nothing to do here */ });
-      console.log("compile " + index + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
+      console.log("compile " + (index + 1) + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
     });
   } else {
     resume(null, items);
@@ -1272,13 +1272,13 @@ app.put('/comp', function (req, res) {
           });
           //str += "].."
           //console.log("PUT /comp str=" + str);
-          batchScrape(itemIDs);
           putData(authToken, {
             address: address,
             type: "batchCompile",
             date: new Date,
             items: itemIDs,
           }, () => {}); // Record batch.
+//          batchScrape(itemIDs);
         });
       }); // Record batch.
     }
