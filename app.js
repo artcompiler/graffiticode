@@ -1269,6 +1269,7 @@ const batchCompile = (auth, items, index, res, resume) => {
 };
 app.put('/comp', function (req, res) {
   let t0 = new Date;
+  console.log("PUT /comp body=" + req.body);
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let data = body;
   let auth = req.headers.authorization;
