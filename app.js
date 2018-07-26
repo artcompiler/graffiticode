@@ -628,8 +628,8 @@ const makeSnap = (id, resume) => {
           (async() => {
             let t0 = new Date;
             const page = await browser.newPage();
-            await page.goto("http://localhost:3000/form?id=" + id);
-            //await page.goto("https://www.graffiticode.com/form?id=" + id);
+            //await page.goto("http://localhost:3000/form?id=" + id);
+            await page.goto("https://www.graffiticode.com/form?id=" + id);
             //await page.goto("https://acx.ac/form?id=" + id);
             const checkLoaded = async (t0) => {
               let td = new Date - t0;
