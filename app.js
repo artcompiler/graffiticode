@@ -22,7 +22,7 @@ var methodOverride = require("method-override");
 var errorHandler = require("errorhandler");
 var pg = require('pg');
 var redis = require('redis');
-var cache = redis.createClient(process.env.REDIS_URL);
+var cache; // = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 const atob = require("atob");
@@ -623,7 +623,7 @@ const makeSnap = (browser, id, resume) => {
           (async() => {
             let t0 = new Date;
             const page = await browser.newPage();
-            //await page.goto("http://localhost:3002/form?id=" + id);
+            //await page.goto("http://localhost:3000/form?id=" + id);
             await page.goto("https://acx.ac/form?id=" + id);
             const checkLoaded = async (t0) => {
               let td = new Date - t0;
@@ -1688,7 +1688,7 @@ app.get("/:lang/*", function (req, response) {
 });
 
 function getCompilerHost(lang) {
-  if (LOCAL_COMPILES && port === 3002) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
     return lang + ".artcompiler.com";
@@ -1696,7 +1696,7 @@ function getCompilerHost(lang) {
 }
 
 function getCompilerPort(lang) {
-  if (LOCAL_COMPILES && port === 3002) {
+  if (LOCAL_COMPILES && port === 3000) {
     return "5" + lang.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
@@ -1837,7 +1837,7 @@ const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
 let authToken;
 
 if (!module.parent) {
-  var port = process.env.PORT || 3002;
+  var port = process.env.PORT || 3000;
   app.listen(port, function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
