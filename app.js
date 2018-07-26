@@ -622,9 +622,13 @@ const makeSnap = (browser, id, resume) => {
         } else {
           (async() => {
             let t0 = new Date;
+            if (!browser) {
+              browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+            }
             const page = await browser.newPage();
             //await page.goto("http://localhost:3000/form?id=" + id);
-            await page.goto("https://acx.ac/form?id=" + id);
+            await page.goto("https://www.graffiticode.com/form?id=" + id);
+            //await page.goto("https://acx.ac/form?id=" + id);
             const checkLoaded = async (t0) => {
               let td = new Date - t0;
               if (td > 10000) {
@@ -634,7 +638,6 @@ const makeSnap = (browser, id, resume) => {
               let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
                                 await page.$("circle.c3-shape") ||  // area chart
                                 await page.$(".y-values"));  // table and horizontal ar chart
-                process.stdout.write(".");
               if (isLoaded) {
                 // Viewer save snap, so our job is done here.
                 setTimeout(async () => {
@@ -662,7 +665,8 @@ const makeSnap = (browser, id, resume) => {
                   });
                   setCache(null, id, "snap-base64-png", base64);
                   await page.close();
-                  resume();
+                  await browser.close();
+                  resume(null, base64);
                 }, 100);  // Wait a second to let viewer do its thing before existing.
               } else {
                 setTimeout(() => {
@@ -696,20 +700,24 @@ const sendSnap = (id, fmt, req, res) => {
       console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
     } else {
-      if (fmt === "png") {
-        let img = atob("");
-        res.writeHead(200, {'Content-Type': 'image/png' });
-        res.end(img, 'binary');
-        console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
-                    (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-      } else {
-        res.sendStatus(404);
-        // makeSnap(id, (err, val) => {
-        //   res.send(val);
-        //   console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
-        //               (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-        // });
-      }
+      makeSnap(null, id, (err, val) => {
+        getCache(id, type, (err, val) => {
+          if (val) {
+            if (fmt === "png") {
+              let img = atob(val);
+              res.writeHead(200, {'Content-Type': 'image/png' });
+              res.end(img, 'binary');
+            } else {
+              res.send(val);
+            }
+            console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
+                        (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
+          } else {
+            // For some reason, the image can't be made.
+            res.sendStatus(404);
+          }
+        });
+      });
     }
   });
 };
