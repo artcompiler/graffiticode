@@ -27,6 +27,11 @@ var main = require('./main.js');
 var Hashids = require("hashids");
 const atob = require("atob");
 const puppeteer = require("puppeteer");
+let browser;
+(async () => {
+  browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+  console.log("Chrome launched: " + !!browser);
+})();
 
 // Configuration
 
@@ -609,7 +614,7 @@ app.put('/snap', function (req, res) {
   });
 });
 
-const makeSnap = (browser, id, resume) => {
+const makeSnap = (id, resume) => {
   getCache(id, "snap-base64-png-pending", (err, val) => {
     if (val) {
       console.log("renCache() id=" + id);
@@ -622,12 +627,9 @@ const makeSnap = (browser, id, resume) => {
         } else {
           (async() => {
             let t0 = new Date;
-            if (!browser) {
-              browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-            }
             const page = await browser.newPage();
-            //await page.goto("http://localhost:3000/form?id=" + id);
-            await page.goto("https://www.graffiticode.com/form?id=" + id);
+            await page.goto("http://localhost:3000/form?id=" + id);
+            //await page.goto("https://www.graffiticode.com/form?id=" + id);
             //await page.goto("https://acx.ac/form?id=" + id);
             const checkLoaded = async (t0) => {
               let td = new Date - t0;
@@ -665,7 +667,6 @@ const makeSnap = (browser, id, resume) => {
                   });
                   setCache(null, id, "snap-base64-png", base64);
                   await page.close();
-                  await browser.close();
                   resume(null, base64);
                 }, 100);  // Wait a second to let viewer do its thing before existing.
               } else {
@@ -700,7 +701,7 @@ const sendSnap = (id, fmt, req, res) => {
       console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
     } else {
-      makeSnap(null, id, (err, val) => {
+      makeSnap(id, (err, val) => {
         getCache(id, type, (err, val) => {
           if (val) {
             if (fmt === "png") {
@@ -1201,17 +1202,14 @@ const recompileItem = (id, parseOnly) => {
     }
   });
 };
-const batchScrape = async (ids, index, browser) => {
-  if (!browser) {
-    browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-  }
+const batchScrape = async (ids, index) => {
   index = index || 0;
   if (index < ids.length) {
     let id = ids[index];
     let t0 = new Date;
-    makeSnap(browser, id, () => {
+    makeSnap(id, () => {
       console.log("snap " + (index + 1) + "/" + ids.length + ", " + id + " in " + (new Date() - t0) + "ms");
-      batchScrape(ids, index + 1, browser);
+      batchScrape(ids, index + 1);
       getCache(id, "snap-base64-png-pending", (err, val) => {
         if (val) {
           console.log("renCache() id=" + id);
@@ -1220,7 +1218,6 @@ const batchScrape = async (ids, index, browser) => {
       });
     });
   } else {
-    await browser.close();
     // Rename *-pending keys to *.
     console.log("Renaming batch of " + ids.length + ", snap-base64-png-pending => snap-base64-png");
     ids.forEach(id => {
