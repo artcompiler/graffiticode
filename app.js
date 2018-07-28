@@ -1274,7 +1274,6 @@ const batchCompile = (auth, items, index, res, resume) => {
 };
 app.put('/comp', function (req, res) {
   let t0 = new Date;
-  console.log("PUT /comp body=" + req.body);
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let data = body;
   let auth = req.headers.authorization;
@@ -1284,7 +1283,7 @@ app.put('/comp', function (req, res) {
       res.sendStatus(err);
     } else {
       let address = val.address;
-      putData(authToken, {
+      putData(auth, {
         address: address,
         type: "batchCompile",
         date: date,
@@ -1295,20 +1294,26 @@ app.put('/comp', function (req, res) {
           res.end(JSON.stringify(data));
           console.log("PUT /comp " + address + " (" + data.length + " items) in " + (new Date - t0) + "ms");
           let itemIDs = [];
-          //let str = "grid [";
-          data.forEach(val => {
+          let str = "grid [\n";
+          str += 'row twelve-columns [br, ';
+          str += 'style { "fontSize": "14"} cspan "Client: ' + address + '", ';
+          str += 'style { "fontSize": "14"} cspan "Posted: ' + date + '"';
+          str += '],\n';
+          data.forEach((val, i) => {
             itemIDs.push(val.id);
-            //str += 'row twelve-columns ["' + val.id + '", br, img "/s/' + val.id + '?fmt=png"],'
+            // row twelve-columns [href "item?id=rVvUpnj7HOoUeLNzf7" img "/s/rVvUpnj7HOoUeLNzf7?fmt=png", h4 "1 of 100: rVvUpnj7HOoUeLNzf7", ],
+            str += 'row twelve-columns [href "item?id=' + val.id + '" img "/s/' + val.id + '?fmt=png", h4 "' + (i + 1) + ' of ' + data.length + ': ' + val.id + '"],\n'
           });
-          //str += "].."
-          //console.log("PUT /comp str=" + str);
-          putData(authToken, {
+          str += "].."
+          putCode(auth, "L116", str, (err, val) => {
+            console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
+          });
+          putData(auth, {
             address: address,
             type: "batchCompile",
-            date: new Date,
+            date: date,
             items: itemIDs,
           }, () => {}); // Record batch.
-//          batchScrape(itemIDs);
         });
       }); // Record batch.
     }
@@ -1468,6 +1473,77 @@ const putData = (auth, data, resume) => {
     }
   });
 };
+function putCode(auth, lang, rawSrc, resume) {
+  let t0 = new Date;
+  // Compile AST or SRC to OBJ. Insert or add item.
+  let src = cleanAndTrimSrc(rawSrc);
+  let user = 0;
+  let img = "";
+  let obj = "";
+  let label = "show";
+  let parent = 0;
+  let query = "SELECT * FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + src + "' ORDER BY pieces.id";
+  dbQuery(query, function(err, result) {
+    var row = result.rows[0];
+    itemID = row && row.id || undefined;
+    ast = row && row.ast || null;
+    if (!ast) {
+      // No AST, try creating from source.
+      parse(lang, rawSrc, (err, ast) => {
+        compile(ast);
+      });
+    } else {
+      compile(ast);
+    }
+    function compile(ast) {
+      if (itemID) {
+        let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+        let codeID = row.id;
+        let dataID = 0;
+        let ids = [langID, codeID, dataID];
+        let id = encodeID(ids);
+        // We have an id, so update the item with the current AST.
+        updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
+          // Update the src and ast because they are used by compileID().
+          if (err) {
+            console.log("ERROR [1] PUT /compile err=" + err);
+            resume(400, null);
+          } else {
+            compileID(auth, id, false, (err, obj) => {
+              console.log("putCode() id=" + ids.join("+") + " (" + id + ") in " +
+                          (new Date - t0) + "ms");
+              resume(null, {
+                id: id,
+                obj: obj,
+              });
+            });
+          }
+        });
+      } else {
+        postItem(lang, rawSrc, ast, obj, user, parent, img, label, (err, result) => {
+          if (err) {
+            console.log("ERROR [2] PUT /compile err=" + err);
+            resume(400);
+          } else {
+            let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+            let codeID = result.rows[0].id;
+            let dataID = 0;
+            let ids = [langID, codeID, dataID];
+            let id = encodeID(ids);
+            compileID(auth, id, false, (err, obj) => {
+              console.log("putCode() id=" + ids.join("+") + " (" + id + ")* in " +
+                          (new Date - t0) + "ms");
+              resume(null, {
+                id: id,
+                obj: obj,
+              });
+            });
+          }
+        });
+      }
+    }
+  });
+}
 app.put('/code', (req, response) => {
   // Insert or update code without recompiling.
   let t0 = new Date;
