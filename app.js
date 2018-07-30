@@ -1207,6 +1207,7 @@ const batchScrape = async (ids, index) => {
   if (index < ids.length) {
     let id = ids[index];
     let t0 = new Date;
+    delCache(id, "snap-base64-png");  // Force re-scrape.
     makeSnap(id, () => {
       console.log("snap " + (index + 1) + "/" + ids.length + ", " + id + " in " + (new Date() - t0) + "ms");
       batchScrape(ids, index + 1);
@@ -1304,9 +1305,12 @@ app.put('/comp', function (req, res) {
             // row twelve-columns [href "item?id=rVvUpnj7HOoUeLNzf7" img "/s/rVvUpnj7HOoUeLNzf7?fmt=png", h4 "1 of 100: rVvUpnj7HOoUeLNzf7", ],
             str += 'row twelve-columns [href "item?id=' + val.id + '" img "/s/' + val.id + '?fmt=png", h4 "' + (i + 1) + ' of ' + data.length + ': ' + val.id + '"],\n'
           });
-          str += "].."
-          putCode(auth, "L116", str, (err, val) => {
+          str += "]..";
+          putCode(auth, "L116", str, async (err, val) => {
             console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
+            const page = await browser.newPage();
+            await page.goto("https://acx.ac/form?id=" + val.id);
+            // await page.close();
           });
           putData(auth, {
             address: address,
