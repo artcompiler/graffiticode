@@ -622,6 +622,7 @@ let browser;
 const makeSnap = (id, forceScrape, resume) => {
   getCache(id, "snap-base64-png", (err, val) => {
     if (val) {
+      uploadFileToS3(id + ".png", val, () => {});
       resume();
     } else {
       (async() => {
