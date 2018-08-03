@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "atob": "2.1.1",
+    "aws-sdk": "2.286.2",
     "body-parser": "latest",
     "connect-timeout": "latest",
     "cookie-parser": "latest",
