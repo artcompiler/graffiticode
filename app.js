@@ -632,9 +632,8 @@ const makeSnap = (browser, id, forceScrape, resume) => {
                 resume("Aborting. Page taking too long to load.");
                 return;
               }
-              let isLoaded = !forceScrape ||
-                             !!(await page.$(".c3-legend-item-tile") ||
-                                await page.$(".c3-line-Points_Issued") ||  // area chart
+              let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
+                                await page.$("circle.c3-shape") ||  // area chart
                                 await page.$(".y-values"));  // table and horizontal ar chart
                 if (isLoaded) {
                   // Viewer save snap, so our job is done here.
