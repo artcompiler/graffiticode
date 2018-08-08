@@ -29,8 +29,6 @@ const atob = require("atob");
 const puppeteer = require("puppeteer");
 const AWS = require('aws-sdk');
 
-let pageCount = 0;
-
 // Configuration
 
 const DEBUG = false;
@@ -596,19 +594,13 @@ const uploadFileToS3 = (name, base64data) => {
     Body: buffer,
     ContentEncoding: 'base64',
   }, (err, data) => {
-    console.log("upload " + name);
+    console.log("UPLOAD " + name);
   });
 };
 
-let browser;
-
-(async () => {
-  browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-})();
-
 const makeSnap = (browser, id, forceScrape, resume) => {
   getCache(id, "snap-base64-png", (err, val) => {
-    if (val) {
+    if (!forceScrape && val) {
       uploadFileToS3(id + ".png", val, () => {});
       resume();
     } else {
@@ -1314,7 +1306,10 @@ app.put('/comp', function (req, res) {
           str += "]..";
           putCode(auth, "L116", str, async (err, val) => {
             console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
-            batchScrape(itemIDs);
+            let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+            batchScrape(browser, itemIDs, 0, () => {
+              browser.close();
+            });
           });
           putData(auth, {
             address: address,
