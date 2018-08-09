@@ -302,6 +302,10 @@ const renCache = function (id, oldType, newType) {
     cache.rename(oldKey, newKey);
   }
 };
+const getKeys = (filter, resume) => {
+  filter = filter || "*";
+  cache.keys(filter, resume);
+};
 const getCache = function (id, type, resume) {
   let key = id + type;
   let val;
@@ -1022,12 +1026,12 @@ function compileID(auth, id, refresh, resume) {
     if (refresh) {
       delCache(id, "data");
     }
-    countView(ids[1]);
     getCache(id, "data", (err, val) => {
       if (val) {
         // Got cached value. We're done.
         resume(err, val);
       } else {
+        countView(ids[1]);  // Count every time code is used to compile a new item.
         getData(auth, ids, refresh, (err, data) => {
           getCode(ids, (err, code) => {
             if (err && err.length) {
@@ -1170,6 +1174,11 @@ const parseID = (id, resume) => {
         resume(["ERROR no source. " + id]);
       }
     }
+  });
+};
+const clearCache = (type, items) => {
+  items.forEach(id => {
+    delCache(id, type);
   });
 };
 const recompileItems = (items, parseOnly) => {
@@ -1940,6 +1949,8 @@ if (!module.parent) {
     // batchScrape([
     // ]);
     // putComp([], clientSecret);
+    clearCache("snap-base64-png", [
+    ]);
   });
 }
 
