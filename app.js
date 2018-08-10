@@ -207,18 +207,18 @@ const sendPing = (id, req, res) => {
   let urls = {};
   getCache(id, "data", (err, val) => {
     if (val) {
-      urls["data"] = (useShort ? "/d/" : "/data/id=") + id;
+      urls["data"] = (useShort ? "/d/" : "/data?id=") + id;
     }
     getCache(id, "snap", (err, val) => {
       if (val) {
-        urls["snap"] = (useShort ? "/s/" : "/snap/id=") + id;
+        urls["snap"] = (useShort ? "/s/" : "/snap?id=") + id;
       }
       getCache(id, "snap-base64-png", (err, val) => {
         if (val) {
           if (val.indexOf("https://cdn.acx.ac") === 0) {
             urls["snap/png"] = val;
           } else {
-            urls["snap/png"] = (useShort ? "/s/" : "/snap/id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
+            urls["snap/png"] = (useShort ? "/s/" : "/snap?id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
           }
         }
         res.json(urls);
