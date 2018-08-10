@@ -215,7 +215,11 @@ const sendPing = (id, req, res) => {
       }
       getCache(id, "snap-base64-png", (err, val) => {
         if (val) {
-          urls["snap/png"] = (useShort ? "/s/" : "/snap/id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
+          if (val.indexOf("https://cdn.acx.ac") === 0) {
+            urls["snap/png"] = val;
+          } else {
+            urls["snap/png"] = (useShort ? "/s/" : "/snap/id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
+          }
         }
         res.json(urls);
       });
@@ -582,7 +586,7 @@ app.put('/snap', function (req, res) {
     setCache(lang, id, "snap", img);
     delCache(id, "snap-base64-png"); // Clear cached PNG.
     let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-    makeSnap(browser, id, true, (err, val) => {
+    makeSnap(browser, id, (err, val) => {
       browser.close();
     });
     res.sendStatus(200);
@@ -602,25 +606,25 @@ const uploadFileToS3 = (name, base64data) => {
   });
 };
 
-const makeSnap = (browser, id, forceScrape, resume) => {
+const makeSnap = (browser, id, resume) => {
   getCache(id, "snap-base64-png", (err, val) => {
-    if (!forceScrape && val) {
-      uploadFileToS3(id + ".png", val, () => {});
+    if (val) {
+      if (val.indexOf("https://cdn.acx.ac") === 0) {
+        // Already uploaded.
+      } else {
+        let name = id + ".png";
+        setCache(null, id, "snap-base64-png", "https://cdn.acx.ac/" + name);
+        uploadFileToS3(name, val, () => {});
+      }
       resume();
     } else {
       (async() => {
         try {
           let t0 = new Date;
           let page = await browser.newPage();
-          if (forceScrape) {
-            //await page.goto("http://localhost:3000/form?id=" + id);
-            //await page.goto("https://www.graffiticode.com/form?id=" + id);
-            await page.goto("https://acx.ac/form?id=" + id);
-          } else {
-            //await page.goto("http://localhost:3000/snap?id=" + id);
-            //await page.goto("https://www.graffiticode.com/snap?id=" + id);
-            await page.goto("https://acx.ac/snap?id=" + id);
-          }
+          //await page.goto("http://localhost:3000/form?id=" + id);
+          //await page.goto("https://www.graffiticode.com/form?id=" + id);
+          await page.goto("https://acx.ac/form?id=" + id);
           const checkLoaded = async (t0) => {
             try {
               let td = new Date - t0;
@@ -657,8 +661,9 @@ const makeSnap = (browser, id, forceScrape, resume) => {
                         },
                         omitBackground: true,
                       });
-                      setCache(null, id, "snap-base64-png", base64);
-                      uploadFileToS3(id + ".png", base64, () => {});
+                      let name = id + ".png";
+                      setCache(null, id, "snap-base64-png", "https://cdn.acx.ac/" + name);
+                      uploadFileToS3(name, base64, () => {});
                       await page.close();
                       resume(null, base64);
                     } catch (x) {
@@ -695,9 +700,14 @@ const sendSnap = (id, fmt, req, res) => {
     let ids = decodeID(id);
     if (val) {
       if (fmt === "png") {
-        let img = atob(val);
-        res.writeHead(200, {'Content-Type': 'image/png' });
-        res.end(img, 'binary');
+        if (val.indexOf("https://cdn.acx.ac") === 0) {
+          // Redirect response to CDN cache.
+          res.redirect(val);
+        } else {
+          let img = atob(val);
+          res.writeHead(200, {'Content-Type': 'image/png' });
+          res.end(img, 'binary');
+        }
       } else {
         res.send(val);
       }
@@ -706,14 +716,19 @@ const sendSnap = (id, fmt, req, res) => {
     } else {
       (async () => {
         let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-        makeSnap(browser, id, true, (err, val) => {
+        makeSnap(browser, id, (err, val) => {
           browser.close();
           getCache(id, type, (err, val) => {
             if (val) {
               if (fmt === "png") {
-                let img = atob(val);
-                res.writeHead(200, {'Content-Type': 'image/png' });
-                res.end(img, 'binary');
+                if (val.indexOf("https://cdn.acx.ac") === 0) {
+                  // Redirect response to CDN cache.
+                  res.redirect(val);
+                } else {
+                  let img = atob(val);
+                  res.writeHead(200, {'Content-Type': 'image/png' });
+                  res.end(img, 'binary');
+                }
               } else {
                 res.send(val);
               }
@@ -1177,9 +1192,19 @@ const parseID = (id, resume) => {
   });
 };
 const clearCache = (type, items) => {
-  items.forEach(id => {
-    delCache(id, type);
-  });
+  getKeys("*" + type, (err, keys) => {
+    items = items || keys;
+    let count = 0;
+    items.forEach((item) => {
+      item = item.indexOf(type) < 0 ? item + type : item; // Append type of not present.
+      if (keys.indexOf(item) >= 0) {
+        console.log("deleting " + (++count) + " of " + keys.length + ": " + item);
+        delCache(item.slice(0, item.indexOf(type)), type);
+      } else {
+        console.log("unknown " + item);
+      }
+    });
+  })
 };
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
@@ -1220,7 +1245,7 @@ const batchScrape = async (browser, ids, index, resume) => {
     if (index < ids.length) {
       let id = ids[index];
       let t0 = new Date;
-      makeSnap(browser, id, true, (err, data) => {
+      makeSnap(browser, id, (err, data) => {
         if (err) {
           batchScrape(browser, ids, index, resume); // Try again.
         } else {
@@ -1949,8 +1974,7 @@ if (!module.parent) {
     // batchScrape([
     // ]);
     // putComp([], clientSecret);
-    clearCache("snap-base64-png", [
-    ]);
+    // clearCache("snap-base64-png");
   });
 }
 
