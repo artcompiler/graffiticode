@@ -584,11 +584,11 @@ app.put('/snap', function (req, res) {
   let img = req.body.img;
   getCache(id, "snap", async (err, val) => {
     setCache(lang, id, "snap", img);
-    delCache(id, "snap-base64-png"); // Clear cached PNG.
-    let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-    makeSnap(browser, id, (err, val) => {
-      browser.close();
-    });
+    // delCache(id, "snap-base64-png"); // Clear cached PNG.
+    // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    // makeSnap(browser, id, (err, val) => {
+    //   browser.close();
+    // });
     res.sendStatus(200);
   });
 });
@@ -1971,8 +1971,11 @@ if (!module.parent) {
     });
     // recompileItems([
     // ]);
-    // batchScrape([
-    // ]);
+    // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    // batchScrape(browser, [
+    // ], 0, () => {
+    //   browser.close();
+    // });
     // putComp([], clientSecret);
     // clearCache("snap-base64-png");
   });
