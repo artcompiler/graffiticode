@@ -1333,12 +1333,12 @@ app.put('/comp', function (req, res) {
           res.end(JSON.stringify(data));
           console.log("PUT /comp " + address + " (" + data.length + " items) in " + (new Date - t0) + "ms");
           let itemIDs = [];
+          let doScrape;
           let str = "grid [\n";
           str += 'row twelve-columns [br, ';
           str += 'style { "fontSize": "14"} cspan "Client: ' + address + '", ';
           str += 'style { "fontSize": "14"} cspan "Posted: ' + date + '"';
           str += '],\n';
-          let doScrape;
           data.forEach((val, i) => {
             itemIDs.push(val.id);
             let langID = decodeID(val.id)[0];
@@ -1349,22 +1349,22 @@ app.put('/comp', function (req, res) {
                 ' of ' + data.length + ': ' + val.id + '"],\n';
               doScrape = true;
             } else {
-              str +=
-                'row twelve-columns [href "item?id=' + val.id +
-                '" form "' + val.id + '", h4 "' + (i + 1) +
-                ' of ' + data.length + ': ' + val.id + '"],\n';
+              // str +=
+              //   'row twelve-columns [href "item?id=' + val.id +
+              //   '" form "' + val.id + '", h4 "' + (i + 1) +
+              //   ' of ' + data.length + ': ' + val.id + '"],\n';
             }
           });
           str += "]..";
-          putCode(auth, "L116", str, async (err, val) => {
-            console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
-            if (doScrape) {
+          if (doScrape) {
+            putCode(auth, "L116", str, async (err, val) => {
+              console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
               let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
               batchScrape(browser, itemIDs, 0, () => {
                 browser.close();
               });
-            }
-          });
+            });
+          }
           putData(auth, {
             address: address,
             type: "batchCompile",
@@ -1567,8 +1567,8 @@ function putCode(auth, lang, rawSrc, resume) {
             resume(400, null);
           } else {
             compileID(auth, id, false, (err, obj) => {
-              console.log("putCode() id=" + ids.join("+") + " (" + id + ") in " +
-                          (new Date - t0) + "ms");
+              // console.log("putCode() id=" + ids.join("+") + " (" + id + ") in " +
+              //             (new Date - t0) + "ms");
               resume(null, {
                 id: id,
                 obj: obj,
