@@ -32,7 +32,7 @@ const AWS = require('aws-sdk');
 // Configuration
 
 const DEBUG = false;
-const LOCAL_COMPILES = false;
+const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
@@ -382,7 +382,6 @@ app.get('/lang', function(req, res) {
                   " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
                   " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
                   " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-                console.log("GET /lang insertStr=" + insertStr);
                 dbQuery(insertStr, function(err, result) {
                   if (err) {
                     console.log("ERROR GET /pieces/:lang err=" + err);
@@ -1007,11 +1006,17 @@ function getCode(ids, resume) {
   getItem(ids[1], (err, item) => {
     // if L113 there is no AST.
     if (item && item.ast) {
-      let code = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
-      resume(err, code);
+      let ast = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
+      resume(err, ast);
     } else {
-      // console.log("No AST found for id=" + ids.join("+"));
-      resume(err, {});
+      if (ids[0] !== 113) {
+        console.log("No AST found for id=" + ids.join("+"));
+        parseID(encodeID(ids), (err, ast) => {
+          resume(err, ast);
+        });
+      } else {
+        resume(err, {});
+      }
     }
   });
 }
@@ -1277,8 +1282,7 @@ const getIDFromType = (type) => {
   case "table_2":
     return "dOWTnyAaca";
   default:
-    console.log("ERROR unknown type " + type);
-    return "";
+    return null;
   }
 };
 const batchCompile = (auth, items, index, res, resume) => {
@@ -1288,7 +1292,7 @@ const batchCompile = (auth, items, index, res, resume) => {
     res.write(" ");
     let t0 = new Date;
     let item = items[index];
-    let codeID = getIDFromType(item.type);
+    let codeID = item.id || getIDFromType(item.type);
     let data = item.data;
     putData(auth, data, (err, dataID) => {
       let codeIDs = decodeID(codeID);
@@ -1297,16 +1301,17 @@ const batchCompile = (auth, items, index, res, resume) => {
       item.id = id;
       item.image_url = "https://cdn.acx.ac/" + id + ".png";
       delete item.data;
-      batchCompile(auth, items, index + 1, res, resume);
-      compileID(auth, id, false, (err, val) => { /* nothing to do here */ });
-      console.log("COMPILE " + (index + 1) + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
+      compileID(auth, id, false, (err, obj) => {
+        item.data = obj;
+        batchCompile(auth, items, index + 1, res, resume);
+        console.log("COMPILE " + (index + 1) + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
+      });
     });
   } else {
     resume(null, items);
   }
 };
 app.put('/comp', function (req, res) {
-  // body={data, 
   let t0 = new Date;
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let data = body;
@@ -1333,17 +1338,32 @@ app.put('/comp', function (req, res) {
           str += 'style { "fontSize": "14"} cspan "Client: ' + address + '", ';
           str += 'style { "fontSize": "14"} cspan "Posted: ' + date + '"';
           str += '],\n';
+          let doScrape;
           data.forEach((val, i) => {
             itemIDs.push(val.id);
-            str += 'row twelve-columns [href "item?id=' + val.id + '" img "https://cdn.acx.ac/' + val.id + '.png", h4 "' + (i + 1) + ' of ' + data.length + ': ' + val.id + '"],\n'
+            let langID = decodeID(val.id)[0];
+            if (langID === 104) {
+              str +=
+                'row twelve-columns [href "item?id=' + val.id +
+                '" img "https://cdn.acx.ac/' + val.id + '.png", h4 "' + (i + 1) +
+                ' of ' + data.length + ': ' + val.id + '"],\n';
+              doScrape = true;
+            } else {
+              str +=
+                'row twelve-columns [href "item?id=' + val.id +
+                '" form "' + val.id + '", h4 "' + (i + 1) +
+                ' of ' + data.length + ': ' + val.id + '"],\n';
+            }
           });
           str += "]..";
           putCode(auth, "L116", str, async (err, val) => {
             console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
-            let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-            batchScrape(browser, itemIDs, 0, () => {
-              browser.close();
-            });
+            if (doScrape) {
+              let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+              batchScrape(browser, itemIDs, 0, () => {
+                browser.close();
+              });
+            }
           });
           putData(auth, {
             address: address,
@@ -1992,7 +2012,6 @@ app.get('/0xaE91FC0da6B3a5d9dB881531b5227ABE075a806B', function (req, res) {
   }
 });
 
-
 function putComp(data, secret, resume) {
   let encodedData = JSON.stringify(data);
   var options = {
@@ -2012,8 +2031,9 @@ function putComp(data, secret, resume) {
     res.on('data', function (chunk) {
       data += chunk;
     }).on('end', function () {
-      console.log("statusCode=" + res.statusCode);
-      console.log("data=" + JSON.stringify(JSON.parse(data), null, 2));
+      if (resume) {
+        resume(null, JSON.parse(data));
+      }
     }).on("error", function (err) {
       console.log("[13] ERROR " + err);
     });
