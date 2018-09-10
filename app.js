@@ -1010,8 +1010,14 @@ function getCode(ids, resume) {
       resume(err, ast);
     } else {
       if (ids[0] !== 113) {
-        console.log("No AST found for id=" + ids.join("+"));
-        parseID(encodeID(ids), (err, ast) => {
+        console.log("No AST found: langID=" + ids[0] + " codeID=" + ids[1]);
+        let lang = item.language;
+        let src = item.src;
+        parse(lang, src, (err, ast) => {
+          updateAST(ids[1], ast, (err)=>{
+            assert(!err);
+          });
+          // Don't wait for update.
           resume(err, ast);
         });
       } else {
@@ -1318,20 +1324,25 @@ app.put('/comp', function (req, res) {
   let auth = req.headers.authorization;
   let date = new Date().toUTCString();
   postAuth("/validate", { jwt: auth }, (err, val) => {
+    let t1 = new Date;
+    console.log("postAuth() in " + (t1 - t0) + "ms");
     if (err) {
       res.sendStatus(err);
     } else {
       let address = val.address;
-      putData(auth, {
-        address: address,
-        type: "batchCompile",
-        date: date,
-        data: data,
-      }, () => {
+      // putData(auth, {
+      //   address: address,
+      //   type: "batchCompile",
+      //   date: date,
+      //   data: data,
+      // }, () => {
+        let t2 = new Date;
+        // console.log("putData() in " + (t2 - t1) + "ms");
         res.writeHead(202, {"Content-Type": "application/json"});
         batchCompile(auth, data, 0, res, (err, data) => {
+          let t3 = new Date;
+          console.log("batchCompile() in " + (t3 - t2) + "ms");
           res.end(JSON.stringify(data));
-          console.log("PUT /comp " + address + " (" + data.length + " items) in " + (new Date - t0) + "ms");
           let itemIDs = [];
           let doScrape;
           let str = "grid [\n";
@@ -1372,7 +1383,7 @@ app.put('/comp', function (req, res) {
             items: itemIDs,
           }, () => {}); // Record batch.
         });
-      });
+      // });
     }
   });
 });
@@ -1440,7 +1451,7 @@ app.put('/compile', function (req, res) {
                 res.sendStatus(400);
               } else {
                 compileID(authToken, id, false, (err, obj) => {
-                  console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ") in " +
+                  console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ") in " +
                               (new Date - t0) + "ms");
                   res.json({
                     id: id,
@@ -1461,7 +1472,7 @@ app.put('/compile', function (req, res) {
                 let ids = [langID, codeID, dataID];
                 let id = encodeID(ids);
                 compileID(authToken, id, false, (err, obj) => {
-                  console.log("PUT /comp?id=" + ids.join("+") + " (" + id + ")* in " +
+                  console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ")* in " +
                               (new Date - t0) + "ms");
                   res.json({
                     id: id,
@@ -1649,8 +1660,8 @@ app.put('/code', (req, response) => {
       let dataID = 0;
       let ids = [langID, codeID, dataID];
       let id = encodeID(ids);
-      // console.log("PUT /code?id=" + ids.join("+") + " (" + id + ") in " +
-      //             (new Date - t0) + "ms");
+      console.log("PUT /code?id=" + ids.join("+") + " (" + id + ") in " +
+                  (new Date - t0) + "ms");
       response.json({
         id: id,
       });
