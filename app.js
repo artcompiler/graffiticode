@@ -1307,7 +1307,7 @@ const batchCompile = (auth, items, index, res, resume) => {
       item.id = id;
       item.image_url = "https://cdn.acx.ac/" + id + ".png";
       delete item.data;
-      compileID(auth, id, false, (err, obj) => {
+      compileID(auth, id, DEBUG, (err, obj) => {
         item.data = obj;
         batchCompile(auth, items, index + 1, res, resume);
         console.log("COMPILE " + (index + 1) + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
