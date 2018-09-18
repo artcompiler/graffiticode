@@ -31,7 +31,7 @@ const AWS = require('aws-sdk');
 
 // Configuration
 
-const DEBUG = false;
+const DEBUG = true;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
@@ -1011,8 +1011,9 @@ function getCode(ids, resume) {
     } else {
       if (ids[0] !== 113) {
         console.log("No AST found: langID=" + ids[0] + " codeID=" + ids[1]);
+        assert(item, "ERROR getCode() item not found: " + ids);
         let lang = item.language;
-        let src = item.src;
+        let src = item.src.replace(/\\\\/g, "\\");
         parse(lang, src, (err, ast) => {
           updateAST(ids[1], ast, (err)=>{
             assert(!err);
