@@ -1251,18 +1251,21 @@ const recompileItem = (id, parseOnly) => {
     }
   });
 };
-const batchScrape = async (browser, ids, index, resume) => {
+const batchScrape = async (browser, force, ids, index, resume) => {
   try {
     index = index || 0;
     if (index < ids.length) {
       let id = ids[index];
       let t0 = new Date;
+      if (force) {
+        delCache(id, "snap-base64-png");
+      }
       makeSnap(browser, id, (err, data) => {
         if (err) {
-          batchScrape(browser, ids, index, resume); // Try again.
+          batchScrape(browser, force, ids, index, resume); // Try again.
         } else {
           console.log("SNAP " + (index + 1) + "/" + ids.length + ", " + id + " in " + (new Date() - t0) + "ms");
-          batchScrape(browser, ids, index + 1, resume);
+          batchScrape(browser, force, ids, index + 1, resume);
         }
       });
     } else {
@@ -1366,7 +1369,7 @@ app.put('/comp', function (req, res) {
           putCode(auth, "L116", str, async (err, val) => {
             console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
             let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-            batchScrape(browser, itemIDs, 0, () => {
+            batchScrape(browser, false, itemIDs, 0, () => {
               browser.close();
             });
           });
@@ -1984,7 +1987,7 @@ if (!module.parent) {
     console.log("Using address " + clientAddress);
     if (!authToken) {
       // Secret not stored in env so get one.
-      console.log("WARNING ARTCOMPILER_CLIENT_SECRET not set.");
+      console.log("ARTCOMPILER_CLIENT_SECRET not set. Generating a temporary secret.");
       postAuth("/login", {
         "address": clientAddress,
       }, (err, data) => {
@@ -1999,7 +2002,7 @@ if (!module.parent) {
     // recompileItems([
     // ]);
     // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-    // batchScrape(browser, [
+    // batchScrape(browser, true, [
     // ], 0, () => {
     //   browser.close();
     // });
