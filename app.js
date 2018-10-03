@@ -31,7 +31,7 @@ const AWS = require('aws-sdk');
 
 // Configuration
 
-const DEBUG = true;
+const DEBUG = false;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
@@ -1331,60 +1331,53 @@ app.put('/comp', function (req, res) {
       res.sendStatus(err);
     } else {
       let address = val.address;
-      // putData(auth, {
-      //   address: address,
-      //   type: "batchCompile",
-      //   date: date,
-      //   data: data,
-      // }, () => {
-        let t2 = new Date;
-        // console.log("putData() in " + (t2 - t1) + "ms");
-        res.writeHead(202, {"Content-Type": "application/json"});
-        batchCompile(auth, data, 0, res, (err, data) => {
-          let t3 = new Date;
-          console.log("batchCompile() in " + (t3 - t2) + "ms");
-          res.end(JSON.stringify(data));
-          let itemIDs = [];
-          let doScrape;
-          let str = "grid [\n";
-          str += 'row twelve-columns [br, ';
-          str += 'style { "fontSize": "14"} cspan "Client: ' + address + '", ';
-          str += 'style { "fontSize": "14"} cspan "Posted: ' + date + '"';
-          str += '],\n';
-          data.forEach((val, i) => {
-            itemIDs.push(val.id);
-            let langID = decodeID(val.id)[0];
-            if (langID === 104) {
-              str +=
-                'row twelve-columns [href "item?id=' + val.id +
-                '" img "https://cdn.acx.ac/' + val.id + '.png", h4 "' + (i + 1) +
-                ' of ' + data.length + ': ' + val.id + '"],\n';
-              doScrape = true;
-            } else {
-              // str +=
-              //   'row twelve-columns [href "item?id=' + val.id +
-              //   '" form "' + val.id + '", h4 "' + (i + 1) +
-              //   ' of ' + data.length + ': ' + val.id + '"],\n';
-            }
-          });
-          str += "]..";
-          if (doScrape) {
-            putCode(auth, "L116", str, async (err, val) => {
-              console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
-              let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-              batchScrape(browser, itemIDs, 0, () => {
-                browser.close();
-              });
-            });
+      let t2 = new Date;
+      // console.log("putData() in " + (t2 - t1) + "ms");
+      res.writeHead(202, {"Content-Type": "application/json"});
+      batchCompile(auth, data, 0, res, (err, data) => {
+        let t3 = new Date;
+        console.log("batchCompile() in " + (t3 - t2) + "ms");
+        res.end(JSON.stringify(data));
+        let itemIDs = [];
+        let doScrape;
+        let str = "grid [\n";
+        str += 'row twelve-columns [br, ';
+        str += 'style { "fontSize": "14"} cspan "Client: ' + address + '", ';
+        str += 'style { "fontSize": "14"} cspan "Posted: ' + date + '"';
+        str += '],\n';
+        data.forEach((val, i) => {
+          itemIDs.push(val.id);
+          let langID = decodeID(val.id)[0];
+          if (langID === 104) {
+            str +=
+            'row twelve-columns [href "item?id=' + val.id +
+              '" img "https://cdn.acx.ac/' + val.id + '.png", h4 "' + (i + 1) +
+              ' of ' + data.length + ': ' + val.id + '"],\n';
+            doScrape = true;
+          } else {
+            // str +=
+            //   'row twelve-columns [href "item?id=' + val.id +
+            //   '" form "' + val.id + '", h4 "' + (i + 1) +
+            //   ' of ' + data.length + ': ' + val.id + '"],\n';
           }
-          putData(auth, {
-            address: address,
-            type: "batchCompile",
-            date: date,
-            items: itemIDs,
-          }, () => {}); // Record batch.
         });
-      // });
+        str += "]..";
+        if (doScrape) {
+          putCode(auth, "L116", str, async (err, val) => {
+            console.log("PUT /comp proofsheet: https://acx.ac/form?id=" + val.id);
+            let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+            batchScrape(browser, itemIDs, 0, () => {
+              browser.close();
+            });
+          });
+        }
+        putData(auth, {
+          address: address,
+          type: "batchCompile",
+          date: date,
+          items: itemIDs,
+        }, () => {}); // Record batch.
+      });
     }
   });
 });
@@ -1983,24 +1976,26 @@ function validateUser(token, lang, resume) {
 const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
   ? process.env.ARTCOMPILER_CLIENT_ADDRESS
   : "0x0123456789abcdef0123456789abcdef01234567";
-
-let authToken;
-
+let authToken = process.env.ARTCOMPILER_CLIENT_SECRET;
 if (!module.parent) {
   var port = process.env.PORT || 3000;
-  app.listen(port, function() {
+  app.listen(port, async function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
-    postAuth("/login", {
-      "address": clientAddress,
-    }, (err, data) => {
-      postAuth("/finishLogin", {
-        "jwt": data.jwt,
+    if (!authToken) {
+      // Secret not stored in env so get one.
+      console.log("WARNING ARTCOMPILER_CLIENT_SECRET not set.");
+      postAuth("/login", {
+        "address": clientAddress,
       }, (err, data) => {
-        // Default auth token.
-        authToken = data.jwt;
+        postAuth("/finishLogin", {
+          "jwt": data.jwt,
+        }, (err, data) => {
+          // Default auth token.
+          authToken = data.jwt;
+        });
       });
-    });
+    }
     // recompileItems([
     // ]);
     // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
@@ -2014,15 +2009,6 @@ if (!module.parent) {
 }
 
 // Client URLs
-
-app.get('/0xaE91FC0da6B3a5d9dB881531b5227ABE075a806B', function (req, res) {
-  let secret = process.env.FIVESTARS_ARTCOMPILER_CLIENT_SECRET;
-  if (secret) {
-    res.send(secret);
-  } else {
-    res.sendStatus(404);
-  }
-});
 
 function putComp(data, secret, resume) {
   let encodedData = JSON.stringify(data);
