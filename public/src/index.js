@@ -241,12 +241,14 @@ window.handleOpenClick = function (e) {
     url = "/form?id=" + id;
     break;
   case "open-snap":
-    let html = d3.select("#graff-view").html();
-    putSnap(html, (err, val) => {
-      url = "/snap?id=" + id;
-      let win = window.open(url, id);
-    });
-    return;
+    // let html = d3.select("#graff-view").html();
+    // putSnap(html, (err, val) => {
+    //   url = "/snap?id=" + id;
+    //   let win = window.open(url, id);
+    // });
+    // return;
+    url = "/snap?id=" + id + "&fmt=png&refresh=true";
+    break;
   }
   let win = window.open(url, id);
 }

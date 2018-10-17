@@ -583,11 +583,11 @@ app.put('/snap', function (req, res) {
   let img = req.body.img;
   getCache(id, "snap", async (err, val) => {
     setCache(lang, id, "snap", img);
-    // delCache(id, "snap-base64-png"); // Clear cached PNG.
-    // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-    // makeSnap(browser, id, (err, val) => {
-    //   browser.close();
-    // });
+    delCache(id, "snap-base64-png"); // Clear cached PNG.
+    let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    makeSnap(browser, id, (err, val) => {
+      browser.close();
+    });
     res.sendStatus(200);
   });
 });
@@ -694,8 +694,11 @@ const sendSnap = (id, fmt, req, res) => {
   let t0 = new Date;
   fmt = fmt && fmt.toLowerCase();
   let type = fmt === "png" ? "snap-base64-png" : "snap";
+  let refresh = !!req.query.refresh;
+  if (refresh) {
+    delCache(id, type);
+  }
   getCache(id, type, (err, val) => {
-    let refresh = !!req.query.refresh;
     let ids = decodeID(id);
     if (val) {
       if (fmt === "png") {
@@ -715,29 +718,30 @@ const sendSnap = (id, fmt, req, res) => {
     } else {
       (async () => {
         let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-        makeSnap(browser, id, (err, val) => {
+        makeSnap(browser, id, (err, base64) => {
           browser.close();
-          getCache(id, type, (err, val) => {
-            if (val) {
-              if (fmt === "png") {
-                if (val.indexOf("https://cdn.acx.ac") === 0) {
-                  // Redirect response to CDN cache.
-                  res.redirect(val);
-                } else {
-                  let img = atob(val);
+//          getCache(id, type, (err, val) => {
+//            console.log("sendSnap() val=" + val);
+            if (base64) {
+//              if (fmt === "png") {
+//                if (val.indexOf("https://cdn.acx.ac") === 0) {
+//                  // Redirect response to CDN cache.
+//                  res.redirect(val);
+//                } else {
+                  let img = atob(base64);
                   res.writeHead(200, {'Content-Type': 'image/png' });
                   res.end(img, 'binary');
-                }
-              } else {
-                res.send(val);
-              }
+//                }
+//              } else {
+//                res.send(val);
+//              }
               console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
                           (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
             } else {
               // For some reason, the image can't be made.
               res.sendStatus(404);
             }
-          });
+//          });
         });
       })();
     }
