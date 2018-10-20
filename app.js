@@ -31,7 +31,7 @@ const AWS = require('aws-sdk');
 
 // Configuration
 
-const DEBUG = false;
+const DEBUG = true;
 const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
@@ -1489,6 +1489,10 @@ app.put('/compile', function (req, res) {
   });
 });
 const putData = (auth, data, resume) => {
+  if (!data || !Object.keys(data).length) {
+    resume(null, undefined);
+    return;
+  }
   let t0 = new Date;
   let rawSrc = JSON.stringify(data) + "..";
   let src = cleanAndTrimSrc(rawSrc);
