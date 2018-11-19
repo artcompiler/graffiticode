@@ -35636,6 +35636,9 @@ function putSnap(img, resume) {
     }
   });
 }
+window.handleRefresh = function () {
+  window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
+};
 var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";
 window.onload = function () {

@@ -269,6 +269,9 @@ function putSnap(img, resume) {
     }
   });
 }
+window.handleRefresh = () => {
+  window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
+}
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 window.onload = () => {
