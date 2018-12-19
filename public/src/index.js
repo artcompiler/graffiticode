@@ -272,6 +272,65 @@ function putSnap(img, resume) {
 window.handleRefresh = () => {
   window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
 }
+function putMark(mark, resume) {
+  let userID = localStorage.getItem("userID");
+  let itemID = window.gcexports.id;
+  $.ajax({
+    type: "PUT",
+    url: "/mark",
+    data: {
+      userID: userID,
+      itemID: itemID,
+      mark: mark,
+    },
+    dataType: "text",
+    success: function(data) {
+      resume(null, data);
+    },
+    error: function(xhr, msg, err) {
+      console.log("Unable to submit code. Probably due to a SQL syntax error");
+    }
+  });
+}
+function colorMark() {
+  let state = +localStorage.getItem("markItem");
+  let color;
+  switch (state) {
+  default:
+    color = "#FEFEFE";  // clear
+    break;
+  case 0:
+    color = "#E7B416";  // yellow
+    break;
+  case -1:
+    color = "#CC3232";  // red
+    break;
+  case 1:
+    color = "#2DC937";  // green
+    break;
+  }
+  d3.select("#mark-circle").attr("fill", color);
+}
+window.handleMark = (e) => {
+  let mark = +localStorage.getItem("markItem");
+  switch (mark) {
+  case -1:
+    mark = null;
+    break;
+  case 1:
+    mark = 0;
+    break;
+  case 0:
+    mark = -1;
+    break;
+  default:
+    mark = 1;
+    break;
+  }
+  localStorage.setItem("markItem", mark);
+  colorMark();
+  putMark(mark);
+}
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 window.onload = () => {
@@ -316,6 +375,9 @@ window.onload = () => {
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
   d3.select("div#obj-view").style("display", dataView ? "block" : "none");
+  let markItem = hideViews ? false : localStorage.getItem("markItem") === "true";
+  colorMark();
+  d3.select("button#mark-btn").style("display", "block");
   d3.selectAll("a.nav-link").style("display", "block");
   if (localStorage.getItem("accessToken")) {
     d3.select("form#signout").style("display", "block");

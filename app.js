@@ -198,6 +198,57 @@ app.get('/label', function (req, res) {
   });
 });
 
+function insertItem(userID, itemID, resume) {
+  dbQuery("SELECT count(*) FROM items where userID=" + userID + "AND itemID='" + itemID + "'", (err, result) => {
+    if (+result.rows[0].count === 0) {
+      let [langID, codeID, ...dataID] = decodeID(itemID);
+      dataID = encodeID(dataID);
+      dbQuery("INSERT INTO items (userID, itemID, langID, codeID, dataID) " +
+              "VALUES (" + userID + ", '" + itemID + "', " + langID + ", " + codeID + ", '" + dataID + "') ",
+              (err, result) => {
+                 resume();
+              });
+    } else {
+      resume();
+    }
+  });
+}
+
+
+// PUT/GET mark
+app.put('/mark', function (req, res) {
+  let {userID, itemID, mark} = req.body;
+  mark = mark === "" ? "null" : mark;
+  insertItem(userID, itemID, () => {
+    let query = "UPDATE items SET " +
+      "mark=" + mark + " WHERE " +
+      "userID=" + userID +
+      " AND itemID='" + itemID + "'";
+    dbQuery(query, (err, val) => {
+    });
+  });
+  res.sendStatus(200)
+});
+
+app.get('/mark', function (req, res) {
+  let ids = decodeID(req.query.id);
+  let langID = ids[0];
+  let codeID = ids[1];
+  let dataID = ids[2];
+  let userID = req.query.userID;
+  dbQuery("SELECT mark FROM items WHERE " +
+          "userID='" + userID +
+          "' langID='" + langID +
+          "' codeID='" + codeID +
+          "' dataID='" + dataID + "'",  (err, result) => {
+    let mark;
+    if (result && result.rows.length === 1) {
+      mark = result.rows[0].label;
+    }
+    res.send(mark)
+  });
+});
+
 // Get ping
 const sendPing = (id, req, res) => {
   let useShort = req.path.indexOf("/p/") === 0;
