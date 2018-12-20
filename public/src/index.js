@@ -277,7 +277,7 @@ function putMark(mark, resume) {
   let itemID = window.gcexports.id;
   $.ajax({
     type: "PUT",
-    url: "/mark",
+    url: "/stat",
     data: {
       userID: userID,
       itemID: itemID,
@@ -285,13 +285,21 @@ function putMark(mark, resume) {
     },
     dataType: "text",
     success: function(data) {
-      resume(null, data);
+      resume && resume(null, data);
     },
     error: function(xhr, msg, err) {
       console.log("Unable to submit code. Probably due to a SQL syntax error");
     }
   });
 }
+function updateMark(id) {
+  let user = localStorage.getItem("userID");
+  $.get(location.origin + "/stat?id=" + id + "&user=" + user, function (data) {
+    localStorage.setItem("markItem", data.mark);
+    colorMark();
+  });
+}
+window.gcexports.updateMark = updateMark;
 function colorMark() {
   let state = +localStorage.getItem("markItem");
   let color;
@@ -375,8 +383,7 @@ window.onload = () => {
   d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
   d3.select("button#data-btn").style("display", "block");
   d3.select("div#obj-view").style("display", dataView ? "block" : "none");
-  let markItem = hideViews ? false : localStorage.getItem("markItem") === "true";
-  colorMark();
+  updateMark(window.gcexports.id);
   d3.select("button#mark-btn").style("display", "block");
   d3.selectAll("a.nav-link").style("display", "block");
   if (localStorage.getItem("accessToken")) {

@@ -1834,7 +1834,9 @@ window.gcexports.parser = (function () {
             obj: obj,
           };
           gcexports.dispatcher.dispatch(state);
+          gcexports.updateMark(id);
         }
+        gcexports.updateMark(gcexports.id);
       },
       error: function(xhr, msg, err) {
         console.log("ERROR " + msg + " " + err);

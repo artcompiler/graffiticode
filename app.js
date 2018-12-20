@@ -215,8 +215,8 @@ function insertItem(userID, itemID, resume) {
 }
 
 
-// PUT/GET mark
-app.put('/mark', function (req, res) {
+// PUT/GET stat
+app.put('/stat', function (req, res) {
   let {userID, itemID, mark} = req.body;
   mark = mark === "" ? "null" : mark;
   insertItem(userID, itemID, () => {
@@ -230,23 +230,18 @@ app.put('/mark', function (req, res) {
   res.sendStatus(200)
 });
 
-app.get('/mark', function (req, res) {
-  let ids = decodeID(req.query.id);
-  let langID = ids[0];
-  let codeID = ids[1];
-  let dataID = ids[2];
-  let userID = req.query.userID;
+app.get('/stat', function (req, res) {
+  let userID = req.query.user;
+  let itemID = req.query.id;
   dbQuery("SELECT mark FROM items WHERE " +
           "userID='" + userID +
-          "' langID='" + langID +
-          "' codeID='" + codeID +
-          "' dataID='" + dataID + "'",  (err, result) => {
-    let mark;
-    if (result && result.rows.length === 1) {
-      mark = result.rows[0].label;
-    }
-    res.send(mark)
-  });
+          "' AND itemID='" + itemID + "'",  (err, result) => {
+            let mark;
+            if (result && result.rows.length === 1) {
+              mark = result.rows[0];
+            }
+            res.send(mark)
+          });
 });
 
 // Get ping
