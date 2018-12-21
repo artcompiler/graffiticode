@@ -1746,6 +1746,7 @@ app.put('/code', (req, response) => {
 });
 app.get('/items', function(req, res) {
   // Used by L109, L131.
+  let userID = req.query.userID;
   let queryStr = "";
   if (req.query.list) {
     let list = req.query.list;
@@ -1772,7 +1773,28 @@ app.get('/items', function(req, res) {
     } else {
       rows = result.rows;
     }
-    res.send(rows)
+    let mark = req.query.stat && req.query.stat.mark;
+    if (mark !== undefined) {
+      dbQuery("SELECT codeid FROM items WHERE " +
+              "userid='" + userID +
+              "' AND mark='" + mark + "'",
+              (err, result) => {
+                let list = [];
+                result.rows.forEach(row => {
+                  list.push(row.codeid);
+                });
+                let selection = [];
+                rows.forEach(row => {
+                  if (list.includes(row.id)) {
+                    selection.push(row);
+                  }
+                });
+                console.log("GET /items selection=" + JSON.stringify(selection));
+                res.send(selection)
+              });
+    } else {
+      res.send(rows);
+    }
   });
   req.on('error', function(e) {
     console.log("[10] ERROR " + e);

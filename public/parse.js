@@ -555,8 +555,8 @@ var Ast = (function () {
   }
 
   function sub(ctx) {
-    var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
@@ -585,8 +585,8 @@ var Ast = (function () {
   }
 
   function div(ctx) {
-    var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
+    var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
     var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
@@ -597,10 +597,10 @@ var Ast = (function () {
   }
 
   function mod(ctx) {
-    var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
-    var v2 = n2.elts[0];
+    var n1 = node(ctx, pop(ctx));
     var v1 = n1.elts[0];
+    var v2 = n2.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
       push(ctx, {tag: "MOD", elts: [n1, n2]});
     } else {
@@ -609,10 +609,10 @@ var Ast = (function () {
   }
 
   function pow(ctx) {
-    var n1 = node(ctx, pop(ctx));
     var n2 = node(ctx, pop(ctx));
-    var v1 = n1.elts[0];
+    var n1 = node(ctx, pop(ctx));
     var v2 = n2.elts[0];
+    var v1 = n1.elts[0];
     if (n1.tag !== "NUM" || n2.tag !== "NUM") {
       push(ctx, {tag: "POW", elts: [n1, n2]});
     } else {
