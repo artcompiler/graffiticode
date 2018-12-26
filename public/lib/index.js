@@ -35667,6 +35667,10 @@ function updateMark(id) {
   });
 }
 window.gcexports.updateMark = updateMark;
+var CLEAR = "#FEFEFE";
+var YELLOW = "#E7B416";
+var RED = "#CC3232";
+var GREEN = "#2DC937";
 function colorMark() {
   var state = +localStorage.getItem("markItem");
   var color = void 0;

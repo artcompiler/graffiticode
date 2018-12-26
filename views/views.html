@@ -50,6 +50,20 @@
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
+            <span style="padding: 3; height: auto"></span>
+          </li>
+          <li class="nav-item">
+            <a class="navbar-brand" title="Refresh" href="#" onclick="handleRefresh(event)"><img style="opacity:.8" width="20" src="refresh.png"></a>
+          </li>
+          <li class="nav-item">
+            <span style="padding: 3; height: auto"></span>
+          </li>
+          <li class="nav-item">
+            <button id="find-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
+              FIND
+            </button>
+          </li>
+          <li class="nav-item">
             <button id="code-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
               CODE
             </button>
@@ -65,7 +79,12 @@
             </button>
           </li>
           <li class="nav-item">
-            <span style="padding: 10; height: auto"></span>
+            <button id="help-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
+              HELP
+            </button>
+          </li>
+          <li class="nav-item">
+            <span style="padding: 12; height: auto"></span>
           </li>
           <li class="nav-item">
             <a class="navbar-brand" title="Mark" href="#" onclick="handleMark(event)">
@@ -75,24 +94,8 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="navbar-brand" title="Refresh" href="#" onclick="handleRefresh(event)"><img style="opacity:.8" width="20" src="refresh.png"></a>
-          </li>
-          <li class="nav-item">
-            <span style="padding: 10; height: auto">
+            <span style="padding: 1; height: auto">
             </span>
-          </li>
-          <li class="nav-item">
-            <button id="find-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              FIND
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="help-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              HELP
-            </button>
-          </li>
-          <li class="nav-item">
-            <span style="padding: 10; height: auto"></span>
           </li>
           <li class="nav-item">
             <a id="open-data" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)">DATA</a>

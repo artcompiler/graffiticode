@@ -300,6 +300,10 @@ function updateMark(id) {
   });
 }
 window.gcexports.updateMark = updateMark;
+const CLEAR = "#FEFEFE";
+const YELLOW = "#E7B416";
+const RED = "#CC3232";
+const GREEN = "#2DC937";
 function colorMark() {
   let state = +localStorage.getItem("markItem");
   let color;
