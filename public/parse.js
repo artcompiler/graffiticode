@@ -1783,6 +1783,7 @@ window.gcexports.parser = (function () {
       url: "/compile",
       data: {
         "id": postCode ? null : gcexports.id,
+        "forkID": gcexports.forkID,
         "parent": postCode ? gcexports.id : null,
         "ast": ast,
         "type": gcexports.lexiconType,
@@ -1835,6 +1836,7 @@ window.gcexports.parser = (function () {
           };
           gcexports.dispatcher.dispatch(state);
           gcexports.updateMark(id);
+          gcexports.forkID = data.forkID;
         }
         gcexports.updateMark(gcexports.id);
       },

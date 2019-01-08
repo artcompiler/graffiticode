@@ -17,6 +17,7 @@
       window.gcexports = {
         language: "<%=language%>",
         id: "<%=item%>",
+        forkID: "<%=forkID%>",
         view: "item",
         version: "<%=version%>",
         refresh: "<%=refresh%>" === "true",
@@ -84,10 +85,10 @@
             </button>
           </li>
           <li class="nav-item">
-            <span style="padding: 12; height: auto"></span>
+            <span style="padding: 10; height: auto"></span>
           </li>
           <li class="nav-item">
-            <a class="navbar-brand" title="Mark" href="#" onclick="handleMark(event)">
+            <a class="navbar-brand" title="Good | Caution | Bad" href="#" onclick="handleMark(event)">
               <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <circle id="mark-circle" cx="11" cy="11" r="9" stroke-width="1" stroke="#777" fill="#fefefe"/>
               </svg>
@@ -98,13 +99,16 @@
             </span>
           </li>
           <li class="nav-item">
-            <a id="open-data" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)">DATA</a>
+            <a id="open-fork" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Start new">FORK</a>
           </li>
           <li class="nav-item">
-            <a id="open-form" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)">FORM</a>
+            <a id="open-data" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="See data">DATA</a>
           </li>
           <li class="nav-item">
-            <a id="open-snap" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)">SNAP</a>
+            <a id="open-form" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Open form">FORM</a>
+          </li>
+          <li class="nav-item">
+            <a id="open-snap" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Take snapshot">SNAP</a>
           </li>
         </ul>
         <button class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display: none; margin:0 10 0 0">Private</button>

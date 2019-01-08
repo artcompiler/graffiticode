@@ -35560,6 +35560,7 @@ window.handleViewClick = function (e) {
       window.gcexports.archive = show; // Avoid unnecessary computation.
       selector = "#archive-view";
       localStorage.setItem("findView-" + language, show);
+      d3.select("button#find-btn").attr("title", show ? "Hide find view" : "Show find view");
       break;
     case "code-btn":
       selector = "#src-view";
@@ -35602,6 +35603,9 @@ window.handleOpenClick = function (e) {
       name = void 0;
   var id = window.gcexports.id;
   switch (e.target.id) {
+    case "open-fork":
+      url = "/item?id=" + id + "&fork=true";
+      break;
     case "open-data":
       url = "/d/" + id;
       break;
@@ -35735,6 +35739,7 @@ window.onload = function () {
   d3.select("button#find-btn").classed("btn-secondary", findView);
   d3.select("button#find-btn").classed("btn-outline-secondary", !findView);
   d3.select("button#find-btn").style("display", "block");
+  d3.select("button#find-btn").attr("title", findView ? "Hide" : "Show");
   d3.select("div#archive-view").style("display", findView ? "block" : "none");
   window.gcexports.archive = findView; // Avoid unnecessary computation.
   // For now, always open code view on reload to avoid code loading bug.
