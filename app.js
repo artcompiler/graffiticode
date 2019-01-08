@@ -474,6 +474,8 @@ const sendItem = (id, req, res) => {
     let langID = ids[0];
     let codeID = ids[1];
     let dataIDs = ids.slice(2);
+    // If forkID then getTip()
+
     if (req.query.fork) {
       // Create a new fork.
       getItem(codeID, (err, row) => {
@@ -510,7 +512,7 @@ const sendItem = (id, req, res) => {
                   refresh: req.query.refresh,
                   archive: req.query.archive,
                   showdata: req.query.data,
-                  forkID: encodeID([0, ids[1], 0]),
+                  forkID: ids[1],
                 }, function (error, html) {
                   if (error) {
                     console.log("ERROR [1] GET /item err=" + error);
@@ -523,7 +525,7 @@ const sendItem = (id, req, res) => {
             }
           });
         }
-      });  
+      });
     } else {
       // FIXME if id is a forkID then get tip of branch.
       getItem(codeID, (err, row) => {
@@ -1010,10 +1012,10 @@ function postItem(language, src, ast, obj, user, parent, img, label, forkID, res
       var queryStr = "SELECT * FROM pieces ORDER BY id DESC LIMIT 1";
       dbQuery(queryStr, function (err, result) {
         let codeID = +result.rows[0].id;
-        forkID = forkID || encodeID([0, codeID, 0]);
+        forkID = forkID || codeID;
         var query =
           "UPDATE pieces SET " +
-          "fork_id='" + forkID + "' " +
+          "fork_id=" + forkID + " " +
           "WHERE id=" + codeID;
         dbQuery(query, function (err) {
           resume(err, result);
@@ -1475,15 +1477,20 @@ app.put('/comp', function (req, res) {
   });
 });
 function getTip(forkID, resume) {
-  // See if id is the last node in the fork.
+  // -- If is itemID then return it.
+  // -- If is 0 then return 0.
+  // -- If is forkID the return last item in fork.
+  // -- If no item in fork then return forkID.
   if (+forkID === 0 || !forkID) {
     resume(null, 0);
   } else {
-    let query = 
-      "SELECT id FROM pieces WHERE fork_id='" + forkID + 
-      "' ORDER BY pieces.id DESC LIMIT 2";
+    // A forkID is just 0+codeID+0 for the root item of the fork. So if there
+    // is no items with that forkID just return the itemID.
+    let query =
+      "SELECT id FROM pieces WHERE fork_id=" + forkID +
+      " ORDER BY id DESC LIMIT 1";
     dbQuery(query, function(err, result) {
-      resume(null, result.rows[0] && result.rows[0].id || 0);
+      resume(null, result.rows.length === 0 && forkID || result.rows[0].id || 0);
     });
   }
 }
@@ -1577,7 +1584,7 @@ app.put('/compile', function (req, res) {
                   let codeID = result.rows[0].id;
                   let dataID = 0;
                   if (forkID === 0) {
-                    forkID = encodeID([0, codeID, 0]);
+                    forkID = codeID;
                   }
                   let ids = [langID, codeID, dataID];
                   let id = encodeID(ids);
