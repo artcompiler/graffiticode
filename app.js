@@ -471,94 +471,94 @@ const sendItem = (id, req, res) => {
       // ID is an invalid ID but a valid alias, so get aliased ID.
       ids = decodeID(aliases[id]);
     }
-    let langID = ids[0];
-    let codeID = ids[1];
-    let dataIDs = ids.slice(2);
     // If forkID then getTip()
-
-    if (req.query.fork) {
-      // Create a new fork.
-      getItem(codeID, (err, row) => {
-        if (err && err.length) {
-          console.log("[1] GET /item ERROR 404 ");
-          res.sendStatus(404);
-        } else {
-          let language = row.language;
-          let src = row.src;
-          let ast = row.ast;
-          let obj = row.obj;
-          let userID = row.user_id;
-          let parentID = codeID;
-          let img = row.img;
-          let label = row.label;
-          let forkID = 0;
-          postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
-            let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
-            let codeID = result.rows[0].id;
-            let dataID = 0;
-            let ids = [langID, codeID].concat(dataIDs);
-            if (err) {
-              console.log("ERROR putData() err=" + err);
-              resume(err);
-            } else {
-              let lang = langName(langID);
-              getCompilerVersion(lang, (version) => {
-                res.render('views.html', {
-                  title: 'Graffiti Code',
-                  language: lang,
-                  item: encodeID(ids),
-                  view: "item",
-                  version: version,
-                  refresh: req.query.refresh,
-                  archive: req.query.archive,
-                  showdata: req.query.data,
-                  forkID: ids[1],
-                }, function (error, html) {
-                  if (error) {
-                    console.log("ERROR [1] GET /item err=" + error);
-                    res.sendStatus(400);
-                  } else {
-                    res.send(html);
-                  }
-                });
-              });
-            }
-          });
-        }
-      });
-    } else {
-      // FIXME if id is a forkID then get tip of branch.
-      getItem(codeID, (err, row) => {
-        if (err && err.length) {
-          console.log("[1] GET /item ERROR 404 ");
-          res.sendStatus(404);
-        } else {
-          var rows;
-          var lang = row.language;
-          getCompilerVersion(lang, (version) => {
-            langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
-            res.render('views.html', {
-              title: 'Graffiti Code',
-              language: lang,
-              item: encodeID(ids),
-              view: "item",
-              version: version,
-              refresh: req.query.refresh,
-              archive: req.query.archive,
-              showdata: req.query.data,
-              forkID: row.fork_id,
-            }, function (error, html) {
-              if (error) {
-                console.log("ERROR [2] GET /item err=" + error);
-                res.sendStatus(400);
+    getTip(id, (err, tip) => {
+      let langID = ids[0];
+      let codeID = ids[1];
+      let dataIDs = ids.slice(2);
+      codeID = tip || codeID;
+      if (req.query.fork) {
+        // Create a new fork.
+        getItem(codeID, (err, row) => {
+          if (err && err.length) {
+            console.log("[1] GET /item ERROR 404 ");
+            res.sendStatus(404);
+          } else {
+            let language = row.language;
+            let src = row.src;
+            let ast = row.ast;
+            let obj = row.obj;
+            let userID = row.user_id;
+            let parentID = codeID;
+            let img = row.img;
+            let label = row.label;
+            let forkID = 0;
+            postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
+              let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
+              let codeID = result.rows[0].id;
+              let ids = [langID, codeID].concat(dataIDs);
+              if (err) {
+                console.log("ERROR putData() err=" + err);
+                resume(err);
               } else {
-                res.send(html);
+                let lang = langName(langID);
+                getCompilerVersion(lang, (version) => {
+                  res.render('views.html', {
+                    title: 'Graffiti Code',
+                    language: lang,
+                    item: encodeID(ids),
+                    view: "item",
+                    version: version,
+                    refresh: req.query.refresh,
+                    archive: req.query.archive,
+                    showdata: req.query.data,
+                    forkID: codeID,
+                  }, function (error, html) {
+                    if (error) {
+                      console.log("ERROR [1] GET /item err=" + error);
+                      res.sendStatus(400);
+                    } else {
+                      res.send(html);
+                    }
+                  });
+                });
               }
             });
-          });
-        }
-      });
-    }
+          }
+        });
+      } else {
+        getItem(codeID, (err, row) => {
+          if (err && err.length) {
+            console.log("[1] GET /item ERROR 404 ");
+            res.sendStatus(404);
+          } else {
+            var rows;
+            var lang = row.language;
+            getCompilerVersion(lang, (version) => {
+              langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+              res.render('views.html', {
+                title: 'Graffiti Code',
+                language: lang,
+                item: encodeID([langID, codeID].concat(dataIDs)),
+                view: "item",
+                version: version,
+                refresh: req.query.refresh,
+                archive: req.query.archive,
+                showdata: req.query.data,
+                forkID: row.fork_id,
+              }, function (error, html) {
+                if (error) {
+                  console.log("ERROR [2] GET /item err=" + error);
+                  res.sendStatus(400);
+                } else {
+                  res.send(html);
+                }
+              });
+            });
+          }
+        });
+      }
+    });
   } else {
     // Redirect to form view.
     let protocol;
@@ -1476,22 +1476,25 @@ app.put('/comp', function (req, res) {
     }
   });
 });
-function getTip(forkID, resume) {
-  // -- If is itemID then return it.
+function getTip(id, resume) {
+  let [langID, codeID, dataID] = decodeID(id);
   // -- If is 0 then return 0.
-  // -- If is forkID the return last item in fork.
-  // -- If no item in fork then return forkID.
-  if (+forkID === 0 || !forkID) {
+  // -- If is forkID the return last item in fork or the original codeID if none.
+  // -- If is not a forkID then return original codeID.
+  if (!id || codeID === 0) {
     resume(null, 0);
-  } else {
+  } else if (langID === 0 && dataID === 0) {
     // A forkID is just 0+codeID+0 for the root item of the fork. So if there
     // is no items with that forkID just return the itemID.
     let query =
-      "SELECT id FROM pieces WHERE fork_id=" + forkID +
+      "SELECT id FROM pieces WHERE fork_id=" + codeID +
       " ORDER BY id DESC LIMIT 1";
     dbQuery(query, function(err, result) {
-      resume(null, result.rows.length === 0 && forkID || result.rows[0].id || 0);
+      resume(null, result.rows.length === 0 && codeID || result.rows[0].id || 0);
     });
+  } else {
+    // Not a forkID so just return the codeID.
+    resume(null, codeID);
   }
 }
 app.put('/compile', function (req, res) {
