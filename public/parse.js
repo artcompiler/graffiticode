@@ -197,6 +197,7 @@ var Ast = (function () {
     return {
       tag: n.tag,
       elts: elts,
+      coord: getCoord(ctx),
     };
   }
 
@@ -474,18 +475,20 @@ var Ast = (function () {
     var name = e[0];
     push(ctx, {
       tag: name,
-      elts: elts
+      elts: elts,
+      coord: getCoord(ctx),
     });
   }
 
-  function parenExpr(ctx) {
+  function parenExpr(ctx, coord) {
     // Ast.parenExpr
     var elts = [];
     var elt = pop(ctx);
     elts.push(elt);
     push(ctx, {
       tag: "PAREN",
-      elts: elts
+      elts: elts,
+      coord: coord,
     });
   }
 
@@ -724,7 +727,8 @@ var Ast = (function () {
       var word = env.lexicon[id];
       names.push({
         tag: "IDENT",
-        elts: [word.name]
+        elts: [word.name],
+        coord: getCoord(ctx),
       });
       nids.push(word.nid || 0);
     }
@@ -938,6 +942,14 @@ window.gcexports.parseCount = function () {
   return parseCount;
 };
 
+function getCoord(ctx) {
+  let ln = ctx.scan.stream.lineOracle && ctx.scan.stream.lineOracle.line || 0;
+  return {
+    from: CodeMirror.Pos(ln, ctx.scan.stream.start),
+    to: CodeMirror.Pos(ln, ctx.scan.stream.pos),
+  };
+}
+
 // parser
 window.gcexports.parser = (function () {
   function assert(b, str) {
@@ -1119,14 +1131,6 @@ window.gcexports.parser = (function () {
     return cc;
   }
 
-  function getCoord(ctx) {
-    let ln = ctx.scan.stream.lineOracle && ctx.scan.stream.lineOracle.line || 0;
-    return {
-      from: CodeMirror.Pos(ln, ctx.scan.stream.start),
-      to: CodeMirror.Pos(ln, ctx.scan.stream.pos),
-    };
-  }
-
   function string(ctx, cc) {
     eat(ctx, TK_STR);
     var coord = getCoord(ctx);
@@ -1211,7 +1215,7 @@ window.gcexports.parser = (function () {
   }
   function ident(ctx, cc) {
     eat(ctx, TK_IDENT);
-    Ast.name(ctx, lexeme);
+    Ast.name(ctx, lexeme, getCoord(ctx));
     cc.cls = "variable";
     return cc;
   }
@@ -1246,7 +1250,7 @@ window.gcexports.parser = (function () {
         offset: ctx.state.paramc,
         nid: 0,
       });
-      Ast.name(ctx, lexeme);
+      Ast.name(ctx, lexeme, getCoord(ctx));
       cc.cls = "val";
       return cc;
     }
@@ -1345,11 +1349,13 @@ window.gcexports.parser = (function () {
     return ret;
   }
   function parenExpr(ctx, cc) {
+    let coord = getCoord(ctx);
     eat(ctx, TK_LEFTPAREN);
     var ret = function(ctx) {
       return exprsStart(ctx, TK_RIGHTPAREN, function (ctx) {
         eat(ctx, TK_RIGHTPAREN);
-        Ast.parenExpr(ctx);
+        coord.to = getCoord(ctx).to;
+        Ast.parenExpr(ctx, coord);
         cc.cls = "punc";
         return cc;
       })
@@ -1358,12 +1364,14 @@ window.gcexports.parser = (function () {
     return ret;
   }
   function list(ctx, cc) {
+    let coord = getCoord(ctx);
     eat(ctx, TK_LEFTBRACKET);
     startCounter(ctx);
     var ret = function(ctx) {
       return elements(ctx, function (ctx) {
         eat(ctx, TK_RIGHTBRACKET);
-        Ast.list(ctx, ctx.state.exprc, getCoord(ctx));
+        coord.to = getCoord(ctx).to;
+        Ast.list(ctx, ctx.state.exprc, coord);
         stopCounter(ctx);
         cc.cls = "punc";
         return cc;
@@ -1796,6 +1804,7 @@ window.gcexports.parser = (function () {
       success: function(data) {
         var obj = data.obj;
         var errors;
+        let seenErrors = {};
         if (obj.error && obj.error.length) {
           errors = [];
           obj.error.forEach(function (err) {
@@ -1805,12 +1814,20 @@ window.gcexports.parser = (function () {
               coord.from = CodeMirror.Pos(0, 0);
               coord.to = CodeMirror.Pos(0, 0);
             }
-            errors.push({
-              from: coord.from,
-              to: coord.to,
-              message: err.str,
-              severity : "error",
-            });
+            let errHash =
+              coord.from.line + " " + coord.from.ch + " " +
+              coord.to.line + " " + coord.to.ch + " " +
+              err.str;
+            if (!seenErrors[errHash]) {
+              // Avoid dups.
+              errors.push({
+                from: coord.from,
+                to: coord.to,
+                message: err.str,
+                severity : "error",
+              });
+              seenErrors[errHash] = true;
+            }
           });
           gcexports.lastErrors = gcexports.errors = errors;
           gcexports.editor.performLint();
@@ -2404,7 +2421,7 @@ var folder = function() {
 
   function expr(node) {
     // Construct an expression node for the compiler.
-    Ast.name(ctx, node.tag);
+    Ast.name(ctx, node.tag, getCoord(ctx));
     for (var i = node.elts.length-1; i >= 0; i--) {
       visit(node.elts[i]);
     }
@@ -2540,6 +2557,7 @@ var folder = function() {
           Ast.push(ctx, node);
         }
       } else if (word.cls==="function") {
+        let coord = getCoord(ctx);
         var elts = [];
         for (var i = 0; i < word.length; i++) {
           var elt = Ast.pop(ctx);
@@ -2550,7 +2568,8 @@ var folder = function() {
         } else {
           Ast.push(ctx, {
             tag: word.name,
-            elts: elts
+            elts: elts,
+            coord: coord,
           });
           folder.fold(ctx, Ast.pop(ctx));
         }
