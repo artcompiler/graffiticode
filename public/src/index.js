@@ -236,6 +236,8 @@ window.handleViewClick = function (e) {
   d3.select(selector).style("display", show ? "block" : "none");
   if (show) {
     d3.select(selector).node().scrollIntoView(true);
+  } else {
+    window.scrollTo(0, 0);
   }
 }
 window.handleOpenClick = function (e) {
