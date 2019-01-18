@@ -184,7 +184,7 @@ window.handleViewClick = function (e) {
   let show = !d3.select("#" + id).classed("btn-secondary");
   d3.select("#" + id).classed("btn-outline-secondary", !show);
   d3.select("#" + id).classed("btn-secondary", show);
-  let selector;
+  let selector, target;
   switch (id) {
   case "help-btn":
     selector = "#help-view";
@@ -230,6 +230,9 @@ window.handleViewClick = function (e) {
   }
   dispatch({});
   d3.select(selector).style("display", show ? "block" : "none");
+  if (show) {
+    d3.select(selector).node().scrollIntoView(true);
+  }
 }
 window.handleOpenClick = function (e) {
   e.preventDefault();

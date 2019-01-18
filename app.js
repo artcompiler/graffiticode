@@ -533,7 +533,7 @@ const sendItem = (id, req, res) => {
             res.sendStatus(404);
           } else {
             var rows;
-            var lang = row.language;
+            var lang = langName(langID);
             getCompilerVersion(lang, (version) => {
               langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
               res.render('views.html', {

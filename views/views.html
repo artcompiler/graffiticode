@@ -60,11 +60,6 @@
             <span style="padding: 3; height: auto"></span>
           </li>
           <li class="nav-item">
-            <button id="find-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              FIND
-            </button>
-          </li>
-          <li class="nav-item">
             <button id="code-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
               CODE
             </button>
@@ -77,6 +72,14 @@
           <li class="nav-item">
             <button id="data-btn" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
               DATA
+            </button>
+          </li>
+          <li class="nav-item">
+            <span style="padding: 10; height: auto"></span>
+          </li>
+          <li class="nav-item">
+            <button id="find-btn" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
+              FIND
             </button>
           </li>
           <li class="nav-item">
@@ -108,7 +111,7 @@
             <a id="open-snap" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Take snapshot">SNAP</a>
           </li>
           <li class="nav-item">
-            <a id="open-fork" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Copy item and start something new">FORK</a>
+            <a id="open-fork" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Copy item to start something new">FORK</a>
           </li>
         </ul>
         <button class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display: none; margin:0 10 0 0">Private</button>
@@ -155,11 +158,11 @@
     </nav>
     <main role="main" class="container-fluid">
       <div id="alert-view"></div>
-      <div id="help-view"></div>
-      <div id="archive-view"></div>
       <div id="src-view"></div>
       <div id="graff-view" class="<%=language%>"></div>
       <div id="obj-view"></div>
+      <div id="archive-view"></div>
+      <div id="help-view"></div>
     </main><!-- /.container -->
 
     <!-- Bootstrap core JavaScript
