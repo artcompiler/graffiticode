@@ -1122,7 +1122,8 @@ function getCode(ids, resume) {
 
 function langName(id) {
   id = +id;
-  return "L" + (id < 10 ? "00" + id : id < 100 ? "0" + id : id);
+//  return "L" + (id < 10 ? "00" + id : id < 100 ? "0" + id : id);
+  return "L" + id;
 }
 
 function getLang(ids, resume) {
