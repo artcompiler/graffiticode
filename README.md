@@ -1,6 +1,6 @@
 ## Getting started with Graffiticode
 
-### Steps include
+### Steps include (OSX)
 
 * Clone and initialize the GC repo.
   * `$ git clone git@github.com:graffiticode/graffiticode.git`
