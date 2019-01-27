@@ -11,5 +11,5 @@
   * `$ psql -d localgcdb -f tools/initgcdb.sql`
   * `$ export DATABASE_URL_LOCAL="postgres://localhost/localgcdb"`.
 * Start Graffiticode app.
-  * `make`
+  * `$ make`
 * Make an artcompiler (see https://github.com/graffiticode/L0)
