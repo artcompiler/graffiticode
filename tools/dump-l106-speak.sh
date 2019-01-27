@@ -1,1 +1,0 @@
-heroku pg:psql -c "select id, ast from pieces where label = 'show' and ast is not null and obj like '{_score_:1%' and src like '%speak%' and src like '%equivLiteral%' and src not like '%hideExpected%' order by id;" > l106-speak.out
