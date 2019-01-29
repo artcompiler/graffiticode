@@ -2,6 +2,8 @@
 
 ### Steps include (Mac OSX)
 
+* Setting up the global environment
+  * `$ git install -g browserify`
 * Clone and initialize the GC repo.
   * `$ git clone git@github.com:graffiticode/graffiticode.git`
   * `$ cd graffiticode`
