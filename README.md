@@ -3,7 +3,7 @@
 ### Steps include (Mac OSX)
 
 * Setting up the global environment
-  * `$ npm install -g browserify`
+  * `$ sudo npm install -g browserify`
 * Clone and initialize the GC repo.
   * `$ git clone git@github.com:graffiticode/graffiticode.git`
   * `$ cd graffiticode`
