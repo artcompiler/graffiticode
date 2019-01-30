@@ -31,8 +31,8 @@ const AWS = require('aws-sdk');
 
 // Configuration
 
-const DEBUG = true;
-const LOCAL_COMPILES = true;
+const DEBUG = false;
+const LOCAL_COMPILES = false;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
