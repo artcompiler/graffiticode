@@ -26,8 +26,6 @@ var cache; // = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 var Hashids = require("hashids");
 const atob = require("atob");
-const puppeteer = require("puppeteer");
-const AWS = require('aws-sdk');
 
 // Configuration
 
@@ -244,41 +242,6 @@ app.get('/stat', function (req, res) {
             }
             res.send(mark)
           });
-});
-
-// Get ping
-const sendPing = (id, req, res) => {
-  let useShort = req.path.indexOf("/p/") === 0;
-  let ids = decodeID(id);
-  console.log("GET /ping?id=" + ids.join("+") + " (" + id + ")");
-  let t0 = new Date;
-  let urls = {};
-  getCache(id, "data", (err, val) => {
-    if (val) {
-      urls["data"] = (useShort ? "/d/" : "/data?id=") + id;
-    }
-    getCache(id, "snap", (err, val) => {
-      if (val) {
-        urls["snap"] = (useShort ? "/s/" : "/snap?id=") + id;
-      }
-      getCache(id, "snap-base64-png", (err, val) => {
-        if (val) {
-          if (val.indexOf("https://cdn.acx.ac") === 0) {
-            urls["snap/png"] = val;
-          } else {
-            urls["snap/png"] = (useShort ? "/s/" : "/snap?id=") + id + (useShort ? "?fmt=png" : "&fmt=png");
-          }
-        }
-        res.json(urls);
-      });
-    });
-  });
-};
-app.get("/ping", (req, res) => {
-  sendPing(req.query.id, req, res);
-});
-app.get("/p/:id", (req, res) => {
-  sendPing(req.params.id, req, res);
 });
 
 // Update a label
@@ -656,191 +619,6 @@ app.get("/form", function (req, res) {
 // app.get("/f/:id", function (req, res) {
 //   sendForm(req.params.id, req, res);
 // });
-
-// Update a snap image.
-app.put('/snap', function (req, res) {
-  let id = req.body.id;
-  let ids = decodeID(id);
-  let lang = "L" + langName(ids[0]);
-  let img = req.body.img;
-  getCache(id, "snap", async (err, val) => {
-    setCache(lang, id, "snap", img);
-    delCache(id, "snap-base64-png"); // Clear cached PNG.
-    let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-    makeSnap(browser, id, (err, val) => {
-      browser.close();
-    });
-    res.sendStatus(200);
-  });
-});
-
-const uploadFileToS3 = (name, base64data) => {
-  var s3 = new AWS.S3();
-  let buffer = new Buffer(base64data, "base64");
-  s3.putObject({
-    Bucket: 'acx.ac',
-    Key: name,
-    Body: buffer,
-    ContentEncoding: 'base64',
-  }, (err, data) => {
-    console.log("UPLOAD " + name);
-  });
-};
-
-const makeSnap = (browser, id, resume) => {
-  getCache(id, "snap-base64-png", (err, val) => {
-    if (val) {
-      if (val.indexOf("https://cdn.acx.ac") === 0) {
-        // Already uploaded.
-      } else {
-        let name = id + ".png";
-        setCache(null, id, "snap-base64-png", "https://cdn.acx.ac/" + name);
-        uploadFileToS3(name, val, () => {});
-      }
-      resume();
-    } else {
-      (async() => {
-        try {
-          let t0 = new Date;
-          let page = await browser.newPage();
-          //await page.goto("http://localhost:3000/form?id=" + id);
-          //await page.goto("https://www.graffiticode.com/form?id=" + id);
-          await page.goto("https://acx.ac/form?id=" + id);
-          const checkLoaded = async (t0) => {
-            try {
-              let td = new Date - t0;
-              if (td > 10000) {
-                resume("Aborting. Page taking too long to load.");
-                return;
-              }
-              let isLoaded = !!(await page.$(".c3-legend-item-tile") ||
-                                await page.$("circle.c3-shape") ||  // area chart
-                                await page.$(".y-values"));  // table and horizontal ar chart
-                if (isLoaded) {
-                  // Viewer save snap, so our job is done here.
-                  setTimeout(async () => {
-                    try {
-                      const svg = await page.$("svg");
-                      const boxModel = await svg.boxModel();
-                      const box = boxModel.content[2];
-                      const x = 0;
-                      const y = 0;
-                      const width = box.x;
-                      const height = box.y;
-                      await page.setViewport({
-                        width: width,
-                        height: height,
-                        deviceScaleFactor: 2,
-                      });
-                      const base64 = await page.screenshot({
-                        encoding: "base64",
-                        clip: {
-                          x: x,
-                          y: y,
-                          width: width,
-                          height: height,
-                        },
-                        omitBackground: true,
-                      });
-                      let name = id + ".png";
-                      setCache(null, id, "snap-base64-png", "https://cdn.acx.ac/" + name);
-                      uploadFileToS3(name, base64, () => {});
-                      await page.close();
-                      resume(null, base64);
-                    } catch (x) {
-                      console.log("ERROR loading " + id);
-                      resume("ERROR loading " + id, null);
-                    }
-                  }, 500);  // Wait a second to let viewer do its thing before exiting.
-                } else {
-                  setTimeout(() => {
-                    checkLoaded(t0);
-                  }, 100);
-                }
-            } catch (x) {
-              console.log("[1] ERROR " + x.stack);
-              resume("ERROR id=" + id);
-            }
-          };
-          checkLoaded(new Date);
-        } catch (x) {
-          console.log("[2] ERROR loading id=" + id);
-          resume("ERROR id=" + id);
-        }
-      })();
-    }
-  });
-};
-
-const sendSnap = (id, fmt, req, res) => {
-  let t0 = new Date;
-  fmt = fmt && fmt.toLowerCase();
-  let type = fmt === "png" ? "snap-base64-png" : "snap";
-  let refresh = !!req.query.refresh;
-  if (refresh) {
-    delCache(id, type);
-  }
-  getCache(id, type, (err, val) => {
-    let ids = decodeID(id);
-    if (val) {
-      if (fmt === "png") {
-        if (val.indexOf("https://cdn.acx.ac") === 0) {
-          // Redirect response to CDN cache.
-          res.redirect(val);
-        } else {
-          let img = atob(val);
-          res.writeHead(200, {'Content-Type': 'image/png' });
-          res.end(img, 'binary');
-        }
-      } else {
-        res.send(val);
-      }
-      console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
-                  (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-    } else {
-      (async () => {
-        let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-        makeSnap(browser, id, (err, base64) => {
-          browser.close();
-//          getCache(id, type, (err, val) => {
-//            console.log("sendSnap() val=" + val);
-            if (base64) {
-//              if (fmt === "png") {
-//                if (val.indexOf("https://cdn.acx.ac") === 0) {
-//                  // Redirect response to CDN cache.
-//                  res.redirect(val);
-//                } else {
-                  let img = atob(base64);
-                  res.writeHead(200, {'Content-Type': 'image/png' });
-                  res.end(img, 'binary');
-//                }
-//              } else {
-//                res.send(val);
-//              }
-              console.log("GET /snap?id=" + ids.join("+") + " (" + id + ") in " +
-                          (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-            } else {
-              // For some reason, the image can't be made.
-              res.sendStatus(404);
-            }
-//          });
-        });
-      })();
-    }
-  });
-};
-
-app.get("/snap", function (req, res) {
-  let id = req.query.id;
-  let fmt = req.query.fmt;
-  sendSnap(id, fmt, req, res);
-});
-
-app.get("/s/:id", function (req, res) {
-  let id = req.params.id;
-  let fmt = req.query.fmt;
-  sendSnap(id, fmt, req, res);
-});
 
 const sendData = (auth, id, req, res) => {
   let ids = decodeID(id);
@@ -1345,31 +1123,6 @@ const recompileItem = (id, parseOnly) => {
       print("\n");
     }
   });
-};
-const batchScrape = async (browser, force, ids, index, resume) => {
-  try {
-    index = index || 0;
-    if (index < ids.length) {
-      let id = ids[index];
-      let t0 = new Date;
-      if (force) {
-        delCache(id, "snap-base64-png");
-      }
-      makeSnap(browser, id, (err, data) => {
-        if (err) {
-          batchScrape(browser, force, ids, index, resume); // Try again.
-        } else {
-          console.log("SNAP " + (index + 1) + "/" + ids.length + ", " + id + " in " + (new Date() - t0) + "ms");
-          batchScrape(browser, force, ids, index + 1, resume);
-        }
-      });
-    } else {
-      resume && resume();
-    }
-  } catch (x) {
-    console.log("[7] ERROR " + x.stack);
-    resume && resume("ERROR batchScrape");
-  }
 };
 const getIDFromType = (type) => {
   // FIXME make this generic.
@@ -2164,7 +1917,6 @@ if (!module.parent) {
     //   browser.close();
     // });
     // putComp([], clientSecret);
-    // clearCache("snap-base64-png");
   });
 }
 
