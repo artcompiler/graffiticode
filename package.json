@@ -15,7 +15,6 @@
     "method-override": "latest",
     "morgan": "latest",
     "pg": "6.1.6",
-    "puppeteer": "1.6.0",
     "qs": "latest",
     "redis": "2.6.3",
     "request": "^2.88.0",
