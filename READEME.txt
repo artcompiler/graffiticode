@@ -1,3 +1,0 @@
-# learnosity-artcompiler
-
-This repository contains the code for a nodejs based web API for calling art compilers.
