@@ -448,7 +448,7 @@ const sendItem = (id, req, res) => {
             console.log("[1] GET /item ERROR 404 ");
             res.sendStatus(404);
           } else {
-            let language = row.language;
+            let language = langID && "L" + langID || row.language;
             let src = row.src;
             let ast = row.ast;
             let obj = row.obj;
