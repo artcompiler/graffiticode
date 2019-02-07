@@ -29,7 +29,7 @@ const atob = require("atob");
 
 // Configuration
 
-const DEBUG = true;
+const DEBUG = false;
 const LOCAL_COMPILES = DEBUG;
 const LOCAL_DATABASE = false;
 
@@ -439,9 +439,8 @@ const sendItem = (id, req, res) => {
     // If forkID then getTip()
     getTip(id, (err, tip) => {
       let langID = ids[0];
-      let codeID = ids[1];
+      let codeID = tip || ids[1];
       let dataIDs = ids.slice(2);
-      codeID = tip || codeID;
       if (req.query.fork) {
         // Create a new fork.
         getItem(codeID, (err, row) => {
@@ -497,13 +496,13 @@ const sendItem = (id, req, res) => {
             console.log("[1] GET /item ERROR 404 ");
             res.sendStatus(404);
           } else {
-            var rows;
-            var lang = langName(langID);
-            getCompilerVersion(lang, (version) => {
-              langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+            let rows;
+            let language = row.language;
+            getCompilerVersion(language, (version) => {
+              langID = language.substring(1);
               res.render('views.html', {
                 title: 'Graffiti Code',
-                language: lang,
+                language: language,
                 item: encodeID([langID, codeID].concat(dataIDs)),
                 view: "item",
                 version: version,
