@@ -448,7 +448,8 @@ const sendItem = (id, req, res) => {
             console.log("[1] GET /item ERROR 404 ");
             res.sendStatus(404);
           } else {
-            let language = langID && "L" + langID || row.language;
+            langID = langID || +row.language.slice(1);
+            let language = "L" + langID;
             let src = row.src;
             let ast = row.ast;
             let obj = row.obj;
@@ -458,18 +459,16 @@ const sendItem = (id, req, res) => {
             let label = row.label;
             let forkID = 0;
             postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
-              let langID = language.charAt(0) === "L" ? +language.substring(1) : +language;
               let codeID = result.rows[0].id;
               let ids = [langID, codeID].concat(dataIDs);
               if (err) {
                 console.log("ERROR putData() err=" + err);
                 resume(err);
               } else {
-                let lang = langName(langID);
                 getCompilerVersion(lang, (version) => {
                   res.render('views.html', {
                     title: 'Graffiti Code',
-                    language: lang,
+                    language: language,
                     item: encodeID(ids),
                     view: "item",
                     version: version,
@@ -497,9 +496,9 @@ const sendItem = (id, req, res) => {
             res.sendStatus(404);
           } else {
             let rows;
-            let language = row.language;
+            langID = langID || +row.language.slice(1);
+            let language = "L" + langID;
             getCompilerVersion(language, (version) => {
-              langID = language.substring(1);
               res.render('views.html', {
                 title: 'Graffiti Code',
                 language: language,
