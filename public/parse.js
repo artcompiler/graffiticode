@@ -1832,7 +1832,7 @@ window.gcexports.parser = (function () {
           gcexports.lastErrors = gcexports.errors = errors;
           gcexports.editor.performLint();
         } else if (data.id) {
-          gcexports.lastErrors = [];
+          gcexports.lastErrors = gcexports.errors = [];
           // We have a good id, so use it.
           let ids = gcexports.decodeID(data.id);
           let codeIDs = ids.slice(0, 2);
@@ -1854,6 +1854,7 @@ window.gcexports.parser = (function () {
           gcexports.dispatcher.dispatch(state);
           gcexports.updateMark(id);
           gcexports.forkID = data.forkID;
+          gcexports.editor.performLint();
         }
         gcexports.updateMark(gcexports.id);
       },

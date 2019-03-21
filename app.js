@@ -30,7 +30,7 @@ const atob = require("atob");
 // Configuration
 
 const DEBUG = false;
-const LOCAL_COMPILES = DEBUG;
+const LOCAL_COMPILES = true;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
@@ -1145,7 +1145,7 @@ const batchCompile = (auth, items, index, res, resume) => {
   index = +index || 0;
   // For each item, get the dataID and concat with codeID of alias.
   if (index < items.length) {
-    res.write(" ");
+    res && res.write(" ");
     let t0 = new Date;
     let item = items[index];
     let codeID = item.id || getIDFromType(item.type);
@@ -1904,6 +1904,7 @@ if (!module.parent) {
         }, (err, data) => {
           // Default auth token.
           authToken = data.jwt;
+          console.log(authToken);
         });
       });
     }
@@ -1914,6 +1915,63 @@ if (!module.parent) {
     // ], 0, () => {
     //   browser.close();
     // });
+  //   batchCompile(authToken, [{
+  //     id: "2MgH5praFL",
+  //     data: [
+  // "a=-3",
+  // "\left(90.78,\ 98.22\right)",
+  // "\left(0\right)= 7\left(3\right)- 21",
+  // "539",
+  // "\left(3,1\right)",
+  // "m=-5",
+  // "\text{$}38.67",
+  // "4578",
+  // "r=-28",
+  // "12",
+  // "2",
+  // "8,-8",
+  // "\begin{bmatrix}-24& -18& -6\ -24& -24& -30\end{bmatrix}",
+  // "\mathrm{slope}=1",
+  // "null",
+  // "\left\{4-2\sqrt{3},4+2\sqrt{3}\right\}",
+  // "\frac{\pi}{3},\frac{2\pi}{3}",
+  // "0",
+  // "4.218",
+  // "162\pi",
+  // "q^{9 m}",
+  // "\frac{1}{3}",
+  // "\text{equation: }x+4=6\text{, }\text{solution: }x=2",
+  // "(r + 68 s)(r - s)",
+  // "25\%",
+  // "\frac{15n^4+44}{66mn^6}",
+  // "-0.183",
+  // "51",
+  // "\left(6,0\right)",
+  // "70",
+  // "0.077",
+  // "\$27467.98",
+  // "xz",
+  // "7",
+  // "\left(x-3\right)\left(x+3\right)\left(x+7\right)",
+  // "11.82",
+  // "3",
+  // "-27",
+  // "-4",
+  // "-23.6",
+  // "a=4, -6",
+  // "4.40",
+  // "\left(2, \infty\right)",
+  // "y=8x-18",
+  // "\mathrm{slope}=\frac{5}{247}",
+  // "1.282",
+  // "126",
+  // "7983",
+  // "4x+2h+5",
+  // "4",
+  // "6",
+  //  ]}], 0, null, (err, val)=>{
+  //    console.log("batchCompile() val=" + JSON.stringify(val, null, 2));
+  //  });
     // putComp([], clientSecret);
   });
 }
