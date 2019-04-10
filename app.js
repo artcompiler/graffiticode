@@ -621,8 +621,9 @@ app.get("/form", function (req, res) {
 const sendData = (auth, id, req, res) => {
   let ids = decodeID(id);
   let refresh = !!req.query.refresh;
+  let dontSave = !!req.query.dontSave;
   let t0 = new Date;
-  compileID(auth, id, refresh, (err, obj) => {
+  compileID(auth, id, {refresh: refresh}, (err, obj) => {
     if (err) {
       console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
       res.sendStatus(400);
@@ -868,7 +869,7 @@ function getData(auth, ids, refresh, resume) {
   } else {
     // Compile the tail.
     let id = encodeID(ids.slice(2));
-    compileID(auth, id, refresh, resume);
+    compileID(auth, id, {refresh: refresh}, resume);
   }
 }
 
@@ -916,7 +917,9 @@ function getLang(ids, resume) {
   }
 }
 
-function compileID(auth, id, refresh, resume) {
+function compileID(auth, id, options, resume) {
+  let refresh = options.refresh;
+  let dontSave = options.dontSave;
   if (id === nilID) {
     resume(null, {});
   } else {
@@ -953,7 +956,7 @@ function compileID(auth, id, refresh, resume) {
                           // Oops. Missing or invalid obj, so need to recompile after all.
                           // Let downstream compilers know they need to refresh
                           // any data used. Prefer true over false.
-                          comp(auth, lang, code, data, refresh, (err, obj) => {
+                          comp(auth, lang, code, data, options, (err, obj) => {
                             if (err) {
                               resume(err);
                             } else {
@@ -969,12 +972,12 @@ function compileID(auth, id, refresh, resume) {
                       assert(code.root !== undefined, "Invalid code for item " + ids[1]);
                       // Let downstream compilers know they need to refresh
                       // any data used.
-                      comp(auth, lang, code, data, refresh, (err, obj) => {
+                      comp(auth, lang, code, data, options, (err, obj) => {
                         if (err) {
                           resume(err);
                         } else {
                           setCache(lang, id, "data", obj);
-                          if (ids[2] === 0 && ids.length === 3) {
+                          if (!dontSave && ids[2] === 0 && ids.length === 3) {
                             // If this is pure code, then update OBJ.
                             updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
                           }
@@ -996,7 +999,7 @@ function compileID(auth, id, refresh, resume) {
     });
   }
 }
-function comp(auth, lang, code, data, refresh, resume) {
+function comp(auth, lang, code, data, options, resume) {
   pingLang(lang, pong => {
     if (pong) {
       // Compile ast to obj.
@@ -1006,10 +1009,10 @@ function comp(auth, lang, code, data, refresh, resume) {
         "language": lang,
         "src": code,
         "data": data,
-        "refresh": refresh,
+        "refresh": options.refresh,
         "auth": auth,
       });
-      var options = {
+      var reqOptions = {
         host: getCompilerHost(lang),
         port: getCompilerPort(lang),
         path: path,
@@ -1019,7 +1022,7 @@ function comp(auth, lang, code, data, refresh, resume) {
           'Content-Length': Buffer.byteLength(encodedData),
         },
       };
-      var req = protocol.request(options, function(res) {
+      var req = protocol.request(reqOptions, function(res) {
         var data = "";
         res.on('data', function (chunk) {
           data += chunk;
@@ -1043,7 +1046,7 @@ function comp(auth, lang, code, data, refresh, resume) {
   });
 }
 
-const parseID = (id, resume) => {
+const parseID = (id, options, resume) => {
   let ids = decodeID(id);
   getItem(ids[1], (err, item) => {
     if (err && err.length) {
@@ -1058,7 +1061,7 @@ const parseID = (id, resume) => {
             console.log("NO AST for SRC " + src);
           }
           if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-            if (+id) {
+            if (+id && !options.dontSave) {
               updateAST(id, ast, (err)=>{
                 assert(!err);
                 resume(err, ast);
@@ -1066,6 +1069,8 @@ const parseID = (id, resume) => {
             } else {
               resume(err, ast);
             }
+          } else {
+            resume(err, ast);
           }
         });
       } else {
@@ -1106,14 +1111,14 @@ const recompileItems = (items, parseOnly) => {
 };
 const recompileItem = (id, parseOnly) => {
   delCache(id, "data");
-  parseID(id, (err, ast) => {
+  parseID(id, {}, (err, ast) => {
     print(id + " parsed");
     if (err.length) {
       console.log("[6] ERROR " + err);
       return;
     }
     if (!parseOnly) {
-      compileID(authToken, id, true, (err, obj) => {
+      compileID(authToken, id, {refresh: true}, (err, obj) => {
         print(" compiled\n");
         updateOBJ(id, obj, (err)=>{ assert(!err) });
       });
@@ -1157,7 +1162,7 @@ const batchCompile = (auth, items, index, res, resume) => {
       item.id = id;
       item.image_url = "https://cdn.acx.ac/" + id + ".png";
       delete item.data;
-      compileID(auth, id, DEBUG, (err, obj) => {
+      compileID(auth, id, {refresh: DEBUG}, (err, obj) => {
         item.data = obj;
         batchCompile(auth, items, index + 1, res, resume);
         console.log("COMPILE " + (index + 1) + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
@@ -1315,7 +1320,7 @@ app.put('/compile', function (req, res) {
                 console.log("ERROR [1] PUT /compile err=" + err);
                 res.sendStatus(400);
               } else {
-                compileID(authToken, id, false, (err, obj) => {
+                compileID(authToken, id, {refresh: false}, (err, obj) => {
                   console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ") in " +
                               (new Date - t0) + "ms");
                   res.json({
@@ -1345,7 +1350,7 @@ app.put('/compile', function (req, res) {
                   }
                   let ids = [langID, codeID, dataID];
                   let id = encodeID(ids);
-                  compileID(authToken, id, false, (err, obj) => {
+                  compileID(authToken, id, {refresh: false}, (err, obj) => {
                     console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ")* in " +
                                 (new Date - t0) + "ms");
                     res.json({
@@ -1458,7 +1463,7 @@ function putCode(auth, lang, rawSrc, resume) {
             console.log("ERROR [1] PUT /compile err=" + err);
             resume(400, null);
           } else {
-            compileID(auth, id, false, (err, obj) => {
+            compileID(auth, id, {}, (err, obj) => {
               // console.log("putCode() id=" + ids.join("+") + " (" + id + ") in " +
               //             (new Date - t0) + "ms");
               resume(null, {
@@ -1480,7 +1485,7 @@ function putCode(auth, lang, rawSrc, resume) {
             let dataID = 0;
             let ids = [langID, codeID, dataID];
             let id = encodeID(ids);
-            compileID(auth, id, false, (err, obj) => {
+            compileID(auth, id, {}, (err, obj) => {
               console.log("putCode() id=" + ids.join("+") + " (" + id + ")* in " +
                           (new Date - t0) + "ms");
               resume(null, {
@@ -1741,7 +1746,7 @@ app.get("/:lang/*", function (req, response) {
   });
 });
 
-function getCompilerHost(lang) {
+function getCompilerHost(lang, options) {
   if (LOCAL_COMPILES && port === 3000) {
     return "localhost";
   } else {
@@ -1904,12 +1909,12 @@ if (!module.parent) {
         }, (err, data) => {
           // Default auth token.
           authToken = data.jwt;
-          console.log(authToken);
         });
       });
     }
     // recompileItems([
-    // ]);
+    //   "Pq9SN36XsX",
+    // ], [], {});
     // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     // batchScrape(browser, true, [
     // ], 0, () => {
@@ -2010,4 +2015,3 @@ function putComp(data, secret, resume) {
     resume(err);
   });
 }
-

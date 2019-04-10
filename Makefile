@@ -1,3 +1,6 @@
 default:
 	make -C public/
-	node --harmony app
+	node app.js
+
+test:
+	node app.js test ${lang}
