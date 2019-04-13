@@ -36,19 +36,21 @@ var parse = exports.parse = function(src, lexicon, resume) {
   return nodePool;
 }
 
-process.argv.forEach(function (val, index, array) {
-  if (index < 2) return
-  
-  fs = require('fs')
-  fs.readFile(val, 'utf8', function (err, data) {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    console.log("parsing: " + data);
-    var t0 = new Date;
-    parse(data, {}, function (err, ast) {
-      console.log("ast=" + JSON.stringify(ast, null, 2));
+if (!module.parent) {
+  process.argv.forEach(function (val, index, array) {
+    if (index < 2) return
+    
+    fs = require('fs')
+    fs.readFile(val, 'utf8', function (err, data) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      console.log("parsing: " + data);
+      var t0 = new Date;
+      parse(data, {}, function (err, ast) {
+        console.log("ast=" + JSON.stringify(ast, null, 2));
+      });
     });
   });
-});
+}
