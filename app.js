@@ -222,8 +222,7 @@ app.put('/stat', function (req, res) {
   insertItem(userID, itemID, () => {
     let query = "UPDATE items SET " +
       "mark=" + mark + " WHERE " +
-      "userID=" + userID +
-      " AND itemID='" + itemID + "'";
+      "itemID='" + itemID + "'";
     dbQuery(query, (err, val) => {
     });
   });
@@ -234,8 +233,7 @@ app.get('/stat', function (req, res) {
   let userID = req.query.user;
   let itemID = req.query.id;
   dbQuery("SELECT mark FROM items WHERE " +
-          "userID='" + userID +
-          "' AND itemID='" + itemID + "'",  (err, result) => {
+          "itemID='" + itemID + "'",  (err, result) => {
             let mark;
             if (result && result.rows.length === 1) {
               mark = result.rows[0];
@@ -1585,19 +1583,20 @@ app.get('/items', function(req, res) {
   // Used by L109, L131.
   let userID = req.query.userID;
   let queryStr = "";
+  let table = req.query.table || "pieces";
   if (req.query.list) {
     let list = req.query.list;
     queryStr =
-      "SELECT * FROM pieces WHERE pieces.id" +
-      " IN ("+list+") ORDER BY pieces.id DESC";
+      "SELECT * FROM " + table + " WHERE pieces.id" +
+      " IN ("+list+") ORDER BY id DESC";
   } else if (req.query.where) {
     let fields = req.query.fields ? req.query.fields : "id";
     let limit = req.query.limit;
     let where = req.query.where;
     queryStr =
       "SELECT " + fields +
-      " FROM pieces WHERE " + where +
-      " ORDER BY pieces.id DESC" +
+      " FROM " + table + " WHERE " + where +
+      " ORDER BY id DESC" +
       (limit ? " LIMIT " + limit : "");
   } else {
     console.log("ERROR [1] GET /items");
