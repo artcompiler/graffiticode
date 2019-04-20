@@ -620,8 +620,12 @@ const sendData = (auth, id, req, res) => {
   let ids = decodeID(id);
   let refresh = !!req.query.refresh;
   let dontSave = !!req.query.dontSave;
+  let options = {
+    refresh: refresh,
+    dontSave: dontSave,
+  };
   let t0 = new Date;
-  compileID(auth, id, {refresh: refresh}, (err, obj) => {
+  compileID(auth, id, options, (err, obj) => {
     if (err) {
       console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
       res.sendStatus(400);
@@ -974,10 +978,12 @@ function compileID(auth, id, options, resume) {
                         if (err) {
                           resume(err);
                         } else {
-                          setCache(lang, id, "data", obj);
-                          if (!dontSave && ids[2] === 0 && ids.length === 3) {
-                            // If this is pure code, then update OBJ.
-                            updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                          if (!dontSave) {
+                            setCache(lang, id, "data", obj);
+                            if (ids[2] === 0 && ids.length === 3) {
+                              // If this is pure code, then update OBJ.
+                              updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                            }
                           }
                           resume(null, obj);
                         }
