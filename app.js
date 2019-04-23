@@ -222,8 +222,7 @@ app.put('/stat', function (req, res) {
   insertItem(userID, itemID, () => {
     let query = "UPDATE items SET " +
       "mark=" + mark + " WHERE " +
-      "userID=" + userID +
-      " AND itemID='" + itemID + "'";
+      "itemID='" + itemID + "'";
     dbQuery(query, (err, val) => {
     });
   });
@@ -234,8 +233,7 @@ app.get('/stat', function (req, res) {
   let userID = req.query.user;
   let itemID = req.query.id;
   dbQuery("SELECT mark FROM items WHERE " +
-          "userID='" + userID +
-          "' AND itemID='" + itemID + "'",  (err, result) => {
+          "itemID='" + itemID + "'",  (err, result) => {
             let mark;
             if (result && result.rows.length === 1) {
               mark = result.rows[0];
@@ -622,8 +620,12 @@ const sendData = (auth, id, req, res) => {
   let ids = decodeID(id);
   let refresh = !!req.query.refresh;
   let dontSave = !!req.query.dontSave;
+  let options = {
+    refresh: refresh,
+    dontSave: dontSave,
+  };
   let t0 = new Date;
-  compileID(auth, id, {refresh: refresh}, (err, obj) => {
+  compileID(auth, id, options, (err, obj) => {
     if (err) {
       console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
       res.sendStatus(400);
@@ -976,10 +978,12 @@ function compileID(auth, id, options, resume) {
                         if (err) {
                           resume(err);
                         } else {
-                          setCache(lang, id, "data", obj);
-                          if (!dontSave && ids[2] === 0 && ids.length === 3) {
-                            // If this is pure code, then update OBJ.
-                            updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                          if (!dontSave) {
+                            setCache(lang, id, "data", obj);
+                            if (ids[2] === 0 && ids.length === 3) {
+                              // If this is pure code, then update OBJ.
+                              updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
+                            }
                           }
                           resume(null, obj);
                         }
@@ -1031,14 +1035,15 @@ function comp(auth, lang, code, data, options, resume) {
           resume(null, parseJSON(data));
         });
         res.on('error', function (err) {
-          resume(err);
+          console.log("[1] comp() ERROR " + err);
+          resume(408);
         });
       });
       req.write(encodedData);
       req.end();
       req.on('error', function(err) {
-        console.log("[4] ERROR " + err);
-        resume(err);
+        console.log("[2] comp() ERROR " + err);
+        resume(408);
       });
     } else {
       resume(404);
@@ -1585,19 +1590,20 @@ app.get('/items', function(req, res) {
   // Used by L109, L131.
   let userID = req.query.userID;
   let queryStr = "";
+  let table = req.query.table || "pieces";
   if (req.query.list) {
     let list = req.query.list;
     queryStr =
-      "SELECT * FROM pieces WHERE pieces.id" +
-      " IN ("+list+") ORDER BY pieces.id DESC";
+      "SELECT * FROM " + table + " WHERE pieces.id" +
+      " IN ("+list+") ORDER BY id DESC";
   } else if (req.query.where) {
     let fields = req.query.fields ? req.query.fields : "id";
     let limit = req.query.limit;
     let where = req.query.where;
     queryStr =
       "SELECT " + fields +
-      " FROM pieces WHERE " + where +
-      " ORDER BY pieces.id DESC" +
+      " FROM " + table + " WHERE " + where +
+      " ORDER BY id DESC" +
       (limit ? " LIMIT " + limit : "");
   } else {
     console.log("ERROR [1] GET /items");
