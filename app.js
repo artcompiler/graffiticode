@@ -1035,14 +1035,15 @@ function comp(auth, lang, code, data, options, resume) {
           resume(null, parseJSON(data));
         });
         res.on('error', function (err) {
-          resume(err);
+          console.log("[1] comp() ERROR " + err);
+          resume(408);
         });
       });
       req.write(encodedData);
       req.end();
       req.on('error', function(err) {
-        console.log("[4] ERROR " + err);
-        resume(err);
+        console.log("[2] comp() ERROR " + err);
+        resume(408);
       });
     } else {
       resume(404);
