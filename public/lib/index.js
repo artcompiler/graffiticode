@@ -27351,7 +27351,7 @@ var ArchiveContent = React.createClass({
         var langID = +language.substring(1);
         var codeID = +data[e][0].id;
         var dataID = 0;
-        var itemID = window.gcexports.encodeID([langID, codeID, dataID]);
+        var itemID = data[e][0].id;
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
           window.gcexports.updateSrc(itemID, data.src);
@@ -27401,7 +27401,7 @@ var ArchiveContent = React.createClass({
         var langID = +language.substring(1);
         var codeID = +item.id;
         var dataID = 0;
-        var itemID = window.gcexports.encodeID([langID, codeID, dataID]);
+        var itemID = item.id;
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
           window.gcexports.updateSrc(itemID, data.src);
@@ -27430,37 +27430,115 @@ var ArchiveContent = React.createClass({
 
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
+    function getData(table, fields, where, resume) {
+      console.log("getData() where=" + where);
+      if (!table) {
+        resume(null, []);
+      } else {
+        $.ajax({
+          type: "GET",
+          url: "/items",
+          data: {
+            fields: fields,
+            where: where,
+            table: table
+          },
+          dataType: "json",
+          success: function success(data) {
+            resume(null, data);
+          },
+          error: function error(xhr, msg, err) {
+            console.log(msg + " " + err);
+            resume("error");
+          }
+        });
+      }
+    }
+    function getCommandParam(str, cmd) {
+      var t = str.split(cmd + "=");
+      t = t.length > 1 && t[1].trim().split(" ") || [];
+      return t[0];
+    }
+    function parseFilter(str) {
+      var filter = {};
+      var mark = "";
+      switch (getCommandParam(str, "mark")) {
+        case "red":
+        case "-1":
+          mark = "='-1'";
+          break;
+        case "yellow":
+          mark = "='0'";
+          break;
+        case "green":
+          mark = "='1'";
+          break;
+        case "any":
+          mark = " is not null";
+          break;
+        default:
+          break;
+      }
+      var label = getCommandParam(str, "label");
+      var year = getCommandParam(str, "created");
+      return {
+        mark: mark && " and mark" + mark || "",
+        label: label && " and label='" + label + "'" || "",
+        created: year && " and created >= '" + year + "-01-01' and created <= '" + year + "-12-31'"
+      };
+    }
     function getItems(resume) {
+      var filter = parseFilter(archiveFilter);
       var filters = archiveFilter.split(",");
-      var filterStr = "";
-      filters.forEach(function (f) {
-        filterStr += f !== "" ? " and src like '%" + f + "%'" : "";
+      var piecesFilter = "";
+      var itemsFilter = "";
+      Object.keys(filter).forEach(function (k) {
+        var v = filter[k];
+        if (v !== undefined) {
+          switch (k) {
+            case "mark":
+              itemsFilter += v;
+              break;
+            case "label":
+              piecesFilter += v;
+              break;
+            case "created":
+              piecesFilter += v;
+              break;
+            default:
+              // piecesFilter += f !== "" 
+              //   ? " and src like '%" + f + "%'"
+              //   : "";
+              break;
+          }
+        }
       });
-      $.ajax({
-        type: "GET",
-        url: "/items",
-        data: {
-          fields: "id, created",
-          where: "language='" + window.gcexports.language +
-          //                 "' and label in ('show', 'hide')" + filterStr ,
-          "' and label!='hide'" + filterStr
-        },
-        dataType: "json",
-        success: function success(data) {
+      var lang = window.gcexports.language;
+      getData("pieces", "id, created", "language='" + lang + "'" + piecesFilter, function (err, data1) {
+        var langID = lang.slice(1);
+        getData(itemsFilter && "items" || null, "codeid, itemid", "langid=" + langID + itemsFilter, function (err, data2) {
+          var itemsHash = data2 && data2.length > 0 && {} || null;
+          if (itemsHash) {
+            data2.forEach(function (d) {
+              itemsHash[d.codeid] = d.itemid;
+            });
+          }
           var items = [];
-          data = data.reverse(); // Make ascending.
-          for (var i = 0; i < data.length; i++) {
-            items[i] = {
-              index: i,
-              date: data[i].created.substring(0, 10),
-              id: data[i].id
-            };
+          data1 = data1.reverse(); // Make ascending.
+          var index = 0;
+          for (var i = 0; i < data1.length; i++) {
+            var id = data1[i].id;
+            if (!itemsHash || itemsHash[id]) {
+              items[index] = {
+                index: index,
+                date: data1[i].created.substring(0, 10),
+                id: itemsHash && itemsHash[id] || window.gcexports.encodeID([langID, data1[i].id, 0])
+              };
+              index++;
+            }
           }
           resume(null, items);
-        },
-        error: function error(xhr, msg, err) {
-          console.log(msg + " " + err);
-        }
+        });
       });
     }
   },
@@ -27482,7 +27560,6 @@ var ArchiveContent = React.createClass({
     );
   },
   onFilterBlur: function onFilterBlur(e) {
-    e = e;
     archiveFilter = e.target.value;
     d3.select("#archive-view").selectAll("svg").remove();
     d3.select("#archive-view").selectAll("div.buttons").remove();

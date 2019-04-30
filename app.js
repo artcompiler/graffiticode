@@ -543,6 +543,7 @@ app.get("/item", function (req, res) {
 
 const sendForm = (id, req, res) => {
   let ids = decodeID(id);
+  console.log("sendForm() ids=" + ids.join("+") + " id=" + id);
   if (ids[1] === 0 && aliases[id]) {
     // ID is an invalid ID but a valid alias, so get aliased ID.
     ids = decodeID(aliases[id]);

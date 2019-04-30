@@ -206,7 +206,7 @@ var ArchiveContent = React.createClass({
         let langID = +language.substring(1);
         let codeID = +data[e][0].id;
         let dataID = 0;
-        let itemID = window.gcexports.encodeID([langID, codeID, dataID]);
+        let itemID = data[e][0].id;
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
           window.gcexports.updateSrc(itemID, data.src);
@@ -256,7 +256,7 @@ var ArchiveContent = React.createClass({
         let langID = +language.substring(1);
         let codeID = +item.id;
         let dataID = 0;
-        let itemID = window.gcexports.encodeID([langID, codeID, dataID]);
+        let itemID = item.id;
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
           window.gcexports.updateSrc(itemID, data.src);
@@ -287,40 +287,127 @@ var ArchiveContent = React.createClass({
 
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
-    function getItems(resume) {
-      let filters = archiveFilter.split(",");
-      let filterStr = "";
-      filters.forEach(f => {
-        filterStr += f !== "" 
-          ? " and src like '%" + f + "%'"
-          : "";
-      });
-      $.ajax({
-        type: "GET",
-        url: "/items",
-        data : {
-          fields: "id, created",
-          where: "language='" + window.gcexports.language +
-//                 "' and label in ('show', 'hide')" + filterStr ,
-                 "' and label!='hide'" + filterStr ,
-        },
-        dataType: "json",
-        success: function(data) {
-          let items = [];
-          data = data.reverse();  // Make ascending.
-          for (let i = 0; i < data.length; i++) {
-            items[i] = {
-              index: i,
-              date: data[i].created.substring(0,10),
-              id: data[i].id,
-            }
+    function getData(table, fields, where, resume) {
+      console.log("getData() where=" + where);
+      if (!table) {
+        resume(null, []);
+      } else {
+        $.ajax({
+          type: "GET",
+          url: "/items",
+          data : {
+            fields: fields,
+            where: where,
+            table: table,
+          },
+          dataType: "json",
+          success: function(data) {
+            resume(null, data);
+          },
+          error: function(xhr, msg, err) {
+            console.log(msg+" "+err)
+            resume("error");
           }
-          resume(null, items);
-        },
-        error: function(xhr, msg, err) {
-          console.log(msg+" "+err)
+        });
+      }
+    }
+    function getCommandParam(str, cmd) {
+      let t = str.split(cmd + "=");
+      t = t.length > 1 && t[1].trim().split(" ") || [];
+      return t[0];
+    }
+    function parseFilter(str) {
+      let filter = {};
+      let mark = "";
+      switch (getCommandParam(str, "mark")) {
+      case "red":
+      case "-1":
+        mark = "='-1'";
+        break;
+      case "yellow":
+        mark = "='0'";
+        break;
+      case "green":
+        mark = "='1'";
+        break;
+      case "any":
+        mark = " is not null";
+        break;
+      default:
+        break;
+      }
+      let label = getCommandParam(str, "label");
+      let year = getCommandParam(str, "created");
+      return {
+        mark: mark && " and mark" + mark || "",
+        label: label && " and label='" + label + "'" || "",
+        created: year && " and created >= '" + year + "-01-01' and created <= '" + year + "-12-31'",
+      };
+    }
+    function getItems(resume) {
+      let filter = parseFilter(archiveFilter);
+      let filters = archiveFilter.split(",");
+      let piecesFilter = "";
+      let itemsFilter = "";
+      Object.keys(filter).forEach(k => {
+        let v = filter[k];
+        if (v !== undefined) {
+          switch (k) {
+          case "mark":
+            itemsFilter += v
+            break;
+          case "label":
+            piecesFilter += v;
+            break;
+          case "created":
+            piecesFilter += v;
+            break;
+          default:
+            // piecesFilter += f !== "" 
+            //   ? " and src like '%" + f + "%'"
+            //   : "";
+            break;
+          }
         }
       });
+      let lang = window.gcexports.language;
+      getData(
+        "pieces",
+        "id, created",
+        "language='" + lang + "'" + piecesFilter,
+        (err, data1) => {
+          let langID = lang.slice(1);
+          getData(
+            itemsFilter && "items" || null, 
+            "codeid, itemid",
+            "langid=" + langID + itemsFilter,
+            (err, data2) => {
+              let itemsHash = data2 && data2.length > 0 && {} || null;
+              if (itemsHash) {
+                data2.forEach(d => {
+                  itemsHash[d.codeid] = d.itemid;
+                });
+              }
+              let items = [];
+              data1 = data1.reverse();  // Make ascending.
+              let index = 0;
+              for (let i = 0; i < data1.length; i++) {
+                let id = data1[i].id;
+                if (!itemsHash || itemsHash[id]) {
+                  items[index] = {
+                    index: index,
+                    date: data1[i].created.substring(0,10),
+                    id: itemsHash && itemsHash[id] ||
+                      window.gcexports.encodeID([langID, data1[i].id, 0]),
+                  }
+                  index++;
+                }
+              }
+              resume(null, items);
+            }
+          );
+        }
+      );
     }
   },
   onChange: function (data) {
@@ -339,7 +426,6 @@ var ArchiveContent = React.createClass({
     );
   },
   onFilterBlur(e) {
-    e = e;
     archiveFilter = e.target.value;
     d3.select("#archive-view")
       .selectAll("svg").remove();
