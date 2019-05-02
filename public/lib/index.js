@@ -27245,7 +27245,7 @@ var ArchiveContent = React.createClass({
       } else {
         item = filtered[filtered.length - 1];
       }
-      return item && item.index || -1;
+      return item ? item.index : -1;
     }
     getItems(function (err, items) {
       var index = getCurrentIndex(items);
