@@ -38,6 +38,8 @@ var CodeMirrorEditor = React.createClass({
       let updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
         window.gcexports.parent = window.gcexports.id;
         window.gcexports.id = id;
+        window.gcexports.firstTime = true;
+        window.gcexports.updateMark(id);
         if (src) {
           // Avoid adding newlines for commands that begin with \n
           src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless

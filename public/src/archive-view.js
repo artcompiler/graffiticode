@@ -170,7 +170,6 @@ var ArchiveContent = React.createClass({
       let ids = window.gcexports.decodeID(window.gcexports.id);
       updateHideButton(window.gcexports.id);
       let id = window.gcexports.id;
-      window.gcexports.updateMark(id);
       $.get(location.origin + "/code?id=" + id, function (data) {
         window.gcexports.updateSrc(id, data.src);
       });
@@ -264,7 +263,7 @@ var ArchiveContent = React.createClass({
         d3.select("#counter").text((index + 1) + " of " + items.length);
         let language = window.gcexports.language;
         let item = items[index];
-        let itemID = item.id;
+        let itemID = window.gcexports.id = item.id;
         let ids = window.gcexports.decodeID(itemID);
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
@@ -297,7 +296,6 @@ var ArchiveContent = React.createClass({
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function getData(table, fields, where, resume) {
-      console.log("getData() where=" + where);
       if (!table) {
         resume(null, []);
       } else {
@@ -321,9 +319,11 @@ var ArchiveContent = React.createClass({
       }
     }
     function getCommandParam(str, cmd) {
+      // cmd="xxx"
       let t = str.split(cmd + "=");
-      t = t.length > 1 && t[1].trim().split(" ") || [];
-      return t[0];
+      t = t.length > 1 && t[1].trim().split("\"") || [];
+      t = t.length > 2 && t[0] === "" && t[1] || t.length > 0 && t[0] || "";
+      return t.trim();
     }
     function parseFilter(str) {
       let filter = {};

@@ -16,7 +16,11 @@
     <script>
       window.gcexports = {
         language: "<%=language%>",
-        id: "<%=item%>",
+        _id: "<%=item%>",
+        get id () { return this._id },
+        set id (id) {
+           this._id = id
+        },
         forkID: "<%=forkID%>",
         view: "item",
         version: "<%=version%>",

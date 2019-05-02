@@ -27314,7 +27314,6 @@ var ArchiveContent = React.createClass({
       var ids = window.gcexports.decodeID(window.gcexports.id);
       updateHideButton(window.gcexports.id);
       var id = window.gcexports.id;
-      window.gcexports.updateMark(id);
       $.get(location.origin + "/code?id=" + id, function (data) {
         window.gcexports.updateSrc(id, data.src);
       });
@@ -27409,7 +27408,7 @@ var ArchiveContent = React.createClass({
         d3.select("#counter").text(index + 1 + " of " + items.length);
         var language = window.gcexports.language;
         var item = items[index];
-        var itemID = item.id;
+        var itemID = window.gcexports.id = item.id;
         var ids = window.gcexports.decodeID(itemID);
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
@@ -27440,7 +27439,6 @@ var ArchiveContent = React.createClass({
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function getData(table, fields, where, resume) {
-      console.log("getData() where=" + where);
       if (!table) {
         resume(null, []);
       } else {
@@ -27464,9 +27462,11 @@ var ArchiveContent = React.createClass({
       }
     }
     function getCommandParam(str, cmd) {
+      // cmd="xxx"
       var t = str.split(cmd + "=");
-      t = t.length > 1 && t[1].trim().split(" ") || [];
-      return t[0];
+      t = t.length > 1 && t[1].trim().split("\"") || [];
+      t = t.length > 2 && t[0] === "" && t[1] || t.length > 0 && t[0] || "";
+      return t.trim();
     }
     function parseFilter(str) {
       var filter = {};
@@ -28848,6 +28848,8 @@ var CodeMirrorEditor = React.createClass({
       var updateSrc = window.gcexports.updateSrc = function updateSrc(id, src) {
         window.gcexports.parent = window.gcexports.id;
         window.gcexports.id = id;
+        window.gcexports.firstTime = true;
+        window.gcexports.updateMark(id);
         if (src) {
           // Avoid adding newlines for commands that begin with \n
           src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless

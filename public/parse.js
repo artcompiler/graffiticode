@@ -1898,10 +1898,9 @@ window.gcexports.parser = (function () {
   }
 
   window.gcexports.topEnv = topEnv;
-
+  window.gcexports.firstTime = true;
   var lastAST;
   var lastTimer;
-  var firstTime = true;
   function parse(stream, state, resume) {
     var ctx = {
       scan: scanner(stream, state.env[0].lexicon),
@@ -1942,12 +1941,12 @@ window.gcexports.parser = (function () {
           if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
             // Compile code if not first time (newly loaded) and no edit
             // activity after 1 sec.
-            if (!firstTime || window.gcexports.refresh) {
+            if (!window.gcexports.firstTime || window.gcexports.refresh) {
               lastTimer = window.setTimeout(function () {
                 compileCode(thisAST, true);
               }, 1000);
             }
-            firstTime = false;
+            window.gcexports.firstTime = false;
           } else {
             // The AST hasn't changed, but the text has so save the code.
             lastTimer = window.setTimeout(function () {
