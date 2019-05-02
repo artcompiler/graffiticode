@@ -63,7 +63,7 @@ var ArchiveContent = React.createClass({
     }
     getItems((err, items) => {
       let index = getCurrentIndex(items);
-      window.gcexports.id = items.length > 0 && items[index].id || window.gcexports.id;
+      window.gcexports.id = index >= 0 && items.length > 0 && items[index].id || window.gcexports.id;
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
