@@ -234,11 +234,7 @@ app.get('/stat', function (req, res) {
   let itemID = req.query.id;
   dbQuery("SELECT mark FROM items WHERE " +
           "itemID='" + itemID + "'",  (err, result) => {
-            let mark;
-            if (result && result.rows.length === 1) {
-              mark = result.rows[0];
-            }
-            res.send(mark)
+            res.send(result.rows)
           });
 });
 

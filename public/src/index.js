@@ -309,7 +309,8 @@ function putMark(mark, resume) {
 function updateMark(id) {
   let user = localStorage.getItem("userID");
   $.get(location.origin + "/stat?id=" + id + "&user=" + user, function (data) {
-    localStorage.setItem("markItem", data.mark);
+    let mark = data[0] && data[0].mark;
+    localStorage.setItem("markItem", mark);
     colorMark();
   });
 }

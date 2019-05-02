@@ -51,8 +51,8 @@ var ArchiveContent = React.createClass({
       return;
     }
     function getCurrentIndex(items) {
-      let ids = window.gcexports.decodeID(window.gcexports.id);
-      let filtered = items.filter(item => item.id === ids[1]);
+      let id = window.gcexports.id;
+      let filtered = items.filter(item => item.id === id);
       let item;
       if (filtered.length === 0) {
         item = items[items.length - 1];
@@ -63,6 +63,7 @@ var ArchiveContent = React.createClass({
     }
     getItems((err, items) => {
       let index = getCurrentIndex(items);
+      window.gcexports.id = items[index].id;
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -167,8 +168,18 @@ var ArchiveContent = React.createClass({
         .on("click", handleButtonClick)
         .text("NEXT");
       let ids = window.gcexports.decodeID(window.gcexports.id);
-      updateHideButton(ids[1]);
-
+      updateHideButton(window.gcexports.id);
+      let id = window.gcexports.id;
+      window.gcexports.updateMark(id);
+      $.get(location.origin + "/code?id=" + id, function (data) {
+        window.gcexports.updateSrc(id, data.src);
+      });
+      let language = "L" + ids[0];
+      let history = {
+        language: language,
+        view: gcexports.view,
+      };
+      window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
       function updateHideButton(id) {
         $.ajax({
           type: "GET",
@@ -253,10 +264,8 @@ var ArchiveContent = React.createClass({
         d3.select("#counter").text((index + 1) + " of " + items.length);
         let language = window.gcexports.language;
         let item = items[index];
-        let langID = +language.substring(1);
-        let codeID = +item.id;
-        let dataID = 0;
         let itemID = item.id;
+        let ids = window.gcexports.decodeID(itemID);
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
           window.gcexports.updateSrc(itemID, data.src);
@@ -268,7 +277,7 @@ var ArchiveContent = React.createClass({
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
         let id = item.date;
         highlightCell(id);
-        updateHideButton(codeID);
+        updateHideButton(itemID);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -336,11 +345,23 @@ var ArchiveContent = React.createClass({
       default:
         break;
       }
-      let label = getCommandParam(str, "label");
+      let label = "";
+      switch (getCommandParam(str, "label")) {
+      case "any":
+        label = " is not null";
+        break;
+      case "hide":
+        label = " ='hide'";
+        break;
+      case "show":
+      default:
+        label = " ='show'";
+        break;
+      }
       let year = getCommandParam(str, "created");
       return {
         mark: mark && " and mark" + mark || "",
-        label: label && " and label='" + label + "'" || "",
+        label: label && " and label" + label || "",
         created: year && " and created >= '" + year + "-01-01' and created <= '" + year + "-12-31'",
       };
     }

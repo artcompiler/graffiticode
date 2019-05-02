@@ -27235,9 +27235,9 @@ var ArchiveContent = React.createClass({
       return;
     }
     function getCurrentIndex(items) {
-      var ids = window.gcexports.decodeID(window.gcexports.id);
+      var id = window.gcexports.id;
       var filtered = items.filter(function (item) {
-        return item.id === ids[1];
+        return item.id === id;
       });
       var item = void 0;
       if (filtered.length === 0) {
@@ -27249,6 +27249,7 @@ var ArchiveContent = React.createClass({
     }
     getItems(function (err, items) {
       var index = getCurrentIndex(items);
+      window.gcexports.id = items[index].id;
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -27311,8 +27312,18 @@ var ArchiveContent = React.createClass({
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("NEXT");
       var ids = window.gcexports.decodeID(window.gcexports.id);
-      updateHideButton(ids[1]);
-
+      updateHideButton(window.gcexports.id);
+      var id = window.gcexports.id;
+      window.gcexports.updateMark(id);
+      $.get(location.origin + "/code?id=" + id, function (data) {
+        window.gcexports.updateSrc(id, data.src);
+      });
+      var language = "L" + ids[0];
+      var history = {
+        language: language,
+        view: gcexports.view
+      };
+      window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
       function updateHideButton(id) {
         $.ajax({
           type: "GET",
@@ -27398,10 +27409,8 @@ var ArchiveContent = React.createClass({
         d3.select("#counter").text(index + 1 + " of " + items.length);
         var language = window.gcexports.language;
         var item = items[index];
-        var langID = +language.substring(1);
-        var codeID = +item.id;
-        var dataID = 0;
         var itemID = item.id;
+        var ids = window.gcexports.decodeID(itemID);
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
         $.get(location.origin + "/code?id=" + itemID, function (data) {
           window.gcexports.updateSrc(itemID, data.src);
@@ -27413,7 +27422,7 @@ var ArchiveContent = React.createClass({
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
         var id = item.date;
         highlightCell(id);
-        updateHideButton(codeID);
+        updateHideButton(itemID);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -27479,11 +27488,23 @@ var ArchiveContent = React.createClass({
         default:
           break;
       }
-      var label = getCommandParam(str, "label");
+      var label = "";
+      switch (getCommandParam(str, "label")) {
+        case "any":
+          label = " is not null";
+          break;
+        case "hide":
+          label = " ='hide'";
+          break;
+        case "show":
+        default:
+          label = " ='show'";
+          break;
+      }
       var year = getCommandParam(str, "created");
       return {
         mark: mark && " and mark" + mark || "",
-        label: label && " and label='" + label + "'" || "",
+        label: label && " and label" + label || "",
         created: year && " and created >= '" + year + "-01-01' and created <= '" + year + "-12-31'"
       };
     }
@@ -28220,7 +28241,8 @@ function putMark(mark, resume) {
 function updateMark(id) {
   var user = localStorage.getItem("userID");
   $.get(location.origin + "/stat?id=" + id + "&user=" + user, function (data) {
-    localStorage.setItem("markItem", data.mark);
+    var mark = data[0] && data[0].mark;
+    localStorage.setItem("markItem", mark);
     colorMark();
   });
 }
