@@ -27245,11 +27245,11 @@ var ArchiveContent = React.createClass({
       } else {
         item = filtered[filtered.length - 1];
       }
-      return item.index;
+      return item && item.index || -1;
     }
     getItems(function (err, items) {
       var index = getCurrentIndex(items);
-      window.gcexports.id = items[index].id;
+      window.gcexports.id = items.length > 0 && items[index].id || window.gcexports.id;
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -27308,7 +27308,7 @@ var ArchiveContent = React.createClass({
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("PREV");
-      buttons.append("span").attr("id", "counter").style("margin", "20").text(getCurrentIndex(items) + 1 + " of " + items.length);
+      buttons.append("span").attr("id", "counter").style("margin", "20").text(index + 1 + " of " + items.length);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("NEXT");
       var ids = window.gcexports.decodeID(window.gcexports.id);
@@ -27393,6 +27393,9 @@ var ArchiveContent = React.createClass({
       }
 
       function handleButtonClick(e) {
+        if (items.length === 0) {
+          return;
+        }
         var name = d3.select(this).text();
         if (name === "HIDE") {
           hideItem(items[index].id, true);
@@ -27462,15 +27465,16 @@ var ArchiveContent = React.createClass({
       }
     }
     function getCommandParam(str, cmd) {
-      // cmd="xxx"
+      // cmd="xxx", cmd=xxx
       var t = str.split(cmd + "=");
       t = t.length > 1 && t[1].trim().split("\"") || [];
-      t = t.length > 2 && t[0] === "" && t[1] || t.length > 0 && t[0] || "";
+      t = t.length > 2 && t[0] === "" && t[1] || t.length > 0 && t[0].split(" ")[0] || "";
       return t.trim();
     }
     function parseFilter(str) {
       var filter = {};
       var mark = "";
+      var param = void 0;
       switch (getCommandParam(str, "mark")) {
         case "red":
         case "-1":
@@ -27485,20 +27489,20 @@ var ArchiveContent = React.createClass({
         case "any":
           mark = " is not null";
           break;
+        case "none":
+          mark = " is null";
+          break;
         default:
           break;
       }
       var label = "";
-      switch (getCommandParam(str, "label")) {
+      switch (param = getCommandParam(str, "label")) {
         case "any":
           label = " is not null";
           break;
-        case "hide":
-          label = " ='hide'";
-          break;
         case "show":
         default:
-          label = " ='show'";
+          label = param !== "" && " ='" + param + "'" || "";
           break;
       }
       var year = getCommandParam(str, "created");
@@ -27509,6 +27513,7 @@ var ArchiveContent = React.createClass({
       };
     }
     function getItems(resume) {
+      var excludeItems = false;
       var filter = parseFilter(archiveFilter);
       var filters = archiveFilter.split(",");
       var piecesFilter = "";
@@ -27518,7 +27523,12 @@ var ArchiveContent = React.createClass({
         if (v !== undefined) {
           switch (k) {
             case "mark":
-              itemsFilter += v;
+              if (v === " and mark is null") {
+                excludeItems = true;
+                itemsFilter += " and mark is not null";
+              } else {
+                itemsFilter += v;
+              }
               break;
             case "label":
               piecesFilter += v;
@@ -27549,7 +27559,7 @@ var ArchiveContent = React.createClass({
           var index = 0;
           for (var i = 0; i < data1.length; i++) {
             var id = data1[i].id;
-            if (!itemsHash || itemsHash[id]) {
+            if (!itemsHash || excludeItems && !itemsHash[id] || !excludeItems && itemsHash[id]) {
               items[index] = {
                 index: index,
                 date: data1[i].created.substring(0, 10),
@@ -28293,6 +28303,7 @@ window.handleMark = function (e) {
 var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";
 window.onload = function () {
+  var href = document.location.href;
   var language = window.gcexports.language;
   var hideViews = void 0;
   if (!window.gcexports.globalLexicon) {

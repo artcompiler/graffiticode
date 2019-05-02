@@ -59,11 +59,11 @@ var ArchiveContent = React.createClass({
       } else {
         item = filtered[filtered.length - 1];
       }
-      return item.index;
+      return item && item.index || -1;
     }
     getItems((err, items) => {
       let index = getCurrentIndex(items);
-      window.gcexports.id = items[index].id;
+      window.gcexports.id = items.length > 0 && items[index].id || window.gcexports.id;
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -160,7 +160,7 @@ var ArchiveContent = React.createClass({
       buttons.append("span")
         .attr("id", "counter")
         .style("margin", "20")
-        .text((getCurrentIndex(items) + 1) + " of " + items.length);
+        .text((index + 1) + " of " + items.length);
       buttons.append("button")
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
         .classed("btn", true)
@@ -248,6 +248,9 @@ var ArchiveContent = React.createClass({
       }
 
       function handleButtonClick(e) {
+        if (items.length === 0) {
+          return;
+        }
         let name = d3.select(this).text();
         if (name === "HIDE") {
           hideItem(items[index].id, true);
@@ -319,15 +322,16 @@ var ArchiveContent = React.createClass({
       }
     }
     function getCommandParam(str, cmd) {
-      // cmd="xxx"
+      // cmd="xxx", cmd=xxx
       let t = str.split(cmd + "=");
       t = t.length > 1 && t[1].trim().split("\"") || [];
-      t = t.length > 2 && t[0] === "" && t[1] || t.length > 0 && t[0] || "";
+      t = t.length > 2 && t[0] === "" && t[1] || t.length > 0 && t[0].split(" ")[0] || "";
       return t.trim();
     }
     function parseFilter(str) {
       let filter = {};
       let mark = "";
+      let param;
       switch (getCommandParam(str, "mark")) {
       case "red":
       case "-1":
@@ -342,20 +346,20 @@ var ArchiveContent = React.createClass({
       case "any":
         mark = " is not null";
         break;
+      case "none":
+        mark = " is null";
+        break;
       default:
         break;
       }
       let label = "";
-      switch (getCommandParam(str, "label")) {
+      switch ((param = getCommandParam(str, "label"))) {
       case "any":
         label = " is not null";
         break;
-      case "hide":
-        label = " ='hide'";
-        break;
       case "show":
       default:
-        label = " ='show'";
+        label = param !== "" && " ='" + param + "'" || "";
         break;
       }
       let year = getCommandParam(str, "created");
@@ -366,6 +370,7 @@ var ArchiveContent = React.createClass({
       };
     }
     function getItems(resume) {
+      let excludeItems = false;
       let filter = parseFilter(archiveFilter);
       let filters = archiveFilter.split(",");
       let piecesFilter = "";
@@ -375,7 +380,12 @@ var ArchiveContent = React.createClass({
         if (v !== undefined) {
           switch (k) {
           case "mark":
-            itemsFilter += v
+            if (v === " and mark is null") {
+              excludeItems = true;
+              itemsFilter += " and mark is not null";
+            } else {
+              itemsFilter +=  v;
+            }
             break;
           case "label":
             piecesFilter += v;
@@ -414,7 +424,9 @@ var ArchiveContent = React.createClass({
               let index = 0;
               for (let i = 0; i < data1.length; i++) {
                 let id = data1[i].id;
-                if (!itemsHash || itemsHash[id]) {
+                if (!itemsHash ||
+                    excludeItems && !itemsHash[id] ||
+                    !excludeItems && itemsHash[id]) {
                   items[index] = {
                     index: index,
                     date: data1[i].created.substring(0,10),

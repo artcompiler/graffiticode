@@ -470,6 +470,8 @@ const sendItem = (id, req, res) => {
                     archive: req.query.archive,
                     showdata: req.query.data,
                     forkID: codeID,
+                    findLabel: req.query.label,
+                    findMark: req.query.mark,
                   }, function (error, html) {
                     if (error) {
                       console.log("ERROR [1] GET /item err=" + error);
@@ -503,6 +505,8 @@ const sendItem = (id, req, res) => {
                 archive: req.query.archive,
                 showdata: req.query.data,
                 forkID: row.fork_id,
+                findLabel: req.query.label,
+                findMark: req.query.mark,
               }, function (error, html) {
                 if (error) {
                   console.log("ERROR [2] GET /item err=" + error);

@@ -361,6 +361,7 @@ window.handleMark = (e) => {
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 window.onload = () => {
+  let href = document.location.href;
   let language = window.gcexports.language;
   let hideViews;
   if (!window.gcexports.globalLexicon) {

@@ -16,17 +16,15 @@
     <script>
       window.gcexports = {
         language: "<%=language%>",
-        _id: "<%=item%>",
-        get id () { return this._id },
-        set id (id) {
-           this._id = id
-        },
+        id: "<%=item%>",
         forkID: "<%=forkID%>",
         view: "item",
         version: "<%=version%>",
         refresh: "<%=refresh%>" === "true",
         archive: "<%=archive%>",
         showdata: "<%=showdata%>",
+        findMark: "<%=findMark%>",
+        findLabel: "<%=findLabel%>",
       };
     </script>
     <script src="<%=language%>/lexicon.js"></script>
