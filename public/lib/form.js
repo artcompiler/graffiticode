@@ -19682,6 +19682,7 @@ var GraffContent = React.createClass({
     var params = "";
     if (window.gcexports.refresh) {
       params += "&refresh=true";
+      window.gcexports.refresh = false;
     }
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
@@ -19748,6 +19749,7 @@ var GraffContent = React.createClass({
       var dataIDs = ids.slice(2);
       console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
     }
+    window.gcexports.compileCode = this.compileCode;
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;

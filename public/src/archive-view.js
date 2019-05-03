@@ -280,6 +280,7 @@ var ArchiveContent = React.createClass({
         let id = item.date;
         highlightCell(id);
         updateHideButton(itemID);
+        window.gcexports.compileCode(itemID);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -316,7 +317,7 @@ var ArchiveContent = React.createClass({
           },
           error: function(xhr, msg, err) {
             console.log(msg+" "+err)
-            resume("error");
+            resume("error", []);
           }
         });
       }

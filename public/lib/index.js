@@ -27425,6 +27425,7 @@ var ArchiveContent = React.createClass({
         var id = item.date;
         highlightCell(id);
         updateHideButton(itemID);
+        window.gcexports.compileCode(itemID);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -27459,7 +27460,7 @@ var ArchiveContent = React.createClass({
           },
           error: function error(xhr, msg, err) {
             console.log(msg + " " + err);
-            resume("error");
+            resume("error", []);
           }
         });
       }
@@ -27687,6 +27688,7 @@ var GraffContent = React.createClass({
     var params = "";
     if (window.gcexports.refresh) {
       params += "&refresh=true";
+      window.gcexports.refresh = false;
     }
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
@@ -27753,6 +27755,7 @@ var GraffContent = React.createClass({
       var dataIDs = ids.slice(2);
       console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
     }
+    window.gcexports.compileCode = this.compileCode;
   },
   componentDidUpdate: function componentDidUpdate() {
     var gcexports = window.gcexports;

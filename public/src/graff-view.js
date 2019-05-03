@@ -51,6 +51,7 @@ var GraffContent = React.createClass({
     let params = "";
     if (window.gcexports.refresh) {
       params += "&refresh=true";
+      window.gcexports.refresh = false;
     }
     if (codeID && itemID && itemID !== this.lastItemID) {
       self.lastItemID = itemID;
@@ -117,6 +118,7 @@ var GraffContent = React.createClass({
       let dataIDs = ids.slice(2);
       console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
     }
+    window.gcexports.compileCode = this.compileCode;
   },
   componentDidUpdate: function() {
     let gcexports = window.gcexports;
