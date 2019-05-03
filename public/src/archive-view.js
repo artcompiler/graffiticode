@@ -322,9 +322,9 @@ var ArchiveContent = React.createClass({
       }
     }
     function getCommandParam(str, cmd) {
-      // cmd="xxx", cmd=xxx
+      // cmd=`xxx`, cmd=xxx
       let t = str.split(cmd + "=");
-      t = t.length > 1 && t[1].trim().split("\"") || [];
+      t = t.length > 1 && t[1].trim().split("`") || [];
       t = t.length > 2 && t[0] === "" && t[1] || t.length > 0 && t[0].split(" ")[0] || "";
       return t.trim();
     }
@@ -357,16 +357,22 @@ var ArchiveContent = React.createClass({
       case "any":
         label = " is not null";
         break;
+      case "":
+        // Default is 'show'.
+        param = "show";
+        // Fall through.
       case "show":
       default:
         label = param !== "" && " ='" + param + "'" || "";
         break;
       }
       let year = getCommandParam(str, "created");
+      let code = getCommandParam(str, "code");
       return {
         mark: mark && " and mark" + mark || "",
         label: label && " and label" + label || "",
         created: year && " and created >= '" + year + "-01-01' and created <= '" + year + "-12-31'",
+        code: code && " and src like '%" + code + "%'",
       };
     }
     function getItems(resume) {
@@ -388,15 +394,11 @@ var ArchiveContent = React.createClass({
             }
             break;
           case "label":
-            piecesFilter += v;
-            break;
           case "created":
+          case "code":
             piecesFilter += v;
             break;
           default:
-            // piecesFilter += f !== "" 
-            //   ? " and src like '%" + f + "%'"
-            //   : "";
             break;
           }
         }
