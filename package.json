@@ -1,6 +1,13 @@
 {
   "name": "graffiticode",
   "version": "0.0.1",
+  "description": "Gateway for compilers as a service.",
+  "author": "Art Compiler LLC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/graffiticode/graffiticode"
+  },
   "dependencies": {
     "atob": "2.1.1",
     "aws-sdk": "2.286.2",
