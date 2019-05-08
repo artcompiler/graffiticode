@@ -284,6 +284,12 @@ function putSnap(img, resume) {
   });
 }
 window.handleRefresh = () => {
+  // let state = {}
+  // let id = window.gcexports.id;
+  // state[id] = {
+  //   id: id,
+  // };
+  // window.gcexports.dispatcher.dispatch(state);
   window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
 }
 function putMark(mark, resume) {
