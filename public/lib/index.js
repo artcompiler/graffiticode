@@ -27872,7 +27872,8 @@ var GraffContent = React.createClass({
       var item = data[itemID];
       if (item && !item.obj) {
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
-        item.obj = this.state[itemID] && this.state[itemID].obj || this.state[_codeID] && this.state[_codeID].obj || (0, _share.assert)(false, "Missing obj for " + _ids.join("+"));
+        item.obj = this.state[itemID] && this.state[itemID].obj || this.state[_codeID] && this.state[_codeID].obj || this.compileCode(itemID);
+        //          assert(false, "Missing obj for " + ids.join("+"));
         item.id = itemID;
       } else if (this.state[_codeID] && !this.state[_codeID].obj) {
         // Don't have the base obj set yet.
@@ -28231,6 +28232,12 @@ function putSnap(img, resume) {
   });
 }
 window.handleRefresh = function () {
+  // let state = {}
+  // let id = window.gcexports.id;
+  // state[id] = {
+  //   id: id,
+  // };
+  // window.gcexports.dispatcher.dispatch(state);
   window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
 };
 function putMark(mark, resume) {

@@ -1067,8 +1067,9 @@ const parseID = (id, options, resume) => {
             console.log("NO AST for SRC " + src);
           }
           if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-            if (+id && !options.dontSave) {
-              updateAST(id, ast, (err)=>{
+            if (ids[1] && !options.dontSave) {
+              console.log("Saving AST for id=" + id);
+              updateAST(ids[1], ast, (err)=>{
                 assert(!err);
                 resume(err, ast);
               });
@@ -1103,7 +1104,7 @@ const clearCache = (type, items) => {
 const recompileItems = (items, parseOnly) => {
   items.forEach(id => {
     delCache(id, "data");
-    parseID(id, (err, ast) => {
+    parseID(id, {}, (err, ast) => {
       console.log(id + " parsed");
       if (err.length) {
         console.log("[5] ERROR " + err);
@@ -1118,18 +1119,18 @@ const recompileItems = (items, parseOnly) => {
 const recompileItem = (id, parseOnly) => {
   delCache(id, "data");
   parseID(id, {}, (err, ast) => {
-    print(id + " parsed");
-    if (err.length) {
+    console.log(id + " parsed");
+    if (err && err.length) {
       console.log("[6] ERROR " + err);
       return;
     }
     if (!parseOnly) {
       compileID(authToken, id, {refresh: true}, (err, obj) => {
-        print(" compiled\n");
-        updateOBJ(id, obj, (err)=>{ assert(!err) });
+        console.log(id + " compiled");
+        let ids = decodeID(id);
+        updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
       });
     } else {
-      print("\n");
     }
   });
 };
@@ -1920,7 +1921,6 @@ if (!module.parent) {
       });
     }
     // recompileItems([
-    //   "Pq9SN36XsX",
     // ], [], {});
     // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     // batchScrape(browser, true, [
