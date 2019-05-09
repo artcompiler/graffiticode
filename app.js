@@ -1920,7 +1920,7 @@ if (!module.parent) {
         });
       });
     }
-//    insert107Items();
+    insert107Items();
     // recompileItems([
     // ], [], {});
     // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
