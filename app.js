@@ -1920,6 +1920,7 @@ if (!module.parent) {
         });
       });
     }
+//    insert107Items();
     // recompileItems([
     // ], [], {});
     // let browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
@@ -2022,3 +2023,67 @@ function putComp(data, secret, resume) {
     resume(err);
   });
 }
+
+function insert107Items() {
+  var obj = [];
+  var hash = {};
+  var emptyCount = 0, eraseCount = 0;
+  fs.readFile("107dump.gc", 'utf-8', function(err, data) {
+    var items = data.split("\n");
+    insertItems(items, () => {
+      process.exit(0);
+    });
+  });
+}
+
+function insertItems(items, resume) {
+  if (items.length === 0) {
+    resume();
+  } else {
+    let item = items.shift();
+    console.log(items.length + ": " + item);
+    insertItem(item, () => {
+      insertItems(items, resume);
+    });
+  }
+}
+
+function insertItem(src, resume) {
+  var lang = "L107";
+  var ast = null;
+  var obj = "";
+  var user = 0;
+  var parent = 0;
+  var img = "";
+  var label = "new";
+  var forkID = 0;
+  var queryStr = "SELECT id, ast, obj FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + cleanAndTrimSrc(src) + "'";
+  dbQuery(queryStr, (err, result) => {
+    if (err) {
+      console.log("ERROR queryStr=" + queryStr);
+      resume(err);
+    } else if (result && result.rows.length === 0) {
+      postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, result) => {
+        if (err) {
+          console.log("ERROR [2] PUT /compile err=" + err);
+          resume(400);
+        } else {
+          let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+          let codeID = result.rows[0].id;
+          let dataID = 0;
+          let ids = [langID, codeID, dataID];
+          let id = encodeID(ids);
+          recompileItem(id);
+          resume();
+        }
+      });
+    } else {
+      let rows = result.rows;
+      if (rows.length > 0 /*&& !(rows[0].ast && rows[0].obj)*/) {
+        recompileItem(result.rows[0].id);
+      }
+      resume();
+    }
+  });
+}
+
