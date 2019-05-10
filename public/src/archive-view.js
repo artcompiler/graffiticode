@@ -63,7 +63,14 @@ var ArchiveContent = React.createClass({
     }
     getItems((err, items) => {
       let index = getCurrentIndex(items);
-      window.gcexports.id = index >= 0 && items.length > 0 && items[index].id || window.gcexports.id;
+//      window.gcexports.id = index >= 0 && items.length > 0 && items[index].id || window.gcexports.id;
+      let id;
+      if ((id = index >= 0 && items.length > 0 && items[index].id) &&
+          id !== window.gcexports.id) {
+        updateView(id);
+      } else {
+        id = window.gcexports.id;
+      }
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -167,18 +174,18 @@ var ArchiveContent = React.createClass({
         .classed("btn-light", true)
         .on("click", handleButtonClick)
         .text("NEXT");
-      let ids = window.gcexports.decodeID(window.gcexports.id);
-      updateHideButton(window.gcexports.id);
-      let id = window.gcexports.id;
-      $.get(location.origin + "/code?id=" + id, function (data) {
-        window.gcexports.updateSrc(id, data.src);
-      });
-      let language = "L" + ids[0];
-      let history = {
-        language: language,
-        view: gcexports.view,
-      };
-      window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
+      // let ids = window.gcexports.decodeID(window.gcexports.id);
+      // updateHideButton(window.gcexports.id);
+      // let id = window.gcexports.id;
+      // $.get(location.origin + "/code?id=" + id, function (data) {
+      //   window.gcexports.updateSrc(id, data.src);
+      // });
+      // let language = "L" + ids[0];
+      // let history = {
+      //   language: language,
+      //   view: gcexports.view,
+      // };
+      // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
       function updateHideButton(id) {
         $.ajax({
           type: "GET",
@@ -217,15 +224,16 @@ var ArchiveContent = React.createClass({
         let codeID = +data[e][0].id;
         let dataID = 0;
         let itemID = data[e][0].id;
-        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
-        $.get(location.origin + "/code?id=" + itemID, function (data) {
-          window.gcexports.updateSrc(itemID, data.src);
-        });
-        let history = {
-          language: language,
-          view: gcexports.view,
-        };
-        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+        updateView(itemID);
+        // // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        // $.get(location.origin + "/code?id=" + itemID, function (data) {
+        //   window.gcexports.updateSrc(itemID, data.src);
+        // });
+        // let history = {
+        //   language: language,
+        //   view: gcexports.view,
+        // };
+        // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
       }
 
       function hideItem(id, hide) {
@@ -264,23 +272,36 @@ var ArchiveContent = React.createClass({
           index = index > 0 ? index - 1 : items.length - 1;
         }
         d3.select("#counter").text((index + 1) + " of " + items.length);
-        let language = window.gcexports.language;
         let item = items[index];
-        let itemID = window.gcexports.id = item.id;
-        let ids = window.gcexports.decodeID(itemID);
-        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
-        $.get(location.origin + "/code?id=" + itemID, function (data) {
-          window.gcexports.updateSrc(itemID, data.src);
-        });
+        highlightCell(item.date);
+        let itemID = item.id;
+        updateView(itemID);
+      }
+
+      function updateView(id) {
+        let language = window.gcexports.language;
+        window.gcexports.id = id;
         let history = {
           language: language,
           view: gcexports.view,
         };
-        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
-        let id = item.date;
-        highlightCell(id);
-        updateHideButton(itemID);
-        window.gcexports.compileCode(itemID);
+        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
+        updateHideButton(id);
+        updateSrcView(id);
+        updateGraffView(id);
+      }
+      function updateSrcView(id) {
+        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        $.get(location.origin + "/code?id=" + id, function (data) {
+          window.gcexports.updateSrc(id, data.src);
+        });
+      }
+      function updateGraffView(id) {
+        let state = {}
+        state[id] = {
+          id: id,
+        };
+        window.gcexports.dispatcher.dispatch(state);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),

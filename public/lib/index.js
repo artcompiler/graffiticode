@@ -27249,7 +27249,13 @@ var ArchiveContent = React.createClass({
     }
     getItems(function (err, items) {
       var index = getCurrentIndex(items);
-      window.gcexports.id = index >= 0 && items.length > 0 && items[index].id || window.gcexports.id;
+      //      window.gcexports.id = index >= 0 && items.length > 0 && items[index].id || window.gcexports.id;
+      var id = void 0;
+      if ((id = index >= 0 && items.length > 0 && items[index].id) && id !== window.gcexports.id) {
+        updateView(id);
+      } else {
+        id = window.gcexports.id;
+      }
       var width = 960,
           cellSize = 15,
           height = 7 * cellSize + 20;
@@ -27311,18 +27317,18 @@ var ArchiveContent = React.createClass({
       buttons.append("span").attr("id", "counter").style("margin", "20").text(index + 1 + " of " + items.length);
       buttons.append("button").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
       .classed("btn", true).classed("btn-light", true).on("click", handleButtonClick).text("NEXT");
-      var ids = window.gcexports.decodeID(window.gcexports.id);
-      updateHideButton(window.gcexports.id);
-      var id = window.gcexports.id;
-      $.get(location.origin + "/code?id=" + id, function (data) {
-        window.gcexports.updateSrc(id, data.src);
-      });
-      var language = "L" + ids[0];
-      var history = {
-        language: language,
-        view: gcexports.view
-      };
-      window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
+      // let ids = window.gcexports.decodeID(window.gcexports.id);
+      // updateHideButton(window.gcexports.id);
+      // let id = window.gcexports.id;
+      // $.get(location.origin + "/code?id=" + id, function (data) {
+      //   window.gcexports.updateSrc(id, data.src);
+      // });
+      // let language = "L" + ids[0];
+      // let history = {
+      //   language: language,
+      //   view: gcexports.view,
+      // };
+      // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
       function updateHideButton(id) {
         $.ajax({
           type: "GET",
@@ -27362,15 +27368,16 @@ var ArchiveContent = React.createClass({
         var codeID = +data[e][0].id;
         var dataID = 0;
         var itemID = data[e][0].id;
-        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
-        $.get(location.origin + "/code?id=" + itemID, function (data) {
-          window.gcexports.updateSrc(itemID, data.src);
-        });
-        var history = {
-          language: language,
-          view: gcexports.view
-        };
-        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
+        updateView(itemID);
+        // // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        // $.get(location.origin + "/code?id=" + itemID, function (data) {
+        //   window.gcexports.updateSrc(itemID, data.src);
+        // });
+        // let history = {
+        //   language: language,
+        //   view: gcexports.view,
+        // };
+        // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
       }
 
       function hideItem(id, hide) {
@@ -27409,23 +27416,36 @@ var ArchiveContent = React.createClass({
           index = index > 0 ? index - 1 : items.length - 1;
         }
         d3.select("#counter").text(index + 1 + " of " + items.length);
-        var language = window.gcexports.language;
         var item = items[index];
-        var itemID = window.gcexports.id = item.id;
-        var ids = window.gcexports.decodeID(itemID);
-        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
-        $.get(location.origin + "/code?id=" + itemID, function (data) {
-          window.gcexports.updateSrc(itemID, data.src);
-        });
+        highlightCell(item.date);
+        var itemID = item.id;
+        updateView(itemID);
+      }
+
+      function updateView(id) {
+        var language = window.gcexports.language;
+        window.gcexports.id = id;
         var history = {
           language: language,
           view: gcexports.view
         };
-        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
-        var id = item.date;
-        highlightCell(id);
-        updateHideButton(itemID);
-        window.gcexports.compileCode(itemID);
+        window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
+        updateHideButton(id);
+        updateSrcView(id);
+        updateGraffView(id);
+      }
+      function updateSrcView(id) {
+        // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        $.get(location.origin + "/code?id=" + id, function (data) {
+          window.gcexports.updateSrc(id, data.src);
+        });
+      }
+      function updateGraffView(id) {
+        var state = {};
+        state[id] = {
+          id: id
+        };
+        window.gcexports.dispatcher.dispatch(state);
       }
       function pathMonth(t0) {
         var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
@@ -27667,7 +27687,6 @@ window.gcexports.compileSrc = function (lang, src, resume) {
     }
   });
 };
-
 var GraffContent = React.createClass({
   displayName: "GraffContent",
 
@@ -27772,11 +27791,6 @@ var GraffContent = React.createClass({
       var label = state.label;
       var viewer = window.gcexports.viewer;
       var parentID = state.parentID;
-      if (viewer && !viewer.Viewer && obj) {
-        // Legacy code path
-        viewer.update(el, obj, src, ast);
-      }
-      gcexports.id = itemID;
       if (data && Object.keys(data).length) {
         this.postData(itemID, data, label, parentID);
       } else if (gcexports.decodeID(itemID)[2] !== 0) {
@@ -28315,6 +28329,15 @@ window.handleMark = function (e) {
 var btnOn = "btn-secondary";
 var btnOff = "btn-outline-secondary";
 window.onload = function () {
+  window.gcexports._id = window.gcexports.id;
+  Object.defineProperty(window.gcexports, 'id', {
+    get: function get() {
+      return this._id;
+    },
+    set: function set(id) {
+      this._id = id;
+    }
+  });
   var href = document.location.href;
   var language = window.gcexports.language;
   var hideViews = void 0;

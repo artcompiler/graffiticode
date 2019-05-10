@@ -367,6 +367,11 @@ window.handleMark = (e) => {
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 window.onload = () => {
+  window.gcexports._id = window.gcexports.id;
+  Object.defineProperty(window.gcexports, 'id', {
+    get: function() { return this._id },
+    set: function(id) { this._id = id }
+  });
   let href = document.location.href;
   let language = window.gcexports.language;
   let hideViews;
