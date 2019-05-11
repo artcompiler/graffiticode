@@ -290,7 +290,14 @@ window.handleRefresh = () => {
   //   id: id,
   // };
   // window.gcexports.dispatcher.dispatch(state);
-  window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
+//  window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
+  let id = window.gcexports.id;
+  let state = {}
+  state[id] = {
+    id: id,
+    refresh: true,
+  };
+  window.gcexports.dispatcher.dispatch(state);
 }
 function putMark(mark, resume) {
   let userID = localStorage.getItem("userID");

@@ -19667,7 +19667,7 @@ var GraffContent = React.createClass({
   componentWillUnmount: function componentWillUnmount() {},
   lastItemID: undefined,
   pendingRequests: 0,
-  compileCode: function compileCode(itemID) {
+  compileCode: function compileCode(itemID, refresh) {
     var langID = void 0,
         codeID = void 0,
         dataID = void 0;
@@ -19679,11 +19679,11 @@ var GraffContent = React.createClass({
     var lang = window.gcexports.language;
     var state = this.state && this.state[itemID] ? this.state[itemID] : {};
     var params = "";
-    if (window.gcexports.refresh) {
+    if (refresh) {
       params += "&refresh=true";
-      window.gcexports.refresh = false;
+      //      window.gcexports.refresh = false;
     }
-    if (codeID && itemID && itemID !== this.lastItemID) {
+    if (codeID && itemID && (refresh || itemID !== this.lastItemID)) {
       self.lastItemID = itemID;
       self.pendingRequests++;
       try {
@@ -19717,7 +19717,9 @@ var GraffContent = React.createClass({
             obj: obj,
             data: {} // clear data
           };
-          if (self.pendingRequests === 0) {
+          if (refresh || self.pendingRequests === 0) {
+            self.pendingRequest = 0;
+            state.refresh = false;
             dispatch(state);
           }
         });
@@ -19767,9 +19769,9 @@ var GraffContent = React.createClass({
       var parentID = state.parentID;
       if (data && Object.keys(data).length) {
         this.postData(itemID, data, label, parentID);
-      } else if (gcexports.decodeID(itemID)[2] !== 0) {
+      } else if (gcexports.decodeID(itemID)[2] !== 0 || state.refresh) {
         // Got an itemID with data that is not in memory.
-        this.compileCode(itemID);
+        this.compileCode(itemID, state.refresh);
       }
       gcexports.doneLoading = true;
     }
