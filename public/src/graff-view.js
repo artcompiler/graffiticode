@@ -137,6 +137,10 @@ var GraffContent = React.createClass({
       let label = state.label;
       let viewer = window.gcexports.viewer;
       let parentID = state.parentID;
+      if (viewer && !viewer.Viewer && obj) {
+        // Legacy code path
+        viewer.update(el, obj, src, ast);
+      }
       if (data && Object.keys(data).length) {
         this.postData(itemID, data, label, parentID);
       } else if (gcexports.decodeID(itemID)[2] !== 0 || state.refresh) {

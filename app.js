@@ -1101,18 +1101,17 @@ const clearCache = (type, items) => {
     });
   })
 };
-const recompileItems = (items, parseOnly) => {
-  items.forEach(id => {
-    delCache(id, "data");
-    parseID(id, {}, (err, ast) => {
-      console.log(id + " parsed");
-      if (err.length) {
-        console.log("[5] ERROR " + err);
-        return;
-      }
-      compileID(authToken, id, true, (err, obj) => {
-        print(id + " compiled\n");
-      });
+const recompileItems = (items) => {
+  let id = items.shift();
+  delCache(id, "data");
+  parseID(id, {}, (err, ast) => {
+    console.log(items.length + ": " + id + " parsed");
+    if (err && err.length) {
+      console.log("[5] ERROR " + err);
+    }
+    compileID(authToken, id, true, (err, obj) => {
+      print(items.length + ": " + id + " compiled\n");
+      recompileItems(items);
     });
   });
 };
