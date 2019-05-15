@@ -2079,7 +2079,7 @@ window.gcexports.parser = (function () {
         case 33:  // !
         case 124: // |
           comment(c)
-//          throw "comment"
+          throw "comment"
         case 94:  // caret
         case 44:  // comma
         case 42:  // asterisk
