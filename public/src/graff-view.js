@@ -114,12 +114,6 @@ var GraffContent = React.createClass({
       itemID: itemID,
     };
     window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
-    if (gcexports.view === "item") {
-      let ids = gcexports.decodeID(itemID);
-      let codeIDs = ids.slice(0, 2);
-      let dataIDs = ids.slice(2);
-      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
-    }
     window.gcexports.compileCode = this.compileCode;
   },
   componentDidUpdate: function() {
@@ -148,6 +142,12 @@ var GraffContent = React.createClass({
         this.compileCode(itemID);
       }
       gcexports.doneLoading = true;
+    }
+    if (gcexports.view === "item") {
+      let ids = gcexports.decodeID(itemID);
+      let codeIDs = ids.slice(0, 2);
+      let dataIDs = ids.slice(2);
+      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
     }
   },
   postData: function postData(itemID, obj, label, parentID) {

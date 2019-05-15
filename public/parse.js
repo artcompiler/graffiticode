@@ -1965,8 +1965,8 @@ window.gcexports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-//      console.log(x.stack);
-//      console.log(Ast.dumpAll(ctx));
+     console.log(x.stack);
+     console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
         addError(ctx, x.message);
@@ -2079,7 +2079,7 @@ window.gcexports.parser = (function () {
         case 33:  // !
         case 124: // |
           comment(c)
-          throw "comment"
+//          throw "comment"
         case 94:  // caret
         case 44:  // comma
         case 42:  // asterisk

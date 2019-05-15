@@ -27240,21 +27240,17 @@ var ArchiveContent = React.createClass({
         return item.id === id;
       });
       var item = void 0;
-      if (filtered.length === 0) {
-        item = items[items.length - 1];
-      } else {
-        item = filtered[filtered.length - 1];
-      }
+      item = filtered[filtered.length - 1];
       return item ? item.index : -1;
     }
     getItems(function (err, items) {
       var index = getCurrentIndex(items);
-      //      window.gcexports.id = index >= 0 && items.length > 0 && items[index].id || window.gcexports.id;
       var id = void 0;
       if ((id = index >= 0 && items.length > 0 && items[index].id) && id !== window.gcexports.id) {
         updateView(id);
       } else {
         id = window.gcexports.id;
+        updateHideButton(id);
       }
       var width = 960,
           cellSize = 15,
@@ -27455,7 +27451,7 @@ var ArchiveContent = React.createClass({
             w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
         return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize + "H" + w0 * cellSize + "V" + 7 * cellSize + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize + "H" + (w1 + 1) * cellSize + "V" + 0 + "H" + (w0 + 1) * cellSize + "Z";
       }
-      if (items.length > 0) {
+      if (index !== -1 && items.length > 0) {
         highlightCell(items[index].date);
       }
     });
@@ -27771,12 +27767,6 @@ var GraffContent = React.createClass({
       itemID: itemID
     };
     window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
-    if (gcexports.view === "item") {
-      var ids = gcexports.decodeID(itemID);
-      var codeIDs = ids.slice(0, 2);
-      var dataIDs = ids.slice(2);
-      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
-    }
     window.gcexports.compileCode = this.compileCode;
   },
   componentDidUpdate: function componentDidUpdate() {
@@ -27805,6 +27795,12 @@ var GraffContent = React.createClass({
         this.compileCode(itemID);
       }
       gcexports.doneLoading = true;
+    }
+    if (gcexports.view === "item") {
+      var ids = gcexports.decodeID(itemID);
+      var codeIDs = ids.slice(0, 2);
+      var dataIDs = ids.slice(2);
+      console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
     }
   },
   postData: function postData(itemID, obj, label, parentID) {

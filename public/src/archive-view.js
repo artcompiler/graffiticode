@@ -54,22 +54,18 @@ var ArchiveContent = React.createClass({
       let id = window.gcexports.id;
       let filtered = items.filter(item => item.id === id);
       let item;
-      if (filtered.length === 0) {
-        item = items[items.length - 1];
-      } else {
-        item = filtered[filtered.length - 1];
-      }
+      item = filtered[filtered.length - 1];
       return item ? item.index : -1;
     }
     getItems((err, items) => {
       let index = getCurrentIndex(items);
-//      window.gcexports.id = index >= 0 && items.length > 0 && items[index].id || window.gcexports.id;
       let id;
       if ((id = index >= 0 && items.length > 0 && items[index].id) &&
           id !== window.gcexports.id) {
         updateView(id);
       } else {
         id = window.gcexports.id;
+        updateHideButton(id);
       }
       var width = 960,
           cellSize = 15,
@@ -313,7 +309,7 @@ var ArchiveContent = React.createClass({
           + "H" + (w1 + 1) * cellSize + "V" + 0
           + "H" + (w0 + 1) * cellSize + "Z";
       }
-      if (items.length > 0) {
+      if (index !== -1 && items.length > 0) {
         highlightCell(items[index].date);
       }
     });
