@@ -27230,7 +27230,9 @@ var ArchiveContent = React.createClass({
     ArchiveView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     this.isDirty = false;
   },
+  items: undefined,
   componentDidUpdate: function componentDidUpdate() {
+    var self = this;
     if (!window.gcexports.archive) {
       return;
     }
@@ -27536,6 +27538,10 @@ var ArchiveContent = React.createClass({
       };
     }
     function getItems(resume) {
+      if (self.items) {
+        resume(null, self.items);
+        return;
+      }
       var excludeItems = false;
       var filter = parseFilter(archiveFilter);
       var filters = archiveFilter.split(",");
@@ -27587,6 +27593,7 @@ var ArchiveContent = React.createClass({
               index++;
             }
           }
+          self.items = items;
           resume(null, items);
         });
       });
@@ -27610,6 +27617,7 @@ var ArchiveContent = React.createClass({
     );
   },
   onFilterBlur: function onFilterBlur(e) {
+    this.items = null;
     archiveFilter = e.target.value;
     d3.select("#archive-view").selectAll("svg").remove();
     d3.select("#archive-view").selectAll("div.buttons").remove();
