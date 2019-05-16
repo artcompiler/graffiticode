@@ -144,11 +144,23 @@ var ArchiveContent = React.createClass({
           return d + ": " + data[d].length + " items";
         });
 
+      d3.select(document)
+        .on("keydown", () => {
+          let name = "";
+          if(event.keyCode == 37) {
+            name = "PREV";
+          }
+          else if(event.keyCode == 39) {
+            name = "NEXT";
+          }
+          handleKeyPress(name);
+        });
       var buttons = d3.select("#archive-view")
         .selectAll("div.buttons").data([1])
         .enter().append("div")
         .attr("class", "buttons")
         .style("margin", "10 50");
+
       buttons.append("button")
         .attr("id", "hide-button")
         .style("margin", "0 20 0 0")
@@ -184,23 +196,6 @@ var ArchiveContent = React.createClass({
       //   view: gcexports.view,
       // };
       // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
-      function updateHideButton(id) {
-        $.ajax({
-          type: "GET",
-          url: "/label",
-          data: {
-            id: id,
-          },
-          dataType: "text",
-          success: function(label) {
-            d3.select("#hide-button").text(label === "show" ? "HIDE" : "SHOW");
-          },
-          error: function(xhr, msg, err) {
-            console.log(msg + " " + err);
-          }
-        });
-      }
-
       let prevElt, prevFill;
       function highlightCell(id) {
         if (prevElt) {
@@ -212,7 +207,6 @@ var ArchiveContent = React.createClass({
         prevElt = elt;
         prevFill = fill;
       }
-
       function handleCalendarClick(e) {
         highlightCell(e);
         index = data[e][data[e].length - 1].index;
@@ -233,7 +227,6 @@ var ArchiveContent = React.createClass({
         // };
         // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
       }
-
       function hideItem(id, hide) {
         let label = hide ? "hide" : "show";
         $.ajax({
@@ -252,7 +245,20 @@ var ArchiveContent = React.createClass({
           }
         });
       }
-
+      function handleKeyPress(name) {
+        if (name === "NEXT" || name === "PREV") {
+          if (name === "NEXT") {
+            index = index < items.length - 1 ? index + 1 : 0;
+          } else if (name === "PREV") {
+            index = index > 0 ? index - 1 : items.length - 1;
+          }
+          d3.select("#counter").text((index + 1) + " of " + items.length);
+          let item = items[index];
+          highlightCell(item.date);
+          let itemID = item.id;
+          updateView(itemID);
+        }
+      }
       function handleButtonClick(e) {
         if (items.length === 0) {
           return;
@@ -275,7 +281,6 @@ var ArchiveContent = React.createClass({
         let itemID = item.id;
         updateView(itemID);
       }
-
       function updateView(id) {
         let language = window.gcexports.language;
         window.gcexports.id = id;
@@ -287,6 +292,22 @@ var ArchiveContent = React.createClass({
         updateHideButton(id);
         updateSrcView(id);
         updateGraffView(id);
+      }
+      function updateHideButton(id) {
+        $.ajax({
+          type: "GET",
+          url: "/label",
+          data: {
+            id: id,
+          },
+          dataType: "text",
+          success: function(label) {
+            d3.select("#hide-button").text(label === "show" ? "HIDE" : "SHOW");
+          },
+          error: function(xhr, msg, err) {
+            console.log(msg + " " + err);
+          }
+        });
       }
       function updateSrcView(id) {
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
@@ -315,7 +336,6 @@ var ArchiveContent = React.createClass({
         highlightCell(items[index].date);
       }
     });
-
     // get a list of piece ids that match a search criterial
     // {} -> [{id}]
     function getData(table, fields, where, resume) {
@@ -435,7 +455,7 @@ var ArchiveContent = React.createClass({
         (err, data1) => {
           let langID = lang.slice(1);
           getData(
-            itemsFilter && "items" || null, 
+            itemsFilter && "items" || null,
             "codeid, itemid",
             "langid=" + langID + itemsFilter,
             (err, data2) => {
