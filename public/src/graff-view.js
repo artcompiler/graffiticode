@@ -52,7 +52,6 @@ var GraffContent = React.createClass({
     if (refresh) {
       params += "&refresh=true";
       state.refresh = false;
-//      window.gcexports.refresh = false;
     }
     if (codeID && itemID && (refresh || itemID !== this.lastItemID)) {
       self.lastItemID = itemID;
@@ -240,7 +239,6 @@ var GraffContent = React.createClass({
           this.state[itemID] && this.state[itemID].obj ||
           this.state[codeID] && this.state[codeID].obj ||
           this.compileCode(itemID);
-//          assert(false, "Missing obj for " + ids.join("+"));
         item.id = itemID;
       } else if (this.state[codeID] && !this.state[codeID].obj) {
         // Don't have the base obj set yet.
