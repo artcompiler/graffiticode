@@ -28,10 +28,9 @@ var Hashids = require("hashids");
 const atob = require("atob");
 
 // Configuration
-
-const DEBUG = false;
-const LOCAL_COMPILES = true;
-const LOCAL_DATABASE = false;
+const DEBUG = process.env.DEBUG === 'true' || false;
+const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
+const LOCAL_DATABASE = process.env.LOCAL_DATABASE === 'true' || false;
 
 if (LOCAL_DATABASE) {
   pg.defaults.ssl = false;
