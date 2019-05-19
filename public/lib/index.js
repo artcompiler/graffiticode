@@ -27307,17 +27307,17 @@ var ArchiveContent = React.createClass({
         return d + ": " + data[d].length + " items";
       });
 
-      // d3.select(document)
-      //   .on("keydown", () => {
-      //     let name = "";
-      //     if(event.keyCode == 37) {
-      //       name = "PREV";
-      //     }
-      //     else if(event.keyCode == 39) {
-      //       name = "NEXT";
-      //     }
-      //     handleKeyPress(name);
-      //   });
+      d3.select(document).on("keydown", function () {
+        if (event.target.type !== "textarea") {
+          var name = "";
+          if (event.keyCode == 37) {
+            name = "PREV";
+          } else if (event.keyCode == 39) {
+            name = "NEXT";
+          }
+          handleKeyPress(name);
+        }
+      });
       var buttons = d3.select("#archive-view").selectAll("div.buttons").data([1]).enter().append("div").attr("class", "buttons").style("margin", "10 50");
 
       buttons.append("button").attr("id", "hide-button").style("margin", "0 20 0 0").style("background", "rgba(8, 149, 194, 0.10)") // #0895c2
@@ -27410,20 +27410,11 @@ var ArchiveContent = React.createClass({
         var name = d3.select(this).text();
         if (name === "HIDE") {
           hideItem(items[index].id, true);
-          return;
         } else if (name === "SHOW") {
           hideItem(items[index].id, false);
-          return;
-        } else if (name === "NEXT") {
-          index = index < items.length - 1 ? index + 1 : 0;
-        } else {
-          index = index > 0 ? index - 1 : items.length - 1;
+        } else if (name === "NEXT" || name === "PREV") {
+          handleKeyPress(name);
         }
-        d3.select("#counter").text(index + 1 + " of " + items.length);
-        var item = items[index];
-        highlightCell(item.date);
-        var itemID = item.id;
-        updateView(itemID);
       }
       function updateView(id) {
         var language = window.gcexports.language;

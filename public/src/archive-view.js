@@ -144,17 +144,19 @@ var ArchiveContent = React.createClass({
           return d + ": " + data[d].length + " items";
         });
 
-      // d3.select(document)
-      //   .on("keydown", () => {
-      //     let name = "";
-      //     if(event.keyCode == 37) {
-      //       name = "PREV";
-      //     }
-      //     else if(event.keyCode == 39) {
-      //       name = "NEXT";
-      //     }
-      //     handleKeyPress(name);
-      //   });
+      d3.select(document)
+        .on("keydown", () => {
+          if (event.target.type !== "textarea") {
+            let name = "";
+            if(event.keyCode == 37) {
+              name = "PREV";
+            }
+            else if(event.keyCode == 39) {
+              name = "NEXT";
+            }
+            handleKeyPress(name);
+          }
+        });
       var buttons = d3.select("#archive-view")
         .selectAll("div.buttons").data([1])
         .enter().append("div")
@@ -266,20 +268,11 @@ var ArchiveContent = React.createClass({
         let name = d3.select(this).text();
         if (name === "HIDE") {
           hideItem(items[index].id, true);
-          return;
         } else if (name === "SHOW") {
           hideItem(items[index].id, false);
-          return;
-        } else if (name === "NEXT") {
-          index = index < items.length - 1 ? index + 1 : 0;
-        } else {
-          index = index > 0 ? index - 1 : items.length - 1;
+        } else if (name === "NEXT" || name === "PREV") {
+          handleKeyPress(name);
         }
-        d3.select("#counter").text((index + 1) + " of " + items.length);
-        let item = items[index];
-        highlightCell(item.date);
-        let itemID = item.id;
-        updateView(itemID);
       }
       function updateView(id) {
         let language = window.gcexports.language;
