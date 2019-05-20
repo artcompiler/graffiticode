@@ -1769,8 +1769,14 @@ function getCompilerPort(lang) {
   }
 }
 
-dbQuery("SELECT NOW() as when", function(err, result) {
-  console.log(result);
+dbQuery("SELECT NOW() as when", (err, result) => {
+  if (err) {
+    console.error(err.stack);
+    process.exit(1);
+  }
+  if (result.rows.length > 0) {
+    console.log(`Database Time: ${result.rows[0].when}`);
+  }
 });
 
 if (process.env.NODE_ENV === 'development') {
