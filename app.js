@@ -26,6 +26,7 @@ var cache; // = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
 const atob = require("atob");
 const {decodeID, encodeID} = require('./src/id.js');
+const routes = require('./src/routes');
 
 // Configuration
 
@@ -111,20 +112,6 @@ app.get("/", (req, res) => {
 
 const aliases = {};
 
-// Get a label
-app.get('/label', function (req, res) {
-  let ids = decodeID(req.query.id);
-  var langID = ids[0];
-  let codeID = ids[1];
-  var label = "";
-  dbQuery("SELECT label FROM pieces WHERE id = '" + codeID + "'",  function (err, result) {
-    if (result && result.rows.length === 1) {
-      label = result.rows[0].label;
-    }
-    res.send(label)
-  });
-});
-
 function insertItem(userID, itemID, resume) {
   dbQuery("SELECT count(*) FROM items where userID=" + userID + "AND itemID='" + itemID + "'", (err, result) => {
     if (+result.rows[0].count === 0) {
@@ -165,15 +152,6 @@ app.get('/stat', function (req, res) {
           });
 });
 
-// Update a label
-app.put('/label', function (req, res) {
-  let ids = decodeID(req.body.id);
-  let itemID = ids[1];
-  var label = req.body.label;
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", (err, val) => {
-  });
-  res.sendStatus(200)
-});
 
 const dbQuery = function(query, resume) {
   let conString = getConStr(0);
@@ -290,6 +268,8 @@ function parse(lang, src, resume) {
     });
   }
 }
+
+app.use('/label', routes.label(dbQuery));
 
 app.get('/lang', function(req, res) {
   // lang?id=106
