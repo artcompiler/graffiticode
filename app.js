@@ -128,31 +128,6 @@ function insertItem(userID, itemID, resume) {
   });
 }
 
-
-// PUT/GET stat
-app.put('/stat', function (req, res) {
-  let {userID, itemID, mark} = req.body;
-  mark = mark === "" ? "null" : mark;
-  insertItem(userID, itemID, () => {
-    let query = "UPDATE items SET " +
-      "mark=" + mark + " WHERE " +
-      "itemID='" + itemID + "'";
-    dbQuery(query, (err, val) => {
-    });
-  });
-  res.sendStatus(200)
-});
-
-app.get('/stat', function (req, res) {
-  let userID = req.query.user;
-  let itemID = req.query.id;
-  dbQuery("SELECT mark FROM items WHERE " +
-          "itemID='" + itemID + "'",  (err, result) => {
-            res.send(result.rows)
-          });
-});
-
-
 const dbQuery = function(query, resume) {
   let conString = getConStr(0);
   // Query Helper -- https://github.com/brianc/node-postgres/issues/382
@@ -270,6 +245,7 @@ function parse(lang, src, resume) {
 }
 
 app.use('/label', routes.label(dbQuery));
+app.use('/stat', routes.stat(dbQuery, insertItem));
 
 app.get('/lang', function(req, res) {
   // lang?id=106
