@@ -30,7 +30,7 @@ const atob = require("atob");
 // Configuration
 
 const DEBUG = false;
-const LOCAL_COMPILES = true;
+const LOCAL_COMPILES = false;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
