@@ -20,3 +20,8 @@ function getCompilerPort(lang, config) {
   return '80';
 }
 exports.getCompilerPort = getCompilerPort;
+
+function isNonEmptyString(str) {
+  return ('string' === typeof(str) && 0 < str.length);
+}
+exports.isNonEmptyString = isNonEmptyString;
