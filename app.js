@@ -24,13 +24,14 @@ var pg = require('pg');
 var redis = require('redis');
 var cache; // = redis.createClient(process.env.REDIS_URL);
 var main = require('./main.js');
-var Hashids = require("hashids");
 const atob = require("atob");
+const {decodeID, encodeID} = require('./src/id.js');
+const routes = require('./src/routes');
 
 // Configuration
 
 const DEBUG = false;
-const LOCAL_COMPILES = true;
+const LOCAL_COMPILES = false;
 const LOCAL_DATABASE = false;
 
 if (LOCAL_DATABASE) {
@@ -96,79 +97,6 @@ app.engine('html', function (templateFile, options, callback) {
   });
 });
 
-let hashids = new Hashids("Art Compiler LLC");  // This string shall never change!
-function decodeID(id) {
-  // console.log("[1] decodeID() >> " + id);
-  // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
-  if (id === undefined) {
-    id = "0";
-  }
-  if (Number.isInteger(id)) {
-    id = "" + id;
-  }
-  if (Array.isArray(id)) {
-    // Looks like it is already decoded.
-    assert(Number.isInteger(id[0]) && Number.isInteger(id[1]));
-    return id;
-  }
-  assert(typeof id === "string", "Invalid id " + id);
-  id = id.replace(/\+/g, " ");
-  let parts = id.split(" ");
-  let ids = [];
-  // Concatenate the first two integer ids and the last hash id. Everything
-  // else gets erased. This is to enable updating the dataID.
-  for (let i = 0; i < parts.length; i++) {
-    let n;
-    if (ids.length > 2) {
-      // Found the head, now skip to the last part to get the tail.
-      ids = ids.slice(0, 2);
-      i = parts.length - 1;
-    }
-    if (Number.isInteger(n = +parts[i])) {
-      ids.push(n);
-    } else {
-      ids = ids.concat(hashids.decode(parts[i]));
-    }
-  }
-  // Fix short ids.
-  if (ids.length === 0) {
-    ids = [0, 0, 0]; // Invalid id
-  } else if (ids.length === 1) {
-    ids = [0, ids[0], 0];
-  } else if (ids.length === 2) {
-    // Legacy code+data
-    ids = [0, ids[0], 113, ids[1], 0];
-  } else if (ids.length === 3 && ids[2] !== 0) {
-    // Legacy lang+code+data
-    ids = [ids[0], ids[1], 113, ids[2], 0];
-  }
-  // console.log("[2] decodeID() << " + JSON.stringify(ids));
-  return ids;
-}
-function encodeID(ids) {
-  // console.log("[1] encodeID() >> " + JSON.stringify(ids));
-  let length = ids.length;
-  if (length >= 3 &&
-      // [0,0,0] --> "0"
-      +ids[length - 3] === 0 &&
-      +ids[length - 2] === 0 &&
-      +ids[length - 1] === 0) {
-    ids = ids.slice(0, length - 2);
-    length = ids.length;
-  }
-  if (length === 1) {
-    if (+ids[0] === 0) {
-      return "0";
-    }
-    ids = [0, +ids[0], 0];
-  } else if (length === 2) {
-    ids = [0, +ids[0], 113, +ids[1], 0];
-  }
-  let id = hashids.encode(ids);
-  // console.log("[2] encodeID() << " + id);
-  return id;
-}
-
 // Routes
 
 // http://stackoverflow.com/questions/10435407/proxy-with-express-js
@@ -183,20 +111,6 @@ app.get("/", (req, res) => {
 });
 
 const aliases = {};
-
-// Get a label
-app.get('/label', function (req, res) {
-  let ids = decodeID(req.query.id);
-  var langID = ids[0];
-  let codeID = ids[1];
-  var label = "";
-  dbQuery("SELECT label FROM pieces WHERE id = '" + codeID + "'",  function (err, result) {
-    if (result && result.rows.length === 1) {
-      label = result.rows[0].label;
-    }
-    res.send(label)
-  });
-});
 
 function insertItem(userID, itemID, resume) {
   dbQuery("SELECT count(*) FROM items where userID=" + userID + "AND itemID='" + itemID + "'", (err, result) => {
@@ -213,40 +127,6 @@ function insertItem(userID, itemID, resume) {
     }
   });
 }
-
-
-// PUT/GET stat
-app.put('/stat', function (req, res) {
-  let {userID, itemID, mark} = req.body;
-  mark = mark === "" ? "null" : mark;
-  insertItem(userID, itemID, () => {
-    let query = "UPDATE items SET " +
-      "mark=" + mark + " WHERE " +
-      "itemID='" + itemID + "'";
-    dbQuery(query, (err, val) => {
-    });
-  });
-  res.sendStatus(200)
-});
-
-app.get('/stat', function (req, res) {
-  let userID = req.query.user;
-  let itemID = req.query.id;
-  dbQuery("SELECT mark FROM items WHERE " +
-          "itemID='" + itemID + "'",  (err, result) => {
-            res.send(result.rows)
-          });
-});
-
-// Update a label
-app.put('/label', function (req, res) {
-  let ids = decodeID(req.body.id);
-  let itemID = ids[1];
-  var label = req.body.label;
-  dbQuery("UPDATE pieces SET label = '" + label + "' WHERE id = '" + itemID + "'", (err, val) => {
-  });
-  res.sendStatus(200)
-});
 
 const dbQuery = function(query, resume) {
   let conString = getConStr(0);
@@ -363,6 +243,9 @@ function parse(lang, src, resume) {
     });
   }
 }
+
+app.use('/label', routes.label(dbQuery));
+app.use('/stat', routes.stat(dbQuery, insertItem));
 
 app.get('/lang', function(req, res) {
   // lang?id=106
@@ -1769,8 +1652,14 @@ function getCompilerPort(lang) {
   }
 }
 
-dbQuery("SELECT NOW() as when", function(err, result) {
-  console.log(result);
+dbQuery("SELECT NOW() as when", (err, result) => {
+  if (err) {
+    console.error(err.stack);
+    process.exit(1);
+  }
+  if (result.rows.length > 0) {
+    console.log(`Database Time: ${result.rows[0].when}`);
+  }
 });
 
 if (process.env.NODE_ENV === 'development') {
