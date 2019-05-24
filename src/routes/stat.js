@@ -13,9 +13,6 @@ module.exports = (dbQuery, insertItem) => {
       if (err) {
         return res.sendStatus(500);
       }
-      if (result.rows.length <= 0) {
-        return res.sendStatus(404);
-      }
       res.status(200).json(result.rows);
     });
   });
