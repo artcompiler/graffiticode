@@ -1,4 +1,4 @@
-var parser = require('./public/parse');
+var parser = require('../public/parse');
 
 var nodePool
 var nodeStack

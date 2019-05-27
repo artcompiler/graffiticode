@@ -1,6 +1,9 @@
-default:
-	make -C public/
+default: build
 	node app.js
 
-test:
-	node app.js test ${lang}
+test: build
+	npm run test
+
+build:
+	make -C public/
+

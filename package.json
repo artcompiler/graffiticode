@@ -58,6 +58,6 @@
   "scripts": {
     "build": "make -C public/",
     "start": "node app.js",
-    "test": "mocha --reporter spec recursive"
+    "test": "mocha --reporter spec"
   }
 }

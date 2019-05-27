@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { isNonEmptyString } = require('./../utils');
+const { isNonEmptyString } = require('./../src/utils');
 
 module.exports = (dbQuery, insertItem) => {
   const router = new Router();

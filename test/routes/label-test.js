@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const express = require('express');
 const request = require('supertest');
 
-const routes = require('./../../src/routes');
+const routes = require('./../../routes');
 
 describe('routes', () => {
   describe('label', () => {

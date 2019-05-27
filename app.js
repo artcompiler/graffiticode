@@ -23,10 +23,10 @@ var errorHandler = require("errorhandler");
 var pg = require('pg');
 var redis = require('redis');
 var cache; // = redis.createClient(process.env.REDIS_URL);
-var main = require('./main.js');
+var main = require('./src/main.js');
 const atob = require("atob");
 const {decodeID, encodeID} = require('./src/id.js');
-const routes = require('./src/routes');
+const routes = require('./routes');
 
 // Configuration
 const DEBUG = process.env.DEBUG === 'true' || false;
