@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import * as d3 from "../d3.v4.min.js";
+import * as d3 from "d3";
 var selfCleaningTimeout = {
   componentDidUpdate: function() {
     clearTimeout(this.timeoutID);

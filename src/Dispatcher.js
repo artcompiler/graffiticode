@@ -15,7 +15,7 @@
 
 "use strict";
 
-import invariant from "../lib/invariant.js";
+import invariant from "./invariant.js";
 
 var _prefix = 'ID_';
 

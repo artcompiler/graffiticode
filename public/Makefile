@@ -3,7 +3,7 @@ LIB = $(SRC:src/%.js=lib/%.js)
 PUB = $(SRC:src/%.js=pub/%.js)
 
 default:
-	browserify -t babelify src/index.js > lib/index.js
-	browserify -t babelify src/form.js > lib/form.js
+	browserify -t babelify ../src/index.js > ../lib/index.js
+	browserify -t babelify ../src/form.js > ../lib/form.js
 
 

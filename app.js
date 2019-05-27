@@ -74,7 +74,8 @@ app.all('*', function (req, res, next) {
 });
 
 app.set('views', __dirname + '/views');
-app.set('public', __dirname + '/public');
+// app.set('public', __dirname + '/public');
+// app.set('public', __dirname + '/lib');
 app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
@@ -85,6 +86,7 @@ app.use(bodyParser.raw({limit: '50mb'}));
 app.use(bodyParser.json({ type: 'application/vnd.api+json', limit: '50mb' }));
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/lib'))
 app.use(function (err, req, res, next) {
   console.error(err.stack)
   res.sendStatus(500);
