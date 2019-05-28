@@ -889,6 +889,7 @@ function compileID(auth, id, options, resume) {
   }
 }
 function comp(auth, lang, code, data, options, resume) {
+  const config = { "messageToAlan": "Hello, Alan!" };
   pingLang(lang, pong => {
     if (pong) {
       // Compile ast to obj.
@@ -899,6 +900,7 @@ function comp(auth, lang, code, data, options, resume) {
         "src": code,
         "data": data,
         "refresh": options.refresh,
+        "config": config,
         "auth": auth,
       });
       var reqOptions = {
