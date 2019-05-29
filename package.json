@@ -56,7 +56,6 @@
     "uglify-js": "^2.7.3"
   },
   "scripts": {
-    "build": "make",
     "start": "node app.js",
     "test": "mocha --reporter spec"
   }
