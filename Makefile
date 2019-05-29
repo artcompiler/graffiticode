@@ -5,5 +5,5 @@ test: build
 	npm run test
 
 build:
-	make -C public/
-
+	browserify -t babelify ./src/index.js > ./lib/index.js
+	browserify -t babelify ./src/form.js > ./lib/form.js
