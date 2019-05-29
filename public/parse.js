@@ -971,7 +971,7 @@ window.gcexports.parser = (function () {
   };
   function addError(ctx, str) {
     let ln = ctx.scan.stream.lineOracle && ctx.scan.stream.lineOracle.line || 0;
-    ctx.state.errors.push({
+    window.gcexports.errors.push({
       from: CodeMirror.Pos(ln, ctx.scan.stream.start),
       to: CodeMirror.Pos(ln, ctx.scan.stream.pos),
       message: str,
