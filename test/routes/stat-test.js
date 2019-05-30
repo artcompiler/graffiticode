@@ -74,12 +74,12 @@ describe('routes', () => {
         });
     });
 
-    it('GET /stat should return 404 if no results', (done) => {
+    it('GET /stat should return 200 and empty array if no results', (done) => {
       queryResult = { rows: [] };
       request(app)
         .get('/stat')
         .query({ id: 123 })
-        .expect(404, 'Not Found')
+        .expect(200, '[]')
         .end((err, res) => {
           if (err) {
             return done(err);

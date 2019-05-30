@@ -5,11 +5,7 @@
 function print(str) {
   process.stdout.write(str);
 }
-function assert(b, str) {
-  if (!b) {
-    throw new Error(str);
-  }
-}
+const assert = require('assert');
 var express = require('express');
 var _ = require('underscore');
 var fs = require('fs');
