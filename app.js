@@ -1212,7 +1212,7 @@ app.put('/compile', function (req, res) {
                 console.log("ERROR [1] PUT /compile err=" + err);
                 res.sendStatus(400);
               } else {
-                compileID(authToken, id, {refresh: false}, (err, obj) => {
+                compileID(authToken, id, {refresh: true}, (err, obj) => {
                   console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ") in " +
                               (new Date - t0) + "ms");
                   res.json({
