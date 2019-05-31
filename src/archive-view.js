@@ -39,6 +39,7 @@ var TextArea = React.createClass({
     );
   }
 });
+let archiveFilter = "";
 var ArchiveContent = React.createClass({
   componentWillUnmount: function() {
   },
@@ -49,10 +50,14 @@ var ArchiveContent = React.createClass({
   items: undefined,
   componentDidUpdate: function() {
     let self = this;
+    let archiveIndex;
     if (!window.gcexports.archive) {
       return;
     }
     function getCurrentIndex(items) {
+      if (archiveIndex !== undefined) {
+        return archiveIndex;
+      }
       let id = window.gcexports.id;
       let filtered = items.filter(item => item.id === id);
       let item;
@@ -186,18 +191,6 @@ var ArchiveContent = React.createClass({
         .classed("btn-light", true)
         .on("click", handleButtonClick)
         .text("NEXT");
-      // let ids = window.gcexports.decodeID(window.gcexports.id);
-      // updateHideButton(window.gcexports.id);
-      // let id = window.gcexports.id;
-      // $.get(location.origin + "/code?id=" + id, function (data) {
-      //   window.gcexports.updateSrc(id, data.src);
-      // });
-      // let language = "L" + ids[0];
-      // let history = {
-      //   language: language,
-      //   view: gcexports.view,
-      // };
-      // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
       let prevElt, prevFill;
       function highlightCell(id) {
         if (prevElt) {
@@ -219,15 +212,6 @@ var ArchiveContent = React.createClass({
         let dataID = 0;
         let itemID = data[e][0].id;
         updateView(itemID);
-        // // window.location.href = "/" + gcexports.view + "?id=" + itemID;
-        // $.get(location.origin + "/code?id=" + itemID, function (data) {
-        //   window.gcexports.updateSrc(itemID, data.src);
-        // });
-        // let history = {
-        //   language: language,
-        //   view: gcexports.view,
-        // };
-        // window.history.pushState(history, language, "/" + gcexports.view + "?id=" + itemID);
       }
       function hideItem(id, hide) {
         let label = hide ? "hide" : "show";
@@ -401,11 +385,13 @@ var ArchiveContent = React.createClass({
       }
       let year = getCommandParam(str, "created");
       let code = getCommandParam(str, "code");
+      let index = getCommandParam(str, "index");
       return {
         mark: mark && " and mark" + mark || "",
         label: label && " and label" + label || "",
         created: year && " and created >= '" + year + "-01-01' and created <= '" + year + "-12-31'",
         code: code && " and src like '%" + code + "%'",
+        index: index - 1,  // Zero based.
       };
     }
     function getItems(resume) {
@@ -434,6 +420,9 @@ var ArchiveContent = React.createClass({
           case "created":
           case "code":
             piecesFilter += v;
+            break;
+          case "index":
+            archiveIndex = v;
             break;
           default:
             break;
@@ -510,7 +499,6 @@ var ArchiveContent = React.createClass({
     });
   },
 });
-let archiveFilter = "";
 var ArchiveView = React.createClass({
   mixins: [selfCleaningTimeout],
   MODES: {},
