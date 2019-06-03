@@ -1965,8 +1965,6 @@ window.gcexports.parser = (function () {
         stream.next()
       }
     } catch (x) {
-     console.log(x.stack);
-     console.log(Ast.dumpAll(ctx));
       if (x instanceof Error) {
         next(ctx)
         addError(ctx, x.message);
@@ -1981,7 +1979,6 @@ window.gcexports.parser = (function () {
         cls = "error"
         console.log(x.stack);
       }
-//      console.log(x)
     }
     var t1 = new Date;
     parseCount++
