@@ -40,8 +40,8 @@ if (LOCAL_DATABASE) {
 }
 
 const conStrs = [
-  LOCAL_DATABASE ? process.env.DATABASE_URL_LOCAL 
-    : DEBUG ? process.env.DATABASE_URL_DEV 
+  LOCAL_DATABASE ? process.env.DATABASE_URL_LOCAL
+    : DEBUG ? process.env.DATABASE_URL_DEV
     : process.env.DATABASE_URL,
 ];
 
@@ -86,7 +86,7 @@ app.use(bodyParser.raw({limit: '50mb'}));
 app.use(bodyParser.json({ type: 'application/vnd.api+json', limit: '50mb' }));
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
-app.use(express.static(__dirname + '/lib'))
+app.use('/lib', express.static(__dirname + '/lib'));
 app.use(function (err, req, res, next) {
   console.error(err.stack)
   res.sendStatus(500);
