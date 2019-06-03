@@ -50,13 +50,13 @@ var ArchiveContent = React.createClass({
   items: undefined,
   componentDidUpdate: function() {
     let self = this;
-    let archiveIndex;
+    let archiveIndex = -1;
     if (!window.gcexports.archive) {
       return;
     }
     function getCurrentIndex(items) {
-      if (archiveIndex !== undefined) {
-        return archiveIndex < items.length ? archiveIndex : items.length - 1;
+      if (archiveIndex >= 0 && archiveIndex < items.length) {
+        return archiveIndex;
       }
       let id = window.gcexports.id;
       let filtered = items.filter(item => item.id === id);
