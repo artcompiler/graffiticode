@@ -1018,18 +1018,6 @@ const recompileItem = (id, parseOnly) => {
 const getIDFromType = (type) => {
   // FIXME make this generic.
   switch (type) {
-  case "bar_2":
-    return "o5dSOpgVcj";
-  case "bar":
-    return "RQRSmd3nHr";
-  case "bar_stacked":
-    return "zVQUWzbLuO";
-  case "area":
-    return "YnRFdBaBce";
-  case "horizontal_bar":
-    return "aL6i8JogHJ";
-  case "table_2":
-    return "dOWTnyAaca";
   default:
     return null;
   }
@@ -1859,4 +1847,3 @@ function putComp(data, secret, resume) {
     resume(err);
   });
 }
-
