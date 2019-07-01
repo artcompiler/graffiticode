@@ -721,6 +721,8 @@ function countView(id) {
 }
 
 function updateAST(id, ast, resume) {
+  // Get codeID from table asts.
+  // Set pieces.code_id to codeID.
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
@@ -806,7 +808,6 @@ function compileID(auth, id, options, resume) {
   if (id === nilID) {
     resume(null, {});
   } else {
-    let ids = decodeID(id);
     if (refresh) {
       delCache(id, "data");
     }
@@ -815,6 +816,7 @@ function compileID(auth, id, options, resume) {
         // Got cached value. We're done.
         resume(err, val);
       } else {
+        let ids = decodeID(id);
         countView(ids[1]);  // Count every time code is used to compile a new item.
         getData(auth, ids, refresh, (err, data) => {
           getCode(ids, (err, code) => {
@@ -885,52 +887,48 @@ function compileID(auth, id, options, resume) {
   }
 }
 function comp(auth, lang, code, data, options, resume) {
-  const config = { "messageToAlan": "Hello, Alan!" };
-  pingLang(lang, pong => {
-    if (pong) {
-      // Compile ast to obj.
-      var path = "/compile";
-      var encodedData = JSON.stringify({
-        "description": "graffiticode",
-        "language": lang,
-        "src": code,
-        "data": data,
-        "refresh": options.refresh,
-        "config": config,
-        "auth": auth,
-      });
-      var reqOptions = {
-        host: getCompilerHost(lang),
-        port: getCompilerPort(lang),
-        path: path,
-        method: 'GET',
-        headers: {
-          'Content-Type': 'text/plain',
-          'Content-Length': Buffer.byteLength(encodedData),
-        },
-      };
-      var req = protocol.request(reqOptions, function(res) {
-        var data = "";
-        res.on('data', function (chunk) {
-          data += chunk;
-        });
-        res.on('end', function () {
-          resume(null, parseJSON(data));
-        });
-        res.on('error', function (err) {
-          console.log("[1] comp() ERROR " + err);
-          resume(408);
-        });
-      });
-      req.write(encodedData);
-      req.end();
-      req.on('error', function(err) {
-        console.log("[2] comp() ERROR " + err);
-        resume(408);
-      });
-    } else {
-      resume(404);
-    }
+  const config = {};
+  // Compile ast to obj.
+  let langID = lang.indexOf("L") === 0 && lang.slice(1) || lang;
+  var encodedData = JSON.stringify({
+    "item": {
+      "lang": langID,
+      "code": code,
+      "data": data
+    },
+    "refresh": options.refresh,
+    "config": config,
+    "auth": auth,
+  });
+  var reqOptions = {
+    host: getAPIHost(lang),
+    port: getAPIPort(lang),
+    path: "/compile",
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain',
+      'Content-Length': Buffer.byteLength(encodedData),
+    },
+  };
+  let protocol = LOCAL_COMPILES && http || https;
+  var req = protocol.request(reqOptions, function(res) {
+    var data = "";
+    res.on('data', function (chunk) {
+      data += chunk;
+    });
+    res.on('end', function () {
+      resume(null, parseJSON(data));
+    });
+    res.on('error', function (err) {
+      console.log("[1] comp() ERROR " + err);
+      resume(408);
+    });
+  });
+  req.write(encodedData);
+  req.end();
+  req.on('error', function(err) {
+    console.log("[2] comp() ERROR " + err);
+    resume(408);
   });
 }
 
@@ -1163,17 +1161,18 @@ app.put('/compile', function (req, res) {
       let parent = req.body.parent || 0;
       let query;
       let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
-      if (itemID !== undefined) {
-        // Prefer the given id if there is one.
-        query = "SELECT * FROM pieces WHERE id='" + itemID + "' AND user_id='" + user + "'";
-      } else {
-        // Otherwise look for an item with matching source.
-        query = "SELECT * FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + src + "' ORDER BY pieces.id";
-      }
-      dbQuery(query, function(err, result) {
-        var row = result.rows[0];
-        itemID = itemID ? itemID : row ? row.id : undefined;
-        ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
+      // if (itemID !== undefined) {
+      //   // Prefer the given id if there is one.
+      //   query = "SELECT * FROM pieces WHERE id='" + itemID + "' AND user_id='" + user + "'";
+      // } else {
+      //   // Otherwise look for an item with matching source.
+      //   query = "SELECT * FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + src + "' ORDER BY pieces.id";
+      // }
+      // dbQuery(query, function(err, result) {
+      //   var row = result.rows[0];
+      //   itemID = itemID ? itemID : row ? row.id : undefined;
+      //   ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
+      console.log("PUT /compile src=" + src);
         if (!ast) {
           // No AST, try creating from source.
           parse(lang, rawSrc, (err, ast) => {
@@ -1240,7 +1239,7 @@ app.put('/compile', function (req, res) {
             });
           }
         }
-      });
+//      });
     }
   })
 });
@@ -1614,6 +1613,7 @@ app.get("/:lang/*", function (req, response) {
         res.on("data", function (chunk) {
           data.push(chunk);
         }).on("end", function () {
+          console.log("GET /:lang lang=" + lang + " options=" + JSON.stringify(options) + " data=" + data);
           response.send(data.join(""));
         });
       });
@@ -1624,7 +1624,7 @@ app.get("/:lang/*", function (req, response) {
 });
 
 function getCompilerHost(lang, options) {
-  if (LOCAL_COMPILES && port === 3000) {
+  if (LOCAL_COMPILES) {
     return "localhost";
   } else {
     return lang + ".artcompiler.com";
@@ -1632,10 +1632,26 @@ function getCompilerHost(lang, options) {
 }
 
 function getCompilerPort(lang) {
-  if (LOCAL_COMPILES && port === 3000) {
+  if (LOCAL_COMPILES) {
     return "5" + lang.substring(1);  // e.g. L103 -> 5103
   } else {
     return "80";
+  }
+}
+
+function getAPIHost(lang, options) {
+  if (LOCAL_COMPILES) {
+    return "localhost";
+  } else {
+    return "api.artcompiler.com";
+  }
+}
+
+function getAPIPort(lang) {
+  if (LOCAL_COMPILES) {
+    return "3100";
+  } else {
+    return "443";
   }
 }
 
