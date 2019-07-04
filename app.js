@@ -892,13 +892,13 @@ function comp(auth, lang, code, data, options, resume) {
   let langID = lang.indexOf("L") === 0 && lang.slice(1) || lang;
   var encodedData = JSON.stringify({
     "item": {
-      "lang": langID,
-      "code": code,
-      "data": data
+      lang: langID,
+      code: code,
+      data: data,
+      options: options,
     },
-    "refresh": options.refresh,
-    "config": config,
-    "auth": auth,
+    config: config,
+    auth: auth,
   });
   var reqOptions = {
     host: getAPIHost(lang),
@@ -1613,7 +1613,6 @@ app.get("/:lang/*", function (req, response) {
         res.on("data", function (chunk) {
           data.push(chunk);
         }).on("end", function () {
-          console.log("GET /:lang lang=" + lang + " options=" + JSON.stringify(options) + " data=" + data);
           response.send(data.join(""));
         });
       });
