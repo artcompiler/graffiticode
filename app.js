@@ -1,27 +1,20 @@
-/**
- * Module dependencies.
- */
-
-function print(str) {
-  process.stdout.write(str);
-}
 const assert = require('assert');
-var express = require('express');
-var _ = require('underscore');
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var app = module.exports = express();
-var morgan = require("morgan");
-var bodyParser = require("body-parser");
-var methodOverride = require("method-override");
-var errorHandler = require("errorhandler");
-var pg = require('pg');
-var redis = require('redis');
-var cache; // = redis.createClient(process.env.REDIS_URL);
-var main = require('./src/main.js');
+const express = require('express');
+const _ = require('underscore');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const app = module.exports = express();
+const morgan = require("morgan");
+const bodyParser = require("body-parser");
+const methodOverride = require("method-override");
+const errorHandler = require("errorhandler");
+const pg = require('pg');
+const redis = require('redis');
+const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
-const {decodeID, encodeID} = require('./src/id.js');
+const {decodeID, encodeID} = require('./src/id');
+const main = require('./src/main');
 const routes = require('./routes');
 
 // Configuration
@@ -45,7 +38,7 @@ function getConStr(id) {
   return conStrs[0];
 }
 
-var env = process.env.NODE_ENV || 'development';
+const env = process.env.NODE_ENV || 'development';
 
 let protocol = http; // Default. Set to http if localhost.
 
@@ -53,10 +46,6 @@ let protocol = http; // Default. Set to http if localhost.
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
-    // if (req.headers.host.match(/^www/) === null) {
-    //   console.log("app.all redirecting headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
-    //   res.redirect('https://www.'+ req.headers.host + req.url);
-    // } else
     if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
       console.log("app.all redirecting headers=" + JSON.stringify(req.headers, null, 2) + " url=" + req.url);
       res.redirect(['https://', req.headers.host, req.url].join(''));
@@ -96,7 +85,6 @@ app.engine('html', function (templateFile, options, callback) {
 
 // Routes
 
-// http://stackoverflow.com/questions/10435407/proxy-with-express-js
 var request = require('request');
 app.get("/", (req, res) => {
   let proto = req.headers['x-forwarded-proto'] || "http";
@@ -423,7 +411,6 @@ app.get("/item", function (req, res) {
 
 const sendForm = (id, req, res) => {
   let ids = decodeID(id);
-  console.log("sendForm() ids=" + ids.join("+") + " id=" + id);
   if (ids[1] === 0 && aliases[id]) {
     // ID is an invalid ID but a valid alias, so get aliased ID.
     ids = decodeID(aliases[id]);
@@ -661,18 +648,20 @@ function postItem(language, src, ast, obj, user, parent, img, label, forkID, res
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
   ast = cleanAndTrimSrc(JSON.stringify(ast));
-
   var queryStr =
     "INSERT INTO pieces (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + clientAddress + "','" + forkID + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
     label + "','" + img + "','" + ast + "');"
+  let t0 = new Date;
   dbQuery(queryStr, function(err, result) {
+    let t1 = new Date;
     if (err) {
       console.log("ERROR postItem() " + queryStr);
       resume(err);
     } else {
-      var queryStr = "SELECT * FROM pieces ORDER BY id DESC LIMIT 1";
+      var queryStr = "SELECT id FROM pieces ORDER BY id DESC LIMIT 1";
       dbQuery(queryStr, function (err, result) {
+        let t2 = new Date;
         let codeID = +result.rows[0].id;
         forkID = forkID || codeID;
         var query =
@@ -680,8 +669,8 @@ function postItem(language, src, ast, obj, user, parent, img, label, forkID, res
           "fork_id=" + forkID + " " +
           "WHERE id=" + codeID;
         dbQuery(query, function (err) {
-          resume(err, result);
           dbQuery("UPDATE pieces SET forks=forks+1 WHERE id=" + parent, () => {});
+          resume(err, result);
         });
       });
     }
@@ -990,7 +979,7 @@ const recompileItems = (items) => {
       console.log("[5] ERROR " + err);
     }
     compileID(authToken, id, true, (err, obj) => {
-      print(items.length + ": " + id + " compiled\n");
+      console.log(items.length + ": " + id + " compiled");
       recompileItems(items);
     });
   });
@@ -1110,6 +1099,7 @@ app.put('/comp', function (req, res) {
   });
 });
 function getTip(id, resume) {
+  let t0 = new Date;
   let [langID, codeID, dataID] = decodeID(id);
   // -- If is 0 then return 0.
   // -- If is forkID the return last item in fork or the original codeID if none.
@@ -1123,6 +1113,7 @@ function getTip(id, resume) {
       "SELECT id FROM pieces WHERE fork_id=" + codeID +
       " ORDER BY id DESC LIMIT 1";
     dbQuery(query, function(err, result) {
+      let t1 = new Date;
       resume(null, result.rows.length === 0 && codeID || result.rows[0].id || 0);
     });
   } else {
@@ -1135,14 +1126,15 @@ app.put('/compile', function (req, res) {
   // the current user, then recompile it and update the OBJ. If it doesn't exist
   // for the current user, then create a new item.
   let lang = req.body.language;
+  let t0 = new Date;
   validateUser(req.body.jwt, lang, (err, data) => {
     if (err) {
       res.sendStatus(err);
     } else {
+      // let t1 = new Date;
       // TODO user is known but might not have access to this operation. Check
       // user id against registered user table for this host.
       // Map AST or SRC into OBJ. Store OBJ and return ID.
-      let t0 = new Date;
       // Compile AST or SRC to OBJ. Insert or add item.
       let id = req.body.id;
       let forkID = req.body.forkID;
@@ -1161,85 +1153,80 @@ app.put('/compile', function (req, res) {
       let parent = req.body.parent || 0;
       let query;
       let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
-      // if (itemID !== undefined) {
-      //   // Prefer the given id if there is one.
-      //   query = "SELECT * FROM pieces WHERE id='" + itemID + "' AND user_id='" + user + "'";
-      // } else {
-      //   // Otherwise look for an item with matching source.
-      //   query = "SELECT * FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + src + "' ORDER BY pieces.id";
-      // }
-      // dbQuery(query, function(err, result) {
-      //   var row = result.rows[0];
-      //   itemID = itemID ? itemID : row ? row.id : undefined;
-      //   ast = ast ? JSON.parse(ast) : row && row.ast ? row.ast : null;
-      console.log("PUT /compile src=" + src);
-        if (!ast) {
-          // No AST, try creating from source.
-          parse(lang, rawSrc, (err, ast) => {
-            compile(ast);
+      if (!ast) {
+        console.log("No AST, parsing: " + rawSrc);
+        // No AST, try creating from source.
+        parse(lang, rawSrc, (err, ast) => {
+          compile(ast);
+        });
+      } else {
+        compile(ast);
+      }
+      function compile(ast) {
+        if (itemID) {
+          let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+          let codeID = row.id;
+          let dataID = 0;
+          let ids = [langID, codeID, dataID];
+          let id = encodeID(ids);
+          // We have an id, so update the item with the current AST.
+          updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
+            // let t2 = new Date;
+            // Update the src and ast because they are used by compileID().
+            if (err) {
+              console.log("ERROR [1] PUT /compile err=" + err);
+              res.sendStatus(400);
+            } else {
+              compileID(authToken, id, {refresh: true}, (err, obj) => {
+                // let t3 = new Date;
+                // console.log("t1=" + (t1 - t0) + " t2=" + (t2 - t1) + " t3=" + (t3 - t2));
+                console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ") in " +
+                            (new Date - t0) + "ms");
+                res.json({
+                  id: id,
+                  obj: obj,
+                });
+              });
+            }
           });
         } else {
-          compile(ast);
-        }
-        function compile(ast) {
-          if (itemID) {
-            let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-            let codeID = row.id;
-            let dataID = 0;
-            let ids = [langID, codeID, dataID];
-            let id = encodeID(ids);
-            // We have an id, so update the item with the current AST.
-            updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
-              // Update the src and ast because they are used by compileID().
-              if (err) {
-                console.log("ERROR [1] PUT /compile err=" + err);
-                res.sendStatus(400);
-              } else {
-                compileID(authToken, id, {refresh: true}, (err, obj) => {
-                  console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ") in " +
-                              (new Date - t0) + "ms");
-                  res.json({
-                    id: id,
-                    obj: obj,
-                  });
+          let ids = decodeID(parent);
+          // TODO need to get tip of fork in a efficient way.
+          // getTip(forkID, (err, tip) => {
+          //   if (+tip === 0 || +tip !== +ids[1]) {
+          //     // Implicit fork. If parentID is zero, then forkID will be zero.
+          //     forkID = 0;
+          //   }
+          // });
+          postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
+            // let t2 = new Date;
+            if (err) {
+              console.log("ERROR [2] PUT /compile err=" + err);
+              response.sendStatus(400);
+            } else {
+              let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+              let codeID = result.rows[0].id;
+              let dataID = 0;
+              if (forkID === 0) {
+                forkID = codeID;
+              }
+              let ids = [langID, codeID, dataID];
+              let id = encodeID(ids);
+              compileID(authToken, id, {refresh: false}, (err, obj) => {
+                // let t3 = new Date;
+                // console.log("t1=" + (t1 - t0) + " t2=" + (t2 - t1) + " t3=" + (t3 - t2));
+                console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ")* in " +
+                            (new Date - t0) + "ms");
+                res.json({
+                  forkID: forkID,
+                  id: id,
+                  obj: obj,
                 });
-              }
-            });
-          } else {
-            let ids = decodeID(parent);
-            getTip(forkID, (err, tip) => {
-              if (+tip === 0 || +tip !== +ids[1]) {
-                // Implicit fork. If parentID is zero, then forkID will be zero.
-                forkID = 0;
-              }
-              postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
-                if (err) {
-                  console.log("ERROR [2] PUT /compile err=" + err);
-                  response.sendStatus(400);
-                } else {
-                  let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-                  let codeID = result.rows[0].id;
-                  let dataID = 0;
-                  if (forkID === 0) {
-                    forkID = codeID;
-                  }
-                  let ids = [langID, codeID, dataID];
-                  let id = encodeID(ids);
-                  compileID(authToken, id, {refresh: false}, (err, obj) => {
-                    console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ")* in " +
-                                (new Date - t0) + "ms");
-                    res.json({
-                      forkID: forkID,
-                      id: id,
-                      obj: obj,
-                    });
-                  });
-                }
               });
-            });
-          }
+            }
+          });
         }
-//      });
+      }
     }
   })
 });
@@ -1254,51 +1241,22 @@ const putData = (auth, data, resume) => {
   let obj = JSON.stringify(data);
   let lang = "L113";
   let user = 0;
-  let query =
-    "SELECT * FROM pieces WHERE language='" + lang +
-    "' AND src='" + src + "' LIMIT 1";
-  dbQuery(query, function(err, result) {
-    // See if there is already an item with the same source for the same
-    // language. If so, pass it on.
-    var row = result.rows[0];
-    let itemID = row && row.id ? row.id : undefined;
-    // Might still be undefined if there is no match.
-    if (itemID) {
-      var src = row.src;
-      var ast = row.ast;
-      var img = row.img;
-      var label = row.label;
-      updateItem(itemID, lang, rawSrc, ast, obj, img, function (err, data) {
-        if (err) {
-          console.log("[8] ERROR " + err);
-        }
-      });
-      // Don't wait for update. We have what we need to respond.
-      let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-      let codeID = row.id;
-      let dataID = 0;
-      let ids = [langID, codeID, dataID];
-      let id = encodeID(ids);
-      resume(null, id);
+  var ast = null;
+  var label = "data";
+  var parent = 0;
+  var img = "";
+  let forkID = 0;
+  postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
+    let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+    let codeID = result.rows[0].id;
+    let dataID = 0;
+    let ids = [langID, codeID, dataID];
+    let id = encodeID(ids);
+    if (err) {
+      console.log("ERROR putData() err=" + err);
+      resume(err);
     } else {
-      var ast = null;
-      var label = "data";
-      var parent = 0;
-      var img = "";
-      let forkID = 0;
-      postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
-        let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-        let codeID = result.rows[0].id;
-        let dataID = 0;
-        let ids = [langID, codeID, dataID];
-        let id = encodeID(ids);
-        if (err) {
-          console.log("ERROR putData() err=" + err);
-          resume(err);
-        } else {
-          resume(null, id);
-        }
-      });
+      resume(null, id);
     }
   });
 };
