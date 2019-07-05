@@ -18,6 +18,8 @@
   * `$ psql -c "create database localgcdb"`
   * `$ psql -d localgcdb -f tools/initgcdb.sql`
   * `$ export LOCAL_DATABASE=true`
-* Start Graffiticode app.
+* Test the app.
+  * `$ make test`
+* Start the app.
   * `$ make`
 * Make an artcompiler (see https://github.com/graffiticode/L0)
