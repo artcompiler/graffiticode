@@ -22,4 +22,5 @@
   * `$ make test`
 * Start the app.
   * `$ make`
+* Get build and run the Graffiticode API gatway (see https://github.com/graffiticode/api)
 * Make an artcompiler (see https://github.com/graffiticode/L0)
