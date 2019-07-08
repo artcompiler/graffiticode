@@ -585,6 +585,7 @@ function pingLang(lang, resume) {
     port: getAPIPort(lang),
     path: '/lang?id=' + lang.slice(1),
   };
+  console.log("pingLang() options=" + JSON.stringify(options));
   req = protocol.request(options, function(r) {
     resume(true);
   }).on("error", (e) => {
