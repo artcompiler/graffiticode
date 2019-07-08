@@ -577,12 +577,13 @@ function getCompilerVersion(lang, resume) {
     });
   }
 }
+
 function pingLang(lang, resume) {
   let options = {
-    method: 'HEAD',
-    host: getCompilerHost(lang),
-    port: getCompilerPort(lang),
-    path: '/'
+    method: 'GET',
+    host: getAPIHost(lang),
+    port: getAPIPort(lang),
+    path: '/lang?id=' + lang.slice(1),
   };
   req = protocol.request(options, function(r) {
     resume(true);
@@ -624,6 +625,7 @@ function cleanAndTrimObj(str) {
   }
   return str;
 }
+
 function cleanAndTrimSrc(str) {
   if (!str || typeof str !== "string") {
     return str;
@@ -659,7 +661,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, forkID, res
       console.log("ERROR postItem() " + queryStr);
       resume(err);
     } else {
-      var queryStr = "SELECT id FROM pieces ORDER BY id DESC LIMIT 1";
+      var queryStr = "SELECT * FROM pieces WHERE language='" + language + "' ORDER BY id DESC LIMIT 1";
       dbQuery(queryStr, function (err, result) {
         let t2 = new Date;
         let codeID = +result.rows[0].id;
