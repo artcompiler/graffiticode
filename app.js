@@ -40,7 +40,7 @@ function getConStr(id) {
 
 const env = process.env.NODE_ENV || 'development';
 
-let protocol = LOCAL_COMPILES && http || https;
+let protocol = http;
 
 // http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
@@ -590,6 +590,7 @@ function pingLang(lang, resume) {
       port: getAPIPort(lang),
       path: '/lang?id=' + lang.slice(1),
     };
+    let protocol = LOCAL_COMPILES && http || https;
     req = protocol.request(options, function(r) {
       let pong = r.statusCode === 200 && true || false;
       pingCache[lang] = pong;
