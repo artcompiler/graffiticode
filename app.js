@@ -40,7 +40,7 @@ function getConStr(id) {
 
 const env = process.env.NODE_ENV || 'development';
 
-let protocol = http; // Default. Set to http if localhost.
+let protocol = LOCAL_COMPILES && http || https;
 
 // http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
 // http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
@@ -239,6 +239,7 @@ app.get('/lang', function(req, res) {
   var src = req.query.src;
   var lang = langName(langID);
   pingLang(lang, (pong) => {
+    console.log("GET /lang pong=" + pong);
     if (pong) {
       if (src) {
         assert(false, "Should not get here. Call PUT /compile");
@@ -356,7 +357,7 @@ const sendItem = (id, req, res) => {
       } else {
         getItem(codeID, (err, row) => {
           if (err && err.length) {
-            console.log("[1] GET /item ERROR 404 ");
+            console.log("ERROR [1] GET /item");
             res.sendStatus(404);
           } else {
             let rows;
@@ -418,7 +419,7 @@ const sendForm = (id, req, res) => {
   let langID = ids[0] ? ids[0] : 0;
   let codeID = ids[1] ? ids[1] : 0;
   if (codeID === 0) {
-    console.log("[1] GET /form ERROR 404 id=" + id + " ids=" + ids.join("+"));
+    console.log("ERROR [1] GET /form id=" + id + " ids=" + ids.join("+"));
     res.sendStatus(404);
     return;
   }
@@ -449,7 +450,7 @@ const sendForm = (id, req, res) => {
     // Don't have a langID, so get it from the database item.
     getItem(codeID, function(err, row) {
       if (!row) {
-        console.log("[2] GET /form ERROR 404 ");
+        console.log("ERROR [2] GET /form");
         res.sendStatus(404);
       } else {
         var lang = row.language;
@@ -520,7 +521,7 @@ const sendCode = (id, req, res) => {
   var codeID = ids[1];
   getItem(codeID, (err, row) => {
     if (!row) {
-      console.log("[1] GET /code ERROR 404 ");
+      console.log("ERROR [1] GET /code");
       res.sendStatus(404);
     } else {
       // No data provided, so obj code won't change.
@@ -568,7 +569,7 @@ function getCompilerVersion(lang, resume) {
             });
           });
         } catch (e) {
-          console.log("[3] ERROR " + e.stack);
+          console.log("ERROR [3] " + e.stack);
           resume(null);
         }
       } else {
@@ -578,20 +579,26 @@ function getCompilerVersion(lang, resume) {
   }
 }
 
+let pingCache = {};
 function pingLang(lang, resume) {
-  let options = {
-    method: 'GET',
-    host: getAPIHost(lang),
-    port: getAPIPort(lang),
-    path: '/lang?id=' + lang.slice(1),
-  };
-  console.log("pingLang() options=" + JSON.stringify(options));
-  req = protocol.request(options, function(r) {
+  if (pingCache[lang]) {
     resume(true);
-  }).on("error", (e) => {
-    console.log("ERROR language unavailable: " + lang);
-    resume(false);
-  }).end();
+  } else {
+    let options = {
+      method: 'GET',
+      host: getAPIHost(lang),
+      port: getAPIPort(lang),
+      path: '/lang?id=' + lang.slice(1),
+    };
+    req = protocol.request(options, function(r) {
+      let pong = r.statusCode === 200 && true || false;
+      pingCache[lang] = pong;
+      resume(pong);
+    }).on("error", (e) => {
+      console.log("ERROR pingLang() e=" + JSON.stringify(e));
+      resume(false);
+    }).end();
+  }
 }
 
 function get(language, path, resume) {
@@ -879,48 +886,54 @@ function compileID(auth, id, options, resume) {
   }
 }
 function comp(auth, lang, code, data, options, resume) {
-  const config = {};
-  // Compile ast to obj.
-  let langID = lang.indexOf("L") === 0 && lang.slice(1) || lang;
-  var encodedData = JSON.stringify({
-    "item": {
-      lang: langID,
-      code: code,
-      data: data,
-      options: options,
-    },
-    config: config,
-    auth: auth,
-  });
-  var reqOptions = {
-    host: getAPIHost(lang),
-    port: getAPIPort(lang),
-    path: "/compile",
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(encodedData),
-    },
-  };
-  let protocol = LOCAL_COMPILES && http || https;
-  var req = protocol.request(reqOptions, function(res) {
-    var data = "";
-    res.on('data', function (chunk) {
-      data += chunk;
-    });
-    res.on('end', function () {
-      resume(null, parseJSON(data));
-    });
-    res.on('error', function (err) {
-      console.log("[1] comp() ERROR " + err);
-      resume(408);
-    });
-  });
-  req.write(encodedData);
-  req.end();
-  req.on('error', function(err) {
-    console.log("[2] comp() ERROR " + err);
-    resume(408);
+  pingLang(lang, pong => {
+    if (pong) {
+      const config = {};
+      // Compile ast to obj.
+      let langID = lang.indexOf("L") === 0 && lang.slice(1) || lang;
+      var encodedData = JSON.stringify({
+        "item": {
+          lang: langID,
+          code: code,
+          data: data,
+          options: options,
+        },
+        config: config,
+        auth: auth,
+      });
+      var reqOptions = {
+        host: getAPIHost(lang),
+        port: getAPIPort(lang),
+        path: "/compile",
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(encodedData),
+        },
+      };
+      let protocol = LOCAL_COMPILES && http || https;
+      var req = protocol.request(reqOptions, function(res) {
+        var data = "";
+        res.on('data', function (chunk) {
+          data += chunk;
+        });
+        res.on('end', function () {
+          resume(null, parseJSON(data));
+        });
+        res.on('error', function (err) {
+          console.log("ERROR [1] comp() err=" + err);
+          resume(404);
+        });
+      });
+      req.write(encodedData);
+      req.end();
+      req.on('error', function(err) {
+        console.log("ERROR [2] comp() err=" + err);
+        resume(404);
+      });
+    } else {
+      resume(404);
+    }
   });
 }
 
@@ -992,7 +1005,7 @@ const recompileItem = (id, parseOnly) => {
   parseID(id, {}, (err, ast) => {
     console.log(id + " parsed");
     if (err && err.length) {
-      console.log("[6] ERROR " + err);
+      console.log("ERROR [6] err=" + err);
       return;
     }
     if (!parseOnly) {
