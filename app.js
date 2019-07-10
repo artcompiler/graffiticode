@@ -42,8 +42,6 @@ const env = process.env.NODE_ENV || 'development';
 
 let protocol = http;
 
-// http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
-// http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
     if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
@@ -289,117 +287,104 @@ app.get('/lang', function(req, res) {
 });
 
 const sendItem = (id, req, res) => {
-  const hasEditingRights = true;   // Compute based on authorization.
   if (req.query.alias) {
     aliases[req.query.alias] = id;
   }
-  if (hasEditingRights) {
-    let ids = decodeID(id);
-    if (ids[1] === 0 && aliases[id]) {
-      // ID is an invalid ID but a valid alias, so get aliased ID.
-      ids = decodeID(aliases[id]);
-    }
-    // If forkID then getTip()
-    getTip(id, (err, tip) => {
-      let langID = ids[0];
-      let codeID = tip || ids[1];
-      let dataIDs = ids.slice(2);
-      if (req.query.fork) {
-        // Create a new fork.
-        getItem(codeID, (err, row) => {
-          if (err && err.length) {
-            console.log("[1] GET /item ERROR 404 ");
-            res.sendStatus(404);
-          } else {
-            langID = langID || +row.language.slice(1);
-            let language = "L" + langID;
-            let src = row.src;
-            let ast = row.ast;
-            let obj = row.obj;
-            let userID = row.user_id;
-            let parentID = codeID;
-            let img = row.img;
-            let label = row.label;
-            let forkID = 0;
-            postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
-              let codeID = result.rows[0].id;
-              let ids = [langID, codeID].concat(dataIDs);
-              if (err) {
-                console.log("ERROR putData() err=" + err);
-                resume(err);
-              } else {
-                getCompilerVersion(lang, (version) => {
-                  res.render('views.html', {
-                    title: 'Graffiti Code',
-                    language: language,
-                    item: encodeID(ids),
-                    view: "item",
-                    version: version,
-                    refresh: req.query.refresh,
-                    archive: req.query.archive,
-                    showdata: req.query.data,
-                    forkID: codeID,
-                    findLabel: req.query.label,
-                    findMark: req.query.mark,
-                  }, function (error, html) {
-                    if (error) {
-                      console.log("ERROR [1] GET /item err=" + error);
-                      res.sendStatus(400);
-                    } else {
-                      res.send(html);
-                    }
-                  });
+  let ids = decodeID(id);
+  if (ids[1] === 0 && aliases[id]) {
+    // ID is an invalid ID but a valid alias, so get aliased ID.
+    ids = decodeID(aliases[id]);
+  }
+  // If forkID then getTip()
+  getTip(id, (err, tip) => {
+    let langID = ids[0];
+    let codeID = tip || ids[1];
+    let dataIDs = ids.slice(2);
+    if (req.query.fork) {
+      // Create a new fork.
+      getItem(codeID, (err, row) => {
+        if (err && err.length) {
+          console.log("[1] GET /item ERROR 404 ");
+          res.sendStatus(404);
+        } else {
+          langID = langID || +row.language.slice(1);
+          let language = "L" + langID;
+          let src = row.src;
+          let ast = row.ast;
+          let obj = row.obj;
+          let userID = row.user_id;
+          let parentID = codeID;
+          let img = row.img;
+          let label = row.label;
+          let forkID = 0;
+          postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
+            let codeID = result.rows[0].id;
+            let ids = [langID, codeID].concat(dataIDs);
+            if (err) {
+              console.log("ERROR putData() err=" + err);
+              resume(err);
+            } else {
+              getCompilerVersion(lang, (version) => {
+                res.render('views.html', {
+                  title: 'Graffiti Code',
+                  language: language,
+                  item: encodeID(ids),
+                  view: "item",
+                  version: version,
+                  refresh: req.query.refresh,
+                  archive: req.query.archive,
+                  showdata: req.query.data,
+                  forkID: codeID,
+                  findLabel: req.query.label,
+                  findMark: req.query.mark,
+                }, function (error, html) {
+                  if (error) {
+                    console.log("ERROR [1] GET /item err=" + error);
+                    res.sendStatus(400);
+                  } else {
+                    res.send(html);
+                  }
                 });
+              });
+            }
+          });
+        }
+      });
+    } else {
+      getItem(codeID, (err, row) => {
+        if (err && err.length) {
+          console.log("ERROR [1] GET /item");
+          res.sendStatus(404);
+        } else {
+          let rows;
+          langID = langID || +row.language.slice(1);
+          let language = "L" + langID;
+          getCompilerVersion(language, (version) => {
+            res.render('views.html', {
+              title: 'Graffiti Code',
+              language: language,
+              item: encodeID([langID, codeID].concat(dataIDs)),
+              view: "item",
+              version: version,
+              refresh: req.query.refresh,
+              archive: req.query.archive,
+              showdata: req.query.data,
+              forkID: row.fork_id,
+              findLabel: req.query.label,
+              findMark: req.query.mark,
+            }, function (error, html) {
+              if (error) {
+                console.log("ERROR [2] GET /item err=" + error);
+                res.sendStatus(400);
+              } else {
+                res.send(html);
               }
             });
-          }
-        });
-      } else {
-        getItem(codeID, (err, row) => {
-          if (err && err.length) {
-            console.log("ERROR [1] GET /item");
-            res.sendStatus(404);
-          } else {
-            let rows;
-            langID = langID || +row.language.slice(1);
-            let language = "L" + langID;
-            getCompilerVersion(language, (version) => {
-              res.render('views.html', {
-                title: 'Graffiti Code',
-                language: language,
-                item: encodeID([langID, codeID].concat(dataIDs)),
-                view: "item",
-                version: version,
-                refresh: req.query.refresh,
-                archive: req.query.archive,
-                showdata: req.query.data,
-                forkID: row.fork_id,
-                findLabel: req.query.label,
-                findMark: req.query.mark,
-              }, function (error, html) {
-                if (error) {
-                  console.log("ERROR [2] GET /item err=" + error);
-                  res.sendStatus(400);
-                } else {
-                  res.send(html);
-                }
-              });
-            });
-          }
-        });
-      }
-    });
-  } else {
-    // Redirect to form view.
-    let protocol;
-    if (req.headers.host.match(/^localhost/) === null) {
-      protocol = "https://";
-    } else {
-      protocol = "http://";
+          });
+        }
+      });
     }
-    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
-    res.redirect(url);
-  }
+  });
 };
 
 app.get("/item", function (req, res) {
