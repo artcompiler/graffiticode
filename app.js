@@ -536,6 +536,7 @@ function get(language, path, resume) {
     port: getAPIPort(language),
     path: "/" + path,
   };
+  let protocol = LOCAL_COMPILES && http || https;
   var req = protocol.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
@@ -1511,6 +1512,7 @@ app.get("/:lang/*", function (req, response) {
         port: getAPIPort(lang),
         path: "/" + lang + "/" + path,
       };
+      let protocol = LOCAL_COMPILES && http || https;
       req = protocol.get(options, function(res) {
         res.on("data", function (chunk) {
           data.push(chunk);
