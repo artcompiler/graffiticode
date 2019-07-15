@@ -534,7 +534,7 @@ function get(language, path, resume) {
   var options = {
     host: getAPIHost(language),
     port: getAPIPort(language),
-    path: "/" + path,
+    path: "/" + language + "/" + path,
   };
   let protocol = LOCAL_COMPILES && http || https;
   var req = protocol.get(options, function(res) {
@@ -1183,7 +1183,7 @@ const putData = (auth, data, resume) => {
   let t0 = new Date;
   let rawSrc = JSON.stringify(data) + "..";
   let src = cleanAndTrimSrc(rawSrc);
-  let obj = JSON.stringify(data);
+  let obj = cleanAndTrimObj(JSON.stringify(data));
   let lang = "L113";
   let user = 0;
   var ast = null;
@@ -1499,31 +1499,37 @@ function num2dot(num) {
   return d;
 }
 
+const assetCache = {};
 app.get("/:lang/*", function (req, response) {
   // /L106/lexicon.js
   let lang = req.params.lang;
-  pingLang(lang, pong => {
-    if (pong) {
-      let url = req.url;
-      let path = url.substring(url.indexOf(lang) + lang.length + 1);
-      var data = [];
-      var options = {
-        host: getAPIHost(lang),
-        port: getAPIPort(lang),
-        path: "/" + lang + "/" + path,
-      };
-      let protocol = LOCAL_COMPILES && http || https;
-      req = protocol.get(options, function(res) {
-        res.on("data", function (chunk) {
-          data.push(chunk);
-        }).on("end", function () {
-          response.send(data.join(""));
+  let path = req.url;
+  let data;
+  if ((data = assetCache[path])) {
+    response.send(data);
+  } else {
+    pingLang(lang, pong => {
+      if (pong) {
+        let data = [];
+        let options = {
+          host: getAPIHost(lang),
+          port: getAPIPort(lang),
+          path: path,
+        };
+        let protocol = LOCAL_COMPILES && http || https;
+        req = protocol.get(options, function(res) {
+          res.on("data", function (chunk) {
+            data.push(chunk);
+          }).on("end", function () {
+            data = assetCache[path] = data.join("");
+            response.send(data);
+          });
         });
-      });
-    } else {
-      response.sendStatus(404);
-    }
-  });
+      } else {
+        response.sendStatus(404);
+      }
+    });
+  }
 });
 
 function getCompilerHost(lang, options) {
