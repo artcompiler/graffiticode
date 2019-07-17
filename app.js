@@ -686,18 +686,18 @@ function getData(auth, ids, refresh, resume) {
   }
 }
 
-function getCode(ids, resume) {
+function getCode(ids, refresh, resume) {
   getItem(ids[1], (err, item) => {
     // if L113 there is no AST.
-    if (item && item.ast) {
+    if (!refresh && item && item.ast) {
       let ast = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
       resume(err, ast);
     } else {
       if (ids[0] !== 113) {
-        console.log("No AST found: langID=" + ids[0] + " codeID=" + ids[1]);
         assert(item, "ERROR getCode() item not found: " + ids);
         let lang = item.language;
         let src = item.src.replace(/\\\\/g, "\\");
+        console.log("Reparsing SRC: langID=" + ids[0] + " codeID=" + ids[1] + " src=" + src);
         parse(lang, src, (err, ast) => {
           updateAST(ids[1], ast, (err)=>{
             assert(!err);
@@ -747,7 +747,7 @@ function compileID(auth, id, options, resume) {
         let ids = decodeID(id);
         countView(ids[1]);  // Count every time code is used to compile a new item.
         getData(auth, ids, refresh, (err, data) => {
-          getCode(ids, (err, code) => {
+          getCode(ids, refresh, (err, code) => {
             if (err && err.length) {
               resume(err, null);
             } else {
@@ -1082,7 +1082,7 @@ app.put('/compile', function (req, res) {
       // Map AST or SRC into OBJ. Store OBJ and return ID.
       // Compile AST or SRC to OBJ. Insert or add item.
       let id = req.body.id;
-      let forkID = req.body.forkID;
+      let forkID = req.body.forkID || 0;
       let ids = decodeID(id);
       let rawSrc = req.body.src;
       let src = cleanAndTrimSrc(req.body.src);
