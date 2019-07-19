@@ -1,16 +1,9 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-var CodeMirrorEditor = React.createClass({
-  propTypes: {
-    lineNumbers: React.PropTypes.bool,
-    onChange: React.PropTypes.func
-  },
-  getDefaultProps: function() {
-    return {
-      lineNumbers: false,
-    };
-  },
-  componentDidMount: function() {
+import PropTypes from 'prop-types';
+
+class CodeMirrorEditor extends React.Component {
+  componentDidMount() {
     if (this.refs && this.refs.editor) {
       let editor = window.gcexports.editor = this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
         mode: 'graffiti',
@@ -47,15 +40,18 @@ var CodeMirrorEditor = React.createClass({
         }
       };
     }
-  },
-  componentDidUpdate: function() {    
-  },
-  handleChange: function() {
+  }
+
+  componentDidUpdate() {
+  }
+
+  handleChange() {
     if (!this.props.readOnly) {
       this.props.onChange && this.props.onChange(this.editor.getValue());
     }
-  },
-  render: function() {
+  }
+
+  render() {
     // wrap in a div to fully contain CodeMirror
     var editor = <textarea ref="editor" defaultValue={this.props.codeText} />;
     return (
@@ -64,40 +60,31 @@ var CodeMirrorEditor = React.createClass({
       </div>
     );
   }
-});
-var selfCleaningTimeout = {
-  componentDidUpdate: function() {
+}
+
+CodeMirrorEditor.propTypes = {
+  lineNumbers: PropTypes.bool,
+  onChange: PropTypes.func
+};
+
+CodeMirrorEditor.defaultProps = {lineNumbers: false};
+
+class SourceView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {code: this.props.codeText}
+  }
+
+  componentDidUpdate() {
     clearTimeout(this.timeoutID);
-  },
-  setTimeout: function() {
+  }
+
+  setTimeout() {
     clearTimeout(this.timeoutID);
     this.timeoutID = setTimeout.apply(null, arguments);
   }
-};
-var SourceView = React.createClass({
-  mixins: [selfCleaningTimeout],
-  propTypes: {
-    codeText: React.PropTypes.string.isRequired,
-    transformer: React.PropTypes.func,
-    renderCode: React.PropTypes.bool,
-    showCompiledJSTab: React.PropTypes.bool,
-    showLineNumbers: React.PropTypes.bool,
-    editorTabTitle: React.PropTypes.string
-  },
-  getDefaultProps: function() {
-    return {
-      editorTabTitle: 'Source',
-      showCompiledJSTab: true,
-      showLineNumbers: true,
-      codeText: ".",
-    };
-  },
-  getInitialState: function() {
-    return {
-      code: this.props.codeText,
-    };
-  },
-  render: function() {
+
+  render() {
     return (
       <div className="playground">
         <div className="playgroundCode">
@@ -109,11 +96,30 @@ var SourceView = React.createClass({
         </div>
       </div>
     );
-  },
-  componentDidMount: function() {
+  }
+
+  componentDidMount() {
     $(document.body).on('keydown', this.handleKeyDown);
-  },
-  componentDidUpdate: function(prevProps, prevState) {
-  },
-});
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+  }
+}
+
+SourceView.propTypes = {
+  codeText: PropTypes.string.isRequired,
+  transformer: PropTypes.func,
+  renderCode: PropTypes.bool,
+  showCompiledJSTab: PropTypes.bool,
+  showLineNumbers: PropTypes.bool,
+  editorTabTitle: PropTypes.string
+};
+
+SourceView.defaultProps = {
+  editorTabTitle: 'Source',
+  showCompiledJSTab: true,
+  showLineNumbers: true,
+  codeText: ".",
+};
+
 export default SourceView;

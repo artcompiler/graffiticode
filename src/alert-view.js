@@ -8,13 +8,20 @@ import {
   decodeID,
   encodeID,
 } from "./share.js"
-var AlertView = React.createClass({
+class AlertView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.onChange = this.onChange.bind(this)
+  }
+
   componentDidMount() {
     window.gcexports.dispatcher.register(this.onChange);
-  },
+  }
+
   onChange(data) {
     this.setState(Object.assign({}, this.state, data));
-  },
+  }
+
   render() {
     let message;
     if (this.state && this.state[window.gcexports.id] &&
@@ -33,16 +40,15 @@ var AlertView = React.createClass({
       }
     }
     if (message) {
-      return (        
+      return (
         <div className="alert alert-danger" role="alert">
           {message}
         </div>
       );
     } else {
-      return (
-          <div />
-      );
+      return <div />;
     }
-  },
-});
+  }
+}
+
 export default AlertView;

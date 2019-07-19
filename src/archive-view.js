@@ -1,54 +1,38 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as d3 from "d3";
-var selfCleaningTimeout = {
-  componentDidUpdate: function() {
-    clearTimeout(this.timeoutID);
-  },
-  setTimeout: function() {
-    clearTimeout(this.timeoutID);
-    this.timeoutID = setTimeout.apply(null, arguments);
-  },
-};
+import PropTypes from 'prop-types';
+
 let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
 });
-var TextArea = React.createClass({
-  displayName: 'TextArea',
-  propTypes: {
-    name: React.PropTypes.string.isRequired
-  },
-  componentWillReceiveProps(nextProps) {
-    if(nextProps.initValue !== this.props.initValue) {
-      this.setState({
-        value: nextProps.initValue
-      });
-    }
-    // Otherwise the value has been set by handleChange or initial rendering.
-  },
-  handleChange: function(event) {
-    this.setState({value: event.target.value});
-  },
-  render: function() {
-    let props = this.props;
-    return (
-        <textarea id={this.props.name}
-                  className="u-full-width"
-                  value={this.state && this.state.value}
-                  {...props}/>
-    );
-  }
-});
+
 let archiveFilter = "";
-var ArchiveContent = React.createClass({
-  componentWillUnmount: function() {
-  },
-  componentDidMount: function() {
+
+class ArchiveContent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.items = undefined;
+    this.onChange = this.onChange.bind(this);
+  }
+  componentDidUpdate() {
+    clearTimeout(this.timeoutID);
+  }
+
+  setTimeout() {
+    clearTimeout(this.timeoutID);
+    this.timeoutID = setTimeout.apply(null, arguments);
+  }
+
+  componentWillUnmount() {
+  }
+
+  componentDidMount() {
     ArchiveView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     this.isDirty = false;
-  },
-  items: undefined,
-  componentDidUpdate: function() {
+  }
+
+  componentDidUpdate() {
     let self = this;
     let archiveIndex = -1;
     if (!window.gcexports.archive) {
@@ -471,22 +455,27 @@ var ArchiveContent = React.createClass({
         }
       );
     }
-  },
-  onChange: function (data) {
-    this.replaceState(data);
-  },
-  render: function () {
+  }
+
+  onChange(data) {
+    this.setState(data);
+  }
+
+  render() {
     if (!window.gcexports.archive) {
       return <div/>;
     }
     return (
-      <div><TextArea name="filter"
-                     style={{margin: "10 35", width: "812"}}
-                     rows="1"
-                     onBlur={this.onFilterBlur}
-                     placeholder="Enter filter here..."/></div>
+      <div>
+        <textarea id="filter" className="u-full-width"
+                  value={this.state && this.state.value}
+                  onBlur={this.onFilterBlur} rows="1"
+                  placeholder="Enter filter here..."
+                  style={{margin: "10 35", width: "812"}} />
+      </div>
     );
-  },
+  }
+
   onFilterBlur(e) {
     this.items = null;
     archiveFilter = e.target.value;
@@ -497,29 +486,28 @@ var ArchiveContent = React.createClass({
     this.setState({
       archiveFilter: e.target.value
     });
-  },
-});
-var ArchiveView = React.createClass({
-  mixins: [selfCleaningTimeout],
-  MODES: {},
-  propTypes: {
-  },
-  getDefaultProps: function() {
-    return {
-    };
-  },
-  getInitialState: function() {
-    return {
-    };
-  },
-  render: function() {
+  }
+}
+
+class ArchiveView extends React.Component {
+  componentDidUpdate() {
+    clearTimeout(this.timeoutID);
+  }
+
+  setTimeout() {
+    clearTimeout(this.timeoutID);
+    this.timeoutID = setTimeout.apply(null, arguments);
+  }
+
+  render() {
     return (
       <ArchiveContent className="archiveContentStage" />
     );
-  },
-  componentDidMount: function() {
-  },
-  componentDidUpdate: function(prevProps, prevState) {
-  },
-});
+  }
+
+  componentDidMount() {
+  }
+  componentDidUpdate(prevProps, prevState) {
+  }
+}
 export default ArchiveView;

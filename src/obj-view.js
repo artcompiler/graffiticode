@@ -3,18 +3,10 @@
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import PropTypes from 'prop-types';
 
-var CodeMirrorEditor = React.createClass({
-  propTypes: {
-    lineNumbers: React.PropTypes.bool,
-    onChange: React.PropTypes.func
-  },
-  getDefaultProps: function() {
-    return {
-      lineNumbers: false,
-    };
-  },
-  componentDidMount: function() {
+class CodeMirrorEditor extends React.Component {
+  componentDidMount() {
     if (this.refs && this.refs.editor) {
       this.editor = CodeMirror.fromTextArea(ReactDOM.findDOMNode(this.refs.editor), {
         mode: 'javascript',
@@ -44,8 +36,9 @@ var CodeMirrorEditor = React.createClass({
         updateObj(dataID, {});
       }
     }
-  },
-  render: function() {
+  }
+
+  render() {
     if (window.gcexports.showdata === false) {
       return <div/>;
     }
@@ -56,48 +49,44 @@ var CodeMirrorEditor = React.createClass({
       </div>
     );
   }
-});
-var selfCleaningTimeout = {
-  componentDidUpdate: function() {
-    clearTimeout(this.timeoutID);
-  },
-  setTimeout: function() {
-    clearTimeout(this.timeoutID);
-    this.timeoutID = setTimeout.apply(null, arguments);
-  }
+}
+
+CodeMirrorEditor.propTypes = {
+  lineNumbers: PropTypes.bool,
+  onChange: PropTypes.func
 };
-var ObjectView = React.createClass({
-  mixins: [selfCleaningTimeout],
-  MODES: {JSX: 'JSX', JS: 'JS'}, //keyMirror({JSX: true, JS: true}),
-  propTypes: {
-    codeText: React.PropTypes.string.isRequired,
-    transformer: React.PropTypes.func,
-    renderCode: React.PropTypes.bool,
-    showCompiledJSTab: React.PropTypes.bool,
-    showLineNumbers: React.PropTypes.bool,
-    editorTabTitle: React.PropTypes.string
-  },
-  getDefaultProps: function() {
-    return {
-      editorTabTitle: 'Object',
-      showCompiledJSTab: true,
-      showLineNumbers: true,
-      codeText: '',
-    };
-  },
-  getInitialState: function() {
-    return {
+
+CodeMirrorEditor.defaultProps = {lineNumbers: false};
+
+class ObjectView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.MODES = {JSX: 'JSX', JS: 'JS'};
+    this.state = {
       mode: this.MODES.JSX,
       code: this.props.codeText,
     };
-  },
-  handleCodeChange: function(value) {
-  },
-  handleCodeModeSwitch: function(mode) {
-  },
-  compileCode: function() {
-  },
-  render: function() {
+  }
+
+  componentDidUpdate() {
+    clearTimeout(this.timeoutID);
+  }
+
+  setTimeout() {
+    clearTimeout(this.timeoutID);
+    this.timeoutID = setTimeout.apply(null, arguments);
+  }
+
+  handleCodeChange(value) {
+  }
+
+  handleCodeModeSwitch(mode) {
+  }
+
+  compileCode() {
+  }
+
+  render() {
     var isJS = this.state.mode === this.MODES.JS;
     var compiledCode = '';
     try {
@@ -117,12 +106,15 @@ var ObjectView = React.createClass({
         </div>
       </div>
     );
-  },
-  componentDidMount: function() {
-  },
-  componentDidUpdate: function(prevProps, prevState) {
-  },
-  executeCode: function() {
+  }
+
+  componentDidMount() {
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+  }
+
+  executeCode() {
     return;
     var mountNode = ReactDOM.findDOMNode(this.refs.mount);
     try {
@@ -148,5 +140,22 @@ var ObjectView = React.createClass({
       }, 500);
     }
   }
-});
+}
+
+ObjectView.propTypes = {
+  codeText: PropTypes.string.isRequired,
+  transformer: PropTypes.func,
+  renderCode: PropTypes.bool,
+  showCompiledJSTab: PropTypes.bool,
+  showLineNumbers: PropTypes.bool,
+  editorTabTitle: PropTypes.string
+};
+
+ObjectView.defaultProps = {
+  editorTabTitle: 'Object',
+  showCompiledJSTab: true,
+  showLineNumbers: true,
+  codeText: '',
+};
+
 export default ObjectView;

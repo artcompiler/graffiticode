@@ -8,12 +8,14 @@ import {
   decodeID,
   encodeID,
 } from "./share.js"
+
 window.gcexports.ReactDOM = ReactDOM;
 window.gcexports.decodeID = decodeID;
 window.gcexports.encodeID = encodeID;
 let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
 });
+
 window.gcexports.compileSrc = (lang, src, resume) => {
   $.ajax({
     type: "PUT",
@@ -33,12 +35,16 @@ window.gcexports.compileSrc = (lang, src, resume) => {
     }
   });
 };
-var GraffContent = React.createClass({
-  componentWillUnmount: function() {
-  },
-  lastItemID: undefined,
-  pendingRequests: 0,
-  compileCode: function(itemID) {
+
+class GraffContent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.lastItemID = undefined;
+    this.pendingRequests = 0;
+    this.onChange = this.onChange.bind(this);
+  }
+
+  compileCode(itemID) {
     let langID, codeID, dataID;
     let ids = decodeID(itemID);
     langID = ids[0];
@@ -96,8 +102,9 @@ var GraffContent = React.createClass({
         console.log("x=" + x.stack);
       }
     }
-  },
-  componentDidMount: function() {
+  }
+
+  componentDidMount() {
     let gcexports = window.gcexports;
     GraffView.dispatchToken = gcexports.dispatcher.register(this.onChange);
     let itemID = gcexports.id;
@@ -114,8 +121,9 @@ var GraffContent = React.createClass({
     };
     window.history.replaceState(history, language, "/" + gcexports.view + "?id=" + itemID);
     window.gcexports.compileCode = this.compileCode;
-  },
-  componentDidUpdate: function() {
+  }
+
+  componentDidUpdate() {
     let gcexports = window.gcexports;
     let el = ReactDOM.findDOMNode(this);
     let lang = gcexports.language;
@@ -148,8 +156,9 @@ var GraffContent = React.createClass({
       let dataIDs = ids.slice(2);
       console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
     }
-  },
-  postData: function postData(itemID, obj, label, parentID) {
+  }
+
+  postDatapostData(itemID, obj, label, parentID) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
     if (obj && Object.keys(obj).length > 0) {
@@ -208,8 +217,9 @@ var GraffContent = React.createClass({
         }
       });
     }
-  },
-  onChange: function (data) {
+  }
+
+  onChange(data) {
     // Every dispatch comes through here.
     if (!window.gcexports) {
       // Not ready yet.
@@ -235,7 +245,7 @@ var GraffContent = React.createClass({
       let item = data[itemID];
       if (item && !item.obj) {
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
-        item.obj = 
+        item.obj =
           this.state[itemID] && this.state[itemID].obj ||
           this.state[codeID] && this.state[codeID].obj ||
           this.compileCode(itemID);
@@ -257,8 +267,9 @@ var GraffContent = React.createClass({
         this.setState(Object.assign({}, this.state, state));
       }
     }
-  },
-  render: function () {
+  }
+
+  render() {
     if (window.gcexports &&
         window.gcexports.viewer &&
         window.gcexports.viewer.Viewer) {
@@ -285,14 +296,16 @@ var GraffContent = React.createClass({
         </svg>
       );
     }
-  },
-});
-var GraffView = React.createClass({
-  render: function() {
+  }
+}
+
+class GraffView extends React.Component {
+  render() {
     gcexports.onDidUpdate && gcexports.onDidUpdate();
     return (
       <GraffContent className="graffContentStage" />
     );
-  },
-});
+  }
+}
+
 export default GraffView;
