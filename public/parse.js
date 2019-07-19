@@ -1791,7 +1791,7 @@ window.gcexports.parser = (function () {
       url: "/compile",
       data: {
         "id": postCode ? null : gcexports.id,
-        "forkID": gcexports.forkID,
+        "forkID": gcexports.forkID || 0,
         "parent": postCode ? gcexports.id : null,
         "ast": ast,
         "type": gcexports.lexiconType,

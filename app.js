@@ -42,8 +42,6 @@ const env = process.env.NODE_ENV || 'development';
 
 let protocol = http;
 
-// http://stackoverflow.com/questions/7013098/node-js-www-non-www-redirection
-// http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
 app.all('*', function (req, res, next) {
   if (req.headers.host.match(/^localhost/) === null) {
     if (req.headers['x-forwarded-proto'] !== 'https' && env === 'production') {
@@ -239,7 +237,6 @@ app.get('/lang', function(req, res) {
   var src = req.query.src;
   var lang = langName(langID);
   pingLang(lang, (pong) => {
-    console.log("GET /lang pong=" + pong);
     if (pong) {
       if (src) {
         assert(false, "Should not get here. Call PUT /compile");
@@ -248,33 +245,26 @@ app.get('/lang', function(req, res) {
         dbQuery(queryString, (err, result) => {
           let rows = result.rows;
           if (rows.length === 0) {
-            getCompilerVersion(lang, (version) => {
-              console.log("GET /lang version=" + version);
-              if (version !== undefined) {
-                var insertStr =
-                  "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-                  " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-                  " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-                  " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
-                dbQuery(insertStr, function(err, result) {
-                  if (err) {
-                    console.log("ERROR GET /pieces/:lang err=" + err);
-                    res.sendStatus(400);
-                    return;
-                  }
-                  dbQuery(queryString, (err, result) => {
-                    let rows = result.rows;
-                    if (rows.length > 0) {
-                      res.redirect("/form?id=" + rows[0].id);
-                    } else {
-                      console.log("[1] GET /lang ERROR 404 ");
-                      res.sendStatus(404);
-                    }
-                  });
-                });
-              } else {
-                res.sendStatus(404);
+            var insertStr =
+              "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+              " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
+              " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
+              " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+            dbQuery(insertStr, function(err, result) {
+              if (err) {
+                console.log("ERROR GET /pieces/:lang err=" + err);
+                res.sendStatus(400);
+                return;
               }
+              dbQuery(queryString, (err, result) => {
+                let rows = result.rows;
+                if (rows.length > 0) {
+                  res.redirect("/form?id=" + rows[0].id);
+                } else {
+                  console.log("[1] GET /lang ERROR 404 ");
+                  res.sendStatus(404);
+                }
+              });
             });
           } else {
             res.redirect("/item?id=" + encodeID([langID, rows[0].id, 0]));
@@ -289,117 +279,98 @@ app.get('/lang', function(req, res) {
 });
 
 const sendItem = (id, req, res) => {
-  const hasEditingRights = true;   // Compute based on authorization.
   if (req.query.alias) {
     aliases[req.query.alias] = id;
   }
-  if (hasEditingRights) {
-    let ids = decodeID(id);
-    if (ids[1] === 0 && aliases[id]) {
-      // ID is an invalid ID but a valid alias, so get aliased ID.
-      ids = decodeID(aliases[id]);
-    }
-    // If forkID then getTip()
-    getTip(id, (err, tip) => {
-      let langID = ids[0];
-      let codeID = tip || ids[1];
-      let dataIDs = ids.slice(2);
-      if (req.query.fork) {
-        // Create a new fork.
-        getItem(codeID, (err, row) => {
-          if (err && err.length) {
-            console.log("[1] GET /item ERROR 404 ");
-            res.sendStatus(404);
-          } else {
-            langID = langID || +row.language.slice(1);
-            let language = "L" + langID;
-            let src = row.src;
-            let ast = row.ast;
-            let obj = row.obj;
-            let userID = row.user_id;
-            let parentID = codeID;
-            let img = row.img;
-            let label = row.label;
-            let forkID = 0;
-            postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
-              let codeID = result.rows[0].id;
-              let ids = [langID, codeID].concat(dataIDs);
-              if (err) {
-                console.log("ERROR putData() err=" + err);
-                resume(err);
-              } else {
-                getCompilerVersion(lang, (version) => {
-                  res.render('views.html', {
-                    title: 'Graffiti Code',
-                    language: language,
-                    item: encodeID(ids),
-                    view: "item",
-                    version: version,
-                    refresh: req.query.refresh,
-                    archive: req.query.archive,
-                    showdata: req.query.data,
-                    forkID: codeID,
-                    findLabel: req.query.label,
-                    findMark: req.query.mark,
-                  }, function (error, html) {
-                    if (error) {
-                      console.log("ERROR [1] GET /item err=" + error);
-                      res.sendStatus(400);
-                    } else {
-                      res.send(html);
-                    }
-                  });
-                });
-              }
-            });
-          }
-        });
-      } else {
-        getItem(codeID, (err, row) => {
-          if (err && err.length) {
-            console.log("ERROR [1] GET /item");
-            res.sendStatus(404);
-          } else {
-            let rows;
-            langID = langID || +row.language.slice(1);
-            let language = "L" + langID;
-            getCompilerVersion(language, (version) => {
+  let ids = decodeID(id);
+  if (ids[1] === 0 && aliases[id]) {
+    // ID is an invalid ID but a valid alias, so get aliased ID.
+    ids = decodeID(aliases[id]);
+  }
+  // If forkID then getTip()
+  getTip(id, (err, tip) => {
+    let langID = ids[0];
+    let codeID = tip || ids[1];
+    let dataIDs = ids.slice(2);
+    if (req.query.fork) {
+      // Create a new fork.
+      getItem(codeID, (err, row) => {
+        if (err && err.length) {
+          console.log("[1] GET /item ERROR 404 ");
+          res.sendStatus(404);
+        } else {
+          langID = langID || +row.language.slice(1);
+          let language = "L" + langID;
+          let src = row.src;
+          let ast = row.ast;
+          let obj = row.obj;
+          let userID = row.user_id;
+          let parentID = codeID;
+          let img = row.img;
+          let label = row.label;
+          let forkID = 0;
+          postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
+            let codeID = result.rows[0].id;
+            let ids = [langID, codeID].concat(dataIDs);
+            if (err) {
+              console.log("ERROR putData() err=" + err);
+              resume(err);
+            } else {
               res.render('views.html', {
                 title: 'Graffiti Code',
                 language: language,
-                item: encodeID([langID, codeID].concat(dataIDs)),
+                item: encodeID(ids),
                 view: "item",
-                version: version,
                 refresh: req.query.refresh,
                 archive: req.query.archive,
                 showdata: req.query.data,
-                forkID: row.fork_id,
+                forkID: codeID,
                 findLabel: req.query.label,
                 findMark: req.query.mark,
               }, function (error, html) {
                 if (error) {
-                  console.log("ERROR [2] GET /item err=" + error);
+                  console.log("ERROR [1] GET /item err=" + error);
                   res.sendStatus(400);
                 } else {
                   res.send(html);
                 }
               });
-            });
-          }
-        });
-      }
-    });
-  } else {
-    // Redirect to form view.
-    let protocol;
-    if (req.headers.host.match(/^localhost/) === null) {
-      protocol = "https://";
+            }
+          });
+        }
+      });
     } else {
-      protocol = "http://";
+      getItem(codeID, (err, row) => {
+        if (err && err.length) {
+          console.log("ERROR [1] GET /item");
+          res.sendStatus(404);
+        } else {
+          let rows;
+          langID = langID || +row.language.slice(1);
+          let language = "L" + langID;
+          res.render('views.html', {
+            title: 'Graffiti Code',
+            language: language,
+            item: encodeID([langID, codeID].concat(dataIDs)),
+            view: "item",
+            refresh: req.query.refresh,
+            archive: req.query.archive,
+            showdata: req.query.data,
+            forkID: row.fork_id,
+            findLabel: req.query.label,
+            findMark: req.query.mark,
+          }, function (error, html) {
+            if (error) {
+              console.log("ERROR [2] GET /item err=" + error);
+              res.sendStatus(400);
+            } else {
+              res.send(html);
+            }
+          });
+        }
+      });
     }
-    let url = [protocol, req.headers.host, req.url.replace("item", "form")].join('');
-    res.redirect(url);
-  }
+  });
 };
 
 app.get("/item", function (req, res) {
@@ -429,22 +400,19 @@ const sendForm = (id, req, res) => {
   }
   if (langID !== 0) {
     let lang = langName(langID);
-    getCompilerVersion(lang, (version) => {
-      res.render('form.html', {
-        title: 'Graffiti Code',
-        language: lang,
-        item: encodeID(ids),
-        view: "form",
-        version: version,
-        refresh: req.query.refresh,
-      }, function (error, html) {
-        if (error) {
-          console.log("ERROR [1] GET /form err=" + error);
-          res.sendStatus(400);
-        } else {
-          res.send(html);
-        }
-      });
+    res.render('form.html', {
+      title: 'Graffiti Code',
+      language: lang,
+      item: encodeID(ids),
+      view: "form",
+      refresh: req.query.refresh,
+    }, function (error, html) {
+      if (error) {
+        console.log("ERROR [1] GET /form err=" + error);
+        res.sendStatus(400);
+      } else {
+        res.send(html);
+      }
     });
   } else {
     // Don't have a langID, so get it from the database item.
@@ -454,23 +422,20 @@ const sendForm = (id, req, res) => {
         res.sendStatus(404);
       } else {
         var lang = row.language;
-        getCompilerVersion(lang, (version) => {
-          langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
-          res.render('form.html', {
-            title: 'Graffiti Code',
-            language: lang,
-            item: encodeID(ids),
-            view: "form",
-            version: version,
-            refresh: req.query.refresh,
-          }, function (error, html) {
-            if (error) {
-              console.log("ERROR [2] GET /form error=" + error);
-              res.sendStatus(400);
-            } else {
-              res.send(html);
-            }
-          });
+        langID = lang.charAt(0) === "L" ? lang.substring(1) : lang;
+        res.render('form.html', {
+          title: 'Graffiti Code',
+          language: lang,
+          item: encodeID(ids),
+          view: "form",
+          refresh: req.query.refresh,
+        }, function (error, html) {
+          if (error) {
+            console.log("ERROR [2] GET /form error=" + error);
+            res.sendStatus(400);
+          } else {
+            res.send(html);
+          }
         });
       }
     });
@@ -541,44 +506,6 @@ app.get("/c/:id", (req, res) => {
   sendCode(req.params.id, req, res);
 });
 
-let compilerVersions = {};
-function getCompilerVersion(lang, resume) {
-  // Compiler version tells which parser to use.
-  if (compilerVersions[lang]) {
-    resume(compilerVersions[lang]);
-  } else {
-    pingLang(lang, (pong) => {
-      if (pong) {
-        var data = [];
-        var options = {
-          host: getCompilerHost(lang),
-          port: getCompilerPort(lang),
-          path: "/version",
-        };
-        try {
-          var req = protocol.get(options, function(res) {
-            res.on("data", function (chunk) {
-              data.push(chunk);
-            }).on("end", function () {
-              let str = data.join("");
-              let version = parseInt(str.substring(1));
-              version = compilerVersions[lang] = isNaN(version) ? 0 : version;
-              resume(version);
-            }).on("error", () => {
-              resume(null);
-            });
-          });
-        } catch (e) {
-          console.log("ERROR [3] " + e.stack);
-          resume(null);
-        }
-      } else {
-        resume(null);
-      }
-    });
-  }
-}
-
 let pingCache = {};
 function pingLang(lang, resume) {
   if (pingCache[lang]) {
@@ -592,7 +519,7 @@ function pingLang(lang, resume) {
     };
     let protocol = LOCAL_COMPILES && http || https;
     req = protocol.request(options, function(r) {
-      let pong = r.statusCode === 200 && true || false;
+      let pong = r.statusCode === 200;
       pingCache[lang] = pong;
       resume(pong);
     }).on("error", (e) => {
@@ -605,10 +532,11 @@ function pingLang(lang, resume) {
 function get(language, path, resume) {
   var data = [];
   var options = {
-    host: getCompilerHost(language),
-    port: getCompilerPort(language),
-    path: "/" + path,
+    host: getAPIHost(language),
+    port: getAPIPort(language),
+    path: "/" + language + "/" + path,
   };
+  let protocol = LOCAL_COMPILES && http || https;
   var req = protocol.get(options, function(res) {
     res.on("data", function (chunk) {
       data.push(chunk);
@@ -758,18 +686,18 @@ function getData(auth, ids, refresh, resume) {
   }
 }
 
-function getCode(ids, resume) {
+function getCode(ids, refresh, resume) {
   getItem(ids[1], (err, item) => {
     // if L113 there is no AST.
-    if (item && item.ast) {
+    if (!refresh && item && item.ast) {
       let ast = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
       resume(err, ast);
     } else {
       if (ids[0] !== 113) {
-        console.log("No AST found: langID=" + ids[0] + " codeID=" + ids[1]);
         assert(item, "ERROR getCode() item not found: " + ids);
         let lang = item.language;
         let src = item.src.replace(/\\\\/g, "\\");
+        console.log("Reparsing SRC: langID=" + ids[0] + " codeID=" + ids[1] + " src=" + src);
         parse(lang, src, (err, ast) => {
           updateAST(ids[1], ast, (err)=>{
             assert(!err);
@@ -819,7 +747,7 @@ function compileID(auth, id, options, resume) {
         let ids = decodeID(id);
         countView(ids[1]);  // Count every time code is used to compile a new item.
         getData(auth, ids, refresh, (err, data) => {
-          getCode(ids, (err, code) => {
+          getCode(ids, refresh, (err, code) => {
             if (err && err.length) {
               resume(err, null);
             } else {
@@ -1154,7 +1082,7 @@ app.put('/compile', function (req, res) {
       // Map AST or SRC into OBJ. Store OBJ and return ID.
       // Compile AST or SRC to OBJ. Insert or add item.
       let id = req.body.id;
-      let forkID = req.body.forkID;
+      let forkID = req.body.forkID || 0;
       let ids = decodeID(id);
       let rawSrc = req.body.src;
       let src = cleanAndTrimSrc(req.body.src);
@@ -1255,7 +1183,7 @@ const putData = (auth, data, resume) => {
   let t0 = new Date;
   let rawSrc = JSON.stringify(data) + "..";
   let src = cleanAndTrimSrc(rawSrc);
-  let obj = JSON.stringify(data);
+  let obj = cleanAndTrimObj(JSON.stringify(data));
   let lang = "L113";
   let user = 0;
   var ast = null;
@@ -1571,30 +1499,37 @@ function num2dot(num) {
   return d;
 }
 
+const assetCache = {};
 app.get("/:lang/*", function (req, response) {
   // /L106/lexicon.js
   let lang = req.params.lang;
-  pingLang(lang, pong => {
-    if (pong) {
-      let url = req.url;
-      let path = url.substring(url.indexOf(lang) + lang.length + 1);
-      var data = [];
-      var options = {
-        host: getCompilerHost(lang),
-        port: getCompilerPort(lang),
-        path: "/" + path,
-      };
-      req = protocol.get(options, function(res) {
-        res.on("data", function (chunk) {
-          data.push(chunk);
-        }).on("end", function () {
-          response.send(data.join(""));
+  let path = req.url;
+  let data;
+  if ((data = assetCache[path])) {
+    response.send(data);
+  } else {
+    pingLang(lang, pong => {
+      if (pong) {
+        let data = [];
+        let options = {
+          host: getAPIHost(lang),
+          port: getAPIPort(lang),
+          path: path,
+        };
+        let protocol = LOCAL_COMPILES && http || https;
+        req = protocol.get(options, function(res) {
+          res.on("data", function (chunk) {
+            data.push(chunk);
+          }).on("end", function () {
+            data = assetCache[path] = data.join("");
+            response.send(data);
+          });
         });
-      });
-    } else {
-      response.sendStatus(404);
-    }
-  });
+      } else {
+        response.sendStatus(404);
+      }
+    });
+  }
 });
 
 function getCompilerHost(lang, options) {
