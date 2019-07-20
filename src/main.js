@@ -33,6 +33,9 @@ var parse = exports.parse = function(src, lexicon, resume) {
     nodePool = state.nodePool
     nodeStack = state.nodeStack
   }
+  if (state.cc) {
+    throw "End of program reached.";
+  }
   return nodePool;
 }
 
@@ -46,10 +49,8 @@ if (!module.parent) {
         console.log(err);
         return;
       }
-      console.log("parsing: " + data);
       var t0 = new Date;
       parse(data, {}, function (err, ast) {
-        console.log("ast=" + JSON.stringify(ast, null, 2));
       });
     });
   });

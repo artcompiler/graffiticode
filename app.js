@@ -703,6 +703,7 @@ function getCode(ids, refresh, resume) {
             assert(!err);
           });
           // Don't wait for update.
+          console.log("getCode() ast=" + JSON.stringify(ast, null, 2));
           resume(err, ast);
         });
       } else {
@@ -781,7 +782,7 @@ function compileID(auth, id, options, resume) {
                       }
                     });
                   } else {
-                    if (lang && code) {
+                    if (lang && code && code.root) {
                       assert(code.root !== undefined, "Invalid code for item " + ids[1]);
                       // Let downstream compilers know they need to refresh
                       // any data used.
