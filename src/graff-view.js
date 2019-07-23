@@ -158,7 +158,7 @@ class GraffContent extends React.Component {
     }
   }
 
-  postDatapostData(itemID, obj, label, parentID) {
+  postData(itemID, obj, label, parentID) {
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
     if (obj && Object.keys(obj).length > 0) {
