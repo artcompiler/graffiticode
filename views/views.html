@@ -54,13 +54,20 @@
             <span style="padding: 3; height: auto"></span>
           </li>
           <li class="nav-item">
-            <a class="navbar-brand" title="Refresh" href="#" onclick="handleRefresh(event)"><img style="opacity:.8" width="20" src="refresh.png"></a>
+            <a class="navbar-brand" title="Recompile" href="#" onclick="handleRefresh(event)"><img style="opacity:.8" width="20" src="refresh.png"></a>
           </li>
           <li class="nav-item">
-            <a id="open-fork" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Start something new">FORK</a>
+            <span style="padding: 2; height: auto"></span>
           </li>
           <li class="nav-item">
-            <span style="padding: 10; height: auto"></span>
+            <a class="navbar-brand" title="Mark" href="#" onclick="handleMark(event)">
+              <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                <circle id="mark-circle" cx="11" cy="11" r="9" stroke-width="1" stroke="#777" fill="#fefefe"/>
+              </svg>
+            </a>
+          </li>
+          <li class="nav-item">
+            <span style="padding: 2; height: auto"></span>
           </li>
           <li class="nav-item">
             <button id="code-btn" title="Open the code view" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
@@ -78,16 +85,6 @@
             </button>
           </li>
           <li class="nav-item">
-            <span style="padding: 6; height: auto"></span>
-          </li>
-          <li class="nav-item">
-            <a class="navbar-brand" title="Mark as good, questionable or bad" href="#" onclick="handleMark(event)">
-              <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                <circle id="mark-circle" cx="11" cy="11" r="9" stroke-width="1" stroke="#777" fill="#fefefe"/>
-              </svg>
-            </a>
-          </li>
-          <li class="nav-item">
             <span style="padding: 1; height: auto"></span>
           </li>
           <li class="nav-item">
@@ -103,6 +100,9 @@
           <li class="nav-item">
             <span style="padding: 1; height: auto">
             </span>
+          </li>
+          <li class="nav-item">
+            <a id="open-fork" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Copy item">FORK</a>
           </li>
           <li class="nav-item">
             <a id="open-form" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="Open the form">FORM</a>

@@ -492,7 +492,7 @@ const sendCode = (id, req, res) => {
       // No data provided, so obj code won't change.
       res.json({
         src: row.src,
-        ast: JSON.parse(row.ast),
+        ast: row.ast,
       });
     }
   });
