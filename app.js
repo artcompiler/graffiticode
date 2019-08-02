@@ -703,7 +703,6 @@ function getCode(ids, refresh, resume) {
             assert(!err);
           });
           // Don't wait for update.
-          console.log("getCode() ast=" + JSON.stringify(ast, null, 2));
           resume(err, ast);
         });
       } else {
@@ -1506,7 +1505,7 @@ app.get("/:lang/*", function (req, response) {
   let lang = req.params.lang;
   let path = req.url;
   let data;
-  if ((data = assetCache[path])) {
+  if (!LOCAL_COMPILES && (data = assetCache[path])) {
     response.send(data);
   } else {
     pingLang(lang, pong => {
