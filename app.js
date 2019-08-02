@@ -491,8 +491,8 @@ const sendCode = (id, req, res) => {
     } else {
       // No data provided, so obj code won't change.
       res.json({
-        id: codeID,
         src: row.src,
+        ast: JSON.parse(row.ast),
       });
     }
   });
