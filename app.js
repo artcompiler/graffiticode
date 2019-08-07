@@ -705,7 +705,7 @@ function getCode(ids, refresh, resume) {
           resume(err, ast);
         });
       } else {
-        resume(err, {});
+        resume(err, item.ast || {});
       }
     }
   });
