@@ -489,10 +489,9 @@ const sendCode = (id, req, res) => {
       console.log("ERROR [1] GET /code");
       res.sendStatus(404);
     } else {
-      // No data provided, so obj code won't change.
       res.json({
-        id: codeID,
         src: row.src,
+        ast: typeof row.ast === "string" && JSON.parse(row.ast) || row.ast,
       });
     }
   });
@@ -586,7 +585,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, forkID, res
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
-  ast = cleanAndTrimSrc(JSON.stringify(ast));
+  ast = JSON.parse(cleanAndTrimSrc(JSON.stringify(ast)));
   var queryStr =
     "INSERT INTO pieces (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + clientAddress + "','" + forkID + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
@@ -703,11 +702,10 @@ function getCode(ids, refresh, resume) {
             assert(!err);
           });
           // Don't wait for update.
-          console.log("getCode() ast=" + JSON.stringify(ast, null, 2));
           resume(err, ast);
         });
       } else {
-        resume(err, {});
+        resume(err, item.ast || {});
       }
     }
   });
@@ -1506,7 +1504,7 @@ app.get("/:lang/*", function (req, response) {
   let lang = req.params.lang;
   let path = req.url;
   let data;
-  if ((data = assetCache[path])) {
+  if (!LOCAL_COMPILES && (data = assetCache[path])) {
     response.send(data);
   } else {
     pingLang(lang, pong => {
