@@ -14,6 +14,7 @@ class ArchiveContent extends React.Component {
     super(props);
     this.items = undefined;
     this.onChange = this.onChange.bind(this);
+    this.onFilterBlur = this.onFilterBlur.bind(this);
   }
   componentDidUpdate() {
     clearTimeout(this.timeoutID);
