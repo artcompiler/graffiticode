@@ -252,7 +252,7 @@ class ArchiveContent extends React.Component {
         };
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
         updateHideButton(id);
-        updateSrcView(id);
+        updateSrcAndObjViews(id);
         updateGraffView(id);
       }
       function updateHideButton(id) {
@@ -271,16 +271,27 @@ class ArchiveContent extends React.Component {
           }
         });
       }
-      function updateSrcView(id) {
+      function updateSrcAndObjViews(id) {
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;
+        let ids = window.gcexports.decodeID(id);
+        let codeID = ids[1];
+        let dataID = window.gcexports.encodeID(ids.slice(2));
         $.get(location.origin + "/code?id=" + id, function (data) {
           window.gcexports.updateSrc(id, data.src);
         });
+        if (ids[2] === 0) {
+          window.gcexports.updateObj(dataID, {});
+        } else {
+          $.get(location.origin + "/data?id=" + dataID, function (data) {
+            window.gcexports.updateObj(dataID, data);
+          });
+        }
       }
       function updateGraffView(id) {
         let state = {}
         state[id] = {
           id: id,
+          recompileCode: true,
         };
         window.gcexports.dispatcher.dispatch(state);
       }
@@ -416,7 +427,7 @@ class ArchiveContent extends React.Component {
       });
       let lang = window.gcexports.language;
       getData(
-        "pieces",
+        piecesFilter && "pieces" || null,
         "id, created",
         "language='" + lang + "'" + piecesFilter,
         (err, data1) => {
@@ -428,8 +439,12 @@ class ArchiveContent extends React.Component {
             (err, data2) => {
               let itemsHash = data2 && data2.length > 0 && {} || null;
               if (itemsHash) {
+                // Put items from the items DB into the itemsHash.
                 data2.forEach(d => {
-                  itemsHash[d.codeid] = d.itemid;
+                  if (!itemsHash[d.codeid]) {
+                    itemsHash[d.codeid] = [];
+                  }
+                  itemsHash[d.codeid].push(d.itemid);
                 });
               }
               let items = [];
@@ -440,13 +455,23 @@ class ArchiveContent extends React.Component {
                 if (!itemsHash ||
                     excludeItems && !itemsHash[id] ||
                     !excludeItems && itemsHash[id]) {
-                  items[index] = {
-                    index: index,
-                    date: data1[i].created.substring(0,10),
-                    id: itemsHash && itemsHash[id] ||
-                      window.gcexports.encodeID([langID, data1[i].id, 0]),
+                  if (itemsHash && itemsHash[id]) {
+                    for (let j = 0; j < itemsHash[id].length; j++) {
+                      items[index] = {
+                        index: index,
+                        date: data1[i].created.substring(0,10),
+                        id: itemsHash[id][j],
+                      }
+                      index++;
+                    }
+                  } else {
+                    items[index] = {
+                      index: index,
+                      date: data1[i].created.substring(0,10),
+                      id: window.gcexports.encodeID([langID, data1[i].id, 0]),
+                    }
+                    index++;
                   }
-                  index++;
                 }
               }
               self.items = items;

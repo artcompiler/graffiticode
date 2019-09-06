@@ -244,11 +244,12 @@ class GraffContent extends React.Component {
       let ids = decodeID(itemID);
       let codeID = encodeID(ids.slice(0, 2).concat(0));
       let item = data[itemID];
-      if (item && !item.obj) {
+      if (item && (!item.obj || item.recompileCode)) {
+        let recompileCode = item.recompileCode;
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
         item.obj =
-          this.state[itemID] && this.state[itemID].obj ||
-          this.state[codeID] && this.state[codeID].obj ||
+          this.state[itemID] && this.state[itemID].obj && !recompileCode ||
+          ids[2] === 0 && this.state[codeID] && this.state[codeID].obj && !recompileCode ||
           this.compileCode(itemID);
         item.id = itemID;
       } else if (this.state[codeID] && !this.state[codeID].obj) {

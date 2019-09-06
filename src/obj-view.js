@@ -1,6 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil; tab-width: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import PropTypes from 'prop-types';
@@ -37,7 +34,6 @@ class CodeMirrorEditor extends React.Component {
       }
     }
   }
-
   render() {
     if (window.gcexports.showdata === false) {
       return <div/>;

@@ -66,7 +66,7 @@ app.use(morgan('combined', {
 app.use(bodyParser.urlencoded({ extended: false, limit: 100000000 }));
 app.use(bodyParser.text({limit: '50mb'}));
 app.use(bodyParser.raw({limit: '50mb'}));
-app.use(bodyParser.json({ type: 'application/vnd.api+json', limit: '50mb' }));
+app.use(bodyParser.json({ type: 'application/json', limit: '50mb' }));
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
 app.use('/lib', express.static(__dirname + '/lib'));
