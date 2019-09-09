@@ -55,9 +55,6 @@ class ArchiveContent extends React.Component {
       if ((id = index >= 0 && items.length > 0 && items[index].id) &&
           id !== window.gcexports.id) {
         updateView(id);
-      } else {
-        id = window.gcexports.id;
-        updateHideButton(id);
       }
       var width = 960,
           cellSize = 15,
@@ -154,13 +151,6 @@ class ArchiveContent extends React.Component {
         .style("margin", "10 50");
 
       buttons.append("button")
-        .attr("id", "hide-button")
-        .style("margin", "0 20 0 0")
-        .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
-        .classed("btn", true)
-        .classed("btn-light", true)
-        .on("click", handleButtonClick);
-      buttons.append("button")
         .style("background", "rgba(8, 149, 194, 0.10)")  // #0895c2
         .classed("btn", true)
         .classed("btn-light", true)
@@ -198,24 +188,6 @@ class ArchiveContent extends React.Component {
         let itemID = data[e][0].id;
         updateView(itemID);
       }
-      function hideItem(id, hide) {
-        let label = hide ? "hide" : "show";
-        $.ajax({
-          type: "PUT",
-          url: "/label",
-          data: {
-            id: id,
-            label: label,
-          },
-          dataType: "text",
-          success: function(data) {
-            d3.select("#hide-button").text(hide ? "SHOW" : "HIDE");
-          },
-          error: function(xhr, msg, err) {
-            console.log(msg + " " + err);
-          }
-        });
-      }
       function handleKeyPress(name) {
         if (name === "NEXT" || name === "PREV") {
           if (name === "NEXT") {
@@ -235,11 +207,7 @@ class ArchiveContent extends React.Component {
           return;
         }
         let name = d3.select(this).text();
-        if (name === "HIDE") {
-          hideItem(items[index].id, true);
-        } else if (name === "SHOW") {
-          hideItem(items[index].id, false);
-        } else if (name === "NEXT" || name === "PREV") {
+        if (name === "NEXT" || name === "PREV") {
           handleKeyPress(name);
         }
       }
@@ -251,25 +219,8 @@ class ArchiveContent extends React.Component {
           view: gcexports.view,
         };
         window.history.pushState(history, language, "/" + gcexports.view + "?id=" + id);
-        updateHideButton(id);
         updateSrcAndObjViews(id);
         updateGraffView(id);
-      }
-      function updateHideButton(id) {
-        $.ajax({
-          type: "GET",
-          url: "/label",
-          data: {
-            id: id,
-          },
-          dataType: "text",
-          success: function(label) {
-            d3.select("#hide-button").text(label === "show" ? "HIDE" : "SHOW");
-          },
-          error: function(xhr, msg, err) {
-            console.log(msg + " " + err);
-          }
-        });
       }
       function updateSrcAndObjViews(id) {
         // window.location.href = "/" + gcexports.view + "?id=" + itemID;

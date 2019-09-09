@@ -96,7 +96,7 @@ app.get("/", (req, res) => {
 const aliases = {};
 
 function insertItem(userID, itemID, resume) {
-  dbQuery("SELECT count(*) FROM items where userID=" + userID + "AND itemID='" + itemID + "'", (err, result) => {
+  dbQuery("SELECT count(*) FROM items where itemID='" + itemID + "'", (err, result) => {
     if (+result.rows[0].count === 0) {
       let [langID, codeID, ...dataID] = decodeID(itemID);
       dataID = encodeID(dataID);
