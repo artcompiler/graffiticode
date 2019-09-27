@@ -133,7 +133,7 @@ class ArchiveContent extends React.Component {
 
       d3.select(document)
         .on("keydown", () => {
-          if (event.target.type !== "textarea") {
+          if (event.target.type !== "textarea" && event.target.contentEditable !== "true") {
             let name = "";
             if(event.keyCode == 37) {
               name = "PREV";
