@@ -87,9 +87,9 @@ var request = require('request');
 app.get("/", (req, res) => {
   let proto = req.headers['x-forwarded-proto'] || "http";
   if (aliases["home"]) {
-    request([proto, "://", req.headers.host, "/form?id=" + aliases["home"]].join("")).pipe(res);
+    request([proto, "://", "www.artcompiler.com", "/form?id=" + aliases["home"]].join("")).pipe(res);
   } else {
-    request([proto, "://", req.headers.host, "/form?id=q1yU91wYFN"].join("")).pipe(res);
+    request([proto, "://", "www.artcompiler.com", "/form?id=q1yU91wYFN"].join("")).pipe(res);
   }
 });
 
@@ -1531,27 +1531,11 @@ app.get("/:lang/*", function (req, response) {
   }
 });
 
-function getCompilerHost(lang, options) {
-  if (LOCAL_COMPILES) {
-    return "localhost";
-  } else {
-    return lang + ".artcompiler.com";
-  }
-}
-
-function getCompilerPort(lang) {
-  if (LOCAL_COMPILES) {
-    return "5" + lang.substring(1);  // e.g. L103 -> 5103
-  } else {
-    return "80";
-  }
-}
-
 function getAPIHost(lang, options) {
   if (LOCAL_COMPILES) {
     return "localhost";
   } else {
-    return "api.artcompiler.com";
+    return "api.s.acx.ac";
   }
 }
 
