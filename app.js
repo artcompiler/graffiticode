@@ -239,17 +239,20 @@ app.get('/lang', function(req, res) {
   pingLang(lang, (pong) => {
     if (pong) {
       if (src) {
-        assert(false, "Should not get here. Call PUT /compile");
+        //assert(false, "Should not get here. Call PUT /compile");
+        putCode(authToken, lang, src, async (err, val) => {
+          res.redirect("/item?id=" + val.id);
+        });
       } else {
         let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
         dbQuery(queryString, (err, result) => {
           let rows = result.rows;
           if (rows.length === 0) {
             var insertStr =
-              "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
+              "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label)" +
               " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-              " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-              " ', '" + lang + "', '" + "show" + "', '" + "" + "');"
+              " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + 'NULL' +
+              " ', '" + lang + "', '" + "show" + "');"
             dbQuery(insertStr, function(err, result) {
               if (err) {
                 console.log("ERROR GET /pieces/:lang err=" + err);
@@ -585,7 +588,7 @@ function postItem(language, src, ast, obj, user, parent, img, label, forkID, res
   obj = cleanAndTrimObj(obj);
   img = cleanAndTrimObj(img);
   src = cleanAndTrimSrc(src);
-  ast = JSON.parse(cleanAndTrimSrc(JSON.stringify(ast)));
+  ast = cleanAndTrimSrc(JSON.stringify(ast));
   var queryStr =
     "INSERT INTO pieces (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + clientAddress + "','" + forkID + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
