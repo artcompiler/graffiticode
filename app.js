@@ -21,6 +21,7 @@ const routes = require('./routes');
 const DEBUG = process.env.DEBUG === 'true' || false;
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
 const LOCAL_DATABASE = process.env.LOCAL_DATABASE === 'true' || false;
+const API_HOST = process.env.API_HOST || "api.acx.ac";
 
 if (LOCAL_DATABASE) {
   pg.defaults.ssl = false;
@@ -1538,7 +1539,7 @@ function getAPIHost(lang, options) {
   if (LOCAL_COMPILES) {
     return "localhost";
   } else {
-    return "api.s.acx.ac";
+    return API_HOST;
   }
 }
 
