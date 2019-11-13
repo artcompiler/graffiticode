@@ -699,7 +699,7 @@ function getCode(ids, refresh, resume) {
       if (ids[0] !== 113) {
         assert(item, "ERROR getCode() item not found: " + ids);
         let lang = item.language;
-        let src = item.src.replace(/\\\\/g, "\\");
+        let src = item.src; //.replace(/\\\\/g, "\\");
         console.log("Reparsing SRC: langID=" + ids[0] + " codeID=" + ids[1] + " src=" + src);
         parse(lang, src, (err, ast) => {
           updateAST(ids[1], ast, (err)=>{
