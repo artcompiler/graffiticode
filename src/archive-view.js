@@ -333,12 +333,14 @@ class ArchiveContent extends React.Component {
       let year = getCommandParam(str, "created");
       let code = getCommandParam(str, "code");
       let index = getCommandParam(str, "index");
+      let userid = getCommandParam(str, "userid");
       return {
         mark: mark && " and mark" + mark || "",
         label: label && " and label" + label || "",
         created: year && " and created >= '" + year + "-01-01' and created <= '" + year + "-12-31'",
         code: code && " and src like '%" + code + "%'",
         index: index - 1,  // Zero based.
+        userid: userid && " and userid='" + userid + "'" || "",
       };
     }
     function getItems(resume) {
@@ -348,7 +350,7 @@ class ArchiveContent extends React.Component {
       }
       let excludeItems = false;
       let filter = parseFilter(archiveFilter);
-      let filters = archiveFilter.split(",");
+//      let filters = archiveFilter.split(",");
       let piecesFilter = "";
       let itemsFilter = "";
       Object.keys(filter).forEach(k => {
@@ -362,6 +364,9 @@ class ArchiveContent extends React.Component {
             } else {
               itemsFilter +=  v;
             }
+            break;
+          case "userid":
+            itemsFilter += v;
             break;
           case "label":
           case "created":
@@ -407,6 +412,7 @@ class ArchiveContent extends React.Component {
                     excludeItems && !itemsHash[id] ||
                     !excludeItems && itemsHash[id]) {
                   if (itemsHash && itemsHash[id]) {
+                    // We have items so use them to filter the set.
                     for (let j = 0; j < itemsHash[id].length; j++) {
                       items[index] = {
                         index: index,
@@ -416,6 +422,7 @@ class ArchiveContent extends React.Component {
                       index++;
                     }
                   } else {
+                    // We don't have items so use all 'pieces' matches.
                     items[index] = {
                       index: index,
                       date: data1[i].created.substring(0,10),
