@@ -40,7 +40,8 @@ class GraffContent extends React.Component {
   constructor(props) {
     super(props);
     this.lastItemID = undefined;
-    this.pendingRequests = 0;
+    this.pendingPostRequests = 0;
+    this.pendingCompRequests = 0;
     this.onChange = this.onChange.bind(this);
   }
 
@@ -61,11 +62,11 @@ class GraffContent extends React.Component {
     }
     if (codeID && itemID && (refresh || itemID !== this.lastItemID)) {
       self.lastItemID = itemID;
-      self.pendingRequests++;
+      self.pendingCompRequests++;
       try {
         window.gcexports.updateMark && window.gcexports.updateMark(itemID);
         d3.json(location.origin + "/data/?id=" + itemID + params, (err, obj) => {
-          self.pendingRequests--;
+          self.pendingCompRequests--;
           // if (dataID && +dataID !== 0) {
           //   // This is the magic where we collapse the "tail" into a JSON object.
           //   // Next this JSON object gets interned as static data (in L113).
@@ -94,8 +95,8 @@ class GraffContent extends React.Component {
             obj: obj,
             data: {},  // clear data
           };
-          if (refresh || self.pendingRequests === 0) {
-            self.pendingRequest = 0;
+          if (refresh || self.pendingCompRequests === 0) {
+            self.pendingCompRequest = 0;
             dispatch(state);
           }
         });
@@ -171,7 +172,7 @@ class GraffContent extends React.Component {
       let self = this;
       // Append host language to label.
       label = label ? lang + " " + label : lang;
-      self.pendingRequests++;
+      self.pendingPostRequests++;
       $.ajax({
         type: "PUT",
         url: "/code",
@@ -187,7 +188,7 @@ class GraffContent extends React.Component {
         },
         dataType: "json",
         success: function(data) {
-          self.pendingRequests--;
+          self.pendingPostRequests--;
           if (itemID) {
             // Wait until we have an itemID to update URL.
             let ids = decodeID(itemID);
@@ -248,8 +249,8 @@ class GraffContent extends React.Component {
         let recompileCode = item.recompileCode;
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
         item.obj =
-          this.state[itemID] && this.state[itemID].obj && !recompileCode ||
-          ids[2] === 0 && this.state[codeID] && this.state[codeID].obj && !recompileCode ||
+          !recompileCode && this.state[itemID] && this.state[itemID].obj ||
+          !recompileCode && ids[2] === 0 && this.state[codeID] && this.state[codeID].obj ||
           this.compileCode(itemID);
         item.id = itemID;
       } else if (this.state[codeID] && !this.state[codeID].obj) {

@@ -34,6 +34,7 @@ if (typeof window === "undefined") {
     gcexports: {
       coords: {},
     },
+    errors: [],
     isSynthetic: true,
   };
 }
