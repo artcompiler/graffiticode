@@ -90,6 +90,7 @@ class GraffContent extends React.Component {
           //   dispatch(state);
           // }
           let state = {};
+          assert(obj);
           state[itemID] = {
             id: itemID,
             obj: obj,
@@ -104,6 +105,7 @@ class GraffContent extends React.Component {
         console.log("x=" + x.stack);
       }
     }
+    return true;
   }
 
   componentDidMount() {
@@ -136,6 +138,7 @@ class GraffContent extends React.Component {
       let ast = state.ast;
       let src = state.src;
       let obj = state.obj;
+      assert(obj);
       let data = state.data;
       let label = state.label;
       let viewer = window.gcexports.viewer;
@@ -233,6 +236,7 @@ class GraffContent extends React.Component {
       let ids = decodeID(itemID);
       let codeID = encodeID(ids.slice(0, 2).concat(0));
       if (!state[codeID] && data[itemID]) {
+        assert(data[itemID].obj);
         state[codeID] = {
           id: codeID,
           obj: data[itemID].obj,
@@ -251,10 +255,12 @@ class GraffContent extends React.Component {
         item.obj =
           !recompileCode && this.state[itemID] && this.state[itemID].obj ||
           !recompileCode && ids[2] === 0 && this.state[codeID] && this.state[codeID].obj ||
-          this.compileCode(itemID);
+          this.compileCode(itemID) && this.state[codeID] && this.state[codeID].obj; // return the base obj while recompiling.
         item.id = itemID;
+        assert(item.obj);
       } else if (this.state[codeID] && !this.state[codeID].obj) {
         // Don't have the base obj set yet.
+        assert(this.state[codeID].obj);
         state[codeID] = {
           id: codeID,
           obj: this.state[codeID].obj,
@@ -271,7 +277,14 @@ class GraffContent extends React.Component {
       }
     }
   }
-
+  shouldComponentUpdate() {
+    let itemID = window.gcexports.id;
+    if (this.state && this.state[itemID] && !this.state[itemID].obj) {
+      return false;
+    } else {
+      return true;
+    }
+  }
   render() {
     if (window.gcexports &&
         window.gcexports.viewer &&
@@ -282,6 +295,7 @@ class GraffContent extends React.Component {
       if (this.state && this.state[itemID] && this.state[itemID].obj) {
         let state = this.state[itemID];
         let obj = state.obj;
+        assert(obj);
         let data = state.data;
         return (
           <Viewer id="graff-view" className="viewer" obj={obj} data={data} />
