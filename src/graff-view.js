@@ -94,7 +94,7 @@ class GraffContent extends React.Component {
           state[itemID] = {
             id: itemID,
             obj: obj,
-            data: {},  // clear data
+            data: {},  // Clear data
           };
           if (refresh || self.pendingCompRequests === 0) {
             self.pendingCompRequest = 0;
@@ -255,7 +255,8 @@ class GraffContent extends React.Component {
         item.obj =
           !recompileCode && this.state[itemID] && this.state[itemID].obj ||
           !recompileCode && ids[2] === 0 && this.state[codeID] && this.state[codeID].obj ||
-          this.compileCode(itemID) && this.state[codeID] && this.state[codeID].obj; // return the base obj while recompiling.
+          this.compileCode(itemID) && this.state[codeID] && this.state[codeID].obj;
+          // Return the base obj while recompiling.
         item.id = itemID;
         assert(item.obj);
       } else if (this.state[codeID] && !this.state[codeID].obj) {
