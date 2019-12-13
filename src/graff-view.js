@@ -255,8 +255,11 @@ class GraffContent extends React.Component {
         item.obj =
           !recompileCode && this.state[itemID] && this.state[itemID].obj ||
           !recompileCode && ids[2] === 0 && this.state[codeID] && this.state[codeID].obj ||
-          this.compileCode(itemID) && this.state[codeID] && this.state[codeID].obj;
-          // Return the base obj while recompiling.
+          this.compileCode(itemID) && (
+            this.state[itemID] && this.state[itemID].obj ||
+            this.state[codeID] && this.state[codeID].obj
+            // Return the current obj, or base obj if none, while recompiling.
+          );
         item.id = itemID;
         assert(item.obj);
       } else if (this.state[codeID] && !this.state[codeID].obj) {
