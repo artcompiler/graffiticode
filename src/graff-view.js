@@ -160,6 +160,7 @@ class GraffContent extends React.Component {
       let codeIDs = ids.slice(0, 2);
       let dataIDs = ids.slice(2);
       console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
+      window.gcexports.updateMark && window.gcexports.updateMark(itemID);
     }
   }
 
