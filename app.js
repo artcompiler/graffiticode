@@ -85,14 +85,15 @@ app.engine('html', function (templateFile, options, callback) {
 // Routes
 
 // var request = require('request');
-// app.get("/", (req, res) => {
+app.get("/", (req, res) => {
+  res.sendStatus(200);
 //   let proto = req.headers['x-forwarded-proto'] || "http";
 //   if (aliases["home"]) {
 //     request([proto, "://", "www.artcompiler.com", "/form?id=" + aliases["home"]].join("")).pipe(res);
 //   } else {
 //     request([proto, "://", "www.artcompiler.com", "/form?id=LO5SnPeAJhg"].join("")).pipe(res);
 //   }
-// });
+});
 
 const aliases = {};
 
