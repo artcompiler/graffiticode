@@ -90,7 +90,7 @@ app.get("/", (req, res) => {
   if (aliases["home"]) {
     request([proto, "://", "www.artcompiler.com", "/form?id=" + aliases["home"]].join("")).pipe(res);
   } else {
-    request([proto, "://", "www.artcompiler.com", "/form?id=q1yU91wYFN"].join("")).pipe(res);
+    request([proto, "://", "www.artcompiler.com", "/form?id=LO5SnPeAJhg"].join("")).pipe(res);
   }
 });
 
