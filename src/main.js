@@ -20,7 +20,7 @@ var parse = exports.parse = function(src, lexicon, resume) {
     nodePool: ["unused"],
     nodeMap: {},
     nextToken: -1,
-    errors: [],
+    errors: window.gcexports.errors = [],
     coords: [],
     inStr: 0,
     quoteCharStack: [],

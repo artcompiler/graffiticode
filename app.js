@@ -1218,68 +1218,32 @@ function putCode(auth, lang, rawSrc, resume) {
   let obj = "";
   let label = "show";
   let parent = 0;
-  let query = "SELECT * FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + src + "' ORDER BY pieces.id";
-  dbQuery(query, function(err, result) {
-    var row = result.rows[0];
-    itemID = row && row.id || undefined;
-    ast = row && row.ast || null;
-    if (!ast) {
-      // No AST, try creating from source.
-      parse(lang, rawSrc, (err, ast) => {
-        compile(ast);
-      });
-    } else {
-      compile(ast);
-    }
-    function compile(ast) {
-      if (itemID) {
+  parse(lang, rawSrc, (err, ast) => {
+    compile(ast);
+  });
+  function compile(ast) {
+    let forkID = 0;
+    postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
+      if (err) {
+        console.log("ERROR [2] PUT /compile err=" + err);
+        resume(400);
+      } else {
         let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-        let codeID = row.id;
+        let codeID = result.rows[0].id;
         let dataID = 0;
         let ids = [langID, codeID, dataID];
         let id = encodeID(ids);
-        // We have an id, so update the item with the current AST.
-        updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
-          // Update the src and ast because they are used by compileID().
-          if (err) {
-            console.log("ERROR [1] PUT /compile err=" + err);
-            resume(400, null);
-          } else {
-            compileID(auth, id, {}, (err, obj) => {
-              // console.log("putCode() id=" + ids.join("+") + " (" + id + ") in " +
-              //             (new Date - t0) + "ms");
-              resume(null, {
-                id: id,
-                obj: obj,
-              });
-            });
-          }
-        });
-      } else {
-        let forkID = 0;
-        postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
-          if (err) {
-            console.log("ERROR [2] PUT /compile err=" + err);
-            resume(400);
-          } else {
-            let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-            let codeID = result.rows[0].id;
-            let dataID = 0;
-            let ids = [langID, codeID, dataID];
-            let id = encodeID(ids);
-            compileID(auth, id, {}, (err, obj) => {
-              console.log("putCode() id=" + ids.join("+") + " (" + id + ")* in " +
-                          (new Date - t0) + "ms");
-              resume(null, {
-                id: id,
-                obj: obj,
-              });
-            });
-          }
+        compileID(auth, id, {}, (err, obj) => {
+          console.log("putCode() id=" + ids.join("+") + " (" + id + ")* in " +
+                      (new Date - t0) + "ms");
+          resume(null, {
+            id: id,
+            obj: obj,
+          });
         });
       }
-    }
-  });
+    });
+  }
 }
 app.put('/code', (req, response) => {
   // Insert or update code without recompiling.
