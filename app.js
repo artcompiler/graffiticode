@@ -252,31 +252,39 @@ app.get('/lang', function(req, res) {
       } else {
         let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
         dbQuery(queryString, (err, result) => {
-          let rows = result.rows;
-          if (rows.length === 0) {
-            var insertStr =
+          if (err) {
+            console.log(err);
+            res.sendStatus(500);
+            return;
+          }
+          if (result.rows.length > 0) {
+            res.redirect("/item?id=" + encodeID([langID, result.rows[0].id, 0]));
+          } else {
+            const insertStr =
               "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label)" +
               " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
               " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + 'NULL' +
               " ', '" + lang + "', '" + "show" + "');"
-            dbQuery(insertStr, function(err, result) {
+            dbQuery(insertStr, (err, result) => {
               if (err) {
                 console.log("ERROR GET /pieces/:lang err=" + err);
                 res.sendStatus(400);
                 return;
               }
               dbQuery(queryString, (err, result) => {
-                let rows = result.rows;
-                if (rows.length > 0) {
-                  res.redirect("/form?id=" + rows[0].id);
+                if (err) {
+                  console.log(err);
+                  res.sendStatus(500);
+                  return;
+                }
+                if (result.rows.length > 0) {
+                  res.redirect("/form?id=" + result.rows[0].id);
                 } else {
                   console.log("[1] GET /lang ERROR 404 ");
                   res.sendStatus(404);
                 }
               });
             });
-          } else {
-            res.redirect("/item?id=" + encodeID([langID, rows[0].id, 0]));
           }
         });
       }
