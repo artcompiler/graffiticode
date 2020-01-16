@@ -114,33 +114,37 @@ function insertItem(userID, itemID, resume) {
 }
 
 const dbQuery = function(query, resume) {
-  let conString = getConStr(0);
-  // Query Helper -- https://github.com/brianc/node-postgres/issues/382
-  pg.connect(conString, function (err, client, done) {
-    // If there is an error, client is null and done is a noop
-    if (err) {
-      console.log("ERROR [1] dbQuery() err=" + err);
-      return resume(err, {});
-    }
-    try {
-      client.query(query, function (err, result) {
-        done();
-        if (err) {
-          throw new Error(err + ": " + query);
-        }
-        if (!result) {
-          result = {
-            rows: [],
-          };
-        }
-        return resume(err, result);
-      });
-    } catch (e) {
-      console.log("ERROR [2] dbQuery() e=" + e);
-      done();
-      return resume(e);
-    }
-  });
+  if (!query) {
+    resume(null, {}); // No query, empty result.
+  } else {
+    let conString = getConStr(0);
+    // Query Helper -- https://github.com/brianc/node-postgres/issues/382
+    pg.connect(conString, function (err, client, done) {
+      // If there is an error, client is null and done is a noop
+      if (err) {
+	console.log("ERROR [1] dbQuery() err=" + err);
+	return resume(err, {});
+      }
+      try {
+	client.query(query, function (err, result) {
+          done();
+          if (err) {
+            throw new Error(err + ": " + query);
+          }
+          if (!result) {
+            result = {
+              rows: [],
+            };
+          }
+          return resume(err, result);
+	});
+      } catch (e) {
+	console.log("ERROR [2] dbQuery() e=" + e);
+	done();
+	return resume(e);
+      }
+    });
+  }
 };
 
 const getItem = function (itemID, resume) {
@@ -1264,15 +1268,12 @@ app.put('/code', (req, response) => {
   if (itemID !== undefined) {
     // Prefer the given id if there is one.
     query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
-  } else {
-    // Otherwise look for an item with matching source.
-    query = "SELECT * FROM pieces WHERE language='" + lang + "' AND src = '" + src + "' ORDER BY pieces.id";
   }
   dbQuery(query, function(err, result) {
     // See if there is already an item with the same source for the same
     // language. If so, pass it on.
-    var row = result.rows[0];
-    itemID = itemID ? itemID : row ? row.id : undefined;
+    var row = result.rows && result.rows[0];
+    itemID = itemID || row && row.id;
     // Might still be undefined if there is no match.
     if (itemID) {
       var lang = row.language;
