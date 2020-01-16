@@ -1088,72 +1088,61 @@ app.put('/compile', function (req, res) {
       // user id against registered user table for this host.
       // Map AST or SRC into OBJ. Store OBJ and return ID.
       // Compile AST or SRC to OBJ. Insert or add item.
-      let id = req.body.id;
-      let forkID = req.body.forkID || 0;
+      const { id, forkID=0, src, ast, parent=0 } = req.body;
       let ids = decodeID(id);
-      let rawSrc = req.body.src;
-      let src = cleanAndTrimSrc(req.body.src);
-      let ast = req.body.ast;
       let ip = req.headers['x-forwarded-for'] ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
       let user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
-      let img = "";
-      let obj = "";
-      let label = "show";
-      let parent = req.body.parent || 0;
-      let query;
+      let img = '';
+      let obj = '';
+      let label = 'show';
       let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
       if (!ast) {
-        console.log("No AST, parsing: " + rawSrc);
+        console.log(`No AST, parsing: ${src}`);
         // No AST, try creating from source.
-        parse(lang, rawSrc, (err, ast) => {
-          compile(ast);
+        parse(lang, src, (err, ast) => {
+          if (err) {
+            console.log(`ERROR PUT /compile parse err=${err.message}`);
+            res.sendStatus(400);
+          } else {
+            compile(ast);
+          }
         });
       } else {
         compile(ast);
       }
       function compile(ast) {
         if (itemID) {
-          let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+          let langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
           let codeID = row.id;
           let dataID = 0;
           let ids = [langID, codeID, dataID];
           let id = encodeID(ids);
           // We have an id, so update the item with the current AST.
-          updateItem(itemID, lang, rawSrc, ast, obj, img, (err) => {
-            // let t2 = new Date;
-            // Update the src and ast because they are used by compileID().
+          updateItem(itemID, lang, src, ast, obj, img, (err) => {
             if (err) {
-              console.log("ERROR [1] PUT /compile err=" + err);
+              console.log(`ERROR PUT /compile updateItem err=${err.message}`);
               res.sendStatus(400);
             } else {
               compileID(authToken, id, {refresh: true}, (err, obj) => {
-                // let t3 = new Date;
-                // console.log("t1=" + (t1 - t0) + " t2=" + (t2 - t1) + " t3=" + (t3 - t2));
-                console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ") in " +
-                            (new Date - t0) + "ms");
-                res.json({
-                  id: id,
-                  obj: obj,
-                });
+                if (err) {
+                  console.log(`ERROR PUT /compile compileID err=${err.message}`);
+                  res.sendStatus(400);
+                } else {
+                  console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
+                  res.json({ id, obj });
+                }
               });
             }
           });
         } else {
           let ids = decodeID(parent);
           // TODO need to get tip of fork in a efficient way.
-          // getTip(forkID, (err, tip) => {
-          //   if (+tip === 0 || +tip !== +ids[1]) {
-          //     // Implicit fork. If parentID is zero, then forkID will be zero.
-          //     forkID = 0;
-          //   }
-          // });
-          postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, item) => {
-            // let t2 = new Date;
+          postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, item) => {
             if (err) {
-              console.log("ERROR [2] PUT /compile err=" + err);
+              console.log(`ERROR PUT /compile postItem err=${err.message}`);
               response.sendStatus(400);
             } else {
               let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
@@ -1165,22 +1154,20 @@ app.put('/compile', function (req, res) {
               let ids = [langID, codeID, dataID];
               let id = encodeID(ids);
               compileID(authToken, id, {refresh: false}, (err, obj) => {
-                // let t3 = new Date;
-                // console.log("t1=" + (t1 - t0) + " t2=" + (t2 - t1) + " t3=" + (t3 - t2));
-                console.log("PUT /compile?id=" + ids.join("+") + " (" + id + ")* in " +
-                            (new Date - t0) + "ms");
-                res.json({
-                  forkID: forkID,
-                  id: id,
-                  obj: obj,
-                });
+                if (err) {
+                  console.log(`ERROR PUT /compile compileID err=${err.message}`);
+                  response.sendStatus(400);
+                } else {
+                  console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
+                  res.json({ forkID, id, obj });
+                }
               });
             }
           });
         }
       }
     }
-  })
+  });
 });
 const putData = (auth, data, resume) => {
   if (!data || !Object.keys(data).length) {
