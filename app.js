@@ -597,37 +597,28 @@ function cleanAndTrimSrc(str) {
 function postItem(language, src, ast, obj, user, parent, img, label, forkID, resume) {
   parent = decodeID(parent)[1];
   // ast is a JSON object
-  var forks = 0;
-  var views = 0;
-  obj = cleanAndTrimObj(obj);
-  img = cleanAndTrimObj(img);
-  src = cleanAndTrimSrc(src);
-  ast = cleanAndTrimSrc(JSON.stringify(ast));
-  var queryStr =
-    "INSERT INTO pieces (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
-    " VALUES ('" + clientAddress + "','" + forkID + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
-    label + "','" + img + "','" + ast + "');"
-  let t0 = new Date;
-  dbQuery(queryStr, function(err, result) {
-    let t1 = new Date;
+  const insertQuery = `
+INSERT INTO pieces
+  (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)
+VALUES
+  ('${clientAddress}','${forkID}','${user}','${parent} ','0','0',now(),'${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}','${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}')
+RETURNING *;`
+  dbQuery(insertQuery, (err, insertResult) => {
     if (err) {
-      console.log("ERROR postItem() " + queryStr);
       resume(err);
-    } else {
-      var queryStr = "SELECT * FROM pieces WHERE language='" + language + "' ORDER BY id DESC LIMIT 1";
-      dbQuery(queryStr, function (err, result) {
-        let t2 = new Date;
-        let codeID = +result.rows[0].id;
-        forkID = forkID || codeID;
-        var query =
-          "UPDATE pieces SET " +
-          "fork_id=" + forkID + " " +
-          "WHERE id=" + codeID;
-        dbQuery(query, function (err) {
-          dbQuery("UPDATE pieces SET forks=forks+1 WHERE id=" + parent, () => {});
-          resume(err, result);
-        });
+    } else if (insertResult.rows.length > 0) {
+      const item = insertResult.rows[0];
+
+      // Perform async update of the parent fork count
+      dbQuery(`UPDATE pieces SET forks=forks+1 WHERE id=${parent}`, (err, result) => {
+        if (err) {
+          console.log(`Failed to update the parent(${parent}) of item(${item.id}) forks count`)
+        }
       });
+
+      resume(null, item);
+    } else {
+      resume(new Error(`insert returned zero rows: ${insertQuery}`));
     }
   });
 };
@@ -1159,14 +1150,14 @@ app.put('/compile', function (req, res) {
           //     forkID = 0;
           //   }
           // });
-          postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
+          postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, item) => {
             // let t2 = new Date;
             if (err) {
               console.log("ERROR [2] PUT /compile err=" + err);
               response.sendStatus(400);
             } else {
               let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-              let codeID = result.rows[0].id;
+              let codeID = item.id;
               let dataID = 0;
               if (forkID === 0) {
                 forkID = codeID;
