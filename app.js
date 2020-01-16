@@ -1107,13 +1107,17 @@ app.put('/compile', function (req, res) {
             console.log(`ERROR PUT /compile parse err=${err.message}`);
             res.sendStatus(400);
           } else {
-            compile(ast);
+            compile({ res, ast });
           }
         });
       } else {
-        compile(ast);
+        compile({ res, ast });
       }
-      function compile(ast) {
+      function compile({ res, ast }) {
+        // TODO Try to lookup the item
+        compileInternal({ res, ast, itemID: null });
+      }
+      function compileInternal({ res, ast, itemID }) {
         if (itemID) {
           let langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
           let codeID = row.id;
