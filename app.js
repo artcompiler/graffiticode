@@ -9,7 +9,7 @@ const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const errorHandler = require("errorhandler");
-const pg = require('pg');
+const { Pool } = require('pg');
 const redis = require('redis');
 const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
@@ -23,21 +23,23 @@ const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
 const LOCAL_DATABASE = process.env.LOCAL_DATABASE === 'true' || false;
 const API_HOST = process.env.API_HOST || "api.acx.ac";
 
-if (LOCAL_DATABASE) {
-  pg.defaults.ssl = false;
-} else {
-  pg.defaults.ssl = true;
+function getConnectionString({ isLocalDatabase, isDebug, databaseUrlLocal, databaseUrlDev, databaseUrl }) {
+  if (isLocalDatabase) {
+    return databaseUrlLocal;
+  }
+  if (isDebug) {
+    return databaseUrlDev
+  }
+  return databaseUrl;
 }
-
-const conStrs = [
-  LOCAL_DATABASE ? process.env.DATABASE_URL_LOCAL
-    : DEBUG ? process.env.DATABASE_URL_DEV
-    : process.env.DATABASE_URL,
-];
-
-function getConStr(id) {
-  return conStrs[0];
-}
+const connectionString = getConnectionString({
+  isLocalDatabase: LOCAL_DATABASE,
+  isDebug: DEBUG,
+  databaseUrlLocal: process.env.DATABASE_URL_LOCAL,
+  databaseUrlDev: process.env.DATABASE_URL_DEV,
+  databaseUrl: process.env.DATABASE_URL,
+});
+const pool = new Pool({ connectionString, ssl: (LOCAL_DATABASE ? false : true) });
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -113,38 +115,23 @@ function insertItem(userID, itemID, resume) {
   });
 }
 
-const dbQuery = function(query, resume) {
-  if (!query) {
-    resume(null, {}); // No query, empty result.
-  } else {
-    let conString = getConStr(0);
-    // Query Helper -- https://github.com/brianc/node-postgres/issues/382
-    pg.connect(conString, function (err, client, done) {
-      // If there is an error, client is null and done is a noop
-      if (err) {
-	console.log("ERROR [1] dbQuery() err=" + err);
-	return resume(err, {});
-      }
-      try {
-	client.query(query, function (err, result) {
-          done();
-          if (err) {
-            throw new Error(err + ": " + query);
-          }
-          if (!result) {
-            result = {
-              rows: [],
-            };
-          }
-          return resume(err, result);
-	});
-      } catch (e) {
-	console.log("ERROR [2] dbQuery() e=" + e);
-	done();
-	return resume(e);
-      }
-    });
+function dbQuery(query, resume) {
+  if ('string' !== typeof query) {
+    resume(null, {});
+    return;
   }
+  const start = process.hrtime();
+  pool.query(query, (err, result) => {
+    const diff = process.hrtime(start);
+    const duration = (diff[0] * 1e9 + diff[1]) / 1e6;
+    if (duration > 500) {
+      console.log(`Query took ${duration.toFixed(3)}ms - ${query}`);
+    }
+    if (err) {
+      return console.error('Error executing query', err.stack)
+    }
+    resume(null, result);
+  });
 };
 
 const getItem = function (itemID, resume) {
