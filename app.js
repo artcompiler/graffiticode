@@ -634,6 +634,36 @@ function updateItem(id, src, obj, img, resume) {
   }
 };
 
+function findItemByHash({userId, lang, ast}, resume) {
+  if (isNonEmptyString(ast)) {
+    ast = parseJSON(ast);
+  }
+
+  let hash;
+  try {
+    hash = itemToHash({ userId, lang, ast });
+  } catch(err) {
+    console.log(`Failed to convert item to hash: ${err.message}`);
+    hash = null;
+  }
+
+  if (hash) {
+    const query = `SELECT * FROM pieces WHERE hash='${hash}' ORDER BY created LIMIT 1`;
+    dbQuery(query, (err, result) => {
+      if (err) {
+        resume(err);
+      } else if (result.rows.length > 0) {
+        const item = result.rows[0];
+        resume(null, item);
+      } else {
+        resume(null, null);
+      }
+    });
+  } else {
+    resume(null, null);
+  }
+}
+
 function countView(id) {
   var query =
     "UPDATE pieces SET " +
@@ -1068,28 +1098,25 @@ app.put('/compile', function (req, res) {
   // This end point is hit when code is edited. If the code already exists for
   // the current user, then recompile it and update the OBJ. If it doesn't exist
   // for the current user, then create a new item.
-  let lang = req.body.language;
+  const lang = req.body.language;
+  const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
   let t0 = new Date;
   validateUser(req.body.jwt, lang, (err, data) => {
     if (err) {
-      res.sendStatus(err);
+      console.log(`ERROR PUT /compile validateUser err=${err.message}`);
+      res.sendStatus(401);
     } else {
       // let t1 = new Date;
       // TODO user is known but might not have access to this operation. Check
       // user id against registered user table for this host.
       // Map AST or SRC into OBJ. Store OBJ and return ID.
       // Compile AST or SRC to OBJ. Insert or add item.
-      const { id, forkID=0, src, ast, parent=0 } = req.body;
-      let ids = decodeID(id);
-      let ip = req.headers['x-forwarded-for'] ||
+      const { forkID=0, src, ast, parent=0 } = req.body;
+      const ip = req.headers['x-forwarded-for'] ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
-      let user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
-      let img = '';
-      let obj = '';
-      let label = 'show';
-      let itemID = id && +ids[1] !== 0 ? +ids[1] : undefined;
+      const user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
       if (!ast) {
         console.log(`No AST, parsing: ${src}`);
         // No AST, try creating from source.
@@ -1098,33 +1125,37 @@ app.put('/compile', function (req, res) {
             console.log(`ERROR PUT /compile parse err=${err.message}`);
             res.sendStatus(400);
           } else {
-            compile({ res, ast });
+            compile({ res, userId: user, lang, ast });
           }
         });
       } else {
-        compile({ res, ast });
+        compile({ res, userId: user, lang, ast });
       }
-      function compile({ res, ast }) {
-        // TODO Try to lookup the item
-        compileInternal({ res, ast, itemID: null });
+      function compile({ res, userId, lang, ast }) {
+        findItemByHash({ userId, lang, ast }, (err, item) => {
+          let itemID = null;
+          if (!err && item) {
+            itemID = item.id;
+          }
+          compileInternal({ res, itemID });
+        });
       }
-      function compileInternal({ res, ast, itemID }) {
+      function compileInternal({ res, itemID }) {
+        const img = '';
+        const obj = '';
+        const label = 'show';
         if (itemID) {
-          let langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
-          let codeID = row.id;
-          let dataID = 0;
-          let ids = [langID, codeID, dataID];
-          let id = encodeID(ids);
-          // We have an id, so update the item with the current AST.
+          const ids = [langID, itemID, 0];
+          const id = encodeID(ids);
           updateItem(itemID, src, obj, img, (err) => {
             if (err) {
               console.log(`ERROR PUT /compile updateItem err=${err.message}`);
-              res.sendStatus(400);
+              res.sendStatus(500);
             } else {
               compileID(authToken, id, {refresh: true}, (err, obj) => {
                 if (err) {
                   console.log(`ERROR PUT /compile compileID err=${err.message}`);
-                  res.sendStatus(400);
+                  res.sendStatus(500);
                 } else {
                   console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
                   res.json({ id, obj });
@@ -1133,25 +1164,20 @@ app.put('/compile', function (req, res) {
             }
           });
         } else {
-          let ids = decodeID(parent);
-          // TODO need to get tip of fork in a efficient way.
           postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, item) => {
             if (err) {
               console.log(`ERROR PUT /compile postItem err=${err.message}`);
-              response.sendStatus(400);
+              res.sendStatus(500);
             } else {
-              let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-              let codeID = item.id;
-              let dataID = 0;
               if (forkID === 0) {
-                forkID = codeID;
+                forkID = item.id;
               }
-              let ids = [langID, codeID, dataID];
-              let id = encodeID(ids);
+              const ids = [langID, item.id, 0];
+              const id = encodeID(ids);
               compileID(authToken, id, {refresh: false}, (err, obj) => {
                 if (err) {
                   console.log(`ERROR PUT /compile compileID err=${err.message}`);
-                  response.sendStatus(400);
+                  res.sendStatus(500);
                 } else {
                   console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
                   res.json({ forkID, id, obj });
