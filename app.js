@@ -615,23 +615,23 @@ RETURNING *;`
 }
 
 // Commit and return commit id
-function updateItem(id, language, src, ast, obj, img, resume) {
-  var views = 0;
-  var forks = 0;
-  obj = cleanAndTrimObj(obj);
-  img = cleanAndTrimObj(img);
-  src = cleanAndTrimSrc(src);
-  ast = cleanAndTrimSrc(JSON.stringify(ast));
-  var query =
-    "UPDATE pieces SET " +
-    "src='" + src + "'," +
-    "ast='" + ast + "'," +
-    "obj='" + obj + "'," +
-    "img='" + img + "'" +
-    "WHERE id='" + id + "'";
-  dbQuery(query, function (err) {
-    resume(err, []);
-  });
+function updateItem(id, src, obj, img, resume) {
+  const updates = [];
+  if (isNonEmptyString(src)) {
+    updates.push(`src='${cleanAndTrimSrc(src)}'`);
+  }
+  if (isNonEmptyString(obj)) {
+    updates.push(`obj='${cleanAndTrimObj(obj)}'`);
+  }
+  if (isNonEmptyString(img)) {
+    updates.push(`img='${cleanAndTrimObj(img)}'`);
+  }
+  if (updates.length > 0) {
+    const query = `UPDATE pieces SET ${updates.join(',')} WHERE id='${id}'`;
+    dbQuery(query, resume);
+  } else {
+    resume(null, null);
+  }
 };
 
 function countView(id) {
@@ -1116,7 +1116,7 @@ app.put('/compile', function (req, res) {
           let ids = [langID, codeID, dataID];
           let id = encodeID(ids);
           // We have an id, so update the item with the current AST.
-          updateItem(itemID, lang, src, ast, obj, img, (err) => {
+          updateItem(itemID, src, obj, img, (err) => {
             if (err) {
               console.log(`ERROR PUT /compile updateItem err=${err.message}`);
               res.sendStatus(400);
@@ -1264,7 +1264,7 @@ app.put('/code', (req, response) => {
       var parent = body.parent ? body.parent : row.parent_id;
       var img = body.img ? body.img : row.img;
       var label = body.label ? body.label : row.label;
-      updateItem(itemID, lang, rawSrc, ast, obj, img, function (err, data) {
+      updateItem(itemID, rawSrc, obj, img, function (err, data) {
         if (err) {
           console.log("[9] ERROR " + err);
         }
