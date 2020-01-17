@@ -117,7 +117,7 @@ function insertItem(userID, itemID, resume) {
 }
 
 function dbQuery(query, resume) {
-  if ('string' !== typeof query) {
+  if (!isNonEmptyString(query)) {
     resume(null, {});
     return;
   }
