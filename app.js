@@ -14,6 +14,7 @@ const redis = require('redis');
 const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
 const {decodeID, encodeID} = require('./src/id');
+const { isNonEmptyString, itemToHash } = require('./src/utils');
 const main = require('./src/main');
 const routes = require('./routes');
 
@@ -583,12 +584,15 @@ function cleanAndTrimSrc(str) {
 // Commit and return commit id
 function postItem(language, src, ast, obj, user, parent, img, label, forkID, resume) {
   parent = decodeID(parent)[1];
+  if (isNonEmptyString(ast)) {
+    ast = parseJSON(ast);
+  }
   // ast is a JSON object
   const insertQuery = `
 INSERT INTO pieces
-  (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)
+  (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast, hash)
 VALUES
-  ('${clientAddress}','${forkID}','${user}','${parent} ','0','0',now(),'${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}','${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}')
+  ('${clientAddress}','${forkID}','${user}','${parent} ','0','0',now(),'${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}','${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}','${itemToHash({userId: user, lang: language, ast})}')
 RETURNING *;`
   dbQuery(insertQuery, (err, insertResult) => {
     if (err) {
@@ -608,7 +612,7 @@ RETURNING *;`
       resume(new Error(`insert returned zero rows: ${insertQuery}`));
     }
   });
-};
+}
 
 // Commit and return commit id
 function updateItem(id, language, src, ast, obj, img, resume) {
