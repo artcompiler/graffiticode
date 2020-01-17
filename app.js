@@ -129,9 +129,10 @@ function dbQuery(query, resume) {
       console.log(`Query took ${duration.toFixed(3)}ms - ${query}`);
     }
     if (err) {
-      return console.error('Error executing query', err.stack)
+      resume(err);
+    } else {
+      resume(null, result);
     }
-    resume(null, result);
   });
 };
 
