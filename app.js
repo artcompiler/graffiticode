@@ -14,7 +14,7 @@ const redis = require('redis');
 const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
 const {decodeID, encodeID} = require('./src/id');
-const { isNonEmptyString, itemToHash } = require('./src/utils');
+const { isNotEmptyStringOrNull, itemToHash } = require('./src/utils');
 const main = require('./src/main');
 const routes = require('./routes');
 
@@ -117,7 +117,7 @@ function insertItem(userID, itemID, resume) {
 }
 
 function dbQuery(query, resume) {
-  if (!isNonEmptyString(query)) {
+  if (!isNotEmptyStringOrNull(query)) {
     resume(null, {});
     return;
   }
@@ -585,7 +585,7 @@ function cleanAndTrimSrc(str) {
 // Commit and return commit id
 function postItem(language, src, ast, obj, user, parent, img, label, forkID, resume) {
   parent = decodeID(parent)[1];
-  if (isNonEmptyString(ast)) {
+  if (isNotEmptyStringOrNull(ast)) {
     ast = parseJSON(ast);
   }
   // ast is a JSON object
@@ -618,13 +618,13 @@ RETURNING *;`
 // Commit and return commit id
 function updateItem(id, src, obj, img, resume) {
   const updates = [];
-  if (isNonEmptyString(src)) {
+  if (isNotEmptyStringOrNull(src)) {
     updates.push(`src='${cleanAndTrimSrc(src)}'`);
   }
-  if (isNonEmptyString(obj)) {
+  if (isNotEmptyStringOrNull(obj)) {
     updates.push(`obj='${cleanAndTrimObj(obj)}'`);
   }
-  if (isNonEmptyString(img)) {
+  if (isNotEmptyStringOrNull(img)) {
     updates.push(`img='${cleanAndTrimObj(img)}'`);
   }
   if (updates.length > 0) {
@@ -635,8 +635,8 @@ function updateItem(id, src, obj, img, resume) {
   }
 };
 
-function findItemByHash({userId, lang, ast}, resume) {
-  if (isNonEmptyString(ast)) {
+function itemToID({userId, lang, ast}, resume) {
+  if (isNotEmptyStringOrNull(ast)) {
     ast = parseJSON(ast);
   }
 
@@ -649,13 +649,13 @@ function findItemByHash({userId, lang, ast}, resume) {
   }
 
   if (hash) {
-    const query = `SELECT * FROM pieces WHERE hash='${hash}' ORDER BY created LIMIT 1`;
+    const query = `SELECT id FROM pieces WHERE hash='${hash}' LIMIT 2`;
     dbQuery(query, (err, result) => {
       if (err) {
         resume(err);
       } else if (result.rows.length > 0) {
-        const item = result.rows[0];
-        resume(null, item);
+        const itemID = result.rows[0].id;
+        resume(null, itemID);
       } else {
         resume(null, null);
       }
@@ -1023,7 +1023,6 @@ app.put('/comp', function (req, res) {
     } else {
       let address = val.address;
       let t2 = new Date;
-      // console.log("putData() in " + (t2 - t1) + "ms");
       res.writeHead(202, {"Content-Type": "application/json"});
       batchCompile(auth, data, 0, res, (err, data) => {
         let t3 = new Date;
@@ -1133,11 +1132,7 @@ app.put('/compile', function (req, res) {
         compile({ res, userId: user, lang, ast });
       }
       function compile({ res, userId, lang, ast }) {
-        findItemByHash({ userId, lang, ast }, (err, item) => {
-          let itemID = null;
-          if (!err && item) {
-            itemID = item.id;
-          }
+        itemToID({ userId, lang, ast }, (err, itemID) => {
           compileInternal({ res, itemID });
         });
       }
@@ -1191,7 +1186,7 @@ app.put('/compile', function (req, res) {
     }
   });
 });
-const putData = (auth, data, resume) => {
+function putData(auth, data, resume) {
   if (!data || !Object.keys(data).length) {
     resume(null, undefined);
     return;
@@ -1220,7 +1215,7 @@ const putData = (auth, data, resume) => {
       resume(null, id);
     }
   });
-};
+}
 function putCode(auth, lang, rawSrc, resume) {
   let t0 = new Date;
   // Compile AST or SRC to OBJ. Insert or add item.
