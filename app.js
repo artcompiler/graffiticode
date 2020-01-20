@@ -122,11 +122,11 @@ const dbQuery = function(query, resume) {
     pg.connect(conString, function (err, client, done) {
       // If there is an error, client is null and done is a noop
       if (err) {
-	console.log("ERROR [1] dbQuery() err=" + err);
-	return resume(err, {});
+  console.log("ERROR [1] dbQuery() err=" + err);
+  return resume(err, {});
       }
       try {
-	client.query(query, function (err, result) {
+  client.query(query, function (err, result) {
           done();
           if (err) {
             throw new Error(err + ": " + query);
@@ -137,11 +137,11 @@ const dbQuery = function(query, resume) {
             };
           }
           return resume(err, result);
-	});
+  });
       } catch (e) {
-	console.log("ERROR [2] dbQuery() e=" + e);
-	done();
-	return resume(e);
+  console.log("ERROR [2] dbQuery() e=" + e);
+  done();
+  return resume(e);
       }
     });
   }
@@ -250,7 +250,7 @@ app.get('/lang', function(req, res) {
           res.redirect("/item?id=" + val.id);
         });
       } else {
-        let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' ORDER BY id DESC";
+        let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' LIMIT 1";
         dbQuery(queryString, (err, result) => {
           let rows = result.rows;
           if (rows.length === 0) {
@@ -297,6 +297,7 @@ const sendItem = (id, req, res) => {
     ids = decodeID(aliases[id]);
   }
   // If forkID then getTip()
+  let t0 = new Date;
   getTip(id, (err, tip) => {
     let langID = ids[0];
     let codeID = tip || ids[1];
@@ -1052,6 +1053,7 @@ app.put('/comp', function (req, res) {
   });
 });
 function getTip(id, resume) {
+  // FIXME This is broken. The logic doesn't make sense. And its super slow.
   let t0 = new Date;
   let [langID, codeID, dataID] = decodeID(id);
   // -- If is 0 then return 0.
@@ -1059,16 +1061,16 @@ function getTip(id, resume) {
   // -- If is not a forkID then return original codeID.
   if (!id || codeID === 0) {
     resume(null, 0);
-  } else if (langID === 0 && dataID === 0) {
-    // A forkID is just 0+codeID+0 for the root item of the fork. So if there
-    // is no items with that forkID just return the itemID.
-    let query =
-      "SELECT id FROM pieces WHERE fork_id=" + codeID +
-      " ORDER BY id DESC LIMIT 1";
-    dbQuery(query, function(err, result) {
-      let t1 = new Date;
-      resume(null, result.rows.length === 0 && codeID || result.rows[0].id || 0);
-    });
+  // } else if (langID === 0 && dataID === 0) {
+  //   // A forkID is just 0+codeID+0 for the root item of the fork. So if there
+  //   // is no items with that forkID just return the itemID.
+  //   let query =
+  //     "SELECT id FROM pieces WHERE fork_id=" + codeID +
+  //     " ORDER BY id DESC LIMIT 1";
+  //   dbQuery(query, function(err, result) {
+  //     let t1 = new Date;
+  //     resume(null, result.rows.length === 0 && codeID || result.rows[0].id || 0);
+  //   });
   } else {
     // Not a forkID so just return the codeID.
     resume(null, codeID);
