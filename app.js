@@ -599,27 +599,21 @@ function postItem(language, src, ast, obj, user, parent, img, label, forkID, res
   var queryStr =
     "INSERT INTO pieces (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast)" +
     " VALUES ('" + clientAddress + "','" + forkID + "','" + user + "','" + parent + " ','" + views + " ','" + forks + "',now(),'" + src + "','" + obj + "','" + language + "','" +
-    label + "','" + img + "','" + ast + "');"
-  let t0 = new Date;
+    label + "','" + img + "','" + ast + "') RETURNING id;"
   dbQuery(queryStr, function(err, result) {
-    let t1 = new Date;
     if (err) {
       console.log("ERROR postItem() " + queryStr);
       resume(err);
     } else {
-      var queryStr = "SELECT * FROM pieces WHERE language='" + language + "' ORDER BY id DESC LIMIT 1";
-      dbQuery(queryStr, function (err, result) {
-        let t2 = new Date;
-        let codeID = +result.rows[0].id;
-        forkID = forkID || codeID;
-        var query =
+      let codeID = +result.rows[0].id;
+      forkID = forkID || codeID;
+      var query =
           "UPDATE pieces SET " +
           "fork_id=" + forkID + " " +
           "WHERE id=" + codeID;
-        dbQuery(query, function (err) {
-          dbQuery("UPDATE pieces SET forks=forks+1 WHERE id=" + parent, () => {});
-          resume(err, result);
-        });
+      dbQuery(query, function (err) {
+        dbQuery("UPDATE pieces SET forks=forks+1 WHERE id=" + parent, () => {});
+        resume(err, result);
       });
     }
   });
