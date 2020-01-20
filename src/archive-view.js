@@ -321,10 +321,6 @@ class ArchiveContent extends React.Component {
       case "any":
         label = " is not null";
         break;
-      case "":
-        // Default is 'show'.
-        param = "show";
-        // Fall through.
       case "show":
       default:
         label = param !== "" && " ='" + param + "'" || "";
@@ -350,7 +346,6 @@ class ArchiveContent extends React.Component {
       }
       let excludeItems = false;
       let filter = parseFilter(archiveFilter);
-//      let filters = archiveFilter.split(",");
       let piecesFilter = "";
       let itemsFilter = "";
       Object.keys(filter).forEach(k => {
@@ -369,9 +364,11 @@ class ArchiveContent extends React.Component {
             itemsFilter += v;
             break;
           case "label":
-          case "created":
           case "code":
             piecesFilter += v;
+            break;
+          case "created":
+            itemsFilter += v;
             break;
           case "index":
             archiveIndex = v;
@@ -390,7 +387,7 @@ class ArchiveContent extends React.Component {
           let langID = lang.slice(1);
           getData(
             itemsFilter && "items" || null,
-            "codeid, itemid",
+            "created, codeid, itemid",
             "langid=" + langID + itemsFilter,
             (err, data2) => {
               let itemsHash = data2 && data2.length > 0 && {} || null;
@@ -400,37 +397,54 @@ class ArchiveContent extends React.Component {
                   if (!itemsHash[d.codeid]) {
                     itemsHash[d.codeid] = [];
                   }
-                  itemsHash[d.codeid].push(d.itemid);
+                  itemsHash[d.codeid].push({
+                    id: d.itemid,
+                    created: d.created
+                  });
                 });
               }
               let items = [];
               data1 = data1.reverse();  // Make ascending.
               let index = 0;
-              for (let i = 0; i < data1.length; i++) {
-                let id = data1[i].id;
-                if (!itemsHash ||
-                    excludeItems && !itemsHash[id] ||
-                    !excludeItems && itemsHash[id]) {
-                  if (itemsHash && itemsHash[id]) {
-                    // We have items so use them to filter the set.
-                    for (let j = 0; j < itemsHash[id].length; j++) {
+              if (data1.length > 0) {
+                for (let i = 0; i < data1.length; i++) {
+                  let id = data1[i].id;
+                  if (!itemsHash ||
+                      excludeItems && !itemsHash[id] ||
+                      !excludeItems && itemsHash[id]) {
+                    if (itemsHash && itemsHash[id]) {
+                      // We have items so use them to filter the set.
+                      for (let j = 0; j < itemsHash[id].length; j++) {
+                        items[index] = {
+                          index: index,
+                          id: itemsHash[id][j].id,
+                          date: data1[i].created.substring(0,10),
+                        }
+                        index++;
+                      }
+                    } else {
+                      // We don't have items so use all 'pieces' matches.
                       items[index] = {
                         index: index,
+                        id: window.gcexports.encodeID([langID, data1[i].id, 0]),
                         date: data1[i].created.substring(0,10),
-                        id: itemsHash[id][j],
                       }
                       index++;
                     }
-                  } else {
-                    // We don't have items so use all 'pieces' matches.
+                  }
+                }
+              } else if (itemsHash) {
+                // Just use items.
+                Object.keys(itemsHash).forEach(id => {
+                  for (let j = 0; j < itemsHash[id].length; j++) {
                     items[index] = {
                       index: index,
-                      date: data1[i].created.substring(0,10),
-                      id: window.gcexports.encodeID([langID, data1[i].id, 0]),
+                      date: itemsHash[id][j].created.substring(0,10),
+                      id: itemsHash[id][j].id,
                     }
                     index++;
                   }
-                }
+                });
               }
               self.items = items;
               resume(null, items);

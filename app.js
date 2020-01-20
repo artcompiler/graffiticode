@@ -122,11 +122,11 @@ const dbQuery = function(query, resume) {
     pg.connect(conString, function (err, client, done) {
       // If there is an error, client is null and done is a noop
       if (err) {
-  console.log("ERROR [1] dbQuery() err=" + err);
-  return resume(err, {});
+        console.log("ERROR [1] dbQuery() err=" + err);
+        return resume(err, {});
       }
       try {
-  client.query(query, function (err, result) {
+        client.query(query, function (err, result) {
           done();
           if (err) {
             throw new Error(err + ": " + query);
@@ -137,11 +137,11 @@ const dbQuery = function(query, resume) {
             };
           }
           return resume(err, result);
-  });
+        });
       } catch (e) {
-  console.log("ERROR [2] dbQuery() e=" + e);
-  done();
-  return resume(e);
+        console.log("ERROR [2] dbQuery() e=" + e);
+        done();
+        return resume(e);
       }
     });
   }
@@ -1331,6 +1331,7 @@ app.put('/code', (req, response) => {
   });
 });
 app.get('/items', function(req, res) {
+  let t0 = new Date;
   // Used by L109, L131.
   let userID = req.query.userID;
   let queryStr = "";
@@ -1380,6 +1381,7 @@ app.get('/items', function(req, res) {
                 res.send(selection)
               });
     } else {
+      console.log("GET /items " + rows.length + " found, " + (new Date - t0) + "ms");
       res.send(rows);
     }
   });
