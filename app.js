@@ -9,7 +9,7 @@ const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const errorHandler = require("errorhandler");
-const { Pool } = require('pg');
+const pg = require('pg');
 const redis = require('redis');
 const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
@@ -40,7 +40,8 @@ const connectionString = getConnectionString({
   databaseUrlDev: process.env.DATABASE_URL_DEV,
   databaseUrl: process.env.DATABASE_URL,
 });
-const pool = new Pool({ connectionString, ssl: (LOCAL_DATABASE ? false : true) });
+pg.defaults.ssl = (LOCAL_DATABASE ? false : true);
+const pool = new pg.Pool({ connectionString });
 
 const env = process.env.NODE_ENV || 'development';
 
