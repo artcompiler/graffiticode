@@ -241,7 +241,7 @@ app.get('/lang', function(req, res) {
   var id = req.query.id;
   let langID = id;
   var src = req.query.src;
-  var lang = langName(langID);
+  let lang = langName(langID);
   pingLang(lang, (pong) => {
     if (pong) {
       if (src) {
@@ -250,7 +250,7 @@ app.get('/lang', function(req, res) {
           res.redirect("/item?id=" + val.id);
         });
       } else {
-        let queryString = "SELECT id FROM pieces WHERE language='" + lang + "' LIMIT 1";
+        let queryString = "SELECT itemid FROM items WHERE langid='" + langID + "' ORDER BY id DESC LIMIT 1";
         dbQuery(queryString, (err, result) => {
           let rows = result.rows;
           if (rows.length === 0) {
@@ -258,25 +258,23 @@ app.get('/lang', function(req, res) {
               "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label)" +
               " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
               " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + 'NULL' +
-              " ', '" + lang + "', '" + "show" + "');"
+              " ', '" + lang + "', '" + "show" + "') RETURNING id;"
             dbQuery(insertStr, function(err, result) {
               if (err) {
                 console.log("ERROR GET /pieces/:lang err=" + err);
                 res.sendStatus(400);
                 return;
               }
-              dbQuery(queryString, (err, result) => {
-                let rows = result.rows;
-                if (rows.length > 0) {
-                  res.redirect("/form?id=" + rows[0].id);
-                } else {
-                  console.log("[1] GET /lang ERROR 404 ");
-                  res.sendStatus(404);
-                }
-              });
+              let rows = result.rows;
+              if (rows.length > 0) {
+                res.redirect("/item?id=" + rows[0].id);
+              } else {
+                console.log("[1] GET /lang ERROR 404 ");
+                res.sendStatus(404);
+              }
             });
           } else {
-            res.redirect("/item?id=" + encodeID([langID, rows[0].id, 0]));
+            res.redirect("/item?id=" + rows[0].itemid);
           }
         });
       }
