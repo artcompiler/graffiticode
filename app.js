@@ -650,11 +650,13 @@ function itemToID({userId, lang, ast}, resume) {
   }
 
   if (hash) {
-    const query = `SELECT id FROM pieces WHERE hash='${hash}' LIMIT 2`;
+    // FIXME How do we handle collisions? Are they so rare we don't need to
+    // worry about them?
+    const query = `SELECT id FROM pieces WHERE hash='${hash}' LIMIT 1`;
     dbQuery(query, (err, result) => {
       if (err) {
         resume(err);
-      } else if (result.rows.length > 0) {
+      } else if (result.rows.length === 1) {
         const itemID = result.rows[0].id;
         resume(null, itemID);
       } else {
