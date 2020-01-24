@@ -23,10 +23,10 @@ function getCompilerPort(lang, config) {
 }
 exports.getCompilerPort = getCompilerPort;
 
-function isNotEmptyStringOrNull(str) {
-  return (str !== null || typeof str === 'string' && str.length > 0 && str !== "null");
+function isNonEmptyString(str) {
+  return typeof str === 'string' && str.length > 0;
 }
-exports.isNotEmptyStringOrNull = isNotEmptyStringOrNull;
+exports.isNonEmptyString = isNonEmptyString;
 
 function itemToHash({userId, lang, ast}) {
   userId = Number.parseInt(userId);

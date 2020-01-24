@@ -14,7 +14,7 @@ const redis = require('redis');
 const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
 const {decodeID, encodeID} = require('./src/id');
-const { isNotEmptyStringOrNull, itemToHash } = require('./src/utils');
+const { isNonEmptyString, itemToHash } = require('./src/utils');
 const main = require('./src/main');
 const routes = require('./routes');
 
@@ -118,7 +118,7 @@ function insertItem(userID, itemID, resume) {
 }
 
 function dbQuery(query, resume) {
-  if (!isNotEmptyStringOrNull(query)) {
+  if (!isNonEmptyString(query)) {
     resume(null, {});
     return;
   }
@@ -316,12 +316,11 @@ const sendItem = (id, req, res) => {
           let img = row.img;
           let label = row.label;
           let forkID = 0;
-          postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, result) => {
-            let codeID = result.rows[0].id;
+          postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, codeID) => {
             let ids = [langID, codeID].concat(dataIDs);
             if (err) {
               console.log("ERROR putData() err=" + err);
-              resume(err);
+              res.sendStatus(400);
             } else {
               res.render('views.html', {
                 title: 'Graffiti Code',
@@ -586,7 +585,7 @@ function cleanAndTrimSrc(str) {
 // Commit and return commit id
 function postItem(language, src, ast, obj, user, parent, img, label, forkID, resume) {
   parent = decodeID(parent)[1];
-  if (isNotEmptyStringOrNull(ast)) {
+  if (isNonEmptyString(ast)) {
     ast = parseJSON(ast);
   }
   // ast is a JSON object
@@ -595,7 +594,7 @@ INSERT INTO pieces
   (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast, hash)
 VALUES
   ('${clientAddress}','${forkID}','${user}','${parent} ','0','0',now(),'${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}','${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}','${itemToHash({userId: user, lang: language, ast})}')
-RETURNING *;`
+RETURNING id`;
   dbQuery(insertQuery, (err, insertResult) => {
     if (err) {
       resume(err);
@@ -605,11 +604,10 @@ RETURNING *;`
       // Perform async update of the parent fork count
       dbQuery(`UPDATE pieces SET forks=forks+1 WHERE id=${parent}`, (err, result) => {
         if (err) {
-          console.log(`Failed to update the parent(${parent}) of item(${item.id}) forks count`)
+          console.log(`Failed to update the parent(${parent}) of item(${item.id}) forks count`);
         }
       });
-
-      resume(null, item);
+      resume(null, item.id);
     } else {
       resume(new Error(`insert returned zero rows: ${insertQuery}`));
     }
@@ -619,13 +617,13 @@ RETURNING *;`
 // Commit and return commit id
 function updateItem(id, src, obj, img, resume) {
   const updates = [];
-  if (isNotEmptyStringOrNull(src)) {
+  if (isNonEmptyString(src)) {
     updates.push(`src='${cleanAndTrimSrc(src)}'`);
   }
-  if (isNotEmptyStringOrNull(obj)) {
+  if (isNonEmptyString(obj)) {
     updates.push(`obj='${cleanAndTrimObj(obj)}'`);
   }
-  if (isNotEmptyStringOrNull(img)) {
+  if (isNonEmptyString(img)) {
     updates.push(`img='${cleanAndTrimObj(img)}'`);
   }
   if (updates.length > 0) {
@@ -637,7 +635,7 @@ function updateItem(id, src, obj, img, resume) {
 };
 
 function itemToID({userId, lang, ast}, resume) {
-  if (isNotEmptyStringOrNull(ast)) {
+  if (isNonEmptyString(ast)) {
     ast = parseJSON(ast);
   }
 
@@ -680,13 +678,15 @@ function countView(id) {
   });
 }
 
-function updateAST(id, ast, resume) {
+function updateAST(id, userID, language, ast, resume) {
   // Get codeID from table asts.
   // Set pieces.code_id to codeID.
+  const hash = itemToHash({userId: userID, lang: language, ast});
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
     "ast='" + ast + "' " +
+    "hash='" + hash + "' " +
     "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
     if (err && err.length) {
@@ -697,6 +697,7 @@ function updateAST(id, ast, resume) {
 }
 
 function updateOBJ(id, obj, resume) {
+  console.log("updateOBJ() id=" + id);
   obj = cleanAndTrimObj(JSON.stringify(obj));
   var query =
     "UPDATE pieces SET " +
@@ -725,21 +726,18 @@ function getCode(ids, refresh, resume) {
       let ast = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
       resume(err, ast);
     } else {
-      if (ids[0] !== 113) {
-        assert(item, "ERROR getCode() item not found: " + ids);
-        let lang = item.language;
-        let src = item.src; //.replace(/\\\\/g, "\\");
-        console.log("Reparsing SRC: langID=" + ids[0] + " codeID=" + ids[1] + " src=" + src);
-        parse(lang, src, (err, ast) => {
-          updateAST(ids[1], ast, (err)=>{
-            assert(!err);
-          });
-          // Don't wait for update.
-          resume(err, ast);
+      assert(item, "ERROR getCode() item not found: " + ids);
+      let user = item.user_id;
+      let lang = item.language;
+      let src = item.src; //.replace(/\\\\/g, "\\");
+      console.log("Reparsing SRC: langID=" + ids[0] + " codeID=" + ids[1] + " src=" + src);
+      parse(lang, src, (err, ast) => {
+        updateAST(ids[1], user, lang, ast, (err)=>{
+          assert(!err);
         });
-      } else {
-        resume(err, item.ast || {});
-      }
+        // Don't wait for update.
+        resume(err, ast);
+      });
     }
   });
 }
@@ -905,6 +903,7 @@ const parseID = (id, options, resume) => {
       resume(err, null);
     } else {
       // if L113 there is no AST.
+      const user = item.user_id;
       const lang = item.language;
       const src = item.src;
       if (src) {
@@ -915,7 +914,7 @@ const parseID = (id, options, resume) => {
           if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
             if (ids[1] && !options.dontSave) {
               console.log("Saving AST for id=" + id);
-              updateAST(ids[1], ast, (err)=>{
+              updateAST(ids[1], user, lang, ast, (err)=>{
                 assert(!err);
                 resume(err, ast);
               });
@@ -1163,15 +1162,15 @@ app.put('/compile', function (req, res) {
             }
           });
         } else {
-          postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, item) => {
+          postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
             if (err) {
               console.log(`ERROR PUT /compile postItem err=${err.message}`);
               res.sendStatus(500);
             } else {
               if (forkID === 0) {
-                forkID = item.id;
+                forkID = id;
               }
-              const ids = [langID, item.id, 0];
+              const ids = [langID, codeID, 0];
               const id = encodeID(ids);
               compileID(authToken, id, {refresh: false}, (err, obj) => {
                 if (err) {
@@ -1205,9 +1204,8 @@ function putData(auth, data, resume) {
   var parent = 0;
   var img = "";
   let forkID = 0;
-  postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
+  postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
     let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-    let codeID = result.rows[0].id;
     let dataID = 0;
     let ids = [langID, codeID, dataID];
     let id = encodeID(ids);
@@ -1233,23 +1231,19 @@ function putCode(auth, lang, rawSrc, resume) {
   });
   function compile(ast) {
     let forkID = 0;
-    postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
+    postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
       if (err) {
         console.log("ERROR [2] PUT /compile err=" + err);
         resume(400);
       } else {
         let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-        let codeID = result.rows[0].id;
         let dataID = 0;
         let ids = [langID, codeID, dataID];
         let id = encodeID(ids);
         compileID(auth, id, {}, (err, obj) => {
           console.log("putCode() id=" + ids.join("+") + " (" + id + ")* in " +
                       (new Date - t0) + "ms");
-          resume(null, {
-            id: id,
-            obj: obj,
-          });
+          resume(null, {id, obj});
         });
       }
     });
@@ -1261,7 +1255,7 @@ app.put('/code', (req, response) => {
   let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   let id = body.id;
   let ids = id !== undefined ? decodeID(id) : [0, 0, 0];
-  let rawSrc = body.src
+  let rawSrc = body.src;
   let src = cleanAndTrimSrc(rawSrc);
   let lang = body.language;
   let ip = req.headers['x-forwarded-for'] ||
@@ -1274,21 +1268,23 @@ app.put('/code', (req, response) => {
   if (itemID !== undefined) {
     // Prefer the given id if there is one.
     query = "SELECT * FROM pieces WHERE id='" + itemID + "'";
+  } else {
+    query = null;
   }
   dbQuery(query, function(err, result) {
     // See if there is already an item with the same source for the same
     // language. If so, pass it on.
-    var row = result.rows && result.rows[0];
+    let row = result.rows && result.rows[0];
     itemID = itemID || row && row.id;
     // Might still be undefined if there is no match.
     if (itemID) {
-      var lang = row.language;
-      var src = body.src ? body.src : row.src;
-      var ast = body.ast ? JSON.parse(body.ast) : row.ast;
-      var obj = body.obj ? body.obj : row.obj;
-      var parent = body.parent ? body.parent : row.parent_id;
-      var img = body.img ? body.img : row.img;
-      var label = body.label ? body.label : row.label;
+      let lang = row.language;
+      let src = body.src ? body.src : row.src;
+      let ast = body.ast ? JSON.parse(body.ast) : row.ast;
+      let obj = body.obj ? body.obj : row.obj;
+      let parent = body.parent ? body.parent : row.parent_id;
+      let img = body.img ? body.img : row.img;
+      let label = body.label ? body.label : row.label;
       updateItem(itemID, rawSrc, obj, img, function (err, data) {
         if (err) {
           console.log("[9] ERROR " + err);
@@ -1306,30 +1302,31 @@ app.put('/code', (req, response) => {
         id: id,
       });
     } else {
-      var src = body.src;
-      var lang = body.language;
-      var ast = body.ast ? JSON.parse(body.ast) : null;  // Possibly undefined.
-      var obj = body.obj;
-      var label = body.label;
-      var parent = body.parent ? body.parent : 0;
-      var img = "";
+      let src = body.src;
+      let lang = body.language;
+      let ast = body.ast ? JSON.parse(body.ast) : null;  // Possibly undefined.
+      let obj = body.obj;
+      let label = body.label;
+      let parent = body.parent ? body.parent : 0;
+      let img = "";
       let forkID = 0;
-      postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, result) => {
-        let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
-        let codeID = result.rows[0].id;
-        let dataID = 0;
-        let ids = [langID, codeID, dataID];
-        let id = encodeID(ids);
-        if (err) {
-          console.log("ERROR PUT /code err=" + err);
-          response.sendStatus(400);
-        } else {
-          console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")* in " +
-                      (new Date - t0) + "ms");
-          response.json({
-            id: id,
-          });
-        }
+      parse(lang, src, (err, ast) => {
+        postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
+          let langID = lang.charAt(0) === "L" ? +lang.substring(1) : +lang;
+          let dataID = 0;
+          let ids = [langID, codeID, dataID];
+          let id = encodeID(ids);
+          if (err) {
+            console.log("ERROR PUT /code err=" + err);
+            response.sendStatus(400);
+          } else {
+            console.log("PUT /code?id=" + ids.join("+") + " (" + id + ")* in " +
+                        (new Date - t0) + "ms");
+            response.json({
+              id: id,
+            });
+          }
+        });
       });
     }
   });
