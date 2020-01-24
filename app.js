@@ -686,9 +686,9 @@ function updateAST(id, userID, language, ast, resume) {
   ast = cleanAndTrimSrc(JSON.stringify(ast));
   var query =
     "UPDATE pieces SET " +
-    "ast='" + ast + "' " +
+    "ast='" + ast + "', " +
     "hash='" + hash + "' " +
-    "WHERE id='" + id + "'";
+      "WHERE id='" + id + "'";
   dbQuery(query, function (err) {
     if (err && err.length) {
       console.log("ERROR updateAST() err=" + err);
@@ -733,7 +733,7 @@ function getCode(ids, refresh, resume) {
       let src = item.src; //.replace(/\\\\/g, "\\");
       console.log("Reparsing SRC: langID=" + ids[0] + " codeID=" + ids[1] + " src=" + src);
       parse(lang, src, (err, ast) => {
-        updateAST(ids[1], user, lang, ast, (err)=>{
+        updateAST(ids[1], user, lang, ast, (err) => {
           assert(!err);
         });
         // Don't wait for update.
