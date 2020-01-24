@@ -28,13 +28,13 @@ function isNonEmptyString(str) {
 }
 exports.isNonEmptyString = isNonEmptyString;
 
-function itemToHash({userId, lang, ast}) {
-  userId = Number.parseInt(userId);
-  assert(!Number.isNaN(userId), 'userId must be a integer');
+function itemToHash(userID, lang, ast) {
+  userID = Number.parseInt(userID);
+  assert(!Number.isNaN(userID), 'userId must be a integer');
   assert(/^L\d+/.test(lang), 'lang must be a string with format L#');
   assert('object' === typeof ast && null !== ast, 'ast must be a non null object');
   const hasher = crypto.createHash('sha256');
-  hasher.update(`${userId}.${lang}.${JSON.stringify(ast)}`);
+  hasher.update(`${userID}.${lang}.${JSON.stringify(ast)}`);
   return hasher.digest('hex');
 }
 exports.itemToHash = itemToHash;
