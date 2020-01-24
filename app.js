@@ -998,7 +998,7 @@ function getIDFromType(type) {
   }
 }
 
-function batchCompile(auth, items, index, res, resume) => {
+function batchCompile(auth, items, index, res, resume) {
   index = +index || 0;
   // For each item, get the dataID and concat with codeID of alias.
   if (index < items.length) {
