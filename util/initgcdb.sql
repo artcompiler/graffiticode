@@ -104,7 +104,8 @@ CREATE TABLE pieces (
     img text,
     address character(42),
     label character varying(30),
-    ast json
+    ast json,
+    hash text
 );
 
 
