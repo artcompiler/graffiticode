@@ -1132,7 +1132,7 @@ const ALLOWED_TABLES = ['pieces', 'items'];
 app.get('/items', (req, res) => {
   const t0 = new Date;
   // Used by L109, L131.
-  let { table='pieces', list, where='', fields='id', limit='10', userID, mark } = req.query;
+  let { table='pieces', list, where='', fields='id', limit='100000', userID, mark } = req.query;
   mark = Number.parseInt(mark);
   if (!isNonEmptyString(list) && !isNonEmptyString(where) && !Number.isInteger(mark)) {
     return res.status(400).json({
@@ -1156,10 +1156,10 @@ app.get('/items', (req, res) => {
       data: null,
     });
   }
-  if(limit < 1 || limit > 100) {
+  if(limit < 1 || limit > 100000) {
     return res.status(400).json({
       success: false,
-      errors: ['limit must be between 1 and 100'],
+      errors: ['limit must be between 1 and 100000'],
       data: null,
     });
   }

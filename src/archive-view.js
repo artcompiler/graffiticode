@@ -276,7 +276,7 @@ class ArchiveContent extends React.Component {
           },
           dataType: "json",
           success: function(data) {
-            resume(null, data);
+            resume(null, data.data);
           },
           error: function(xhr, msg, err) {
             console.log(msg+" "+err)
