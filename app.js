@@ -16,6 +16,7 @@ const {decodeID, encodeID} = require('./src/id');
 const {
   cleanAndTrimObj,
   cleanAndTrimSrc,
+  isNonEmptyString,
   parseJSON,
 } = require('./src/utils');
 const main = require('./src/main');
@@ -1123,65 +1124,101 @@ app.put('/code', (req, res) => {
   }
 });
 
-app.get('/items', function(req, res) {
+const ALLOWED_TABLES = ['pieces', 'items'];
+app.get('/items', (req, res) => {
   const t0 = new Date;
   // Used by L109, L131.
-  const userID = req.query.userID;
-  let queryStr = "";
-  const table = req.query.table || "pieces";
-  if (req.query.list) {
-    const list = req.query.list;
-    queryStr =
-      "SELECT * FROM " + table + " WHERE pieces.id" +
-      " IN ("+list+") ORDER BY id DESC";
-  } else if (req.query.where) {
-    const fields = req.query.fields ? req.query.fields : "id";
-    const limit = req.query.limit;
-    const where = req.query.where;
-    queryStr =
-      "SELECT " + fields +
-      " FROM " + table + " WHERE " + where +
-      " ORDER BY id DESC" +
-      (limit ? " LIMIT " + limit : "");
-  } else {
-    console.log("ERROR [1] GET /items");
-    res.sendStatus(400);
+  let { table='pieces', list, where='', fields='id', limit='10', userID, mark } = req.query;
+  mark = Number.parseInt(mark);
+  if (!isNonEmptyString(list) && !isNonEmptyString(where) && !Number.isInteger(mark)) {
+    return res.status(400).json({
+      success: false,
+      errors: ['must specify list, where, or mark'],
+      data: null,
+    });
   }
-  dbQuery(queryStr, function (err, result) {
-    let rows;
-    if (!result || result.rows.length === 0) {
-      rows = [];
-    } else {
-      rows = result.rows;
+  if (!ALLOWED_TABLES.includes(table)) {
+    return res.status(400).json({
+      success: false,
+      errors: [`table must be one of ${ALLOWED_TABLES.join(',')}`],
+      data: null,
+    });
+  }
+  limit = Number.parseInt(limit);
+  if (!Number.isInteger(limit)) {
+    return res.status(400).json({
+      success: false,
+      errors: ['limit must be an integer'],
+      data: null,
+    });
+  }
+  if(limit < 1 || limit > 100) {
+    return res.status(400).json({
+      success: false,
+      errors: ['limit must be between 1 and 100'],
+      data: null,
+    });
+  }
+  if (Number.isInteger(mark)) {
+    userID = Number.parseInt(userID);
+    if (!Number.isInteger(userID)) {
+      return res.status(400).json({
+        success: false,
+        errors: ['userID must be an integer'],
+        data: null,
+      });
     }
-    const mark = req.query.stat && req.query.stat.mark;
-    if (mark !== undefined) {
-      dbQuery("SELECT codeid FROM items WHERE " +
-              "userid='" + userID +
-              "' AND mark='" + mark + "'",
-              (err, result) => {
-                const list = [];
-                result.rows.forEach(row => {
-                  list.push(row.codeid);
-                });
-                const selection = [];
-                rows.forEach(row => {
-                  if (list.includes(row.id)) {
-                    selection.push(row);
-                  }
-                });
-                console.log("GET /items selection=" + JSON.stringify(selection));
-                res.send(selection)
-              });
-    } else {
-      console.log("GET /items " + rows.length + " found, " + (new Date - t0) + "ms");
-      res.send(rows);
+    if(userID < 0) {
+      return res.status(400).json({
+        success: false,
+        errors: ['userID must be a positive integer'],
+        data: null,
+      });
     }
-  });
-  req.on('error', function(e) {
-    console.log("[10] ERROR " + e);
-    console.log("ERROR [2] GET /items err=" + err);
-    res.sendStatus(400);
+    if (table === 'pieces') {
+      table += ' AS p, items AS i';
+      if (fields.split(',').includes('id')) {
+        const temp = fields.split(',').filter(f => f !== 'id');
+        temp.unshift('p.id');
+        fields = temp.join(',');
+      }
+      if (isNonEmptyString(where)) {
+        where = `(${where}) AND i.codeid = p.id`;
+      } else {
+        where = 'i.codeid = p.id';
+      }
+    }
+    where = `(${where}) AND mark=${mark} AND userid=${userID}`;
+  }
+  if (isNonEmptyString(list)) {
+    if (isNonEmptyString(where)) {
+      where = `(${where}) AND id IN (${list})`;
+    } else {
+      where = `id IN (${list})`;
+    }
+  }
+  const query = `
+  SELECT ${fields}
+  FROM ${table}
+  ${isNonEmptyString(where) ? `WHERE ${where}`: ''}
+  ORDER BY id DESC
+  LIMIT ${limit};
+  `;
+  dbQuery(query, (err, result) => {
+    if (err) {
+      res.status(500).send({
+        success: false,
+        errors: [err.message],
+        data: null,
+      });
+    } else {
+      console.log(`GET /items ${result.rows.length} found, ${(new Date - t0)}ms`);
+      res.status(200).json({
+        success: true,
+        errors: [],
+        data: result.rows,
+      });
+    }
   });
 });
 

@@ -10,7 +10,7 @@ function buildDbQuery({ assert, isNonEmptyString, pool }) {
         console.log(`Query took ${duration.toFixed(3)}ms - ${query}`);
       }
       if (err) {
-        console.log(`ERROR dbQuery:\n${query}\n`);
+        console.log(`ERROR dbQuery: ${err.message}\n${query}\n`);
         resume(err);
       } else {
         resume(null, result);
