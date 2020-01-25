@@ -937,8 +937,8 @@ app.put('/compile', function (req, res) {
       } else {
         compile({ res, userID: user, lang, ast });
       }
-      function compile({ res, userId, lang, ast }) {
-        itemToID(userId, lang, ast, (err, itemID) => {
+      function compile({ res, userID, lang, ast }) {
+        itemToID(userID, lang, ast, (err, itemID) => {
           if (err) {
             itemID = null;
           }
@@ -1075,19 +1075,19 @@ app.put('/code', (req, res) => {
   const itemID = id && +ids[1] !== 0 ? ids[1] : undefined;
   if (itemID !== undefined) {
     getPiece(itemID, (err, piece) => {
-      let id = null;
+      let pieceId = null;
       if (!err && piece) {
-        id = piece.id;
+        pieceId = piece.id;
       }
-      insertOrUpdatePiece({ res, id, lang, src, obj, img });
+      insertOrUpdatePiece({ res, pieceId, lang, src, obj, img });
     });
   } else {
-    insertOrUpdatePiece({ res, id: null, lang, src, obj, img });
+    insertOrUpdatePiece({ res, pieceId: null, lang, src, obj, img });
   }
-  function insertOrUpdatePiece({ res, id, lang, src, obj, img }) {
-    if (id) {
+  function insertOrUpdatePiece({ res, pieceId, lang, src, obj, img }) {
+    if (pieceId) {
       // Perform async piece update
-      updatePiece(id, src, obj, img, (err) => {
+      updatePiece(pieceId, src, obj, img, (err) => {
         if (err) {
           console.log(`ERROR PUT /code updatePiece err=${err.message}`);
         }
