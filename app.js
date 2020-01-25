@@ -29,7 +29,7 @@ function getConnectionString({ isLocalDatabase, isDebug, databaseUrlLocal, datab
     return databaseUrlLocal;
   }
   if (isDebug) {
-    return databaseUrlDev
+    return databaseUrlDev;
   }
   return databaseUrl;
 }
@@ -103,17 +103,30 @@ app.get("/", (req, res) => {
 const aliases = {};
 
 function insertItem(userID, itemID, resume) {
-  dbQuery("SELECT count(*) FROM items where itemID='" + itemID + "'", (err, result) => {
+  const findQuery = `
+  SELECT count(*)
+  FROM items
+  WHERE itemID='${itemID}';
+  `;
+  dbQuery(findQuery, (err, result) => {
+    if (err) {
+      resume(err);
+    }
     if (+result.rows[0].count === 0) {
-      const [langID, codeID, ...dataID] = decodeID(itemID);
-      dataID = encodeID(dataID);
-      dbQuery("INSERT INTO items (userID, itemID, langID, codeID, dataID) " +
-              "VALUES (" + userID + ", '" + itemID + "', " + langID + ", " + codeID + ", '" + dataID + "') ",
-              (err, result) => {
-                 resume();
-              });
+      const [langID, codeID, ...dataIDs] = decodeID(itemID);
+      const dataID = encodeID(dataIDs);
+      const insertQuery = `
+      INSERT INTO items (userID, itemID, langID, codeID, dataID)
+      VALUES (${userID},'${itemID}',${langID},${codeID},'${dataID}');
+      `;
+      dbQuery(insertQuery, (err, result) => {
+        if (err) {
+          resume(err);
+        }
+        resume(null);
+      });
     } else {
-      resume();
+      resume(null);
     }
   });
 }
@@ -214,18 +227,20 @@ function parseJSON(str) {
   }
 }
 
-const lexiconCache = {};
-
+const lexiconCache = new Map();
 function parse(lang, src, resume) {
-  let lexicon;
-  if ((lexicon = lexiconCache[lang])) {
-    main.parse(src, lexicon, resume);
+  if (lexiconCache.has(lang)) {
+    main.parse(src, lexiconCache.get(lang), resume);
   } else {
-    get(lang, "lexicon.js", function (err, data) {
-      const lstr = data.substring(data.indexOf("{"));
-      lexicon = JSON.parse(lstr);
-      lexiconCache[lang] = lexicon;
-      main.parse(src, lexicon, resume);
+    get(lang, 'lexicon.js', (err, data) => {
+      if (err) {
+        resume(err);
+      } else {
+        const lstr = data.substring(data.indexOf("{"));
+        const lexicon = JSON.parse(lstr);
+        lexiconCache.set(lang, lexicon);
+        main.parse(src, lexicon, resume);
+      }
     });
   }
 }
@@ -244,48 +259,36 @@ function sendLang(req, res) {
     if (pong) {
       if (src) {
         //assert(false, "Should not get here. Call PUT /compile");
-        putCode(authToken, lang, src, async (err, val) => {
-          res.redirect("/item?id=" + val.id);
-        });
-      } else {
-        const queryString = "SELECT itemid FROM items WHERE langid='" + langID + "' ORDER BY id DESC LIMIT 1";
-        dbQuery(queryString, (err, result) => {
+        putCode(authToken, lang, src, (err, val) => {
           if (err) {
-            console.log(err);
+            console.log(`ERROR GET /lang putCode err=${err.message}`);
             res.sendStatus(500);
-            return;
-          }
-          if (result.rows.length > 0) {
-            res.redirect("/item?id=" + encodeID([langID, result.rows[0].id, 0]));
           } else {
-            const insertStr =
-              "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label)" +
-              " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-              " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + 'NULL' +
-                  " ', '" + lang + "', '" + "show" + "'); RETURNS id";
-            dbQuery(insertStr, (err, result) => {
-              if (err) {
-                console.log("ERROR GET /pieces/:lang err=" + err);
-                res.sendStatus(400);
-                return;
-              }
-              dbQuery(queryString, (err, result) => {
-                if (err) {
-                  console.log(err);
-                  res.sendStatus(500);
-                  return;
-                }
-                if (result.rows.length > 0) {
-                  res.redirect("/form?id=" + result.rows[0].id);
-                } else {
-                  console.log("[1] GET /lang ERROR 404 ");
-                  res.sendStatus(404);
-                }
-              });
-            });
+            res.redirect("/item?id=" + val.id);
           }
         });
+        return;
       }
+      const queryString = `SELECT itemid FROM items WHERE langid='${langID}' ORDER BY id DESC LIMIT 1`;
+      dbQuery(queryString, (err, result) => {
+        if (err) {
+          console.log(`ERROR GET /lang getItem err=${err.message}`);
+          res.sendStatus(500);
+        } else if (result.rows.length > 0) {
+          const id = result.rows[0].itemid;
+          res.redirect(`/item?id=${id}`);
+        } else {
+          postItem(lang, `| ${lang}`, null, null, 0, 0, null, 'show', 0, (err, itemId) => {
+            if (err) {
+              console.log(`ERROR GET /lang postItem err=${err.message}`);
+              res.sendStatus(500);
+            } else {
+              const id = encodeID([langID, itemId, 0]);
+              res.redirect(`/item?id=${id}`);
+            }
+          });
+        }
+      });
     } else {
       res.sendStatus(404);
     }
@@ -359,12 +362,12 @@ function sendItem(id, req, res) {
           console.log("ERROR [1] GET /item");
           res.sendStatus(404);
         } else {
-          langID = langID || +row.language.slice(1);
-          const language = "L" + langID;
+          const rowLangID = langID || +row.language.slice(1);
+          const language = "L" + rowLangID;
           res.render('views.html', {
             title: 'Graffiti Code',
             language: language,
-            item: encodeID([langID, codeID].concat(dataIDs)),
+            item: encodeID([rowLangID, codeID].concat(dataIDs)),
             view: "item",
             refresh: req.query.refresh,
             archive: req.query.archive,
@@ -474,7 +477,12 @@ function sendData(auth, id, req, res) {
   const t0 = new Date;
   compileID(auth, id, options, (err, obj) => {
     if (err) {
-      console.log("ERROR GET /data?id=" + ids.join("+") + " (" + id + ") err=" + err);
+      if (err instanceof Error) {
+        console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${err.message}`);
+      } else {
+        console.trace(err);
+        console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${err}`);
+      }
       res.sendStatus(400);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
@@ -547,17 +555,13 @@ function get(language, path, resume) {
   const options = {
     host: getAPIHost(language),
     port: getAPIPort(language),
-    path: "/" + language + "/" + path,
+    path: `/${language}/${path}`,
   };
   const protocol = LOCAL_COMPILES && http || https;
-  const req = protocol.get(options, function(res) {
-    res.on("data", function (chunk) {
-      data.push(chunk);
-    }).on("end", function () {
-      resume([], data.join(""));
-    }).on("error", function () {
-      resume(["ERROR"], "");
-    });
+  protocol.get(options, (res) => {
+    res.on('data', (chunk) => data.push(chunk))
+      .on('end', () => resume(null, data.join('')))
+      .on('error', resume);
   });
 }
 
@@ -601,7 +605,7 @@ function postItem(language, src, ast, obj, userID, parent, img, label, forkID, r
 INSERT INTO pieces
   (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast, hash)
 VALUES
-  ('${clientAddress}','${forkID}','${userID}','${parent} ','0','0',now(),'${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}','${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}','${itemToHash(userID, language, ast)}')
+  ('${clientAddress}','${forkID}','${userID}','${parent}','0','0',now(),'${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}','${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}','${itemToHash(userID, language, ast)}')
 RETURNING id`;
   dbQuery(insertQuery, (err, insertResult) => {
     if (err) {
@@ -687,19 +691,27 @@ function countView(id) {
 function updateAST(id, userID, language, ast, resume) {
   // Get codeID from table asts.
   // Set pieces.code_id to codeID.
-  const hash = itemToHash(userID, language, ast);
-  ast = cleanAndTrimSrc(JSON.stringify(ast));
-  const query =
-    "UPDATE pieces SET " +
-    "ast='" + ast + "', " +
-    "hash='" + hash + "' " +
-      "WHERE id='" + id + "'";
-  dbQuery(query, function (err) {
-    if (err && err.length) {
-      console.log("ERROR updateAST() err=" + err);
-    }
-    resume(err, []);
-  });
+  try {
+    const hash = itemToHash(userID, language, ast);
+    ast = cleanAndTrimSrc(JSON.stringify(ast));
+    const query = `
+    UPDATE pieces
+    SET
+      ast='${ast}',
+      hash='${hash}'
+    WHERE id='${id}';
+    `;
+    dbQuery(query, (err, result) => {
+      if (err) {
+        resume(err);
+      } else {
+        console.log(result.rows);
+        resume(null, result.rows);
+      }
+    });
+  } catch(err) {
+    resume(err);
+  }
 }
 
 function updateOBJ(id, obj, resume) {
@@ -728,22 +740,30 @@ function getData(auth, ids, refresh, resume) {
 
 function getCode(ids, refresh, resume) {
   getItem(ids[1], (err, item) => {
-    // if L113 there is no AST.
-    if (!refresh && item && item.ast) {
+    if (err) {
+      resume(err);
+    } else if (!refresh && item && item.ast) {
+      // if L113 there is no AST.
       const ast = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
-      resume(err, ast);
+      resume(null, ast);
     } else {
-      assert(item, "ERROR getCode() item not found: " + ids);
+      assert(item, `ERROR getCode() item not found: ${ids}`);
       const user = item.user_id;
       const lang = item.language;
       const src = item.src; //.replace(/\\\\/g, "\\");
-      console.log("Reparsing SRC: langID=" + ids[0] + " codeID=" + ids[1] + " src=" + src);
+      console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src='${src}'`);
       parse(lang, src, (err, ast) => {
         updateAST(ids[1], user, lang, ast, (err) => {
-          assert(!err);
+          if (err) {
+            console.log(`ERROR getCode updateAST err=${err.message}`);
+          }
         });
         // Don't wait for update.
-        resume(err, ast);
+        if (err) {
+          resume(err);
+        } else {
+          resume(null, ast);
+        }
       });
     }
   });
@@ -784,68 +804,76 @@ function compileID(auth, id, options, resume) {
         const ids = decodeID(id);
         countView(ids[1]);  // Count every time code is used to compile a new item.
         getData(auth, ids, refresh, (err, data) => {
-          getCode(ids, refresh, (err, code) => {
-            if (err && err.length) {
-              resume(err, null);
-            } else {
-              getLang(ids, (err, lang) => {
-                if (err && err.length) {
-                  resume(err, null);
-                } else {
-                  if (lang === "L113" && Object.keys(data).length === 0) {
-                    // No need to recompile.
-                    getItem(ids[1], (err, item) => {
-                      if (err && err.length) {
-                        resume(err, null);
-                      } else {
-                        try {
-                          const obj = JSON.parse(item.obj);
-                          setCache(lang, id, "data", obj);
-                          resume(err, obj);
-                        } catch (e) {
-                          // Oops. Missing or invalid obj, so need to recompile after all.
-                          // Let downstream compilers know they need to refresh
-                          // any data used. Prefer true over false.
-                          comp(auth, lang, code, data, options, (err, obj) => {
-                            if (err) {
-                              resume(err);
-                            } else {
-                              setCache(lang, id, "data", obj);
-                              resume(null, obj);
-                            }
-                          });
-                        }
-                      }
-                    });
+          if (err) {
+            resume(err);
+          } else {
+            getCode(ids, refresh, (err, code) => {
+              if (err) {
+                resume(err);
+              } else {
+                getLang(ids, (err, lang) => {
+                  if (err) {
+                    resume(err);
                   } else {
-                    if (lang && code && code.root) {
-                      assert(code.root !== undefined, "Invalid code for item " + ids[1]);
-                      // Let downstream compilers know they need to refresh
-                      // any data used.
-                      comp(auth, lang, code, data, options, (err, obj) => {
+                    if (lang === "L113" && Object.keys(data).length === 0) {
+                      // No need to recompile.
+                      getItem(ids[1], (err, item) => {
                         if (err) {
                           resume(err);
                         } else {
-                          if (!dontSave) {
+                          try {
+                            const obj = JSON.parse(item.obj);
                             setCache(lang, id, "data", obj);
-                            if (ids[2] === 0 && ids.length === 3) {
-                              // If this is pure code, then update OBJ.
-                              updateOBJ(ids[1], obj, (err)=>{ assert(!err) });
-                            }
+                            resume(null, obj);
+                          } catch (e) {
+                            // Oops. Missing or invalid obj, so need to recompile after all.
+                            // Let downstream compilers know they need to refresh
+                            // any data used. Prefer true over false.
+                            comp(auth, lang, code, data, options, (err, obj) => {
+                              if (err) {
+                                resume(err);
+                              } else {
+                                setCache(lang, id, "data", obj);
+                                resume(null, obj);
+                              }
+                            });
                           }
-                          resume(null, obj);
                         }
                       });
                     } else {
-                      // Error handling here.
-                      console.log("ERROR compileID() ids=" + ids + " missing code");
-                      resume(null, {});
+                      if (lang && code && code.root) {
+                        assert(code.root !== undefined, "Invalid code for item " + ids[1]);
+                        // Let downstream compilers know they need to refresh
+                        // any data used.
+                        comp(auth, lang, code, data, options, (err, obj) => {
+                          if (err) {
+                            resume(err);
+                          } else {
+                            if (!dontSave) {
+                              setCache(lang, id, "data", obj);
+                              if (ids[2] === 0 && ids.length === 3) {
+                                // If this is pure code, then update OBJ.
+                                updateOBJ(ids[1], obj, (err) => {
+                                  if (err) {
+                                    console.log(`ERROR compileID updateOBJ err=${err.message}`);
+                                  }
+                                });
+                              }
+                            }
+                            resume(null, obj);
+                          }
+                        });
+                      } else {
+                        // Error handling here.
+                        console.log("ERROR compileID() ids=" + ids + " missing code");
+                        resume(null, {});
+                      }
                     }
                   }
-                }
-              });
-            }
-          });
+                });
+              }
+            });
+          }
         });
       }
     });
@@ -1164,7 +1192,11 @@ app.put('/compile', function (req, res) {
             } else {
               compileID(authToken, id, {refresh: true}, (err, obj) => {
                 if (err) {
-                  console.log(`ERROR PUT /compile compileID err=${err.message}`);
+                  if (err instanceof Error) {
+                    console.log(`ERROR PUT /compile compileID err=${err.message}`);
+                  } else {
+                    console.trace(err);
+                  }
                   res.sendStatus(500);
                 } else {
                   console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
@@ -1487,33 +1519,37 @@ function num2dot(num) {
 }
 
 const assetCache = {};
-app.get("/:lang/*", function (req, response) {
+app.get("/:lang/*", function (req, res) {
   // /L106/lexicon.js
   const lang = req.params.lang;
   const path = req.url;
   let data;
   if (!LOCAL_COMPILES && (data = assetCache[path])) {
-    response.send(data);
+    res.send(data);
   } else {
-    pingLang(lang, pong => {
+    pingLang(lang, (pong) => {
       if (pong) {
-        const data = [];
+        const chunks = [];
         const options = {
           host: getAPIHost(lang),
           port: getAPIPort(lang),
           path: path,
         };
         const protocol = LOCAL_COMPILES && http || https;
-        req = protocol.get(options, function(res) {
-          res.on("data", function (chunk) {
-            data.push(chunk);
-          }).on("end", function () {
-            data = assetCache[path] = data.join("");
-            response.send(data);
-          });
+        protocol.get(options, (apiRes) => {
+          apiRes
+            .on('error', (err) => {
+              console.log(`ERROR GET /:lang/* api call err=${err.message}`);
+              res.sendStatus(500);
+            })
+            .on('data', (chunk) => chunks.push(chunk))
+            .on('end', () => {
+              const data = assetCache[path] = chunks.join('');
+              res.send(data);
+            });
         });
       } else {
-        response.sendStatus(404);
+        res.sendStatus(404);
       }
     });
   }

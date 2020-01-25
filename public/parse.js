@@ -1931,7 +1931,11 @@ window.gcexports.parser = (function () {
       if (cc === null) {
         if (resume) {
           // FIXME make all paths go through a resume function.
-          resume(state.errors, Ast.poolToJSON(ctx));
+          if (state.errors.length > 0) {
+            resume(state.errors);
+          } else {
+            resume(null, Ast.poolToJSON(ctx));
+          }
         } else if (state.errors.length === 0) {
           window.gcexports.errors = [];
           var thisAST = Ast.poolToJSON(ctx);
