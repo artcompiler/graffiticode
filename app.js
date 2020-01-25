@@ -1222,70 +1222,6 @@ app.get('/items', (req, res) => {
   });
 });
 
-// DECPRECATE replace with GET /items {fields: "id", where: "language='L106' and ..."}
-app.get('/pieces/:lang', function (req, res) {
-  // Get list of item ids that match a query.
-  const lang = req.params.lang;
-  const search = req.query.src;
-  let labelStr;
-  if (req.query.label === undefined) {
-    labelStr = " label='show' ";
-  } else {
-    const labels = req.query.label.split("|");
-    labelStr = " (";
-    labels.forEach(label => {
-      if (labelStr !== " (") {
-        labelStr += " OR ";
-      }
-      labelStr += " label='" + label + "' ";
-    });
-    labelStr += ") ";
-  }
-  let queryString;
-  const likeStr = "";
-  if (search) {
-    const ss = search.split(",");
-    ss.forEach(function (s) {
-      s = cleanAndTrimSrc(s);
-      if (likeStr) {
-        likeStr += " AND ";
-      } else {
-        likeStr += "(";
-      }
-      likeStr += "src like '%" + s + "%'";
-    });
-    if (likeStr) {
-      likeStr += ") AND ";
-    }
-  }
-  queryString = "SELECT id, created FROM pieces WHERE language='" + lang +
-    "' AND " + likeStr + labelStr + " ORDER BY id DESC";
-  dbQuery(queryString, function (err, result) {
-    let rows;
-    if (!result || result.rows.length === 0) {
-      console.log("no rows");
-      // No rows for this language so make an empty item and insert it.
-      const insertStr =
-          "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label, img)" +
-          " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
-          " ', '" + 0 + "', now(), '" + "| " + lang + "', '" + "" +
-          " ', '" + lang + "', '" + "show" + "', '" + "" + "');";
-      dbQuery(insertStr, function(err, result) {
-        if (err) {
-          console.log("ERROR GET /pieces/:lang err=" + err);
-          res.sendStatus(400);
-          return;
-        }
-        dbQuery(queryString, function (err, result) {
-          res.send(result.rows);
-        });
-      });
-    } else {
-      res.send(result.rows);
-    }
-  });
-});
-
 // From http://javascript.about.com/library/blipconvert.htm
 function dot2num(dot) {
   const d = dot.split('.');
@@ -1356,7 +1292,7 @@ function getAPIPort(lang) {
   }
 }
 
-dbQuery("SELECT NOW() as when", (err, result) => {
+dbQuery("SELECT now() as when", (err, result) => {
   if (err) {
     console.error(err.stack);
     process.exit(1);
