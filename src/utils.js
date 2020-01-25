@@ -38,3 +38,38 @@ function itemToHash(userID, lang, ast) {
   return hasher.digest('hex');
 }
 exports.itemToHash = itemToHash;
+
+
+
+function cleanAndTrimObj(str) {
+  if (!isNonEmptyString(str)) {
+    return str;
+  }
+  str = str.replace(new RegExp(`'`,`g`), `''`);
+  str = str.replace(new RegExp(`\n`,`g`), ` `);
+  return str.trim();
+}
+exports.cleanAndTrimObj = cleanAndTrimObj;
+
+function cleanAndTrimSrc(str) {
+  if (!isNonEmptyString(str)) {
+    return str;
+  }
+  str = str.replace(new RegExp(`'`,`g`), `''`);
+  return str.trim();
+}
+exports.cleanAndTrimSrc = cleanAndTrimSrc;
+
+function parseJSON(str) {
+  if (!isNonEmptyString(str)) {
+    return null;
+  }
+  try {
+    return JSON.parse(str);
+  } catch (err) {
+    console.log(err.stack);
+    console.log(`ERROR parseJSON: '${str}'`);
+    return null;
+  }
+}
+exports.parseJSON = parseJSON;
