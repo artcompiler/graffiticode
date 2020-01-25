@@ -104,9 +104,9 @@ const aliases = {};
 
 function insertItem(userID, itemID, resume) {
   const findQuery = `
-  SELECT count(*)
-  FROM items
-  WHERE itemID='${itemID}';
+    SELECT count(*)
+    FROM items
+    WHERE itemID='${itemID}';
   `;
   dbQuery(findQuery, (err, result) => {
     if (err) {
@@ -116,15 +116,10 @@ function insertItem(userID, itemID, resume) {
       const [langID, codeID, ...dataIDs] = decodeID(itemID);
       const dataID = encodeID(dataIDs);
       const insertQuery = `
-      INSERT INTO items (userID, itemID, langID, codeID, dataID)
-      VALUES (${userID},'${itemID}',${langID},${codeID},'${dataID}');
+        INSERT INTO items (userID, itemID, langID, codeID, dataID)
+        VALUES (${userID},'${itemID}',${langID},${codeID},'${dataID}');
       `;
-      dbQuery(insertQuery, (err, result) => {
-        if (err) {
-          resume(err);
-        }
-        resume(null);
-      });
+      dbQuery(insertQuery, resume);
     } else {
       resume(null);
     }
@@ -152,7 +147,8 @@ function dbQuery(query, resume) {
 }
 
 function getItem(itemID, resume) {
-  dbQuery("SELECT * FROM pieces WHERE id = " + itemID, (err, result) => {
+  const selectQuery = `SELECT * FROM pieces WHERE id='${itemID}'`;
+  dbQuery(selectQuery, (err, result) => {
     // Here we get the language associated with the id. The code is gotten by
     // the view after it is loaded.
     if (!result || !result.rows || result.rows.length === 0 || result.rows[0].id < 1000) {
@@ -228,6 +224,7 @@ function parseJSON(str) {
 }
 
 const lexiconCache = new Map();
+
 function parse(lang, src, resume) {
   if (lexiconCache.has(lang)) {
     main.parse(src, lexiconCache.get(lang), resume);
@@ -236,6 +233,7 @@ function parse(lang, src, resume) {
       if (err) {
         resume(err);
       } else {
+        // TODO Make lexicon JSON.
         const lstr = data.substring(data.indexOf("{"));
         const lexicon = JSON.parse(lstr);
         lexiconCache.set(lang, lexicon);
@@ -250,7 +248,7 @@ app.use('/stat', routes.stat(dbQuery, insertItem));
 app.get('/lang', sendLang);
 
 function sendLang(req, res) {
-  // lang?id=106
+  // /lang?id=106
   const id = req.query.id;
   const langID = id;
   const src = req.query.src;
@@ -258,7 +256,6 @@ function sendLang(req, res) {
   pingLang(lang, (pong) => {
     if (pong) {
       if (src) {
-        //assert(false, "Should not get here. Call PUT /compile");
         putCode(authToken, lang, src, (err, val) => {
           if (err) {
             console.log(`ERROR GET /lang putCode err=${err.message}`);
@@ -269,8 +266,12 @@ function sendLang(req, res) {
         });
         return;
       }
-      const queryString = `SELECT itemid FROM items WHERE langid='${langID}' ORDER BY id DESC LIMIT 1`;
-      dbQuery(queryString, (err, result) => {
+      const selectQuery = `
+        SELECT itemid FROM items
+        WHERE langid='${langID}'
+        ORDER BY id DESC LIMIT 1
+      `;
+      dbQuery(selectQuery, (err, result) => {
         if (err) {
           console.log(`ERROR GET /lang getItem err=${err.message}`);
           res.sendStatus(500);
@@ -278,12 +279,12 @@ function sendLang(req, res) {
           const id = result.rows[0].itemid;
           res.redirect(`/item?id=${id}`);
         } else {
-          postItem(lang, `| ${lang}`, null, null, 0, 0, null, 'show', 0, (err, itemId) => {
+          postItem(lang, `| ${lang}`, null, null, 0, 0, null, 'show', 0, (err, itemID) => {
             if (err) {
               console.log(`ERROR GET /lang postItem err=${err.message}`);
               res.sendStatus(500);
             } else {
-              const id = encodeID([langID, itemId, 0]);
+              const id = encodeID([langID, itemID, 0]);
               res.redirect(`/item?id=${id}`);
             }
           });
@@ -307,7 +308,7 @@ function sendItem(id, req, res) {
   // If forkID then getTip()
   const t0 = new Date;
   getTip(id, (err, tip) => {
-    const langID = ids[0];
+    let langID = ids[0];
     const codeID = tip || ids[1];
     const dataIDs = ids.slice(2);
     if (req.query.fork) {
@@ -362,12 +363,12 @@ function sendItem(id, req, res) {
           console.log("ERROR [1] GET /item");
           res.sendStatus(404);
         } else {
-          const rowLangID = langID || +row.language.slice(1);
-          const language = "L" + rowLangID;
+          langID = langID || +row.language.slice(1);
+          const language = "L" + langID;
           res.render('views.html', {
             title: 'Graffiti Code',
             language: language,
-            item: encodeID([rowLangID, codeID].concat(dataIDs)),
+            item: encodeID([langID, codeID].concat(dataIDs)),
             view: "item",
             refresh: req.query.refresh,
             archive: req.query.archive,
@@ -539,7 +540,7 @@ function pingLang(lang, resume) {
       path: '/lang?id=' + lang.slice(1),
     };
     const protocol = LOCAL_COMPILES && http || https;
-    req = protocol.request(options, function(r) {
+    const req = protocol.request(options, function(r) {
       const pong = r.statusCode === 200;
       pingCache[lang] = pong;
       resume(pong);
@@ -602,17 +603,22 @@ function postItem(language, src, ast, obj, userID, parent, img, label, forkID, r
   }
   // ast is a JSON object
   const insertQuery = `
-INSERT INTO pieces
-  (address, fork_id, user_id, parent_id, views, forks, created, src, obj, language, label, img, ast, hash)
-VALUES
-  ('${clientAddress}','${forkID}','${userID}','${parent}','0','0',now(),'${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}','${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}','${itemToHash(userID, language, ast)}')
-RETURNING id`;
+    INSERT INTO pieces (
+      address, fork_id, user_id, parent_id, views, forks, created,
+      src, obj, language,
+      label, img, ast,
+      hash)
+    VALUES (
+      '${clientAddress}','${forkID}','${userID}','${parent}','0','0',now(),
+      '${cleanAndTrimSrc(src)}','${cleanAndTrimObj(obj)}','${language}',
+      '${label}','${cleanAndTrimObj(img)}','${cleanAndTrimSrc(JSON.stringify(ast))}',
+      '${itemToHash(userID, language, ast)}')
+    RETURNING id`;
   dbQuery(insertQuery, (err, insertResult) => {
     if (err) {
       resume(err);
     } else if (insertResult.rows.length > 0) {
       const item = insertResult.rows[0];
-
       // Perform async update of the parent fork count
       dbQuery(`UPDATE pieces SET forks=forks+1 WHERE id=${parent}`, (err, result) => {
         if (err) {
@@ -694,14 +700,14 @@ function updateAST(id, userID, language, ast, resume) {
   try {
     const hash = itemToHash(userID, language, ast);
     ast = cleanAndTrimSrc(JSON.stringify(ast));
-    const query = `
-    UPDATE pieces
-    SET
-      ast='${ast}',
-      hash='${hash}'
-    WHERE id='${id}';
+    const updateQuery = `
+      UPDATE pieces
+      SET
+        ast='${ast}',
+        hash='${hash}'
+      WHERE id='${id}';
     `;
-    dbQuery(query, (err, result) => {
+    dbQuery(updateQuery, (err, result) => {
       if (err) {
         resume(err);
       } else {
@@ -715,13 +721,13 @@ function updateAST(id, userID, language, ast, resume) {
 }
 
 function updateOBJ(id, obj, resume) {
-  console.log("updateOBJ() id=" + id);
   obj = cleanAndTrimObj(JSON.stringify(obj));
-  const query =
-    "UPDATE pieces SET " +
-    "obj='" + obj + "' " +
-    "WHERE id='" + id + "'";
-  dbQuery(query, function (err) {
+  const updateQuery = `
+    UPDATE pieces
+    SET obj='${obj}'
+    WHERE id='${id}'
+  `;
+  dbQuery(updateQuery, function (err) {
     resume(err, []);
   });
 }
@@ -1167,14 +1173,14 @@ app.put('/compile', function (req, res) {
             console.log(`ERROR PUT /compile parse err=${err.message}`);
             res.sendStatus(400);
           } else {
-            compile({ res, userId: user, lang, ast });
+            compile({ res, userID: user, lang, ast });
           }
         });
       } else {
-        compile({ res, userId: user, lang, ast });
+        compile({ res, userID: user, lang, ast });
       }
-      function compile({ res, userId, lang, ast }) {
-        itemToID(userId, lang, ast, (err, itemID) => {
+      function compile({ res, userID, lang, ast }) {
+        itemToID(userID, lang, ast, (err, itemID) => {
           compileInternal({ res, itemID });
         });
       }
@@ -1379,7 +1385,7 @@ app.get('/items', function(req, res) {
   const t0 = new Date;
   // Used by L109, L131.
   const userID = req.query.userID;
-  const queryStr = "";
+  let queryStr = "";
   const table = req.query.table || "pieces";
   if (req.query.list) {
     const list = req.query.list;
