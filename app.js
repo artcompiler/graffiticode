@@ -22,10 +22,14 @@ const {
 const main = require('./src/main');
 const routes = require('./routes');
 const {
+  // Database
   dbQuery,
+  readinessCheck,
+
   // Items
   insertItem,
   getLastItemByLang,
+
   // Pieces
   createPiece,
   getPiece,
@@ -494,7 +498,7 @@ function postItem(lang, src, ast, obj, userID, parent, img, label, forkID, resum
         if (err) {
           console.log(`ERROR postItem incrementForks err=${err.message}`);
         } else {
-          console.log(`Updated parent[${parentID}] of piece[${piece.id}] forks to ${forks}`);
+          // console.log(`Updated parent[${parentID}] of piece[${piece.id}] forks to ${forks}`);
         }
       });
       resume(null, piece.id);
@@ -527,7 +531,7 @@ function getCode(ids, refresh, resume) {
       const user = item.user_id;
       const lang = item.language;
       const src = item.src; //.replace(/\\\\/g, "\\");
-      console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src='${src}'`);
+      console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src="${src}"`);
       parse(lang, src, (err, ast) => {
         updatePieceAST(ids[1], user, lang, ast, (err) => {
           if (err) {
@@ -586,7 +590,7 @@ function compileID(auth, id, options, resume) {
           if (err) {
             console.log(`ERROR compileID incrementViews err=${err.message}`);
           } else {
-            console.log(`Updated piece[${ids[1]}] views to ${views}`);
+            // console.log(`Updated piece[${ids[1]}] views to ${views}`);
           }
         });  
 
@@ -1292,13 +1296,12 @@ function getAPIPort(lang) {
   }
 }
 
-dbQuery("SELECT now() as when", (err, result) => {
+readinessCheck((err) => {
   if (err) {
-    console.error(err.stack);
+    console.log(`ERROR Database is not ready: ${err.message}`);
     process.exit(1);
-  }
-  if (result.rows.length > 0) {
-    console.log(`Database Time: ${result.rows[0].when}`);
+  } else {
+    console.log(`Database is ready`);
   }
 });
 

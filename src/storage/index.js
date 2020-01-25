@@ -12,6 +12,7 @@ const {
 const { buildDbQuery } = require('./db-query');
 const { buildItemsApi } = require('./items');
 const { buildPiecesApi } = require('./pieces');
+const { buildReadinessCheck } = require('./readiness');
 
 const DEBUG = process.env.DEBUG === 'true' || false;
 const LOCAL_DATABASE = process.env.LOCAL_DATABASE === 'true' || false;
@@ -41,6 +42,7 @@ const dbQuery = buildDbQuery({ assert, isNonEmptyString, pool });
 const {
   createItemByItemId,
   getCountByItemId,
+  getLastItemByLang,
   insertItem,
 } = buildItemsApi({ dbQuery, decodeID, encodeID });
 const {
@@ -52,13 +54,17 @@ const {
   updatePiece,
   updatePieceAST,
 } = buildPiecesApi({ dbQuery, isNonEmptyString, parseJSON, cleanAndTrimSrc, cleanAndTrimObj, itemToHash });
+const readinessCheck = buildReadinessCheck({ dbQuery });
 
 exports = module.exports = {
+  // Database
   dbQuery,
+  readinessCheck,
 
   // Item API
   createItemByItemId,
   getCountByItemId,
+  getLastItemByLang,
   insertItem,
 
   // Piece API
