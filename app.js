@@ -551,7 +551,6 @@ function getCode(ids, refresh, resume) {
 
 function langName(id) {
   id = +id;
-//  return 'L' + (id < 10 ? "00" + id : id < 100 ? "0" + id : id);
   return 'L' + id;
 }
 
@@ -584,7 +583,6 @@ function compileID(auth, id, options, resume) {
         resume(null, val);
       } else {
         const ids = decodeID(id);
-
         // Count every time code is used to compile a new item.
         incrementViews(ids[1], (err, views) => {
           if (err) {
@@ -592,8 +590,7 @@ function compileID(auth, id, options, resume) {
           } else {
             // console.log(`Updated piece[${ids[1]}] views to ${views}`);
           }
-        });  
-
+        });
         getData(auth, ids, refresh, (err, data) => {
           if (err) {
             resume(err);

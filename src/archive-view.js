@@ -91,7 +91,7 @@ class ArchiveContent extends React.Component {
       var rect = svg.append("g")
         .attr("fill", "none")
         .attr("stroke", (d) => {
-          return "#ccc"
+          return "#ccc";
         })
         .selectAll("rect")
         .data(function(d) { return d3.timeDays(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
@@ -279,7 +279,7 @@ class ArchiveContent extends React.Component {
             resume(null, data.data);
           },
           error: function(xhr, msg, err) {
-            console.log(msg+" "+err)
+            console.log(msg+" "+err);
             resume("error", []);
           }
         });
@@ -405,6 +405,7 @@ class ArchiveContent extends React.Component {
               }
               let items = [];
               data1 = data1.reverse();  // Make ascending.
+              data2 = data2.reverse();  // Make ascending.
               let index = 0;
               if (data1.length > 0) {
                 for (let i = 0; i < data1.length; i++) {
@@ -419,7 +420,7 @@ class ArchiveContent extends React.Component {
                           index: index,
                           id: itemsHash[id][j].id,
                           date: data1[i].created.substring(0,10),
-                        }
+                        };
                         index++;
                       }
                     } else {
@@ -428,10 +429,20 @@ class ArchiveContent extends React.Component {
                         index: index,
                         id: window.gcexports.encodeID([langID, data1[i].id, 0]),
                         date: data1[i].created.substring(0,10),
-                      }
+                      };
                       index++;
                     }
                   }
+                }
+              } else if (data2.length > 0) {
+                for (let i = 0; i < data2.length; i++) {
+                  let id = data2[i].id;
+                  items[index] = {
+                    index: index,
+                    id: data2[i].itemid,
+                    date: data2[i].created.substring(0,10),
+                  };
+                  index++;
                 }
               } else if (itemsHash) {
                 // Just use items.
@@ -441,7 +452,7 @@ class ArchiveContent extends React.Component {
                       index: index,
                       date: itemsHash[id][j].created.substring(0,10),
                       id: itemsHash[id][j].id,
-                    }
+                    };
                     index++;
                   }
                 });
