@@ -327,7 +327,7 @@ function sendForm(id, req, res) {
     // ID is an invalid ID but a valid alias, so get aliased ID.
     ids = decodeID(aliases[id]);
   }
-  const langID = ids[0] ? ids[0] : 0;
+  let langID = ids[0] ? ids[0] : 0;
   const codeID = ids[1] ? ids[1] : 0;
   if (codeID === 0) {
     console.log("ERROR [1] GET /form id=" + id + " ids=" + ids.join("+"));
