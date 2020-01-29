@@ -12,6 +12,7 @@ const errorHandler = require("errorhandler");
 const redis = require('redis');
 const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
+const cors = require('cors');
 const {decodeID, encodeID} = require('./src/id');
 const {
   cleanAndTrimObj,
@@ -67,6 +68,7 @@ app.use(morgan('combined', {
   skip: function (req, res) { return res.statusCode < 400 }
 }));
 
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false, limit: 100000000 }));
 app.use(bodyParser.text({limit: '50mb'}));
 app.use(bodyParser.raw({limit: '50mb'}));

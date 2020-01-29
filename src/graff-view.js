@@ -271,7 +271,7 @@ class GraffContent extends React.Component {
           obj: this.state[codeID].obj,
         };
       }
-      if (item) {
+      if (item && item.obj) {
         if (this.state.postCode) {
           // New code so clear (don't copy) old state.
           state[itemID] = item;
