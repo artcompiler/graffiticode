@@ -202,7 +202,7 @@ function sendLang(req, res) {
         } else if (item) {
           res.redirect(`/item?id=${item.itemid}`);
         } else {
-          postItem(lang, `| ${lang}`, null, null, 0, 0, null, 'show', 0, (err, itemID) => {
+          postItem(lang, `| ${lang}`, {}, null, 0, 0, null, 'show', 0, (err, itemID) => {
             if (err) {
               console.log(`ERROR GET /lang postItem err=${err.message}`);
               res.sendStatus(500);
