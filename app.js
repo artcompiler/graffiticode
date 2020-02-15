@@ -159,7 +159,7 @@ function parse(lang, src, resume) {
     main.parse(src, lexiconCache.get(lang), resume);
   } else {
     get(lang, 'lexicon.js', (err, data) => {
-      if (err) {
+      if (err && err.length) {
         resume(err);
       } else {
         // TODO Make lexicon JSON.
@@ -186,7 +186,7 @@ function sendLang(req, res) {
     if (pong) {
       if (src) {
         putCode(authToken, lang, src, (err, val) => {
-          if (err) {
+          if (err && err.length) {
             console.log(`ERROR GET /lang putCode err=${err.message}`);
             res.sendStatus(500);
           } else {
@@ -196,14 +196,14 @@ function sendLang(req, res) {
         return;
       }
       getLastItemByLang(langID, (err, item) => {
-        if (err) {
+        if (err && err.length) {
           console.log(`ERROR GET /lang getLastItemByLang err=${err.message}`);
           res.sendStatus(500);
         } else if (item) {
           res.redirect(`/item?id=${item.itemid}`);
         } else {
           postItem(lang, `| ${lang}`, {}, null, 0, 0, null, 'show', 0, (err, itemID) => {
-            if (err) {
+            if (err && err.length) {
               console.log(`ERROR GET /lang postItem err=${err.message}`);
               res.sendStatus(500);
             } else {
@@ -253,7 +253,7 @@ function sendItem(id, req, res) {
           const forkID = 0;
           postItem(language, src, ast, obj, userID, parentID, img, label, forkID, (err, codeID) => {
             const ids = [langID, codeID].concat(dataIDs);
-            if (err) {
+            if (err && err.length) {
               console.log("ERROR putData() err=" + err);
               res.sendStatus(400);
             } else {
@@ -390,6 +390,11 @@ app.get("/form", function (req, res) {
 //   sendForm(req.params.id, req, res);
 // });
 
+function statusCodeFromErrors(errs) {
+  let statusCode;
+  return errs.some(err => statusCode = err.statusCode) && statusCode || 500;
+}
+
 function sendData(auth, id, req, res) {
   const ids = decodeID(id);
   const refresh = !!req.query.refresh;
@@ -400,18 +405,15 @@ function sendData(auth, id, req, res) {
   };
   const t0 = new Date;
   compileID(auth, id, options, (err, obj) => {
-    if (err) {
-      if (err instanceof Error) {
-        console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${err.message}`);
-      } else {
-        console.trace(err);
-        console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${err}`);
-      }
-      res.sendStatus(400);
+    if (err && err.length) {
+      console.trace(err);
+      console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${err}`);
+      const statusCode = statusCodeFromErrors(err);
+      res.status(statusCode).json(obj);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-      res.json(obj);
+      res.status(200).json(obj);
     }
   });
 }
@@ -492,12 +494,12 @@ function get(language, path, resume) {
 function postItem(lang, src, ast, obj, userID, parent, img, label, forkID, resume) {
   const parentID = decodeID(parent)[1];
   createPiece(forkID, parentID, userID, src, obj, lang, label, img, clientAddress, ast, (err, piece) => {
-    if (err) {
+    if (err && err.length) {
       resume(err);
     } else {
       // Perform async update of the parent fork count
       incrementForks(parentID, (err, forks) => {
-        if (err) {
+        if (err && err.length) {
           console.log(`ERROR postItem incrementForks err=${err.message}`);
         } else {
           // console.log(`Updated parent[${parentID}] of piece[${piece.id}] forks to ${forks}`);
@@ -522,7 +524,7 @@ function getData(auth, ids, refresh, resume) {
 
 function getCode(ids, refresh, resume) {
   getPiece(ids[1], (err, item) => {
-    if (err) {
+    if (err && err.length) {
       resume(err);
     } else if (!refresh && item && item.ast) {
       // if L113 there is no AST.
@@ -536,12 +538,12 @@ function getCode(ids, refresh, resume) {
       console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src="${src}"`);
       parse(lang, src, (err, ast) => {
         updatePieceAST(ids[1], user, lang, ast, (err) => {
-          if (err) {
+          if (err && err.length) {
             console.log(`ERROR getCode updatePieceAST err=${err.message}`);
           }
         });
         // Don't wait for update.
-        if (err) {
+        if (err && err.length) {
           resume(err);
         } else {
           resume(null, ast);
@@ -578,7 +580,7 @@ function compileID(auth, id, options, resume) {
       delCache(id, "data");
     }
     getCache(id, "data", (err, val) => {
-      if (err) {
+      if (err && err.length) {
         resume(err);
       } else if (val) {
         // Got cached value. We're done.
@@ -587,28 +589,28 @@ function compileID(auth, id, options, resume) {
         const ids = decodeID(id);
         // Count every time code is used to compile a new item.
         incrementViews(ids[1], (err, views) => {
-          if (err) {
+          if (err && err.length) {
             console.log(`ERROR compileID incrementViews err=${err.message}`);
           } else {
             // console.log(`Updated piece[${ids[1]}] views to ${views}`);
           }
         });
         getData(auth, ids, refresh, (err, data) => {
-          if (err) {
+          if (err && err.length) {
             resume(err);
           } else {
             getCode(ids, refresh, (err, code) => {
-              if (err) {
+              if (err && err.length) {
                 resume(err);
               } else {
                 getLang(ids, (err, lang) => {
-                  if (err) {
+                  if (err && err.length) {
                     resume(err);
                   } else {
                     if (lang === "L113" && Object.keys(data).length === 0) {
                       // No need to recompile.
                       getPiece(ids[1], (err, item) => {
-                        if (err) {
+                        if (err && err.length) {
                           resume(err);
                         } else {
                           try {
@@ -620,7 +622,7 @@ function compileID(auth, id, options, resume) {
                             // Let downstream compilers know they need to refresh
                             // any data used. Prefer true over false.
                             comp(auth, lang, code, data, options, (err, obj) => {
-                              if (err) {
+                              if (err && err.length) {
                                 resume(err);
                               } else {
                                 setCache(lang, id, "data", obj);
@@ -636,7 +638,7 @@ function compileID(auth, id, options, resume) {
                         // Let downstream compilers know they need to refresh
                         // any data used.
                         comp(auth, lang, code, data, options, (err, obj) => {
-                          if (err) {
+                          if (err && err.length) {
                             resume(err);
                           } else {
                             if (!dontSave) {
@@ -644,7 +646,7 @@ function compileID(auth, id, options, resume) {
                               if (ids[2] === 0 && ids.length === 3) {
                                 // If this is pure code, then update OBJ.
                                 updatePiece(ids[1], null, obj, null, (err) => {
-                                  if (err) {
+                                  if (err && err.length) {
                                     console.log(`ERROR compileID updatePiece err=${err.message}`);
                                   }
                                 });
@@ -703,7 +705,14 @@ function comp(auth, lang, code, data, options, resume) {
           data += chunk;
         });
         res.on('end', function () {
-          resume(null, parseJSON(data));
+          const err = [];
+          if (res.statusCode !== 200) {
+            err.push({
+              statusCode: res.statusCode,
+              data: data,
+            });
+          }
+          resume(err, parseJSON(data));
         });
         res.on('error', function (err) {
           console.log("ERROR [1] comp() err=" + err);
@@ -734,7 +743,7 @@ function parseID(id, options, resume) {
       const src = item.src;
       if (src) {
         parse(lang, src, (err, ast) => {
-          if (err) {
+          if (err && err.length) {
             resume(err);
           } else {
             if (!ast || Object.keys(ast).length === 0) {
@@ -744,7 +753,7 @@ function parseID(id, options, resume) {
               if (ids[1] && !options.dontSave) {
                 console.log(`Saving AST for id=${id}`);
                 updatePieceAST(ids[1], user, lang, ast, (err) => {
-                  if (err) {
+                  if (err && err.length) {
                     resume(err);
                   } else {
                     resume(null, ast);
@@ -825,7 +834,7 @@ app.put('/comp', function (req, res) {
   postAuth("/validate", { jwt: auth }, (err, val) => {
     const t1 = new Date;
     console.log("postAuth() in " + (t1 - t0) + "ms");
-    if (err) {
+    if (err && err.length) {
       res.sendStatus(err);
     } else {
       const address = val.address;
@@ -908,7 +917,7 @@ app.put('/compile', function (req, res) {
   const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
   const t0 = new Date;
   validateUser(req.body.jwt, lang, (err, data) => {
-    if (err) {
+    if (err && err.length) {
       console.log(`ERROR PUT /compile validateUser err=${err.message}`);
       res.sendStatus(401);
     } else {
@@ -926,7 +935,7 @@ app.put('/compile', function (req, res) {
         console.log(`No AST, parsing: ${src}`);
         // No AST, try creating from source.
         parse(lang, src, (err, ast) => {
-          if (err) {
+          if (err && err.length) {
             console.log(`ERROR PUT /compile parse err=${err.message}`);
             res.sendStatus(400);
           } else {
@@ -938,7 +947,7 @@ app.put('/compile', function (req, res) {
       }
       function compile({ res, userID, lang, ast }) {
         itemToID(userID, lang, ast, (err, itemID) => {
-          if (err) {
+          if (err && err.length) {
             itemID = null;
           }
           compileInternal({ res, itemID });
@@ -952,17 +961,13 @@ app.put('/compile', function (req, res) {
           const ids = [langID, itemID, 0];
           const id = encodeID(ids);
           updatePiece(itemID, src, obj, img, (err) => {
-            if (err) {
+            if (err && err.length) {
               console.log(`ERROR PUT /compile updatePiece err=${err.message}`);
               res.sendStatus(500);
             } else {
               compileID(authToken, id, {refresh: true}, (err, obj) => {
-                if (err) {
-                  if (err instanceof Error) {
-                    console.log(`ERROR PUT /compile compileID err=${err.message}`);
-                  } else {
-                    console.trace(err);
-                  }
+                if (err && err.length) {
+                  console.trace(err);
                   res.sendStatus(500);
                 } else {
                   console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
@@ -973,7 +978,7 @@ app.put('/compile', function (req, res) {
           });
         } else {
           postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
-            if (err) {
+            if (err && err.length) {
               console.log(`ERROR PUT /compile postItem err=${err.message}`);
               res.sendStatus(500);
             } else {
@@ -983,7 +988,7 @@ app.put('/compile', function (req, res) {
               const ids = [langID, codeID, 0];
               const id = encodeID(ids);
               compileID(authToken, id, {refresh: false}, (err, obj) => {
-                if (err) {
+                if (err && err.length) {
                   console.log(`ERROR PUT /compile compileID err=${err.message}`);
                   res.sendStatus(500);
                 } else {
@@ -1019,7 +1024,7 @@ function putData(auth, data, resume) {
     const dataID = 0;
     const ids = [langID, codeID, dataID];
     const id = encodeID(ids);
-    if (err) {
+    if (err && err.length) {
       console.log("ERROR putData() err=" + err);
       resume(err);
     } else {
@@ -1042,7 +1047,7 @@ function putCode(auth, lang, rawSrc, resume) {
   function compile(ast) {
     const forkID = 0;
     postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
-      if (err) {
+      if (err && err.length) {
         console.log("ERROR [2] PUT /compile err=" + err);
         resume(400);
       } else {
@@ -1087,7 +1092,7 @@ app.put('/code', (req, res) => {
     if (pieceId) {
       // Perform async piece update
       updatePiece(pieceId, src, obj, img, (err) => {
-        if (err) {
+        if (err && err.length) {
           console.log(`ERROR PUT /code updatePiece err=${err.message}`);
         }
       });
@@ -1104,12 +1109,12 @@ app.put('/code', (req, res) => {
       const label = body.label;
       const parent = body.parent ? body.parent : 0;
       parse(lang, src, (err, ast) => {
-        if (err) {
+        if (err && err.length) {
           console.log(`ERROR PUT /code parse err=${err.message}`);
           res.sendStatus(500);
         } else {
           postItem(lang, src, ast, obj, user, parent, '', label, 0, (err, codeID) => {
-            if (err) {
+            if (err && err.length) {
               console.log(`ERROR PUT /code postItem err=${err.message}`);
               res.sendStatus(500);
             } else {
@@ -1208,7 +1213,7 @@ app.get('/items', (req, res) => {
   LIMIT ${limit};
   `;
   dbQuery(query, (err, result) => {
-    if (err) {
+    if (err && err.length) {
       res.status(500).send({
         success: false,
         errors: [err.message],
@@ -1410,7 +1415,7 @@ function validateUser(token, lang, resume) {
     postAuth("/validateSignIn", {
       jwt: token,
     }, (err, data) => {
-      if (err) {
+      if (err && err.length) {
         // There is an issue with sign in.
         resume(err);
       } else {
