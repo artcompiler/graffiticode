@@ -17,9 +17,9 @@
 
 CodeMirror.registerHelper("lint", "graffiti", function(text) {
     if (window.gcexports.errors) {
-	return window.gcexports.errors;
+	    return window.gcexports.errors;
     } else {
-	return [];
+	    return [];
     }
 });
 });

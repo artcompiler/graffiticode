@@ -1824,7 +1824,8 @@ window.gcexports.parser = (function () {
               errors.push({
                 from: coord.from,
                 to: coord.to,
-                message: err.str,
+                message: err.str || err.error &&
+                  err.error.length && err.error[0].data && err.error[0].data.error,
                 severity : "error",
               });
               seenErrors[errHash] = true;
