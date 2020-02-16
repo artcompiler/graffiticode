@@ -19,6 +19,8 @@ const {
   cleanAndTrimSrc,
   isNonEmptyString,
   parseJSON,
+  statusCodeFromErrors,
+  messageFromErrors,
 } = require('./src/utils');
 const main = require('./src/main');
 const routes = require('./routes');
@@ -389,11 +391,6 @@ app.get("/form", function (req, res) {
 // app.get("/f/:id", function (req, res) {
 //   sendForm(req.params.id, req, res);
 // });
-
-function statusCodeFromErrors(errs) {
-  let statusCode;
-  return errs.some(err => statusCode = err.statusCode) && statusCode || 500;
-}
 
 function sendData(auth, id, req, res) {
   const ids = decodeID(id);
@@ -967,8 +964,7 @@ app.put('/compile', function (req, res) {
             } else {
               compileID(authToken, id, {refresh: true}, (err, obj) => {
                 if (err && err.length) {
-                  console.trace(err);
-                  res.sendStatus(500);
+                  res.status(statusCodeFromErrors(err)).json(messageFromErrors(err));
                 } else {
                   console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
                   res.json({ id, obj });
@@ -989,8 +985,8 @@ app.put('/compile', function (req, res) {
               const id = encodeID(ids);
               compileID(authToken, id, {refresh: false}, (err, obj) => {
                 if (err && err.length) {
-                  console.log(`ERROR PUT /compile compileID err=${err.message}`);
-                  res.sendStatus(500);
+                  console.log(`ERROR PUT /compile compileID err=${JSON.stringify(err)}`);
+                  res.status(statusCodeFromErrors(err)).json(messageFromErrors(err));
                 } else {
                   console.log(`PUT /compile?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms`);
                   res.json({ forkID, id, obj });

@@ -29,14 +29,24 @@ class AlertView extends React.Component {
       // NOTE These messages can be modified on a per host basis.
       let status = this.state[window.gcexports.id].status;
       switch(status) {
+      case 400:
+        message = "Invalid input";
+        break;
       case 401:
-        message = "Sign in to start compiling.";
+        message = "Sign in to start compiling";
         break;
       case 403:
-        message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access.";
+        message = "You are not authorized to access this operation. Contact site administrator (admin@graffiticode.com) to get access";
+        break;
+      case 500:
+        message = "Internal service error";
+        break;
+      case 408:
+      case 503:
+        message = "Service unavailable";
         break;
       default:
-        message = "Unknown error.";
+        message = "Unknown error (" + status + ")";
       }
     }
     if (message) {

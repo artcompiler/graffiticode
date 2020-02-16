@@ -73,3 +73,20 @@ function parseJSON(str) {
   }
 }
 exports.parseJSON = parseJSON;
+
+function statusCodeFromErrors(errs) {
+  let statusCode;
+  return errs.some(err => statusCode = err.statusCode) && statusCode || 500;
+}
+
+function messageFromErrors(errs) {
+  let message;
+  return errs.some(
+    err => message =
+      err.data && err.data.error ||
+      err.data
+  ) && message || "Internal error";
+}
+
+exports.statusCodeFromErrors = statusCodeFromErrors;
+exports.messageFromErrors = messageFromErrors;
