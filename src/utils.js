@@ -76,7 +76,10 @@ exports.parseJSON = parseJSON;
 
 function statusCodeFromErrors(errs) {
   let statusCode;
-  return errs.some(err => statusCode = err.statusCode) && statusCode || 500;
+  return errs.some(
+    err => statusCode =
+      err.statusCode
+  ) && statusCode || 500;
 }
 
 function messageFromErrors(errs) {
