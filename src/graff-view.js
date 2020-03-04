@@ -66,6 +66,17 @@ class GraffContent extends React.Component {
       try {
         window.gcexports.updateMark && window.gcexports.updateMark(itemID);
         d3.json(location.origin + "/data/?id=" + itemID + params, (err, obj) => {
+          if (err) {
+            // let state = {};
+            // state[gcexports.id] = {
+            //   status: err.status,
+            //   message: err.statusText,
+            //   obj: {},
+            // };
+            // gcexports.dispatcher.dispatch(state);
+            // self.pendingCompRequests--;
+            obj = {};
+          }
           self.pendingCompRequests--;
           // if (dataID && +dataID !== 0) {
           //   // This is the magic where we collapse the "tail" into a JSON object.
@@ -95,6 +106,8 @@ class GraffContent extends React.Component {
             id: itemID,
             obj: obj,
             data: {},  // Clear data
+            status: err && err.status,
+            message: err && err.statusText,
           };
           if (refresh || self.pendingCompRequests === 0) {
             self.pendingCompRequest = 0;
