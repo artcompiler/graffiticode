@@ -10,7 +10,7 @@ const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const errorHandler = require("errorhandler");
 const redis = require('redis');
-const cache = undefined; // = redis.createClient(process.env.REDIS_URL);
+const cache = process.env.REDIS_URL && redis.createClient(process.env.REDIS_URL);
 const atob = require("atob");
 const cors = require('cors');
 const {decodeID, encodeID} = require('./src/id');
@@ -157,20 +157,28 @@ function setCache(lang, id, type, val) {
 const lexiconCache = new Map();
 
 function parse(lang, src, resume) {
-  if (lexiconCache.has(lang)) {
-    main.parse(src, lexiconCache.get(lang), resume);
-  } else {
-    get(lang, 'lexicon.js', (err, data) => {
-      if (err && err.length) {
-        resume(err);
-      } else {
-        // TODO Make lexicon JSON.
-        const lstr = data.substring(data.indexOf("{"));
-        const lexicon = JSON.parse(lstr);
-        lexiconCache.set(lang, lexicon);
-        main.parse(src, lexicon, resume);
-      }
-    });
+  try {
+    if (lexiconCache.has(lang)) {
+      main.parse(src, lexiconCache.get(lang), resume);
+    } else {
+      get(lang, 'lexicon.js', (err, data) => {
+        if (err && err.length) {
+          resume(err);
+        } else {
+          // TODO Make lexicon JSON.
+          const lstr = data.substring(data.indexOf("{"));
+          const lexicon = JSON.parse(lstr);
+          lexiconCache.set(lang, lexicon);
+          main.parse(src, lexicon, resume);
+        }
+      });
+    }
+  } catch (x) {
+    console.log("parse() catch " + x.stack);
+    resume([{
+      statusCode: 400,
+      error: "Bad code",
+    }]);
   }
 }
 
@@ -410,6 +418,7 @@ function sendData(auth, id, req, res) {
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
+      res.setHeader("server", "graffiticode/1.0");
       res.status(200).json(obj);
     }
   });
@@ -534,14 +543,19 @@ function getCode(ids, refresh, resume) {
       const src = item.src; //.replace(/\\\\/g, "\\");
       console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src="${src}"`);
       parse(lang, src, (err, ast) => {
-        updatePieceAST(ids[1], user, lang, ast, (err) => {
-          if (err && err.length) {
-            console.log(`ERROR getCode updatePieceAST err=${err.message}`);
-          }
-        });
+        if (ast) {
+          updatePieceAST(ids[1], user, lang, ast, (err) => {
+            if (err && err.length) {
+              console.log(`ERROR getCode updatePieceAST err=${err.message}`);
+            }
+          });
+        }
         // Don't wait for update.
         if (err && err.length) {
-          resume(err);
+          resume([{
+            statusCode: 400,
+            error: "Syntax error",
+          }]);
         } else {
           resume(null, ast);
         }

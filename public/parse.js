@@ -1977,6 +1977,9 @@ window.gcexports.parser = (function () {
         state.cc = null;  // done for now.
         cls = "error"
         console.log(x.stack);
+        if (resume) {
+          resume(window.gcexports.errors);
+        }
       } else if (x === "comment") {
         cls = x
       } else {
