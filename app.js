@@ -874,7 +874,7 @@ app.put('/comp', function (req, res) {
             str +=
             'row twelve-columns [href "item?id=' + val.id +
               '" img "https://cdn.acx.ac/' + val.id + '.png", h4 "' + (i + 1) +
-              '" img "https://gc.acx.ac/form?id=' + val.id, h4 "' + (i + 1) +
+              '" img "https://gc.acx.ac/form?id=' + val.id + ', h4 "' + (i + 1) +
               ' of ' + data.length + ': ' + val.id + '"],\n';
             doScrape = true;
           } else {
