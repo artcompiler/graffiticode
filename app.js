@@ -790,10 +790,14 @@ function clearCache(type, items) {
 function getIDFromType(type) {
   // FIXME make this generic.
   switch (type) {
+  case 'deaths-28-d':
+    return '3L5hj7WQwf0';
   default:
     return null;
   }
 }
+
+const REFRESH = true;
 
 function batchCompile(auth, items, index, res, resume) {
   index = +index || 0;
@@ -811,7 +815,7 @@ function batchCompile(auth, items, index, res, resume) {
       item.id = id;
       item.image_url = "https://cdn.acx.ac/" + id + ".png";
       delete item.data;
-      compileID(auth, id, {refresh: DEBUG}, (err, obj) => {
+      compileID(auth, id, {refresh: REFRESH}, (err, obj) => {
         item.data = obj;
         batchCompile(auth, items, index + 1, res, resume);
         console.log("COMPILE " + (index + 1) + "/" + items.length + ", " + id + " in " + (new Date - t0) + "ms");
@@ -826,6 +830,7 @@ app.put('/comp', function (req, res) {
   const t0 = new Date;
   const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   const data = body;
+  console.log("PUT /comp data=" + JSON.stringify(data));
   const auth = req.headers.authorization;
   const date = new Date().toUTCString();
   postAuth("/validate", { jwt: auth }, (err, val) => {
@@ -842,7 +847,7 @@ app.put('/comp', function (req, res) {
         console.log("batchCompile() in " + (t3 - t2) + "ms");
         res.end(JSON.stringify(data));
         const itemIDs = [];
-        const str = "grid [\n";
+        let str = "grid [\n";
         str += 'row twelve-columns [br, ';
         str += 'style { "fontSize": "14"} cspan "Client: ' + address + '", ';
         str += 'style { "fontSize": "14"} cspan "Posted: ' + date + '"';
@@ -855,6 +860,7 @@ app.put('/comp', function (req, res) {
             str +=
             'row twelve-columns [href "item?id=' + val.id +
               '" img "https://cdn.acx.ac/' + val.id + '.png", h4 "' + (i + 1) +
+              '" img "https://gc.acx.ac/form?id=' + val.id, h4 "' + (i + 1) +
               ' of ' + data.length + ': ' + val.id + '"],\n';
             doScrape = true;
           } else {
@@ -1010,22 +1016,23 @@ function putData(auth, data, resume) {
   const obj = cleanAndTrimObj(JSON.stringify(data));
   const lang = "L113";
   const user = 0;
-  const ast = null;
   const label = "data";
   const parent = 0;
   const img = "";
   const forkID = 0;
-  postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
-    const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
-    const dataID = 0;
-    const ids = [langID, codeID, dataID];
-    const id = encodeID(ids);
-    if (err && err.length) {
-      console.log("ERROR putData() err=" + err);
-      resume(err);
-    } else {
-      resume(null, id);
-    }
+  parse(lang, rawSrc, (err, ast) => {
+    postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
+      const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
+      const dataID = 0;
+      const ids = [langID, codeID, dataID];
+      const id = encodeID(ids);
+      if (err && err.length) {
+        console.log("ERROR putData() err=" + err);
+        resume(err);
+      } else {
+        resume(null, id);
+      }
+    });
   });
 }
 function putCode(auth, lang, rawSrc, resume) {
@@ -1264,7 +1271,7 @@ app.get("/:lang/*", function (req, res) {
         protocol.get(options, (apiRes) => {
           apiRes
             .on('error', (err) => {
-              console.log(`ERROR GET /:lang/* api call err=${err.message}`);
+              console.log(`ERROR GET /:lang api call err=${err.message}`);
               res.sendStatus(500);
             })
             .on('data', (chunk) => chunks.push(chunk))
@@ -1452,6 +1459,7 @@ if (!module.parent) {
         }, (err, data) => {
           // Default auth token.
           authToken = data.jwt;
+          console.log("authToken=" + authToken);
         });
       });
     }
