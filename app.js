@@ -93,13 +93,7 @@ app.engine('html', function (templateFile, options, callback) {
 
 // const request = require('request');
 app.get("/", (req, res) => {
-  res.sendStatus(200);
-//   let proto = req.headers['x-forwarded-proto'] || "http";
-//   if (aliases["home"]) {
-//     request([proto, "://", "www.artcompiler.com", "/form?id=" + aliases["home"]].join("")).pipe(res);
-//   } else {
-//     request([proto, "://", "www.artcompiler.com", "/form?id=LO5SnPeAJhg"].join("")).pipe(res);
-//   }
+  res.redirect('https://coronavirus.artcompiler.com/form?id=gp9UePmXnSz');
 });
 
 const aliases = {};
@@ -1437,7 +1431,7 @@ const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
   : "0x0123456789abcdef0123456789abcdef01234567";
 let authToken = process.env.ARTCOMPILER_CLIENT_SECRET;
 if (!module.parent) {
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3001;
   app.listen(port, async function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
