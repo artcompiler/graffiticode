@@ -93,7 +93,7 @@ app.engine('html', function (templateFile, options, callback) {
 
 // const request = require('request');
 app.get("/", (req, res) => {
-  res.redirect('https://coronavirus.artcompiler.com/form?id=87vFVm82yIv');
+  res.redirect('https://coronavirus.artcompiler.com/form?id=BqaIb4xzgF9');
 });
 
 const aliases = {};
