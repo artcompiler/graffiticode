@@ -24,3 +24,25 @@
   * `$ make`
 * Get build and run the Graffiticode API gatway (see https://github.com/graffiticode/api)
 * Make an artcompiler (see https://github.com/graffiticode/L0)
+
+## Development
+
+### Run `postgres` on docker
+```bash
+docker run \
+  --name gcdb \
+  --rm \
+  --detach \
+  -e POSTGRES_PASSWORD=notsecret \
+  -v ${PWD}/util/initgcdb.sql:/docker-entrypoint-initdb.d/initgcdb.sql \
+  -p 5432:5432 \
+  postgres:12
+export DEBUG=true
+export LOCAL_DATABASE=true
+export DATABASE_URL_LOCAL="postgres://postgres:notsecret@127.0.0.1:5432/postgres"
+npm install
+make
+
+# Clean up
+docker stop gcdb
+```
