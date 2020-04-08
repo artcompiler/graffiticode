@@ -63,10 +63,15 @@ app.all('*', function (req, res, next) {
   }
 });
 
-const isDev = env === 'development';
-app.use(morgan((isDev ? 'dev' : 'combined'), {
-  skip: function (req, res) { return !isDev && res.statusCode < 400 }
-}));
+if (env === 'development') {
+  app.use(morgan('dev'));
+  app.use(errorHandler({ dumpExceptions: true, showStack: true }));
+} else {
+  app.use(morgan('combined', {
+    skip: (req, res) => res.statusCode < 400,
+  }));
+  app.use(errorHandler())
+}
 
 app.set('views', __dirname + '/views');
 // app.set('public', __dirname + '/public');
@@ -1309,14 +1314,6 @@ readinessCheck((err) => {
     console.log(`Database is ready`);
   }
 });
-
-if (process.env.NODE_ENV === 'development') {
-  app.use(errorHandler({dumpExceptions: true, showStack: true}))
-}
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(errorHandler())
-}
 
 process.on('uncaughtException', (err) => {
   if (err instanceof Error) {
