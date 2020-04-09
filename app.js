@@ -1452,7 +1452,7 @@ const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
   : "0x0123456789abcdef0123456789abcdef01234567";
 let authToken = process.env.ARTCOMPILER_CLIENT_SECRET;
 if (!module.parent) {
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3000;
   app.listen(port, async function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
