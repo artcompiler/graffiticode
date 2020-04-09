@@ -63,12 +63,19 @@ app.all('*', function (req, res, next) {
   }
 });
 
+if (env === 'development') {
+  app.use(morgan('dev'));
+  app.use(errorHandler({ dumpExceptions: true, showStack: true }));
+} else {
+  app.use(morgan('combined', {
+    skip: (req, res) => res.statusCode < 400,
+  }));
+  app.use(errorHandler())
+}
+
 app.set('views', __dirname + '/views');
 // app.set('public', __dirname + '/public');
 // app.set('public', __dirname + '/lib');
-app.use(morgan('combined', {
-  skip: function (req, res) { return res.statusCode < 400 }
-}));
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false, limit: 100000000 }));
@@ -93,13 +100,7 @@ app.engine('html', function (templateFile, options, callback) {
 
 // const request = require('request');
 app.get("/", (req, res) => {
-  res.sendStatus(200);
-//   let proto = req.headers['x-forwarded-proto'] || "http";
-//   if (aliases["home"]) {
-//     request([proto, "://", "www.artcompiler.com", "/form?id=" + aliases["home"]].join("")).pipe(res);
-//   } else {
-//     request([proto, "://", "www.artcompiler.com", "/form?id=LO5SnPeAJhg"].join("")).pipe(res);
-//   }
+  res.redirect('https://coronavirus.artcompiler.com/form?id=BqaIb4xzgF9');
 });
 
 const aliases = {};
@@ -157,28 +158,20 @@ function setCache(lang, id, type, val) {
 const lexiconCache = new Map();
 
 function parse(lang, src, resume) {
-  try {
-    if (lexiconCache.has(lang)) {
-      main.parse(src, lexiconCache.get(lang), resume);
-    } else {
-      get(lang, 'lexicon.js', (err, data) => {
-        if (err && err.length) {
-          resume(err);
-        } else {
-          // TODO Make lexicon JSON.
-          const lstr = data.substring(data.indexOf("{"));
-          const lexicon = JSON.parse(lstr);
-          lexiconCache.set(lang, lexicon);
-          main.parse(src, lexicon, resume);
-        }
-      });
-    }
-  } catch (x) {
-    console.log("parse() catch " + x.stack);
-    resume([{
-      statusCode: 400,
-      error: "Bad code",
-    }]);
+  if (lexiconCache.has(lang)) {
+    main.parse(src, lexiconCache.get(lang), resume);
+  } else {
+    get(lang, 'lexicon.js', (err, data) => {
+      if (err) {
+        resume(err);
+      } else {
+        // TODO Make lexicon JSON.
+        const lstr = data.substring(data.indexOf("{"));
+        const lexicon = JSON.parse(lstr);
+        lexiconCache.set(lang, lexicon);
+        main.parse(src, lexicon, resume);
+      }
+    });
   }
 }
 
@@ -745,7 +738,7 @@ function comp(auth, lang, code, data, options, resume) {
 function parseID(id, options, resume) {
   const ids = decodeID(id);
   getPiece(ids[1], (err, item) => {
-    if (err && err.length) {
+    if (err) {
       resume(err, null);
     } else {
       // if L113 there is no AST.
@@ -754,7 +747,7 @@ function parseID(id, options, resume) {
       const src = item.src;
       if (src) {
         parse(lang, src, (err, ast) => {
-          if (err && err.length) {
+          if (err) {
             resume(err);
           } else {
             if (!ast || Object.keys(ast).length === 0) {
@@ -764,7 +757,7 @@ function parseID(id, options, resume) {
               if (ids[1] && !options.dontSave) {
                 console.log(`Saving AST for id=${id}`);
                 updatePieceAST(ids[1], user, lang, ast, (err) => {
-                  if (err && err.length) {
+                  if (err) {
                     resume(err);
                   } else {
                     resume(null, ast);
@@ -952,7 +945,7 @@ app.put('/compile', function (req, res) {
         console.log(`No AST, parsing: ${src}`);
         // No AST, try creating from source.
         parse(lang, src, (err, ast) => {
-          if (err && err.length) {
+          if (err) {
             console.log(`ERROR PUT /compile parse err=${err.message}`);
             res.sendStatus(400);
           } else {
@@ -964,7 +957,7 @@ app.put('/compile', function (req, res) {
       }
       function compile({ res, userID, lang, ast }) {
         itemToID(userID, lang, ast, (err, itemID) => {
-          if (err && err.length) {
+          if (err) {
             itemID = null;
           }
           compileInternal({ res, itemID });
@@ -1059,7 +1052,11 @@ function putCode(auth, lang, rawSrc, resume) {
   const label = "show";
   const parent = 0;
   parse(lang, rawSrc, (err, ast) => {
-    compile(ast);
+    if (err) {
+      resume(err);
+    } else {
+      compile(ast);
+    }
   });
   function compile(ast) {
     const forkID = 0;
@@ -1126,7 +1123,7 @@ app.put('/code', (req, res) => {
       const label = body.label;
       const parent = body.parent ? body.parent : 0;
       parse(lang, src, (err, ast) => {
-        if (err && err.length) {
+        if (err) {
           console.log(`ERROR PUT /code parse err=${err.message}`);
           res.sendStatus(500);
         } else {
@@ -1264,18 +1261,17 @@ function num2dot(num) {
   return d;
 }
 
-const assetCache = {};
-app.get("/:lang/*", function (req, res) {
+const assetCache = new Map();
+const assetCacheTtlMs = 5 * 60 * 1000;
+app.get('/:lang/*', (req, res) => {
   // /L106/lexicon.js
   const lang = req.params.lang;
   const path = req.url;
-  let data;
-  if (!LOCAL_COMPILES && (data = assetCache[path])) {
-    res.send(data);
+  if (!LOCAL_COMPILES && assetCache.has(path)) {
+    res.send(assetCache.get(path));
   } else {
     pingLang(lang, (pong) => {
       if (pong) {
-        const chunks = [];
         const options = {
           host: getAPIHost(lang),
           port: getAPIPort(lang),
@@ -1283,15 +1279,21 @@ app.get("/:lang/*", function (req, res) {
         };
         const protocol = LOCAL_COMPILES && http || https;
         protocol.get(options, (apiRes) => {
+          const chunks = [];
           apiRes
             .on('error', (err) => {
-              console.log(`ERROR GET /:lang api call err=${err.message}`);
+              console.log(`ERROR GET /${lang}/* api call err=${err.message}`);
               res.sendStatus(500);
             })
             .on('data', (chunk) => chunks.push(chunk))
             .on('end', () => {
-              const data = assetCache[path] = chunks.join('');
-              res.send(data);
+              const data = chunks.join('');
+              // Only save if request is not an error
+              if (apiRes.statusCode < 400) {
+                assetCache.set(path, data);
+                setTimeout(() => assetCache.delete(path), assetCacheTtlMs);
+              }
+              res.status(apiRes.statusCode).send(data);
             });
         });
       } else {
@@ -1325,14 +1327,6 @@ readinessCheck((err) => {
     console.log(`Database is ready`);
   }
 });
-
-if (process.env.NODE_ENV === 'development') {
-  app.use(errorHandler({dumpExceptions: true, showStack: true}))
-}
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(errorHandler())
-}
 
 process.on('uncaughtException', (err) => {
   if (err instanceof Error) {
@@ -1458,7 +1452,7 @@ const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
   : "0x0123456789abcdef0123456789abcdef01234567";
 let authToken = process.env.ARTCOMPILER_CLIENT_SECRET;
 if (!module.parent) {
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3001;
   app.listen(port, async function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);

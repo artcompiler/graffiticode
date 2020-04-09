@@ -58,6 +58,9 @@
     "uglify-js": "^2.7.3"
   },
   "scripts": {
+    "build:index": "browserify -t babelify ./src/index.js > ./lib/index.js",
+    "build:form": "browserify -t babelify ./src/form.js > ./lib/form.js",
+    "build": "npm run build:index && npm run build:form",
     "start": "node app.js",
     "test": "mocha --reporter spec --recursive"
   }
