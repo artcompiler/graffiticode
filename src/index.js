@@ -337,24 +337,37 @@ function updateMark(id) {
 }
 window.gcexports.updateMark = updateMark;
 const CLEAR = "#FEFEFE";
-const YELLOW = "#E7B416";
-const RED = "#CC3232";
+const AMBER = "#E7B416";
+const RED = "#D75A5A"; //"#CC3232";
 const GREEN = "#2DC937";
+const BLUE = "#5FCEFF"; //"#45C6FF"; //"#12B6FF"; //"#009ADE";
+const PURPLE = "#C98ED0"; //"#C07CC9"; //"#AF58BA";
+const GREY = "#BEC9CF"; //"#A0B1BA";
+
 function colorMark() {
   let state = +localStorage.getItem("markItem");
   let color;
   switch (state) {
   default:
-    color = "#FEFEFE";  // clear
+    color = CLEAR;
     break;
   case 0:
-    color = "#E7B416";  // yellow
+    color = AMBER;
     break;
   case -1:
-    color = "#CC3232";  // red
+    color = RED;
     break;
   case 1:
-    color = "#2DC937";  // green
+    color = GREEN;
+    break;
+  case 2:
+    color = BLUE;
+    break;
+  case 3:
+    color = PURPLE;
+    break;
+  case 4:
+    color = GREY;
     break;
   }
   d3.select("#mark-circle").attr("fill", color);
@@ -362,16 +375,25 @@ function colorMark() {
 window.handleMark = (e) => {
   let mark = +localStorage.getItem("markItem");
   switch (mark) {
-  case -1:
-    mark = null;
+  case -1:  // red -> grey
+    mark = 4;
     break;
-  case 1:
-    mark = 0;
-    break;
-  case 0:
+  case 0:   // yellow -> red
     mark = -1;
     break;
-  default:
+  case 1:   // green -> blue
+    mark = 2;
+    break;
+  case 2:   // blue -> purple
+    mark = 3;
+    break;
+  case 3:   // purple -> yellow
+    mark = 0; 
+    break;
+  case 4:   // grey -> clear
+    mark = null;
+    break;
+  default:  // clear -> green
     mark = 1;
     break;
   }

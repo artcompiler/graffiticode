@@ -302,10 +302,24 @@ class ArchiveContent extends React.Component {
         mark = "='-1'";
         break;
       case "yellow":
+      case "0":
         mark = "='0'";
         break;
       case "green":
+      case "1":
         mark = "='1'";
+        break;
+      case "blue":
+      case "2":
+        mark = "='2'";
+        break;
+      case "purple":
+      case "3":
+        mark = "='3'";
+        break;
+      case "grey":
+      case "4":
+        mark = "='4'";
         break;
       case "any":
         mark = " is not null";
