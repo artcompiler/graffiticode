@@ -35,7 +35,8 @@ module.exports = (dbQuery, insertItem) => {
     }
     let setClause = '';
     setClause += 'SET ';
-    setClause += typeof mark === 'string' && mark && `mark='${mark}' ` || `mark=null `;
+    setClause += typeof mark === 'string' && mark && `mark='${mark}'` || mark !== undefined && `mark=null ` || '';
+    setClause += mark !== undefined && label !== undefined && ', ' || '';
     setClause += typeof label === 'string' && `label='${label}'` || '';;
     insertItem(userID, itemID, (err) => {
       if (err) {
