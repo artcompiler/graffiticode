@@ -1854,11 +1854,11 @@ window.gcexports.parser = (function () {
             obj: obj,
           };
           gcexports.dispatcher.dispatch(state);
-          gcexports.updateMark(id);
+          gcexports.updateMarkAndLabel(id);
           gcexports.forkID = data.forkID;
           gcexports.editor.performLint();
         }
-        gcexports.updateMark(gcexports.id);
+        gcexports.updateMarkAndLabel(gcexports.id);
       },
       error: function(xhr, msg, err) {
         console.log("ERROR " + msg + " " + err);

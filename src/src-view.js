@@ -32,7 +32,7 @@ class CodeMirrorEditor extends React.Component {
         window.gcexports.parent = window.gcexports.id;
         window.gcexports.id = id;
         window.gcexports.firstTime = true;
-        window.gcexports.updateMark(id);
+        window.gcexports.updateStat && window.gcexports.updateStat(id);
         if (src) {
           // Avoid adding newlines for commands that begin with \n
           src = src.split(/\\n[^abcdefghijklmnopqrstuvwxyz]/); // number, ne, ngtr, nless

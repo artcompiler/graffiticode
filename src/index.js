@@ -300,14 +300,14 @@ window.handleRefresh = () => {
   // window.gcexports.dispatcher.dispatch(state);
 //  window.location.href = "/item" + "?id=" + window.gcexports.id + "&refresh=true";
   let id = window.gcexports.id;
-  let state = {}
+  let state = {};
   state[id] = {
     id: id,
     refresh: true,
   };
   window.gcexports.dispatcher.dispatch(state);
 }
-function putMark(mark, resume) {
+function putStat(data, resume) {
   let userID = localStorage.getItem("userID");
   let itemID = window.gcexports.id;
   $.ajax({
@@ -316,7 +316,8 @@ function putMark(mark, resume) {
     data: {
       userID: userID,
       itemID: itemID,
-      mark: mark,
+      mark: data.mark,
+      label: data.label,
     },
     dataType: "text",
     success: function(data) {
@@ -327,15 +328,17 @@ function putMark(mark, resume) {
     }
   });
 }
-function updateMark(id) {
+function updateStat(id) {
   let user = localStorage.getItem("userID");
   $.get(location.origin + "/stat?id=" + id + "&user=" + user, function (data) {
     let mark = data[0] && data[0].mark;
+    let label = data[0] && data[0].label;
     localStorage.setItem("markItem", mark);
-    colorMark();
+    localStorage.setItem("labelItem", label);
+    updateMarkAndLabel();
   });
 }
-window.gcexports.updateMark = updateMark;
+window.gcexports.updateStat = updateStat;
 const CLEAR = "#FEFEFE";
 const AMBER = "#E7B416";
 const RED = "#D75A5A"; //"#CC3232";
@@ -344,7 +347,7 @@ const BLUE = "#5FCEFF"; //"#45C6FF"; //"#12B6FF"; //"#009ADE";
 const PURPLE = "#C98ED0"; //"#C07CC9"; //"#AF58BA";
 const GREY = "#BEC9CF"; //"#A0B1BA";
 
-function colorMark() {
+function updateMarkAndLabel() {
   let state = +localStorage.getItem("markItem");
   let color;
   switch (state) {
@@ -370,7 +373,14 @@ function colorMark() {
     color = GREY;
     break;
   }
+  let label = localStorage.getItem("labelItem");
   d3.select("#mark-circle").attr("fill", color);
+  if (label !== "undefined" && label !== "null" && label) {
+    d3.select("#label-txt")[0][0].value = label;
+  } else {
+    // FIXME what is the right way to do this?
+    d3.select("#label-txt")[0][0].value = '';
+  }
 }
 window.handleMark = (e) => {
   let mark = +localStorage.getItem("markItem");
@@ -398,8 +408,18 @@ window.handleMark = (e) => {
     break;
   }
   localStorage.setItem("markItem", mark);
-  colorMark();
-  putMark(mark);
+  updateMarkAndLabel();
+  putStat({mark: mark});
+}
+window.handleLabel = (e) => {
+  let value = e.target.value;
+  let label = localStorage.getItem("labelItem");
+  if (value === label) {
+    return;
+  }
+  localStorage.setItem("labelItem", value);
+  updateMarkAndLabel();
+  putStat({label: value});
 }
 const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
@@ -457,7 +477,7 @@ window.onload = () => {
   d3.select("button#data-btn").style("display", "block");
   d3.select("button#data-btn").attr("title", dataView ? "Hide data view" : "Show data view");
   d3.select("div#obj-view").style("display", dataView ? "block" : "none");
-  updateMark(window.gcexports.id);
+  updateStat(window.gcexports.id);
   d3.select("button#mark-btn").style("display", "block");
   d3.selectAll("a.nav-link").style("display", "block");
   if (localStorage.getItem("accessToken")) {

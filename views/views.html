@@ -67,7 +67,14 @@
             </a>
           </li>
           <li class="nav-item">
-            <span style="padding: 2; height: auto"></span>
+            <span style="padding: 0; height: auto"></span>
+          </li>
+          <li class="nav-item">
+            <input autofocus id="label-txt" class="form-control mr-sm-2" type="text" placeholder="Label" aria-label="Update item label" onblur="handleLabel(event)"
+                   title="Update item label">
+          </li>
+          <li class="nav-item">
+            <span style="padding: 10; height: auto"></span>
           </li>
           <li class="nav-item">
             <button id="code-btn" title="Open the code view" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
@@ -115,15 +122,15 @@
           </li>
         </ul>
         <button class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display: none; margin:0 10 0 0">Private</button>
-       <form id="signin" style="display:none" class="form-inline my-2 my-lg-0">
-         <div class="form-row">
-           <div class="mb-3">
-             <input autofocus id="name-txt" class="form-control mr-sm-2" type="text" placeholder="Name" aria-label="username" onblur="handleSignInBlur(event)"
-                    title="User names are case and whitespace insensitive and must include only plain text letters and numbers. E.g. 'Jeff Dyer 1000' is a valid user name.">
-             <div id="name-feedback">
+        <form id="signin" style="display:none" class="form-inline my-2 my-lg-0">
+          <div class="form-row">
+            <div class="mb-3">
+              <input autofocus id="name-txt" class="form-control mr-sm-2" type="text" placeholder="Name" aria-label="username" onblur="handleSignInBlur(event)"
+                     title="User names are case and whitespace insensitive and must include only plain text letters and numbers. E.g. 'Jeff Dyer 1000' is a valid user name.">
+              <div id="name-feedback">
              </div>
-           </div>
-           <div class="mb-3">
+            </div>
+            <div class="mb-3">
              <input id="number-txt" class="form-control mr-sm-2" type="text" placeholder="Mobile number" aria-label="mobile number" onblur="handleSignInBlur(event)"
                     title="Phone number must be in standard US format or international format (including the + prefix and country code) if outside of the US.">
              <div id="number-feedback">
@@ -134,8 +141,8 @@
              <div id="button-feedback">
              </div>
            </div>
-         </div>
-       </form>
+          </div>
+        </form>
        <form id="passcode" style="display:none" class="form-inline my-2 my-lg-0">
          <div class="form-row">
            <div class="mb-3">

@@ -32,6 +32,7 @@ const {
   // Items
   insertItem,
   getLastItemByLang,
+  getLastItemByLabel,
 
   // Pieces
   createPiece,
@@ -70,7 +71,7 @@ if (env === 'development') {
   app.use(morgan('combined', {
     skip: (req, res) => res.statusCode < 400,
   }));
-  app.use(errorHandler())
+  app.use(errorHandler());
 }
 
 app.set('views', __dirname + '/views');
@@ -386,7 +387,21 @@ function sendForm(id, req, res) {
 }
 
 app.get("/form", function (req, res) {
-  sendForm(req.query.id, req, res);
+  if (req.query.id) {
+    sendForm(req.query.id, req, res);
+  } else if (req.query.label) {
+    // Try to find an ID.
+    getLastItemByLabel(req.query.label, (err, item) => {
+      if (err && err.length || !item) {
+        console.log(`ERROR GET /lang getLastItemByLabel err=${err.message} item=${JSON.stringify(item)}`);
+        res.sendStatus(500);
+      } else if (item) {
+        res.redirect(`/item?id=${item.itemid}`);
+      }
+    });
+  } else {
+    res.sendStatus(500);
+  }
 });
 
 // app.get("/f/:id", function (req, res) {

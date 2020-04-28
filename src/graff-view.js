@@ -64,7 +64,7 @@ class GraffContent extends React.Component {
       self.lastItemID = itemID;
       self.pendingCompRequests++;
       try {
-        window.gcexports.updateMark && window.gcexports.updateMark(itemID);
+        window.gcexports.updateStat && window.gcexports.updateStat(itemID);
         d3.json(location.origin + "/data/?id=" + itemID + params, (err, obj) => {
           if (err) {
             // let state = {};
@@ -173,7 +173,7 @@ class GraffContent extends React.Component {
       let codeIDs = ids.slice(0, 2);
       let dataIDs = ids.slice(2);
       console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
-      window.gcexports.updateMark && window.gcexports.updateMark(itemID);
+      window.gcexports.updateStat && window.gcexports.updateStat(itemID);
     }
   }
 

@@ -34,6 +34,34 @@ function buildCreateItemByItemId({ dbQuery, decodeID, encodeID }) {
   };
 }
 
+function buildUpdateItem({dbQuery, getCountByItemId, createItemByItemId}) {
+  return function updateItem(userID, itemID, data, resume) {
+    getCountByItemId(itemID, (err, count) => {
+      if (err) {
+        resume(err);
+      } else if (count > 0) {
+        resume(null);
+        update(userID, itemID, data, resume);
+      } else {
+        createItemByItemId(userID, itemID, (err, val) => {
+          update(userID, itemID, data, resume);
+        });
+      }
+    });
+    function update(itemID, data, resume) {
+      let setClause = 'SET ';
+      const fields = ['mark', 'label'];
+      fields.forEach(field => {
+        if (data[field]) {
+          setClause += `mark=${data[field]} `;
+        }
+      });
+      const query = `UPDATE items ${setClause} WHERE itemID='${itemID}'`;
+      dbQuery(query, resume);
+    }
+  };
+}
+
 function buildInsertItem({ getCountByItemId, createItemByItemId }) {
   return function insertItem(userID, itemID, resume) {
     getCountByItemId(itemID, (err, count) => {
@@ -69,15 +97,38 @@ function buildGetLastItemByLang({ dbQuery }) {
   };
 }
 
+function buildGetLastItemByLabel({ dbQuery }) {
+  return function getLastItemByLabel(label, resume) {
+    const query = `
+    SELECT *
+    FROM items
+    WHERE label='${label}'
+    ORDER BY id DESC
+    LIMIT 1;
+    `;
+    dbQuery(query, (err, result) => {
+      if (err) {
+        resume(err);
+      } else if (result.rows.length > 0) {
+        resume(null, result.rows[0]);
+      } else {
+        resume(null, null);
+      }
+    });
+  };
+}
+
 function buildItemsApi({ dbQuery, decodeID, encodeID }) {
   const createItemByItemId = buildCreateItemByItemId({ dbQuery, decodeID, encodeID });
   const getCountByItemId = buildGetCountByItemId({ dbQuery });
   const insertItem = buildInsertItem({ getCountByItemId, createItemByItemId });
   const getLastItemByLang = buildGetLastItemByLang({ dbQuery });
+  const getLastItemByLabel = buildGetLastItemByLabel({ dbQuery });
   return {
     createItemByItemId,
     getCountByItemId,
     getLastItemByLang,
+    getLastItemByLabel,
     insertItem,
   };
 };
