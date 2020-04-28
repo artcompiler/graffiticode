@@ -318,7 +318,21 @@ function sendItem(id, req, res) {
 }
 
 app.get("/item", function (req, res) {
-  sendItem(req.query.id, req, res);
+  if (req.query.id) {
+    sendItem(req.query.id, req, res);
+  } else if (req.query.label) {
+    // Try to find an ID.
+    getLastItemByLabel(req.query.label, (err, item) => {
+      if (err && err.length || !item) {
+        console.log(`ERROR GET /lang getLastItemByLabel err=${err.message} item=${JSON.stringify(item)}`);
+        res.sendStatus(500);
+      } else if (item) {
+        res.redirect(`/item?id=${item.itemid}`);
+      }
+    });
+  } else {
+    res.sendStatus(500);
+  }
 });
 
 // app.get("/i/:id", function (req, res) {
