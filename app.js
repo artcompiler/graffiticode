@@ -396,7 +396,7 @@ app.get("/form", function (req, res) {
         console.log(`ERROR GET /lang getLastItemByLabel err=${err.message} item=${JSON.stringify(item)}`);
         res.sendStatus(500);
       } else if (item) {
-        res.redirect(`/item?id=${item.itemid}`);
+        res.redirect(`/form?id=${item.itemid}`);
       }
     });
   } else {

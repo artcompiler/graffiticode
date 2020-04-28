@@ -375,12 +375,7 @@ function updateMarkAndLabel() {
   }
   let label = localStorage.getItem("labelItem");
   d3.select("#mark-circle").attr("fill", color);
-  if (label !== "undefined" && label !== "null" && label) {
-    d3.select("#label-txt")[0][0].value = label;
-  } else {
-    // FIXME what is the right way to do this?
-    d3.select("#label-txt")[0][0].value = '';
-  }
+  d3.select("#label-txt").node().value = label !== 'undefined' && label !== 'null' && label || '';
 }
 window.handleMark = (e) => {
   let mark = +localStorage.getItem("markItem");

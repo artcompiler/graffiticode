@@ -43,6 +43,7 @@ const {
   createItemByItemId,
   getCountByItemId,
   getLastItemByLang,
+  getLastItemByLabel,
   insertItem,
 } = buildItemsApi({ dbQuery, decodeID, encodeID });
 const {
@@ -65,6 +66,7 @@ exports = module.exports = {
   createItemByItemId,
   getCountByItemId,
   getLastItemByLang,
+  getLastItemByLabel,
   insertItem,
 
   // Piece API
