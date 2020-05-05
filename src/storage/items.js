@@ -102,7 +102,7 @@ function buildGetLastItemByLabel({ dbQuery }) {
     const query = `
     SELECT *
     FROM items
-    WHERE label='${label}'
+    WHERE label like '%${label}%'
     ORDER BY id DESC
     LIMIT 1;
     `;

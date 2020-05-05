@@ -434,7 +434,7 @@ function sendData(auth, id, req, res) {
   compileID(auth, id, options, (err, obj) => {
     if (err && err.length) {
       console.trace(err);
-      console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${err}`);
+      console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${JSON.stringify(err)} obj=${JSON.stringify(obj)}`);
       const statusCode = statusCodeFromErrors(err);
       res.status(statusCode).json(obj);
     } else {
