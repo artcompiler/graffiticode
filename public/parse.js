@@ -1952,7 +1952,9 @@ window.gcexports.parser = (function () {
             // activity after 1 sec.
             if (!window.gcexports.firstTime) {
               lastTimer = window.setTimeout(function () {
-                compileCode(thisAST, true);
+                if (gcexports.errors && gcexports.errors.length === 0) {
+                  compileCode(thisAST, true);
+                }
               }, 1000);
             }
             window.gcexports.firstTime = false;
