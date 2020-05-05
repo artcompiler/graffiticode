@@ -333,11 +333,11 @@ class ArchiveContent extends React.Component {
       let label = "";
       switch ((param = getCommandParam(str, "label"))) {
       case "any":
-        label = " is not null";
+        label = " is not null and label!=''";
         break;
       case "show":
       default:
-        label = param !== "" && " ='" + param + "'" || "";
+        label = param !== "" && " like '%" + param + "%'" || "";
         break;
       }
       let year = getCommandParam(str, "created");
