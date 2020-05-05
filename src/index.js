@@ -377,6 +377,7 @@ function updateMarkAndLabel() {
   d3.select("#mark-circle").attr("fill", color);
   d3.select("#label-txt").node().value = label !== 'undefined' && label !== 'null' && label || '';
 }
+window.gcexports.updateMarkAndLabel = updateMarkAndLabel;
 window.handleMark = (e) => {
   let mark = +localStorage.getItem("markItem");
   switch (mark) {

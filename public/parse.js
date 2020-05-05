@@ -1854,7 +1854,6 @@ window.gcexports.parser = (function () {
             obj: obj,
           };
           gcexports.dispatcher.dispatch(state);
-          gcexports.updateMarkAndLabel(id);
           gcexports.forkID = data.forkID;
           gcexports.editor.performLint();
         }
@@ -1874,6 +1873,10 @@ window.gcexports.parser = (function () {
   }
 
   function saveSrc() {
+    if (window.gcexports.errors.length) {
+      console.log("saveSrc() errors=" + JSON.stringify(window.gcexport.errors));
+      return;
+    }
     // Update SRC for a given ID.
     var id = window.gcexports.id;
     let ids = window.gcexports.decodeID(id);
