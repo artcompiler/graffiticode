@@ -167,6 +167,7 @@ function parse(lang, src, resume) {
         resume(err);
       } else {
         // TODO Make lexicon JSON.
+        console.log("parse() data=" + data);
         const lstr = data.substring(data.indexOf("{"));
         const lexicon = JSON.parse(lstr);
         lexiconCache.set(lang, lexicon);
@@ -511,6 +512,7 @@ function get(language, path, resume) {
     port: getAPIPort(language),
     path: `/${language}/${path}`,
   };
+  console.log("get() options=" + JSON.stringify(options, null, 2));
   const protocol = LOCAL_COMPILES && http || https;
   protocol.get(options, (res) => {
     res.on('data', (chunk) => data.push(chunk))

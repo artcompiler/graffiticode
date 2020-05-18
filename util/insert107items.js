@@ -34,12 +34,12 @@ function insertItem(src, resume) {
   var lang = "L107";
   var user = "0";
   var label = "new";
-  var queryStr = "SELECT id FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + cleanAndTrimSrc(src) + "'";
-  dbQuery(queryStr, (err, result) => {
-    if (err) {
-      console.log("ERROR queryStr=" + queryStr);
-      resume(err);
-    } else if (result && result.rows.length === 0) {
+  // var queryStr = "SELECT id FROM pieces WHERE language='" + lang + "' AND user_id='" + user + "' AND src = '" + cleanAndTrimSrc(src) + "'";
+  // dbQuery(queryStr, (err, result) => {
+  //   if (err) {
+  //     console.log("ERROR queryStr=" + queryStr);
+  //     resume(err);
+  //   } else if (result && result.rows.length === 0) {
       var insertStr =
         "INSERT INTO pieces (user_id, parent_id, views, forks, created, src, obj, language, label)" +
         " VALUES ('" + 0 + "', '" + 0 + "', '" + 0 +
@@ -49,10 +49,10 @@ function insertItem(src, resume) {
         console.log("insertItem() result=" + JSON.stringify(result));
         resume(err, []);
       });
-    } else {
-      resume();
-    }
-  });
+  //   } else {
+  //     resume();
+  //   }
+  // });
 }
 
 function cleanAndTrimSrc(str) {

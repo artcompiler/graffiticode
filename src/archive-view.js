@@ -378,9 +378,10 @@ class ArchiveContent extends React.Component {
             itemsFilter += v;
             break;
           case "label":
-          case "code":
-            //piecesFilter += v;
             itemsFilter += v;
+            break;
+          case "code":
+            piecesFilter += v;
             break;
           case "created":
             itemsFilter += v;
