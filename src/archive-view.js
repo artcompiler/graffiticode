@@ -337,7 +337,7 @@ class ArchiveContent extends React.Component {
         break;
       case "show":
       default:
-        label = param !== "" && " like '%" + param + "%'" || "";
+        label = param !== "" && " SIMILAR TO '%\m" + param + "\M%'" || "";
         break;
       }
       let year = getCommandParam(str, "created");
