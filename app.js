@@ -287,7 +287,7 @@ function sendItem(id, req, res) {
       });
     } else {
       getPiece(codeID, (err, row) => {
-        if (err && err.length) {
+        if (!row || err && err.length) {
           console.log("ERROR [1] GET /item");
           res.sendStatus(404);
         } else {
