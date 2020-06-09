@@ -23,7 +23,7 @@
     "hashids": "1.1.1",
     "method-override": "latest",
     "morgan": "latest",
-    "pg": "6.1.6",
+    "pg": "^8.2.1",
     "qs": "latest",
     "redis": "2.6.3",
     "request": "^2.88.2",

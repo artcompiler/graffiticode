@@ -1498,7 +1498,6 @@ if (!module.parent) {
         }, (err, data) => {
           // Default auth token.
           authToken = data.jwt;
-          console.log("authToken=" + authToken);
         });
       });
     }

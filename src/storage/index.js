@@ -34,9 +34,13 @@ const connectionString = getConnectionString({
   databaseUrlDev: process.env.DATABASE_URL_DEV,
   databaseUrl: process.env.DATABASE_URL,
 });
-pg.defaults.ssl = (LOCAL_DATABASE ? false : true);
 
-const pool = new pg.Pool({ connectionString });
+const pool = new pg.Pool({
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
 const dbQuery = buildDbQuery({ assert, isNonEmptyString, pool });
 const {
