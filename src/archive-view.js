@@ -335,6 +335,9 @@ class ArchiveContent extends React.Component {
       case "any":
         label = " is not null and label!=''";
         break;
+      case "none":
+        label = " is null";
+        break;
       case "show":
       default:
         label = param !== "" && " SIMILAR TO '%\\m" + param + "\\M%'" || "";
