@@ -14,26 +14,7 @@ const { buildItemsApi } = require('./items');
 const { buildPiecesApi } = require('./pieces');
 const { buildReadinessCheck } = require('./readiness');
 
-const DEBUG = process.env.DEBUG === 'true' || false;
-const LOCAL_DATABASE = process.env.LOCAL_DATABASE === 'true' || false;
-
-function getConnectionString({ isLocalDatabase, isDebug, databaseUrlLocal, databaseUrlDev, databaseUrl }) {
-  if (isLocalDatabase) {
-    return databaseUrlLocal;
-  }
-  if (isDebug) {
-    return databaseUrlDev;
-  }
-  return databaseUrl;
-}
-
-const connectionString = getConnectionString({
-  isLocalDatabase: LOCAL_DATABASE,
-  isDebug: DEBUG,
-  databaseUrlLocal: process.env.DATABASE_URL_LOCAL,
-  databaseUrlDev: process.env.DATABASE_URL_DEV,
-  databaseUrl: process.env.DATABASE_URL,
-});
+const connectionString = process.env.DATABASE_URL;
 
 const pool = new pg.Pool({
   connectionString,

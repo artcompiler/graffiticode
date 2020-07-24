@@ -45,7 +45,6 @@ const {
 } = require('./src/storage');
 
 // Configuration
-const DEBUG = process.env.DEBUG === 'true' || false;
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
 const API_HOST = process.env.API_HOST || "api.acx.ac";
 
@@ -147,7 +146,7 @@ function getCache(id, type, resume) {
 const dontCache = ["L124"];
 
 function setCache(lang, id, type, val) {
-  if (!DEBUG && !dontCache.includes(lang)) {
+  if (!dontCache.includes(lang)) {
     const key = id + type;
     localCache[key] = val;
     if (cache) {
@@ -496,6 +495,9 @@ function pingLang(lang, resume) {
     const protocol = LOCAL_COMPILES && http || https;
     const req = protocol.request(options, function(r) {
       const pong = r.statusCode === 200;
+      if (!pong) {
+        console.log("ERROR Language not found: " + lang);
+      }
       pingCache[lang] = pong;
       resume(pong);
     }).on("error", (e) => {
@@ -1313,7 +1315,7 @@ app.get('/:lang/*', (req, res) => {
           const chunks = [];
           apiRes
             .on('error', (err) => {
-              console.log(`ERROR GET /${lang}/* api call err=${err.message}`);
+              console.log(`ERROR GET /${lang}/ api call err=${err.message}`);
               res.sendStatus(500);
             })
             .on('data', (chunk) => chunks.push(chunk))
@@ -1443,16 +1445,6 @@ function validateUser(token, lang, resume) {
   if (token === undefined) {
     // User has not signed in.
     resume(401);
-  } else if (DEBUG || validatedUsers[token]) {
-    const data = validatedUsers[token];
-    // NOTE here is an example of how to restrict access to some user.
-    // if (authorizedUsers.includes(data.id)) {
-    //   resume(null, data);
-    // } else {
-    //   // Got a valid user, but they don't have access to this resource.
-    //   resume(403);
-    // }
-    resume(null, data);
   } else {
     postAuth("/validateSignIn", {
       jwt: token,
