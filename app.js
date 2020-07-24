@@ -218,6 +218,7 @@ function sendLang(req, res) {
         }
       });
     } else {
+      console.log("ERROR language not available: " + lang);
       res.sendStatus(404);
     }
   });
