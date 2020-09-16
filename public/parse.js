@@ -1766,7 +1766,7 @@ window.gcexports.parser = (function () {
       });
       ret.cls = "param";
       return ret;
-    }
+    };
     ret.cls = "param";
     return ret;
   }
@@ -1774,7 +1774,7 @@ window.gcexports.parser = (function () {
   function param(ctx, cc) {
     return primaryExpr(ctx, function (ctx) {
       return cc
-    })
+    });
   }
 
   // Drive the parser
@@ -1788,8 +1788,8 @@ window.gcexports.parser = (function () {
     src = src.replace(/[\u2212]/g, "-");
     ast = ast.replace(/[\u2212]/g, "-");
     $.ajax({
-      type: "PUT",
-      url: "/compile",
+      type: "POST",
+      url: "/code",
       data: {
         "id": postCode ? null : gcexports.id,
         "forkID": gcexports.forkID || 0,
@@ -1804,59 +1804,27 @@ window.gcexports.parser = (function () {
       dataType: "json",
       success: function(data) {
         var obj = data.obj;
-        var errors;
-        let seenErrors = {};
-        if (obj.error && obj.error.length) {
-          errors = [];
-          obj.error.forEach(function (err) {
-            var coord = gcexports.coords[err.nid];
-            if (!coord || !coord.from || !coord.to) {
-              coord = {};
-              coord.from = CodeMirror.Pos(0, 0);
-              coord.to = CodeMirror.Pos(0, 0);
-            }
-            let errHash =
-              coord.from.line + " " + coord.from.ch + " " +
-              coord.to.line + " " + coord.to.ch + " " +
-              err.str;
-            if (!seenErrors[errHash]) {
-              // Avoid dups.
-              errors.push({
-                from: coord.from,
-                to: coord.to,
-                message: err.str || err.error &&
-                  err.error.length && err.error[0].data && err.error[0].data.error,
-                severity : "error",
-              });
-              seenErrors[errHash] = true;
-            }
-          });
-          gcexports.lastErrors = gcexports.errors = errors;
-          gcexports.editor.performLint();
-        } else if (data.id) {
-          gcexports.lastErrors = gcexports.errors = [];
-          // We have a good id, so use it.
-          let ids = gcexports.decodeID(data.id);
-          let codeIDs = ids.slice(0, 2);
-          let dataIDs = gcexports.decodeID(gcexports.id).slice(2);
-          let id = gcexports.encodeID(codeIDs.concat(dataIDs));
-          gcexports.id = id;
-          let location = "/" + gcexports.view + "?id=" + id;
-          window.history.pushState(id, gcexports.language, location);
-          console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
-          let state = {};
-          state[gcexports.id] = {
-            id: id,
-            src: src,
-            ast: ast,
-            postCode: postCode,
-            errors: errors,
-            obj: obj,
-          };
-          gcexports.dispatcher.dispatch(state);
-          gcexports.forkID = data.forkID;
-          gcexports.editor.performLint();
-        }
+        gcexports.lastErrors = gcexports.errors = [];
+        // We have a good id, so use it.
+        let ids = gcexports.decodeID(data.id);
+        let codeIDs = ids.slice(0, 2);
+        let dataIDs = gcexports.decodeID(gcexports.id).slice(2);
+        let id = gcexports.encodeID(codeIDs.concat(dataIDs));
+        gcexports.id = id;
+        let location = "/" + gcexports.view + "?id=" + id;
+        window.history.pushState(id, gcexports.language, location);
+        console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
+        let state = {};
+        state[gcexports.id] = {
+          id: id,
+          src: src,
+          ast: ast,
+          postCode: postCode,
+          obj: obj,
+        };
+        gcexports.dispatcher.dispatch(state);
+        gcexports.forkID = data.forkID;
+        gcexports.editor.performLint();
         gcexports.updateMarkAndLabel(gcexports.id);
       },
       error: function(xhr, msg, err) {
@@ -1899,7 +1867,7 @@ window.gcexports.parser = (function () {
   }
 
   function topEnv(ctx) {
-    return ctx.state.env[ctx.state.env.length-1]
+    return ctx.state.env[ctx.state.env.length-1];
   }
 
   window.gcexports.topEnv = topEnv;

@@ -653,6 +653,7 @@ function compileID(auth, id, options, resume) {
                             setCache(lang, id, "data", obj);
                             resume(null, obj);
                           } catch (e) {
+                            console.log("ERROR compileID() e=" + e);
                             // Oops. Missing or invalid obj, so need to recompile after all.
                             // Let downstream compilers know they need to refresh
                             // any data used. Prefer true over false.
@@ -950,6 +951,68 @@ function getTip(id, resume) {
   }
 }
 
+app.post('/code', function (req, res) {
+  const lang = req.body.language;
+  const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
+  const t0 = new Date;
+  validateUser(req.body.jwt, lang, (err, data) => {
+    if (err && err.length) {
+      console.log(`ERROR POST /code validateUser err=${err.message}`);
+      res.sendStatus(401);
+    } else {
+      // TODO user is known but might not have access to this operation. Check
+      // user id against registered user table for this host.
+      // Map AST or SRC into OBJ. Store OBJ and return ID.
+      // Compile AST or SRC to OBJ. Insert or add item.
+      const { forkID=0, src, ast, parent=0 } = req.body;
+      const ip = req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+      const user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
+      itemToID(user, lang, ast, (err, itemID) => {
+        if (err) {
+          itemID = null;
+        }
+        compileInternal({ res, itemID });
+      });
+      function compileInternal({ res, itemID }) {
+        const img = '';
+        const obj = '';
+        const label = 'show';
+        if (itemID) {
+          const ids = [langID, itemID, 0];
+          const id = encodeID(ids);
+          updatePieceAST(itemID, user, lang, ast, (err) => {
+            if (err && err.length) {
+              console.log(`ERROR POST /code updatePiece err=${err.message}`);
+              res.sendStatus(500);
+            } else {
+              console.log(`POST /code?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms (update)`);
+              res.json({id});
+            }
+          });
+        } else {
+          postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
+            if (err && err.length) {
+              console.log(`ERROR POST /code postItem err=${err.message}`);
+              res.sendStatus(500);
+            } else {
+              if (forkID === 0) {
+                forkID = id;
+              }
+              const ids = [langID, codeID, 0];
+              const id = encodeID(ids);
+              console.log(`POST /code?id=${ids.join('+')} (${id}) in ${(new Date - t0)}ms (post)`);
+              res.json({forkID, id});
+            }
+          });
+        }
+      }
+    }
+  });
+});
+
 app.put('/compile', function (req, res) {
   // This end point is hit when code is edited. If the code already exists for
   // the current user, then recompile it and update the OBJ. If it doesn't exist
@@ -1134,6 +1197,7 @@ app.put('/code', (req, res) => {
     insertOrUpdatePiece({ res, pieceId: null, lang, src, obj, img });
   }
   function insertOrUpdatePiece({ res, pieceId, lang, src, obj, img }) {
+    console.log("insertORUpdatePiece() lang=" + lang + " src=" + src);
     if (pieceId) {
       // Perform async piece update
       updatePiece(pieceId, src, obj, img, (err) => {
