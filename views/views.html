@@ -5,7 +5,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="normalize.css">
     <!-- Bootstrap core CSS -->
-    <link href="bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <!-- Custom styles for this template -->
     <link href="views.css" rel="stylesheet">
     <link rel="stylesheet" href="codemirror.css">
@@ -77,38 +77,6 @@
             <span style="padding: 10; height: auto"></span>
           </li>
           <li class="nav-item">
-            <button id="code-btn" title="Open the code view" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              CODE
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="form-btn" title="Open the form view" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              FORM
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="data-btn" title="Open the data view" class="btn btn-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              DATA
-            </button>
-          </li>
-          <li class="nav-item">
-            <span style="padding: 1; height: auto"></span>
-          </li>
-          <li class="nav-item">
-            <button id="find-btn" title="Open the find view" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              FIND
-            </button>
-          </li>
-          <li class="nav-item">
-            <button id="help-btn" title="Open the help view" class="btn btn-outline-secondary my-2 my-sm-0 justify-content-center" style="display:none; margin:0 10 0 0; width:4.5rem" onclick="handleViewClick(event)">
-              HELP
-            </button>
-          </li>
-          <li class="nav-item">
-            <span style="padding: 1; height: auto">
-            </span>
-          </li>
-          <li class="nav-item">
             <a id="open-data" class="nav-link" style="display:none" href="" onclick="handleOpenClick(event)" title="See the data">DATA</a>
           </li>
           <li class="nav-item">
@@ -164,12 +132,71 @@
       </div>
     </nav>
     <main role="main" class="container-fluid">
-      <div id="help-view"></div>
-      <div id="archive-view"></div>
       <div id="alert-view"></div>
-      <div id="src-view"></div>
-      <div id="graff-view" class="<%=language%>"></div>
-      <div id="obj-view"></div>
+      <div id="accordionViews">
+        <div class="card">
+          <div class="card-header" id="headingFind">
+            <div class="mb-0">
+              <button id="find-btn" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-find" aria-expanded="true" aria-controls="collapse-find" onclick="handleViewClick(event)">
+                FIND
+              </button>
+            </div>
+          </div>
+          <div id="collapse-find" class="collapse show" aria-labelledby="headingFind">
+            <div id="find-view" class="card-body"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" id="headingCode">
+            <h2 class="mb-0">
+              <button id="code-btn" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-code" aria-expanded="true" aria-controls="collapse-code" onclick="handleViewClick(event)">
+                CODE
+              </button>
+            </h2>
+          </div>
+          <div id="collapse-code" class="collapse show" aria-labelledby="headingCode">
+            <div id="src-view" class="card-body"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" id="headingForm">
+            <h2 class="mb-0">
+              <button id="form-btn" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseForm" aria-expanded="true" aria-controls="collapseForm">
+                FORM
+              </button>
+            </h2>
+          </div>
+          <div id="collapseForm" class="collapse show" aria-labelledby="headingForm">
+            <div id="graff-view" class="card-body"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" id="headingData">
+            <h2 class="mb-0">
+              <button id="data-btn" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseData" aria-expanded="true" aria-controls="collapseData">
+                DATA
+              </button>
+            </h2>
+          </div>
+          <div id="collapseData" class="collapse show" aria-labelledby="headingData">
+            <div id="obj-view" class="card-body"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" id="headingHelp">
+            <h2 class="mb-0">
+              <button id="help-btn" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseHelp" aria-expanded="true" aria-controls="collapseHelp">
+                HELP
+              </button>
+            </h2>
+          </div>
+          <div id="collapseHelp" class="collapse show" aria-labelledby="headingHelp">
+            <div class="card-body">
+              Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+            </div>
+          </div>
+        </div>
+      </div>
     </main><!-- /.container -->
 
     <!-- Bootstrap core JavaScript
@@ -177,7 +204,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script>window.jQuery || document.write('<script src="jquery-slim.min.js"><\/script>')</script>
     <script src="popper.min.js"></script>
-    <script src="bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <script src="/lib/index.js"></script>
   </body>
 </html>

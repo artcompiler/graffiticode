@@ -7,9 +7,9 @@ let dispatch = (obj => {
   window.gcexports.dispatcher.dispatch(obj);
 });
 
-let archiveFilter = "";
+let findFilter = "";
 
-class ArchiveContent extends React.Component {
+class FindContent extends React.Component {
   constructor(props) {
     super(props);
     this.items = undefined;
@@ -29,19 +29,20 @@ class ArchiveContent extends React.Component {
   }
 
   componentDidMount() {
-    ArchiveView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
+    FindView.dispatchToken = window.gcexports.dispatcher.register(this.onChange);
     this.isDirty = false;
   }
 
   componentDidUpdate() {
     let self = this;
-    let archiveIndex = -1;
-    if (!window.gcexports.archive) {
+    let findIndex = -1;
+    let show = localStorage.getItem('findView-' + window.gcexports.language) === 'true';
+    if (!show) {
       return;
     }
     function getCurrentIndex(items) {
-      if (archiveIndex >= 0 && archiveIndex < items.length) {
-        return archiveIndex;
+      if (findIndex >= 0 && findIndex < items.length) {
+        return findIndex;
       }
       let id = window.gcexports.id;
       let filtered = items.filter(item => item.id === id);
@@ -72,7 +73,7 @@ class ArchiveContent extends React.Component {
         startYear = +items[0].date.substring(0,4);
         stopYear = +items[items.length - 1].date.substring(0,4) + 1;
       }
-      var svg = d3.select("#archive-view")
+      var svg = d3.select("#find-view")
         .selectAll("svg")
         .data(d3.range(startYear, stopYear))
         .enter().append("svg")
@@ -144,7 +145,7 @@ class ArchiveContent extends React.Component {
             handleKeyPress(name);
           }
         });
-      var buttons = d3.select("#archive-view")
+      var buttons = d3.select("#find-view")
         .selectAll("div.buttons").data([1])
         .enter().append("div")
         .attr("class", "buttons")
@@ -362,7 +363,7 @@ class ArchiveContent extends React.Component {
         return;
       }
       let excludeItems = false;
-      let filter = parseFilter(archiveFilter);
+      let filter = parseFilter(findFilter);
       let piecesFilter = "";
       let itemsFilter = "";
       Object.keys(filter).forEach(k => {
@@ -390,7 +391,7 @@ class ArchiveContent extends React.Component {
             itemsFilter += v;
             break;
           case "index":
-            archiveIndex = v;
+            findIndex = v;
             break;
           default:
             break;
@@ -490,7 +491,8 @@ class ArchiveContent extends React.Component {
   }
 
   render() {
-    if (!window.gcexports.archive) {
+    let show = localStorage.getItem('findView-' + window.gcexports.language) === 'true';
+    if (!show) {
       return <div/>;
     }
     return (
@@ -506,18 +508,18 @@ class ArchiveContent extends React.Component {
 
   onFilterBlur(e) {
     this.items = null;
-    archiveFilter = e.target.value;
-    d3.select("#archive-view")
+    findFilter = e.target.value;
+    d3.select("#find-view")
       .selectAll("svg").remove();
-    d3.select("#archive-view")
+    d3.select("#find-view")
       .selectAll("div.buttons").remove();
     this.setState({
-      archiveFilter: e.target.value
+      findFilter: e.target.value
     });
   }
 }
 
-class ArchiveView extends React.Component {
+class FindView extends React.Component {
   componentDidUpdate() {
     clearTimeout(this.timeoutID);
   }
@@ -529,7 +531,7 @@ class ArchiveView extends React.Component {
 
   render() {
     return (
-      <ArchiveContent className="archiveContentStage" />
+      <FindContent className="findContentStage" />
     );
   }
 
@@ -538,4 +540,4 @@ class ArchiveView extends React.Component {
   componentDidUpdate(prevProps, prevState) {
   }
 }
-export default ArchiveView;
+export default FindView;

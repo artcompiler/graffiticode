@@ -15,7 +15,6 @@ body {
   border-color: #6c757d;
   box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5);
 }
-
 .btn-secondary:hover {
   color: #fff;
   background-color: #5a6268;
@@ -24,4 +23,25 @@ body {
 }
 .nav-link {
   padding: 5 0 0 0;
+}
+.btn-link {
+  color: rgba(0,0,0,0.5);
+  text-decoration: none;
+  font-size: 13;
+  font-family: "Helvetica Neue", Helvetica;
+}
+.btn-link:hover{
+  color: rgba(0,0,0,1);
+  text-decoration: none;
+  font-size: 13;
+  font-family: "Helvetica Neue", Helvetica;
+}
+.btn-link:focus {
+  color: rgba(0,0,0,0.5);
+  text-decoration: none;
+  font-size: 13;
+  font-family: "Helvetica Neue", Helvetica;
+}
+.card-header {
+  padding: 0;
 }
