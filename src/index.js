@@ -28,15 +28,15 @@ ReactDOM.render(
 );
 ReactDOM.render(
   React.createElement(SourceView, null),
-  document.getElementById('src-view')
+  document.getElementById('code-view')
 );
 ReactDOM.render(
   React.createElement(GraffView, null),
-  document.getElementById('graff-view')
+  document.getElementById('form-view')
 );
 ReactDOM.render(
   React.createElement(ObjectView, null),
-  document.getElementById('obj-view')
+  document.getElementById('data-view')
 );
 let signInJWT;
 function signIn(name, number) {
@@ -187,9 +187,9 @@ window.handleViewClick = function (e) {
   let language = window.gcexports.language;
   let id = e.target.id;
   let show = false;
-  let selector, target;
   switch (id) {
   case "help-btn":
+    show = localStorage.getItem('helpView-' + language) !== 'true';
     localStorage.setItem("helpView-" + language, show);
     break;
   case "find-btn":
@@ -198,7 +198,6 @@ window.handleViewClick = function (e) {
     break;
   case "code-btn":
     show = localStorage.getItem('codeView-' + language) !== 'true';
-    selector = "#src-view";
     localStorage.setItem("codeView-" + language, show);
     if (show) {
       let itemID = window.gcexports.id;
@@ -212,12 +211,14 @@ window.handleViewClick = function (e) {
     }
     break;
   case "form-btn":
-    selector = "#graff-view";
+    show = localStorage.getItem('formView-' + language) !== 'true';
     localStorage.setItem("formView-" + language, show);
-    d3.select("button#form-btn").attr("title", show ? "Hide form view" : "Show form view");
+    if (show) {
+      // FIXME refresh form view.
+    }
     break;
   case "data-btn":
-    selector = "#obj-view";
+    show = localStorage.getItem('dataView-' + language) !== 'true';
     localStorage.setItem("dataView-" + language, show);
     if (show) {
       let itemID = window.gcexports.id;
@@ -226,7 +227,6 @@ window.handleViewClick = function (e) {
         window.gcexports.updateObj(dataID, data);
       });
     }
-    d3.select("button#data-btn").attr("title", show ? "Hide data view" : "Show data view");
     break;
   default:
     break;
@@ -409,6 +409,7 @@ const btnOn = "btn-secondary";
 const btnOff = "btn-outline-secondary";
 
 function initView(name, language, hideViews) {
+  d3.select("div#" + name + "-view").style("display", "block");
   let view = hideViews ? false : localStorage.getItem(name + "View-" + language) === "true";
   d3.select("div#collapse-" + name).classed("show", view);
 }
@@ -430,44 +431,16 @@ window.onload = () => {
       " is currently unavailable.</div>");
     hideViews = true;
   }
-  let helpID = window.gcexports.helpID;
-  // Restore state of the app.
-  if (helpID) {
-    let helpView = hideViews ? false : localStorage.getItem("helpView-" + language) === "true";
-    d3.select("button#help-btn").classed("btn-secondary", helpView);
-    d3.select("button#help-btn").classed("btn-outline-secondary", !helpView);
-    d3.select("button#help-btn").style("display", helpID ? "block" : "none");
-    d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
-    d3.select("div#help-view").style("display", helpView ? "block" : "none");
-    d3.select("button#help-btn").attr("title", helpView ? "Hide help view" : "Show help view");
-  }
-  // let findView = hideViews ? false : localStorage.getItem("findView-" + language) === "true";
-  // d3.select("div#archive-view").style("display", "block");
-  // d3.select("div#collapseFind").classed("show", findView);
-  d3.select("div#find-view").style("display", "block");
   initView('find', language, hideViews);
-
-  // For now, always open code view on reload to avoid code loading bug.
-  let codeView = true; //hideViews ? false : localStorage.getItem("codeView-" + language) !== "false";
-  // d3.select("button#code-btn").classed("btn-secondary", codeView);
-  // d3.select("button#code-btn").classed("btn-outline-secondary", !codeView);
-  // d3.select("button#code-btn").style("display", "block");
-  // d3.select("button#code-btn").attr("title", codeView ? "Hide code view" : "Show code view");
-  d3.select("div#src-view").style("display", "block");
   initView('code', language, hideViews);
+  initView('form', language, hideViews);
+  initView('data', language, hideViews);
+  initView('help', language, hideViews);
+  let helpID = window.gcexports.helpID;
+  if (helpID) {
+    d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
+  }
 
-  let formView = true; //hideViews ? false : localStorage.getItem("formView-" + language) !== "false";
-  d3.select("button#form-btn").classed("btn-secondary", formView);
-  d3.select("button#form-btn").classed("btn-outline-secondary", !formView);
-  d3.select("button#form-btn").style("display", "block");
-  d3.select("button#form-btn").attr("title", formView ? "Hide form view" : "Show form view");
-  d3.select("div#graff-view").style("display", formView ? "block" : "none");
-  let dataView = true; //hideViews ? false : localStorage.getItem("dataView-" + language) === "true";
-  d3.select("button#data-btn").classed("btn-secondary", dataView);
-  d3.select("button#data-btn").classed("btn-outline-secondary", !dataView);
-  d3.select("button#data-btn").style("display", "block");
-  d3.select("button#data-btn").attr("title", dataView ? "Hide data view" : "Show data view");
-  d3.select("div#obj-view").style("display", dataView ? "block" : "none");
   updateStat(window.gcexports.id);
   d3.select("button#mark-btn").style("display", "block");
   d3.selectAll("a.nav-link").style("display", "block");
