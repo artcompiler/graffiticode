@@ -100,7 +100,7 @@ app.engine('html', function (templateFile, options, callback) {
 
 // const request = require('request');
 app.get("/", (req, res) => {
-  res.redirect('https://coronavirus.artcompiler.com/form?id=BqaIb4xzgF9');
+  res.redirect('https://gc.acx.ac/lang?id=0');
 });
 
 const aliases = {};
@@ -186,6 +186,7 @@ function sendLang(req, res) {
   const langID = id;
   const src = req.query.src;
   const lang = langName(langID);
+  console.log('sendLang() langID=' + langID);
   pingLang(lang, (pong) => {
     if (pong) {
       if (src) {
