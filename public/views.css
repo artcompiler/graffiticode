@@ -46,3 +46,6 @@ body {
 .card-header {
   padding: 0;
 }
+.card-body {
+  padding: 10;
+}
