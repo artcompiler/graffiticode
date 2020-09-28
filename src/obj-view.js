@@ -16,7 +16,7 @@ class CodeMirrorEditor extends React.Component {
         viewportMargin: Infinity,
         extraKeys: {"Ctrl-Space": "autocomplete"},
       });
-      self = this;
+      const self = this;
       let updateObj = window.gcexports.updateObj = (id, obj) => {
         if (obj) {
           obj = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);

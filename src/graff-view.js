@@ -45,7 +45,7 @@ class GraffContent extends React.Component {
     this.onChange = this.onChange.bind(this);
   }
 
-  compileCode(itemID) {
+  compileCode(itemID, refresh) {
     let langID, codeID, dataID;
     let ids = decodeID(itemID);
     langID = ids[0];
@@ -53,9 +53,9 @@ class GraffContent extends React.Component {
     dataID = ids.slice(2);
     let self = this;
     let lang = window.gcexports.language;
-    let state = this.state && this.state[itemID] ? this.state[itemID] : {};
+    let state = this.state && this.state[itemID] || {};
     let params = "";
-    let refresh = state.refresh;
+    // let refresh = state.refresh;
     if (refresh) {
       params += "&refresh=true";
       state.refresh = false;
@@ -118,7 +118,7 @@ class GraffContent extends React.Component {
         console.log("x=" + x.stack);
       }
     }
-    return true;
+    return;
   }
 
   componentDidMount() {
@@ -129,7 +129,7 @@ class GraffContent extends React.Component {
       // Wait for valid id.
       return;
     }
-    this.compileCode(itemID);
+    this.compileCode(itemID, false);
     let language = gcexports.language;
     let history = {
       language: language,
@@ -164,7 +164,7 @@ class GraffContent extends React.Component {
         this.postData(itemID, data, label, parentID);
       } else if (gcexports.decodeID(itemID)[2] !== 0 || state.refresh) {
         // Got an itemID with data that is not in memory.
-        this.compileCode(itemID);
+        this.compileCode(itemID, state.refresh);
       }
       gcexports.doneLoading = true;
     }
@@ -214,7 +214,7 @@ class GraffContent extends React.Component {
             ids = ids.slice(0, 2).concat(decodeID(dataID));
             itemID = encodeID(ids);
             if (dataID !== lastDataID && state.recompileCode) {
-              self.compileCode(itemID);
+              self.compileCode(itemID, true);
             }
             if (state.dontUpdateID !== true) {
               gcexports.id = itemID;
@@ -269,13 +269,8 @@ class GraffContent extends React.Component {
         item.obj =
           !recompileCode && this.state[itemID] && this.state[itemID].obj ||
           !recompileCode && ids[2] === 0 && this.state[codeID] && this.state[codeID].obj ||
-          this.compileCode(itemID) && (
-            this.state[itemID] && this.state[itemID].obj ||
-            this.state[codeID] && this.state[codeID].obj
-            // Return the current obj, or base obj if none, while recompiling.
-          );
+          this.compileCode(itemID, true);
         item.id = itemID;
-        assert(item.obj);
       } else if (this.state[codeID] && !this.state[codeID].obj) {
         // Don't have the base obj set yet.
         assert(this.state[codeID].obj);
