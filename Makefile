@@ -1,5 +1,5 @@
 default: build
-	node app.js
+	npm start
 
 test: build
 	npm run test
