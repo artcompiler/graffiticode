@@ -51,7 +51,8 @@
     "supertest": "^4.0.2",
     "uglify-js": "^2.7.3",
     "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "workbox-webpack-plugin": "^5.1.4"
   },
   "scripts": {
     "build": "webpack --config configs/webpack.config.js --mode production",

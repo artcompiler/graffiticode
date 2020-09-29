@@ -1,6 +1,7 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
+const {GenerateSW} = require('workbox-webpack-plugin');
 
 module.exports = () => {
   return {
@@ -40,6 +41,15 @@ module.exports = () => {
       new CleanWebpackPlugin({ cleanStaleWebpackAssets: true }),
       new CopyPlugin({
         patterns: [{ from: 'public' }]
+      }),
+      new GenerateSW({
+        swDest: 'sw.js',
+        clientsClaim: true,
+        skipWaiting: true,
+        runtimeCaching: [{
+          urlPattern: new RegExp('/(item|code|data|stat)'),
+          handler: 'StaleWhileRevalidate'
+        }]
       }),
     ],
   };
