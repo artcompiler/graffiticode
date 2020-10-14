@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { isNonEmptyString } = require('./../src/utils');
+const { isNonEmptyString } = require('../utils');
 
 module.exports = (dbQuery, insertItem) => {
   const router = new Router();
@@ -8,6 +8,7 @@ module.exports = (dbQuery, insertItem) => {
     const { id } = req.query;
     if (!id) {
       res.sendStatus(400);
+      return;
     }
     dbQuery(`SELECT userID, itemID, mark, label FROM items WHERE itemID='${id}'`, (err, result) => {
       if (err) {
