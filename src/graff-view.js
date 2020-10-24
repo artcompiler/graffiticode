@@ -2,9 +2,6 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import {
   assert,
-  message,
-  messages,
-  reserveCodeRange,
   decodeID,
   encodeID,
 } from "./share.js"

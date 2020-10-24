@@ -23,7 +23,7 @@ const {
   messageFromErrors,
 } = require('./src/utils');
 const main = require('./src/main');
-const routes = require('./routes');
+const routes = require('./src/routes');
 const {
   // Database
   dbQuery,
@@ -173,6 +173,7 @@ function parse(lang, src, resume) {
 
 app.use('/label', routes.label(dbQuery));
 app.use('/stat', routes.stat(dbQuery, insertItem));
+app.use('/static', routes.static);
 app.get('/lang', sendLang);
 
 function sendLang(req, res) {

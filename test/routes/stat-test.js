@@ -32,7 +32,7 @@ describe('routes', () => {
     }
 
     let app;
-    beforeEach('Create app', () => {
+    beforeEach(() => {
       lastQuery = null;
       queryError = null;
       queryResult = null;
