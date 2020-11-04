@@ -73,6 +73,7 @@ if (env === 'development') {
   app.use(errorHandler());
 }
 
+app.set('views', __dirname + '/views');
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false, limit: 100000000 }));
 app.use(bodyParser.text({limit: '50mb'}));
