@@ -1,18 +1,12 @@
-const bent = require('bent');
+const { getLangAsset } = require('./../../api');
 const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
-const { decodeID } = require('../../id');
 const { link } = require('linkfs');
 const { createFsFromVolume, Volume } = require('memfs');
 const path = require('path');
 const { ufs } = require('unionfs');
 const webpack = require('webpack');
-
-const apiHost = process.env.API_HOST || 'api.acx.ac';
-
-const getJSON = bent(`http://localhost:3000`, 'json');
-const getBuffer = bent(`https://${apiHost}`, 'buffer');
 
 function compilerRun(compiler) {
   return new Promise((resolve, reject) => {
@@ -62,8 +56,24 @@ async function getLangAssets(fs, langId) {
     viewerJs,
     styleCss,
   ] = await Promise.all([
-    getBuffer(`/L${langId}/viewer.js`),
-    getBuffer(`/L${langId}/style.css`),
+    new Promise((resolve, reject) => {
+      getLangAsset(`L${langId}`, 'viewer.js', (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    }),
+    new Promise((resolve, reject) => {
+      getLangAsset(`L${langId}`, 'style.css', (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    }),
   ]);
 
   // HACK: remove all references to '../images/values-bg.jpg'
@@ -75,7 +85,11 @@ async function getLangAssets(fs, langId) {
   ]);
 }
 
-function buildWebpackBuilder({ getPiece }) {
+function buildWebpackBuilder({
+  decodeID,
+  getPiece,
+  compileID,
+}) {
   return async function webpackBuilder(id) {
     let [langId, codeId] = decodeID(id);
 
@@ -108,7 +122,15 @@ function buildWebpackBuilder({ getPiece }) {
     const [data, info, obj] = await Promise.all([
       Promise.resolve({}),
       Promise.resolve({ id, langId, codeId }),
-      getJSON(`/data?id=${id}`),
+      new Promise((resolve, reject) => {
+        compileID(/*auth=*/null, id, /*options=*/{}, (err, obj) => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(obj);
+          }
+        });
+      }),
     ]);
     console.log(info);
 

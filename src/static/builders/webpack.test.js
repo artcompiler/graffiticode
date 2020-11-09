@@ -1,8 +1,3 @@
-const fs = require('fs');
-const path = require('path');     
-const { link } = require('linkfs');
-const { createFsFromVolume, Volume } = require('memfs');
-const { ufs } = require('unionfs');
 const { buildWebpackBuilder } = require('./webpack');
 
 describe('webpackBuilder', () => {

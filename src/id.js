@@ -3,6 +3,8 @@ const Hashids = require('hashids');
 
 const hashids = new Hashids('Art Compiler LLC');  // This string shall never change!
 
+exports.nilID = encodeID([0, 0, 0])
+
 function decodeID(id) {
   // console.log('[1] decodeID() >> ' + id);
   // 123456, 123+534653+0, Px4xO423c, 123+123456+0+Px4xO423c, Px4xO423c+Px4xO423c
@@ -78,3 +80,5 @@ function encodeID(ids) {
 }
 
 module.exports.encodeID = encodeID;
+
+
