@@ -1,9 +1,14 @@
+const {Storage} = require('@google-cloud/storage');
 const { makeNotFoundError } = require('./../../errors');
 
-const { buildMakeDoNotStorer } = require('./do-not');
-const { buildMakeGcsStorer } = require('./gcs');
-const { buildMakeInMemoryStorer } = require('./in-memory');
+const storage = new Storage();
+const GCS_BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'graffiticode_static';
 
-exports.makeDoNotStorer = buildMakeDoNotStorer({ makeNotFoundError });
-exports.makeGcsStorer = buildMakeGcsStorer({ makeNotFoundError });
-exports.makeInMemoryStorer = buildMakeInMemoryStorer({ makeNotFoundError });
+const { buildGcsStorer } = require('./gcs');
+const { buildThrowingStorer } = require('./throwing');
+
+exports.gcsStorer = buildGcsStorer({
+  makeNotFoundError,
+  name: GCS_BUCKET_NAME,
+  storage,
+});

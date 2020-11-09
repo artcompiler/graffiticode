@@ -47,7 +47,7 @@ module.exports = () => {
         clientsClaim: true,
         skipWaiting: true,
         runtimeCaching: [{
-          urlPattern: new RegExp('/(item|code|data|stat)'),
+          urlPattern: new RegExp('/(item|code|data)'),
           handler: 'StaleWhileRevalidate'
         }]
       }),

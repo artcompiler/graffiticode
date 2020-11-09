@@ -7,8 +7,8 @@ function buildHandleGet({ isNonEmptyString, provider }) {
         err.statusCode = 400;
         throw err;
       }
-      const data = await provider(id);
-      res.status(200).send(data.toString());
+      const url = await provider(id);
+      res.redirect(url);
     } catch (providerError) {
       // TODO Translate provider error into HTTP error
       const err = providerError;

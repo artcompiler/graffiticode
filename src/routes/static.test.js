@@ -1,7 +1,7 @@
-const { buildHandleGet } = require('./../../src/routes/static');
-const { isNonEmptyString } = require('./../../src/utils');
+const { buildHandleGet } = require('./static');
+const { isNonEmptyString } = require('../utils');
 
-describe('staticRouter', () => {
+describe('router/static', () => {
   it('GET / should return 400 if no id', async () => {
     // Arrange
     const handleGet = buildHandleGet({ isNonEmptyString });
@@ -17,13 +17,12 @@ describe('staticRouter', () => {
   });
   it('GET / should return 200 and data from provider', async () => {
     // Arrange
-    const data = 'foo';
-    const provider = jest.fn().mockResolvedValue(data);
+    const publicUrl = '/foo';
+    const provider = jest.fn().mockResolvedValue(publicUrl);
     const handleGet = buildHandleGet({ isNonEmptyString, provider });
     const req = { query: { id: '123' } };
     const res = {
-      status: jest.fn().mockReturnThis(),
-      send: jest.fn().mockReturnThis(),
+      redirect: jest.fn().mockReturnThis(),
     };
 
     // Act
@@ -31,8 +30,7 @@ describe('staticRouter', () => {
 
     // Assert
     expect(provider).toHaveBeenCalledWith('123');
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(data);
+    expect(res.redirect).toHaveBeenCalledWith(publicUrl);
   });
   it('GET / call next when provider fails', async () => {
     // Arrange

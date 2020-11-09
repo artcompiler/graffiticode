@@ -10,7 +10,7 @@ const methodOverride = require("method-override");
 const errorHandler = require("errorhandler");
 const cors = require('cors');
 const {
-  pingLang,
+  pingLang, getLangAsset,
 } = require('./src/api');
 const {
   compileID,
@@ -433,49 +433,6 @@ function postItem(lang, src, ast, obj, userID, parent, img, label, forkID, resum
 function langName(id) {
   id = +id;
   return 'L' + id;
-}
-
-function parseID(id, options, resume) {
-  const ids = decodeID(id);
-  getPiece(ids[1], (err, item) => {
-    if (err) {
-      resume(err, null);
-    } else {
-      // if L113 there is no AST.
-      const user = item.user_id;
-      const lang = item.language;
-      const src = item.src;
-      if (src) {
-        parse(lang, src, (err, ast) => {
-          if (err) {
-            resume(err);
-          } else {
-            if (!ast || Object.keys(ast).length === 0) {
-              console.log(`NO AST for src=${src}`);
-            }
-            if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-              if (ids[1] && !options.dontSave) {
-                console.log(`Saving AST for id=${id}`);
-                updatePieceAST(ids[1], user, lang, ast, (err) => {
-                  if (err) {
-                    resume(err);
-                  } else {
-                    resume(null, ast);
-                  }
-                });
-              } else {
-                resume(null, ast);
-              }
-            } else {
-              resume(null, ast);
-            }
-          }
-        });
-      } else {
-        resume(new Error(`no source for id(${id})`));
-      }
-    }
-  });
 }
 
 function getIDFromType(type) {

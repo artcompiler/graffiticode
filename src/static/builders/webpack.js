@@ -132,9 +132,6 @@ function buildWebpackBuilder({
         });
       }),
     ]);
-    console.log(info);
-
-    const lfs = link(fs, []);
 
     const mfs = createFsFromVolume(new Volume());
     mfs.join = path.join;
@@ -155,6 +152,7 @@ function buildWebpackBuilder({
       getLangAssets(mfs, langId),
     ]);
 
+    const lfs = link(fs, []);
     const u = ufs.use(lfs).use(mfs);
     u.join = path.join;
     u.mkdirp = buildMkdirp({ fs: u, path });
