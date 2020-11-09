@@ -248,7 +248,7 @@ window.handleOpenClick = function (e) {
     url = "/code?id=" + id;
     break;
   case "open-form":
-    url = "/form?id=" + id;
+    url = "/static?id=" + id;
     break;
   case "open-snap":
     // let html = d3.select("#graff-view").html();
