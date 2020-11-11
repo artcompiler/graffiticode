@@ -1,9 +1,9 @@
-function buildGetCode({
+exports.buildGetCode = ({
   log,
   getPiece,
   parse,
   updatePieceAST,
-}) {
+}) => {
   return function getCode(ids, refresh, resume) {
     getPiece(ids[1], (err, item) => {
       if (err && err.length) {
@@ -38,5 +38,4 @@ function buildGetCode({
       }
     });
   };
-}
-exports.buildGetCode = buildGetCode;
+};

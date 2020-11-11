@@ -1,7 +1,4 @@
-function buildCompile({
-  pingLang,
-  postJSON,
-}) {
+exports.buildCompile = ({ pingLang, postJSON }) => {
   return function compile(auth, lang, code, data, options, resume) {
     pingLang(lang, async (pong) => {
       if (pong) {
@@ -29,5 +26,4 @@ function buildCompile({
       }
     });
   };
-}
-exports.buildCompile = buildCompile;
+};

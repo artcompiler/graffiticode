@@ -1,4 +1,4 @@
-function buildProvider({ storer, builder }) {
+exports.buildProvider = ({ storer, builder }) => {
   return async function provider(id) {
     try {
      return await storer.get(id); 
@@ -9,5 +9,4 @@ function buildProvider({ storer, builder }) {
     await storer.set(id, publicUrl);
     return publicUrl;
   };
-}
-exports.buildProvider = buildProvider;
+};

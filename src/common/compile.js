@@ -1,4 +1,4 @@
-function buildCompileID({
+exports.buildCompileID = ({
   log,
   nilID,
   decodeID,
@@ -12,7 +12,7 @@ function buildCompileID({
   getCode,
   getLang,
   compile,
-}) {
+}) => {
   return function compileID(auth, id, options, resume) {
     const refresh = options.refresh;
     const dontSave = options.dontSave;
@@ -125,5 +125,4 @@ function buildCompileID({
       });
     }
   };
-}
-exports.buildCompileID = buildCompileID;
+};

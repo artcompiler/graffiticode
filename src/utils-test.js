@@ -1,10 +1,8 @@
-const { expect } = require('chai');
-
 const {
   getCompilerHost,
   getCompilerPort,
   isNonEmptyString
-} = require('./../src/utils.js');
+} = require('./utils.js');
 
 describe('utils', () => {
   describe('getCompilerHost', () => {

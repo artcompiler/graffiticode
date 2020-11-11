@@ -1,6 +1,4 @@
-function buildGetLangAsset({
-  getBuffer,
-}) {
+exports.buildGetLangAsset = ({ getBuffer }) => {
   return async function getLangAsset(lang, path, resume) {
     if (!(typeof resume === 'function')) {
       console.trace();
@@ -12,5 +10,4 @@ function buildGetLangAsset({
       resume(err);
     }
   };
-}
-exports.buildGetLangAsset = buildGetLangAsset;
+};

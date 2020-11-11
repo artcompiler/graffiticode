@@ -1,5 +1,4 @@
-const { expect } = require('chai');
-const { decodeID, encodeID } = require('./../src/id');
+const { decodeID, encodeID } = require('./id');
 
 describe('id', () => {
   describe('decodeID', () => {

@@ -52,7 +52,6 @@
     "webpack": "^4.44.2"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.1.1",
     "flow-bin": "^0.32.0",

@@ -1,8 +1,7 @@
-const { expect } = require('chai');
 const express = require('express');
 const request = require('supertest');
 
-const label = require('./../../src/routes/label');
+const label = require('./label');
 
 describe('routes/label', () => {
   let lastQuery;

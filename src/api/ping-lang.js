@@ -1,7 +1,4 @@
-function buildPingLang({
-  cache,
-  getBuffer,
-}) {
+exports.buildPingLang = ({ cache, getBuffer }) => {
   return async function pingLang(lang, resume) {
     let pong = false;
     if (cache.has(lang)) {
@@ -18,5 +15,4 @@ function buildPingLang({
     cache.set(lang, pong);
     resume(pong);
   };
-}
-exports.buildPingLang = buildPingLang;
+};

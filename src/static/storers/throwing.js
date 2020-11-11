@@ -6,4 +6,4 @@ exports.buildThrowingStorer = ({ message }) => {
     throw new Error(message);
   };
   return { set, get };
-}
+};

@@ -1,9 +1,9 @@
-function buildParse({
+exports.buildParse = ({
   log,
   cache,
   getLangAsset,
   main,
-}) {
+}) => {
   return function parse(lang, src, resume) {
     if (cache.has(lang)) {
       main.parse(src, cache.get(lang), resume);
@@ -22,5 +22,4 @@ function buildParse({
       });
     }
   };
-}
-exports.buildParse = buildParse;
+};

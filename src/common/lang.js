@@ -1,6 +1,4 @@
-function buildGetLang({
-  getPiece,
-}) {
+exports.buildGetLang = ({ getPiece }) => {
   return function getLang(ids, resume) {
     const langID = ids[0];
     if (langID !== 0) {
@@ -15,5 +13,4 @@ function buildGetLang({
       });
     }
   };
-}
-exports.buildGetLang = buildGetLang;
+};

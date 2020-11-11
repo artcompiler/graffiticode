@@ -85,11 +85,11 @@ async function getLangAssets(fs, langId) {
   ]);
 }
 
-function buildWebpackBuilder({
+exports.buildWebpackBuilder = ({
   decodeID,
   getPiece,
   compileID,
-}) {
+}) => {
   return async function webpackBuilder(id) {
     let [langId, codeId] = decodeID(id);
 
@@ -197,5 +197,4 @@ function buildWebpackBuilder({
 
     return await u.promises.readFile(path.join(__dirname, 'dist', 'index.html'));
   };
-}
-exports.buildWebpackBuilder = buildWebpackBuilder;
+};

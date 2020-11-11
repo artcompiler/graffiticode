@@ -1,4 +1,4 @@
-function buildHandleGet({ isNonEmptyString, provider }) {
+exports.buildHandleGet = ({ isNonEmptyString, provider }) => {
   return async function handleGet(req, res, next) {
     try {
       const id = req.query.id;
@@ -15,12 +15,10 @@ function buildHandleGet({ isNonEmptyString, provider }) {
       next(err);
     }
   };
-}
-exports.buildHandleGet = buildHandleGet;
+};
 
-function buildStaticRouter({ newRouter, handleGet }) {
+exports.buildStaticRouter = ({ newRouter, handleGet }) => {
   const router = newRouter();
   router.get('/', handleGet);
   return router;
-}
-exports.buildStaticRouter = buildStaticRouter;
+};
