@@ -1,5 +1,5 @@
 const { webpackBuilder } = require('./builders');
-const { gcsStorer } = require('./storers');
+const { awsStorer, gcsStorer } = require('./storers');
 
 const { buildProvider } = require('./provider');
 
