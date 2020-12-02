@@ -6,6 +6,11 @@ import GraffView from "./graff-view";
 import ObjectView from "./obj-view";
 import FindView from "./find-view";
 import Dispatcher from "./Dispatcher";
+
+const SUPPORTED_STATIC_VIEW_LANGUAGES = ['L0', 'L114'];
+
+const btnOpenForm = document.getElementById('open-form');
+
 // This is the one and only dispatcher. It is used by embedded views as well.
 try {
   window.gcexports.dispatcher = window.parent.gcexports && window.parent.gcexports.dispatcher
@@ -414,6 +419,14 @@ function initView(name, language, hideViews) {
   d3.select("div#collapse-" + name).classed("show", view);
 }
 
+function render({ language }) {
+  if (btnOpenForm) {
+    const parent = btnOpenForm.parentElement;
+    parent.style.display =
+      SUPPORTED_STATIC_VIEW_LANGUAGES.includes(language) ? 'block' : 'none';
+  }
+}
+
 window.onload = () => {
   window.gcexports._id = window.gcexports.id;
   Object.defineProperty(window.gcexports, 'id', {
@@ -436,6 +449,7 @@ window.onload = () => {
   initView('form', language, hideViews);
   initView('data', language, hideViews);
   initView('help', language, hideViews);
+
   let helpID = window.gcexports.helpID;
   if (helpID) {
     d3.select("div#help-view").html("<iframe frameBorder='0' width='100%' height='600px' src='/form?id=" + helpID + "'></iframe>");
@@ -449,4 +463,7 @@ window.onload = () => {
   } else {
     d3.select("form#signin").style("display", "block");
   }
+
+  const state = { language };
+  render(state);
 };
