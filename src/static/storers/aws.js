@@ -1,5 +1,3 @@
-const AWS = require('aws-sdk');
-
 exports.buildAwsStorer = ({
   makeNotFoundError,
   region,
