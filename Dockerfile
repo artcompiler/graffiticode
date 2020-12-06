@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:14
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -16,5 +16,5 @@ RUN npm run build
 RUN npm ci --only=production
 
 EXPOSE 3000
-CMD [ "node", "app.js" ]
+CMD [ "node", "-r", "./tracing.js", "app.js" ]
 

@@ -9,9 +9,7 @@ const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const errorHandler = require("errorhandler");
 const cors = require('cors');
-const {
-  pingLang, getLangAsset,
-} = require('./src/api');
+const { pingLang } = require('./src/api');
 const {
   compileID,
   parse,
@@ -83,7 +81,6 @@ app.use(bodyParser.text({limit: '50mb'}));
 app.use(bodyParser.raw({limit: '50mb'}));
 app.use(bodyParser.json({ type: 'application/json', limit: '50mb' }));
 app.use(methodOverride());
-app.use(express.static('dist'));
 app.use(function (err, req, res, next) {
   console.error(err.stack);
   res.sendStatus(500);
@@ -1117,3 +1114,6 @@ function putComp(data, secret, resume) {
     resume(err);
   });
 }
+
+// Adding the static file middleware last so it does not add latency to the request
+app.use(express.static('dist'));
