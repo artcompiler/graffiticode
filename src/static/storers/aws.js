@@ -23,7 +23,7 @@ exports.buildAwsStorer = ({
         Key: `${id}.html`,
       });
       await getObject.promise();
-      return `http://${bucket}.s3-website-${region}.amazonaws.com/${id}.html`;
+      return `https://s3-${region}.amazonaws.com/${bucket}/${id}.html`;
     } catch(err) {
       if (err.statusCode === 404) {
         err = makeNotFoundError(`${id} is not found`);

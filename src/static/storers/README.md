@@ -13,6 +13,6 @@ This storer uses GCS to store and serve the statically built items. The storer n
 - `get(id)` checks the object exists and then returns the public url (ie `https://storage.googleapis.com/${name}/${id}.html`).
 
 ### `AwsStorer` ([Simple Storage Service](https://aws.amazon.com/s3))
-This storer uses S3 to store and serve the statically built items. The storer needs a bucket name (default is `artcompiler-static`), region (the default is `us-west-1`), and AWS credentials (see [here](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) on how to configure). The bucket can be set using the `AWS_BUCKET_NAME` environment variable. The region can be set using the `AWS_REGION` environment variable.
+This storer uses S3 to store and serve the statically built items. The storer needs a bucket name (default is `acx.ac`), region (the default is `us-west-1`), and AWS credentials (see [here](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) on how to configure). The bucket can be set using the `AWS_BUCKET_NAME` environment variable. The region can be set using the `AWS_REGION` environment variable. The storer is setup to return object from an S3 bucket that is accessed by using [CloudFront](https://aws.amazon.com/cloudfront/).
 - `set(id, data)` saves the `data` to an object named `<id>.html` and makes the object public.
-- `get(id)` checks the object exists and then returns the public url (ie `http://${bucket}.s3-website-${region}.amazonaws.com/${id}.html`).
+- `get(id)` checks the object exists and then returns the public url (ie `https://s3-${region}.amazonaws.com/${bucket}/${id}.html`).
