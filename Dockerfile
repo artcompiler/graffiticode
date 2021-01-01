@@ -12,6 +12,6 @@ RUN npm run build
 
 RUN npm ci --production
 
-CMD [ "node", "-r", "./tracing.js", "app.js" ]
+CMD [ "node", "-r", "./src/tracing.js", "app.js" ]
 USER node
 

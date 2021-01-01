@@ -358,19 +358,17 @@ function sendData(auth, id, req, res) {
     refresh: refresh,
     dontSave: dontSave,
   };
-  const t0 = new Date;
   compileID(auth, id, options, (err, obj) => {
+    let statusCode;
     if (err && err.length) {
+      console.log(`Failed sendData for ${ids.join('+')} (${id})`);
       console.trace(err);
-      console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${JSON.stringify(err)} obj=${JSON.stringify(obj)}`);
-      const statusCode = statusCodeFromErrors(err);
-      res.status(statusCode).json(obj);
+      statusCode = statusCodeFromErrors(err);
     } else {
-      console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
-                  (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-      res.setHeader("server", "graffiticode/1.0");
-      res.status(200).json(obj);
+      res.setHeader('server', 'graffiticode/1.0');
+      statusCode = 200;
     }
+    res.status(statusCode).json(obj);
   });
 }
 

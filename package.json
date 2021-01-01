@@ -9,13 +9,13 @@
     "url": "https://github.com/graffiticode/graffiticode"
   },
   "dependencies": {
-    "@babel/core": "^7.11.6",
+    "@babel/core": "^7.12.10",
     "@babel/plugin-transform-regenerator": "^7.12.1",
-    "@babel/plugin-transform-runtime": "^7.12.1",
-    "@babel/preset-env": "^7.11.5",
-    "@babel/preset-react": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-react": "^7.12.10",
     "@google-cloud/opentelemetry-cloud-trace-exporter": "^0.7.0",
-    "@google-cloud/storage": "^5.4.0",
+    "@google-cloud/storage": "^5.7.0",
     "@opentelemetry/api": "^0.13.0",
     "@opentelemetry/core": "^0.13.0",
     "@opentelemetry/metrics": "^0.13.0",
@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "clean-webpack-plugin": "^3.0.0",
-    "copy-webpack-plugin": "^6.1.1",
+    "copy-webpack-plugin": "^6.4.1",
     "flow-bin": "^0.32.0",
     "graceful-fs": "^4.2.4",
     "jest": "^26.5.3",
@@ -82,7 +82,8 @@
   "scripts": {
     "build": "webpack --config configs/webpack.config.js --mode production",
     "build:dev": "webpack --config configs/webpack.config.js --mode development",
-    "start": "npm run build:dev && node -r ./tracing.js app.js",
-    "test": "jest --config configs/jest.config.js"
+    "start": "npm run build:dev && node app.js",
+    "test": "jest --config configs/jest.config.js",
+    "watch": "nodemon -w src -w public -w views -w app.js -w package.json --exec make"
   }
 }
