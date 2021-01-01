@@ -1,3 +1,5 @@
+const vm = require('vm');
+
 const { compile, getLangAsset } = require('./../api');
 const {
   delCache,
@@ -24,6 +26,7 @@ const parse = buildParse({
   cache: new Map(),
   getLangAsset,
   main,
+  vm,
 });
 const getDataDeps = {};
 const getData = buildGetData({

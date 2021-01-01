@@ -1,10 +1,9 @@
-const vm = require('vm');
-
 exports.buildParse = ({
   log,
   cache,
   getLangAsset,
   main,
+  vm,
 }) => {
   return function parse(lang, src, resume) {
     if (cache.has(lang)) {
