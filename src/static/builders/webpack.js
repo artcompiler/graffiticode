@@ -73,11 +73,12 @@ async function getLangAssets(fs, langId) {
           resolve(data);
         }
       });
+    })
+    .catch((err) => {
+      console.log(`Failed to get style.css for L${langId}: ${err.message}`);
+      return Buffer.from('');
     }),
   ]);
-
-  // HACK: remove all references to '../images/values-bg.jpg'
-  styleCss = styleCss.toString().split('\n').filter(l => !/values-bg.jpg/.test(l)).join('\n');
  
   await Promise.all([
     fs.promises.writeFile(path.join(__dirname, 'runfiles', 'language-viewer.js'), viewerJs),
