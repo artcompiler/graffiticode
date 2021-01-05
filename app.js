@@ -1,4 +1,3 @@
-const assert = require('assert');
 const express = require('express');
 const _ = require('underscore');
 const fs = require('fs');
@@ -9,21 +8,18 @@ const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const errorHandler = require("errorhandler");
-const redis = require('redis');
-const cache = process.env.REDIS_URL && redis.createClient(process.env.REDIS_URL);
-const atob = require("atob");
 const cors = require('cors');
-const {decodeID, encodeID} = require('./src/id');
+const { pingLang } = require('./src/api');
 const {
-  cleanAndTrimObj,
-  cleanAndTrimSrc,
-  isNonEmptyString,
-  parseJSON,
-  statusCodeFromErrors,
-  messageFromErrors,
-} = require('./src/utils');
-const main = require('./src/main');
-const routes = require('./routes');
+  compileID,
+  parse,
+} = require('./src/common');
+const {
+  decodeID,
+  encodeID,
+  nilID,
+} = require('./src/id');
+const routes = require('./src/routes');
 const {
   // Database
   dbQuery,
@@ -38,11 +34,16 @@ const {
   createPiece,
   getPiece,
   incrementForks,
-  incrementViews,
   itemToID,
   updatePiece,
   updatePieceAST,
 } = require('./src/storage');
+const {
+  cleanAndTrimObj,
+  cleanAndTrimSrc,
+  isNonEmptyString,
+  statusCodeFromErrors,
+} = require('./src/utils');
 
 // Configuration
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
@@ -74,17 +75,12 @@ if (env === 'development') {
 }
 
 app.set('views', __dirname + '/views');
-// app.set('public', __dirname + '/public');
-// app.set('public', __dirname + '/lib');
-
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false, limit: 100000000 }));
 app.use(bodyParser.text({limit: '50mb'}));
 app.use(bodyParser.raw({limit: '50mb'}));
 app.use(bodyParser.json({ type: 'application/json', limit: '50mb' }));
 app.use(methodOverride());
-app.use(express.static(__dirname + '/public'));
-app.use('/lib', express.static(__dirname + '/lib'));
 app.use(function (err, req, res, next) {
   console.error(err.stack);
   res.sendStatus(500);
@@ -104,80 +100,10 @@ app.get("/", (req, res) => {
 });
 
 const aliases = {};
-const localCache = {};
-
-function delCache(id, type) {
-  const key = id + type;
-  delete localCache[key];
-  if (cache) {
-    cache.del(key);
-  }
-}
-
-function renCache(id, oldType, newType) {
-  const oldKey = id + oldType;
-  const newKey = id + newType;
-  localCache[newKey] = localCache[oldKey];
-  delete localCache[oldKey];
-  if (cache) {
-    cache.rename(oldKey, newKey);
-  }
-}
-
-function getKeys(filter, resume) {
-  filter = filter || "*";
-  cache.keys(filter, resume);
-}
-
-function getCache(id, type, resume) {
-  const key = id + type;
-  let val;
-  if ((val = localCache[key])) {
-    resume(null, val);
-  } else if (cache) {
-    cache.get(key, (err, val) => {
-      resume(null, type === "data" ? parseJSON(val) : val);
-    });
-  } else {
-    resume(null, null);
-  }
-}
-
-const dontCache = ["L124"];
-
-function setCache(lang, id, type, val) {
-  if (!dontCache.includes(lang)) {
-    const key = id + type;
-    localCache[key] = val;
-    if (cache) {
-      cache.set(key, type === "data" ? JSON.stringify(val) : val);
-    }
-  }
-}
-
-const lexiconCache = new Map();
-
-function parse(lang, src, resume) {
-  if (lexiconCache.has(lang)) {
-    main.parse(src, lexiconCache.get(lang), resume);
-  } else {
-    get(lang, 'lexicon.js', (err, data) => {
-      if (err) {
-        resume(err);
-      } else {
-        // TODO Make lexicon JSON.
-        console.log("parse() data=" + data);
-        const lstr = data.substring(data.indexOf("{"));
-        const lexicon = JSON.parse(lstr);
-        lexiconCache.set(lang, lexicon);
-        main.parse(src, lexicon, resume);
-      }
-    });
-  }
-}
 
 app.use('/label', routes.label(dbQuery));
 app.use('/stat', routes.stat(dbQuery, insertItem));
+app.use('/static', routes.static);
 app.get('/lang', sendLang);
 
 function sendLang(req, res) {
@@ -432,19 +358,17 @@ function sendData(auth, id, req, res) {
     refresh: refresh,
     dontSave: dontSave,
   };
-  const t0 = new Date;
   compileID(auth, id, options, (err, obj) => {
+    let statusCode;
     if (err && err.length) {
+      console.log(`Failed sendData for ${ids.join('+')} (${id})`);
       console.trace(err);
-      console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${JSON.stringify(err)} obj=${JSON.stringify(obj)}`);
-      const statusCode = statusCodeFromErrors(err);
-      res.status(statusCode).json(obj);
+      statusCode = statusCodeFromErrors(err);
     } else {
-      console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
-                  (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
-      res.setHeader("server", "graffiticode/1.0");
-      res.status(200).json(obj);
+      res.setHeader('server', 'graffiticode/1.0');
+      statusCode = 200;
     }
+    res.status(statusCode).json(obj);
   });
 }
 
@@ -482,49 +406,6 @@ app.get("/c/:id", (req, res) => {
   sendCode(req.params.id, req, res);
 });
 
-const pingCache = {};
-
-function pingLang(lang, resume) {
-  if (pingCache[lang]) {
-    resume(true);
-  } else {
-    const options = {
-      method: 'GET',
-      host: getAPIHost(lang),
-      port: getAPIPort(lang),
-      path: '/lang?id=' + lang.slice(1),
-    };
-    const protocol = LOCAL_COMPILES && http || https;
-    const req = protocol.request(options, function(r) {
-      const pong = r.statusCode === 200;
-      if (!pong) {
-        console.log("ERROR Language not found: " + lang);
-      }
-      pingCache[lang] = pong;
-      resume(pong);
-    }).on("error", (e) => {
-      console.log("ERROR pingLang() e=" + JSON.stringify(e));
-      resume(false);
-    }).end();
-  }
-}
-
-function get(language, path, resume) {
-  const data = [];
-  const options = {
-    host: getAPIHost(language),
-    port: getAPIPort(language),
-    path: `/${language}/${path}`,
-  };
-  console.log("get() options=" + JSON.stringify(options, null, 2));
-  const protocol = LOCAL_COMPILES && http || https;
-  protocol.get(options, (res) => {
-    res.on('data', (chunk) => data.push(chunk))
-      .on('end', () => resume(null, data.join('')))
-      .on('error', resume);
-  });
-}
-
 function postItem(lang, src, ast, obj, userID, parent, img, label, forkID, resume) {
   const parentID = decodeID(parent)[1];
   createPiece(forkID, parentID, userID, src, obj, lang, label, img, clientAddress, ast, (err, piece) => {
@@ -544,290 +425,9 @@ function postItem(lang, src, ast, obj, userID, parent, img, label, forkID, resum
   });
 }
 
-const nilID = encodeID([0,0,0]);
-
-function getData(auth, ids, refresh, resume) {
-  if (encodeID(ids) === nilID || ids.length === 3 && +ids[2] === 0) {
-    resume(null, {});
-  } else {
-    // Compile the tail.
-    const id = encodeID(ids.slice(2));
-    compileID(auth, id, {refresh: refresh}, resume);
-  }
-}
-
-function getCode(ids, refresh, resume) {
-  getPiece(ids[1], (err, item) => {
-    if (err && err.length) {
-      resume(err);
-    } else if (!refresh && item && item.ast) {
-      // if L113 there is no AST.
-      const ast = typeof item.ast === "string" && JSON.parse(item.ast) || item.ast;
-      resume(null, ast);
-    } else {
-      assert(item, `ERROR getCode() item not found: ${ids}`);
-      const user = item.user_id;
-      const lang = item.language;
-      const src = item.src; //.replace(/\\\\/g, "\\");
-      console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src="${src}"`);
-      parse(lang, src, (err, ast) => {
-        if (ast) {
-          updatePieceAST(ids[1], user, lang, ast, (err) => {
-            if (err && err.length) {
-              console.log(`ERROR getCode updatePieceAST err=${err.message}`);
-            }
-          });
-        }
-        // Don't wait for update.
-        if (err && err.length) {
-          resume([{
-            statusCode: 400,
-            error: "Syntax error",
-          }]);
-        } else {
-          resume(null, ast);
-        }
-      });
-    }
-  });
-}
-
 function langName(id) {
   id = +id;
   return 'L' + id;
-}
-
-function getLang(ids, resume) {
-  const langID = ids[0];
-  if (langID !== 0) {
-    resume(null, langName(langID));
-  } else {
-    // Get the language name from the item.
-    getPiece(ids[1], (err, item) => {
-      resume(err, item.language);
-    });
-  }
-}
-
-function compileID(auth, id, options, resume) {
-  const refresh = options.refresh;
-  const dontSave = options.dontSave;
-  if (id === nilID) {
-    resume(null, {});
-  } else {
-    if (refresh) {
-      delCache(id, "data");
-    }
-    getCache(id, "data", (err, val) => {
-      if (err && err.length) {
-        resume(err);
-      } else if (val) {
-        // Got cached value. We're done.
-        resume(null, val);
-      } else {
-        const ids = decodeID(id);
-        // Count every time code is used to compile a new item.
-        incrementViews(ids[1], (err, views) => {
-          if (err && err.length) {
-            console.log(`ERROR compileID incrementViews err=${err.message}`);
-          } else {
-            // console.log(`Updated piece[${ids[1]}] views to ${views}`);
-          }
-        });
-        getData(auth, ids, refresh, (err, data) => {
-          if (err && err.length) {
-            resume(err);
-          } else {
-            getCode(ids, refresh, (err, code) => {
-              if (err && err.length) {
-                resume(err);
-              } else {
-                getLang(ids, (err, lang) => {
-                  if (err && err.length) {
-                    resume(err);
-                  } else {
-                    if (lang === "L113" && Object.keys(data).length === 0) {
-                      // No need to recompile.
-                      getPiece(ids[1], (err, item) => {
-                        if (err && err.length) {
-                          resume(err);
-                        } else {
-                          try {
-                            const obj = JSON.parse(item.obj);
-                            setCache(lang, id, "data", obj);
-                            resume(null, obj);
-                          } catch (e) {
-                            console.log("ERROR compileID() e=" + e);
-                            // Oops. Missing or invalid obj, so need to recompile after all.
-                            // Let downstream compilers know they need to refresh
-                            // any data used. Prefer true over false.
-                            comp(auth, lang, code, data, options, (err, obj) => {
-                              if (err && err.length) {
-                                resume(err);
-                              } else {
-                                setCache(lang, id, "data", obj);
-                                resume(null, obj);
-                              }
-                            });
-                          }
-                        }
-                      });
-                    } else {
-                      if (lang && code && code.root) {
-                        assert(code.root !== undefined, "Invalid code for item " + ids[1]);
-                        // Let downstream compilers know they need to refresh
-                        // any data used.
-                        comp(auth, lang, code, data, options, (err, obj) => {
-                          if (err && err.length) {
-                            resume(err);
-                          } else {
-                            if (!dontSave) {
-                              setCache(lang, id, "data", obj);
-                              if (ids[2] === 0 && ids.length === 3) {
-                                // If this is pure code, then update OBJ.
-                                updatePiece(ids[1], null, obj, null, (err) => {
-                                  if (err && err.length) {
-                                    console.log(`ERROR compileID updatePiece err=${err.message}`);
-                                  }
-                                });
-                              }
-                            }
-                            resume(null, obj);
-                          }
-                        });
-                      } else {
-                        // Error handling here.
-                        console.log("ERROR compileID() ids=" + ids + " missing code");
-                        resume(null, {});
-                      }
-                    }
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-}
-
-function comp(auth, lang, code, data, options, resume) {
-  pingLang(lang, pong => {
-    if (pong) {
-      const config = {};
-      // Compile ast to obj.
-      const langID = lang.indexOf('L') === 0 && lang.slice(1) || lang;
-      const encodedData = JSON.stringify({
-        "item": {
-          lang: langID,
-          code: code,
-          data: data,
-          options: options,
-        },
-        config: config,
-        auth: auth,
-      });
-      const reqOptions = {
-        host: getAPIHost(lang),
-        port: getAPIPort(lang),
-        path: "/compile",
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(encodedData),
-        },
-      };
-      const protocol = LOCAL_COMPILES && http || https;
-      const req = protocol.request(reqOptions, function(res) {
-        let data = "";
-        res.on('data', function (chunk) {
-          data += chunk;
-        });
-        res.on('end', function () {
-          const err = [];
-          if (res.statusCode !== 200) {
-            err.push({
-              statusCode: res.statusCode,
-              data: data,
-            });
-          }
-          resume(err, parseJSON(data));
-        });
-        res.on('error', function (err) {
-          console.log("ERROR [1] comp() err=" + err);
-          resume(404);
-        });
-      });
-      req.write(encodedData);
-      req.end();
-      req.on('error', function(err) {
-        console.log("ERROR [2] comp() err=" + err);
-        resume(404);
-      });
-    } else {
-      resume(404);
-    }
-  });
-}
-
-function parseID(id, options, resume) {
-  const ids = decodeID(id);
-  getPiece(ids[1], (err, item) => {
-    if (err) {
-      resume(err, null);
-    } else {
-      // if L113 there is no AST.
-      const user = item.user_id;
-      const lang = item.language;
-      const src = item.src;
-      if (src) {
-        parse(lang, src, (err, ast) => {
-          if (err) {
-            resume(err);
-          } else {
-            if (!ast || Object.keys(ast).length === 0) {
-              console.log(`NO AST for src=${src}`);
-            }
-            if (JSON.stringify(ast) !== JSON.stringify(item.ast)) {
-              if (ids[1] && !options.dontSave) {
-                console.log(`Saving AST for id=${id}`);
-                updatePieceAST(ids[1], user, lang, ast, (err) => {
-                  if (err) {
-                    resume(err);
-                  } else {
-                    resume(null, ast);
-                  }
-                });
-              } else {
-                resume(null, ast);
-              }
-            } else {
-              resume(null, ast);
-            }
-          }
-        });
-      } else {
-        resume(new Error(`no source for id(${id})`));
-      }
-    }
-  });
-}
-
-function clearCache(type, items) {
-  getKeys("*" + type, (err, keys) => {
-    items = items || keys;
-    const count = 0;
-    items.forEach((item) => {
-      item = item.indexOf(type) < 0 ? item + type : item; // Append type of not present.
-      if (keys.indexOf(item) >= 0) {
-        console.log("deleting " + (++count) + " of " + keys.length + ": " + item);
-        delCache(item.slice(0, item.indexOf(type)), type);
-      } else {
-        console.log("unknown " + item);
-      }
-    });
-  });
 }
 
 function getIDFromType(type) {
@@ -1512,3 +1112,6 @@ function putComp(data, secret, resume) {
     resume(err);
   });
 }
+
+// Adding the static file middleware last so it does not add latency to the request
+app.use(express.static('dist'));
