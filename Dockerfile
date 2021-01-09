@@ -14,4 +14,3 @@ RUN npm ci --production
 
 CMD [ "node", "-r", "./src/tracing.js", "app.js" ]
 USER node
-
