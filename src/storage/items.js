@@ -81,7 +81,7 @@ function buildGetLastItemByLang({ dbQuery }) {
     const query = `
     SELECT *
     FROM items
-    WHERE langid='${langID}'
+    WHERE langid='${langID}' AND mark is not null
     ORDER BY id DESC
     LIMIT 1;
     `;

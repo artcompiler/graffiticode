@@ -108,6 +108,7 @@ app.get('/lang', sendLang);
 
 function sendLang(req, res) {
   // /lang?id=106
+  console.log("sendLang() query=" + JSON.stringify(req.query));
   const id = req.query.id;
   const langID = id;
   const src = req.query.src;
@@ -874,7 +875,7 @@ app.get('/:lang/*', (req, res) => {
   const path = req.url;
   if (!LOCAL_COMPILES && assetCache.has(path)) {
     res.send(assetCache.get(path));
-  } else {
+  } else if (lang.charAt(0) === 'L') {
     pingLang(lang, (pong) => {
       if (pong) {
         const options = {
@@ -905,6 +906,10 @@ app.get('/:lang/*', (req, res) => {
         res.sendStatus(404);
       }
     });
+  } else {
+    const fullPath = `${__dirname}/public${path}`;
+    console.log("GET /:lang fullPath=" + fullPath);
+    res.sendFile(fullPath);
   }
 });
 
