@@ -471,6 +471,7 @@ var Ast = (function () {
       elts.push(elt);
     }
     var nameId = pop(ctx);
+    console.log("expr() nameId=" + nameId);
     var e = node(ctx, nameId).elts;
     assert(e && e.length > 0, "Ill formed node.");
     var name = e[0];
@@ -684,13 +685,13 @@ var Ast = (function () {
       elts.push(pop(ctx))  // of
     }
     elts.push(pop(ctx))  // exprs
-    push(ctx, {tag: "CASE", elts: elts});
+    push(ctx, {tag: "CASE", elts: elts.reverse()});
   }
   function ofClause(ctx) {
     var elts = [];
     elts.push(pop(ctx));
     elts.push(pop(ctx));
-    push(ctx, {tag: "OF", elts: elts});
+    push(ctx, {tag: "OF", elts: elts.reverse()});
   }
 
   function record(ctx) {
@@ -2252,8 +2253,8 @@ var folder = function() {
     "GE": ge,
     "NEG": neg,
     "LIST": list,
-    "CASE": caseExpr,
-    "OF": ofClause,
+//    "CASE": caseExpr,
+//    "OF": ofClause,
   };
 
   var canvasWidth = 0;
