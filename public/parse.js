@@ -19,17 +19,18 @@
  -- Fold expressions until fully applied or there are no more arguments:
     (<x y: add x y> 10) 20..
  */
-
+var CodeMirror;
 if (typeof CodeMirror === "undefined") {
-  CodeMirror = {
+  var CodeMirror = {
     Pos: function () {
       return {};
     }
   };
 }
 
+var window;
 if (typeof window === "undefined") {
-  window = {};
+  var window = {};
   window = {
     gcexports: {
       coords: {},
