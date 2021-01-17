@@ -21,7 +21,7 @@
  */
 
 if (typeof CodeMirror === "undefined") {
-  CodeMirror = {
+  var CodeMirror = {
     Pos: function () {
       return {};
     }
@@ -29,7 +29,7 @@ if (typeof CodeMirror === "undefined") {
 }
 
 if (typeof window === "undefined") {
-  window = {};
+  var window = {};
   window = {
     gcexports: {
       coords: {},

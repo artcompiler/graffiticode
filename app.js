@@ -10,10 +10,7 @@ const methodOverride = require("method-override");
 const errorHandler = require("errorhandler");
 const cors = require('cors');
 const { pingLang } = require('./src/api');
-const {
-  compileID,
-  parse,
-} = require('./src/common');
+const { compileID, parse } = require('./src/common');
 const {
   decodeID,
   encodeID,
@@ -66,12 +63,10 @@ app.all('*', function (req, res, next) {
 
 if (env === 'development') {
   app.use(morgan('dev'));
-  app.use(errorHandler({ dumpExceptions: true, showStack: true }));
 } else {
   app.use(morgan('combined', {
     skip: (req, res) => res.statusCode < 400,
   }));
-  app.use(errorHandler());
 }
 
 app.set('views', __dirname + '/views');
@@ -108,11 +103,18 @@ app.get('/lang', sendLang);
 
 function sendLang(req, res) {
   // /lang?id=106
-  const id = req.query.id;
+  const { id } = req.query;
+  if (!id) {
+    res.status(400).send('must provide language id');
+    return;
+  }
+  if (Number.isNaN(Number.parseInt(id))) {
+    res.status(400).send('language id must be an integer');
+    return;
+  }
   const langID = id;
   const src = req.query.src;
   const lang = langName(langID);
-  console.log('sendLang() langID=' + langID);
   pingLang(lang, (pong) => {
     if (pong) {
       if (src) {
@@ -868,9 +870,14 @@ function num2dot(num) {
 
 const assetCache = new Map();
 const assetCacheTtlMs = 5 * 60 * 1000;
-app.get('/:lang/*', (req, res) => {
+app.get('/:lang/*', (req, res, next) => {
   // /L106/lexicon.js
   const lang = req.params.lang;
+  const langRegex = new RegExp('[Ll]\\d+');
+  if (!langRegex.test(lang)) {
+    next();
+    return;
+  }
   const path = req.url;
   if (!LOCAL_COMPILES && assetCache.has(path)) {
     res.send(assetCache.get(path));
@@ -923,23 +930,6 @@ function getAPIPort(lang) {
     return "443";
   }
 }
-
-readinessCheck((err) => {
-  if (err) {
-    console.log(`ERROR Database is not ready: ${err.message}`);
-    process.exit(1);
-  } else {
-    console.log(`Database is ready`);
-  }
-});
-
-process.on('uncaughtException', (err) => {
-  if (err instanceof Error) {
-    console.log(`ERROR Uncaught exception: ${err.stack}`);
-  } else {
-    console.trace(`ERROR Uncaught exception: "${err}"`);
-  }
-});
 
 function postAuth(path, data, resume) {
   const encodedData = JSON.stringify(data);
@@ -1039,15 +1029,43 @@ function validateUser(token, lang, resume) {
   }
 }
 
+// Adding the static file middleware after all dynamic routes so it does not
+// add latency to the request.
+app.use(express.static('dist'));
+
+// Add error handlers routers last to catch all exceptions
+if (env === 'development') {
+  app.use(errorHandler({ dumpExceptions: true, showStack: true }));
+} else {
+  app.use(errorHandler());
+}
 
 // Client login
-
 const clientAddress = process.env.ARTCOMPILER_CLIENT_ADDRESS
   ? process.env.ARTCOMPILER_CLIENT_ADDRESS
   : "0x0123456789abcdef0123456789abcdef01234567";
 let authToken = process.env.ARTCOMPILER_CLIENT_SECRET;
+
 if (!module.parent) {
   const port = process.env.PORT || 3000;
+
+  readinessCheck((err) => {
+    if (err) {
+      console.log(`ERROR Database is not ready: ${err.message}`);
+      process.exit(1);
+    } else {
+      console.log(`Database is ready`);
+    }
+  });
+
+  process.on('uncaughtException', (err) => {
+    if (err instanceof Error) {
+      console.log(`ERROR Uncaught exception: ${err.stack}`);
+    } else {
+      console.trace(`ERROR Uncaught exception: "${err}"`);
+    }
+  });
+
   app.listen(port, async function() {
     console.log("Listening on " + port);
     console.log("Using address " + clientAddress);
@@ -1077,41 +1095,3 @@ if (!module.parent) {
     // putComp([], clientSecret);
   });
 }
-
-// Client URLs
-
-function putComp(data, secret, resume) {
-  const encodedData = JSON.stringify(data);
-  const options = {
-    host: "acx.ac",
-    port: "443",
-    path: "/comp",
-    method: "PUT",
-    headers: {
-      "Content-Type": "text/plain",
-      "Content-Length": Buffer.byteLength(encodedData),
-      "Authorization": secret,
-    },
-  };
-  const req = https.request(options);
-  req.on("response", (res) => {
-    let data = "";
-    res.on('data', function (chunk) {
-      data += chunk;
-    }).on('end', function () {
-      if (resume) {
-        resume(null, JSON.parse(data));
-      }
-    }).on("error", function (err) {
-      console.log("[13] ERROR " + err);
-    });
-  });
-  req.end(encodedData);
-  req.on('error', function(err) {
-    console.log("[14] ERROR " + err);
-    resume(err);
-  });
-}
-
-// Adding the static file middleware last so it does not add latency to the request
-app.use(express.static('dist'));
