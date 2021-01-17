@@ -6,7 +6,6 @@ exports.buildPingLang = ({ cache, getBuffer }) => {
     }
     try {
       if (!pong) {
-        console.trace("pingLang() lang=" + lang);
         await getBuffer(`/lang?id=${lang.slice(1)}`);
         pong = true;
       }
