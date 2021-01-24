@@ -28,6 +28,7 @@ if (typeof CodeMirror === "undefined") {
   };
 }
 
+
 var window;
 if (typeof window === "undefined") {
   var window = {};
@@ -2583,3 +2584,7 @@ var folder = function() {
   }
 }();
 
+
+if (typeof exports !== "undefined") {
+  exports.parser = window.gcexports.parser;
+}
