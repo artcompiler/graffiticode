@@ -2248,7 +2248,7 @@ var folder = function() {
     "NE": ne,
     "EQ": eq,
     "LT": lt,
-    "GT": gt,
+//    "GT": gt,
     "LE": le,
     "GE": ge,
     "NEG": neg,
