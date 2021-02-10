@@ -36,6 +36,7 @@ const {
   updatePieceAST,
 } = require('./src/storage');
 const {
+  parseJSON,
   cleanAndTrimObj,
   cleanAndTrimSrc,
   isNonEmptyString,
@@ -102,6 +103,7 @@ app.use('/static', routes.static);
 app.get('/lang', sendLang);
 
 function sendLang(req, res) {
+  // Redirect to an item of the given language or source code.
   // /lang?id=106
   const { id } = req.query;
   if (!id) {
@@ -118,6 +120,7 @@ function sendLang(req, res) {
   pingLang(lang, (pong) => {
     if (pong) {
       if (src) {
+        // Create an item from source code.
         putCode(authToken, lang, src, (err, val) => {
           if (err && err.length) {
             console.log(`ERROR GET /lang putCode err=${err.message}`);
@@ -126,26 +129,27 @@ function sendLang(req, res) {
             res.redirect("/item?id=" + val.id);
           }
         });
-        return;
+      } else {
+        getLastItemByLang(langID, (err, item) => {
+          if (err && err.length) {
+            console.log(`ERROR GET /lang getLastItemByLang err=${err.message}`);
+            res.sendStatus(500);
+          } else if (item) {
+            res.redirect(`/item?id=${item.itemid}`);
+          } else {
+            // No item, so make one up.
+            postItem(lang, `| ${lang}`, {}, null, 0, 0, null, 'show', 0, (err, itemID) => {
+              if (err && err.length) {
+                console.log(`ERROR GET /lang postItem err=${err.message}`);
+                res.sendStatus(500);
+              } else {
+                const id = encodeID([langID, itemID, 0]);
+                res.redirect(`/item?id=${id}`);
+              }
+            });
+          }
+        });
       }
-      getLastItemByLang(langID, (err, item) => {
-        if (err && err.length) {
-          console.log(`ERROR GET /lang getLastItemByLang err=${err.message}`);
-          res.sendStatus(500);
-        } else if (item) {
-          res.redirect(`/item?id=${item.itemid}`);
-        } else {
-          postItem(lang, `| ${lang}`, {}, null, 0, 0, null, 'show', 0, (err, itemID) => {
-            if (err && err.length) {
-              console.log(`ERROR GET /lang postItem err=${err.message}`);
-              res.sendStatus(500);
-            } else {
-              const id = encodeID([langID, itemID, 0]);
-              res.redirect(`/item?id=${id}`);
-            }
-          });
-        }
-      });
     } else {
       console.log("ERROR language not available: " + lang);
       res.sendStatus(404);
@@ -394,7 +398,7 @@ function sendCode(id, req, res) {
     } else {
       res.json({
         src: row.src,
-        ast: typeof row.ast === "string" && JSON.parse(row.ast) || row.ast,
+        ast: typeof row.ast === "string" && parseJSON(row.ast) || row.ast,
       });
     }
   });
@@ -473,7 +477,7 @@ function batchCompile(auth, items, index, res, resume) {
 
 app.put('/comp', function (req, res) {
   const t0 = new Date;
-  const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  const body = typeof req.body === "string" ? parseJSON(req.body) : req.body;
   const data = body;
   console.log("PUT /comp data=" + JSON.stringify(data));
   const auth = req.headers.authorization;
@@ -619,45 +623,45 @@ app.post('/code', function (req, res) {
   });
 });
 function putData(auth, data, resume) {
+  // Store an object as an L113 item.
   if (!data || !Object.keys(data).length) {
     resume(null, undefined);
-    return;
-  }
-  const t0 = new Date;
-  const rawSrc = JSON.stringify(data) + "..";
-  const src = cleanAndTrimSrc(rawSrc);
-  const obj = cleanAndTrimObj(JSON.stringify(data));
-  const lang = "L113";
-  const user = 0;
-  const label = "data";
-  const parent = 0;
-  const img = "";
-  const forkID = 0;
-  parse(lang, rawSrc, (err, ast) => {
-    postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
-      const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
-      const dataID = 0;
-      const ids = [langID, codeID, dataID];
-      const id = encodeID(ids);
-      if (err && err.length) {
-        console.log("ERROR putData() err=" + err);
-        resume(err);
-      } else {
-        resume(null, id);
-      }
+  } else {
+    const t0 = new Date;
+    const rawSrc = JSON.stringify(data) + "..";
+    const src = cleanAndTrimSrc(rawSrc);
+    const obj = cleanAndTrimObj(JSON.stringify(data));
+    const lang = "L113";
+    const user = 0;
+    const label = "data";
+    const parent = 0;
+    const img = "";
+    const forkID = 0;
+    parse(lang, rawSrc, (err, ast) => {
+      postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
+        const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
+        const dataID = 0;
+        const ids = [langID, codeID, dataID];
+        const id = encodeID(ids);
+        if (err && err.length) {
+          console.log("ERROR putData() err=" + err);
+          resume(err);
+        } else {
+          resume(null, id);
+        }
+      });
     });
-  });
+  }
 }
-function putCode(auth, lang, rawSrc, resume) {
+function putCode(auth, lang, src, resume) {
+  // Compile SRC to OBJ. Insert or add item.
   const t0 = new Date;
-  // Compile AST or SRC to OBJ. Insert or add item.
-  const src = cleanAndTrimSrc(rawSrc);
   const user = 0;
   const img = "";
   const obj = "";
   const label = "show";
   const parent = 0;
-  parse(lang, rawSrc, (err, ast) => {
+  parse(lang, src, (err, ast) => {
     if (err) {
       resume(err);
     } else {
@@ -666,7 +670,7 @@ function putCode(auth, lang, rawSrc, resume) {
   });
   function compile(ast) {
     const forkID = 0;
-    postItem(lang, rawSrc, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
+    postItem(lang, src, ast, obj, user, parent, img, label, forkID, (err, codeID) => {
       if (err && err.length) {
         console.log("ERROR [2] PUT /compile err=" + err);
         resume(400);
@@ -687,7 +691,7 @@ function putCode(auth, lang, rawSrc, resume) {
 app.put('/code', (req, res) => {
   // Insert or update code without recompiling.
   const t0 = new Date;
-  const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  const body = typeof req.body === "string" ? parseJSON(req.body) : req.body;
   const { id, language, src, obj, img } = body;
   const lang = language;
   const ids = id !== undefined ? decodeID(id) : [0, 0, 0];
@@ -957,7 +961,7 @@ function postAuth(path, data, resume) {
         resume(res.statusCode, data);
       } else {
         try {
-          data = JSON.parse(data);
+          data = parseJSON(data);
           resume(data.error, data);
         } catch (e) {
           console.log("[11] ERROR " + data + " statusCode=" + res.statusCode);
