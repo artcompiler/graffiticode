@@ -438,7 +438,7 @@ function sendData(auth, id, req, res) {
       console.trace(err);
       console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${JSON.stringify(err)} obj=${JSON.stringify(obj)}`);
       const statusCode = statusCodeFromErrors(err);
-      res.status(statusCode).json(obj);
+      res.sendStatus(statusCode);
     } else {
       console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
@@ -569,7 +569,7 @@ function getCode(ids, refresh, resume) {
       const user = item.user_id;
       const lang = item.language;
       const src = item.src; //.replace(/\\\\/g, "\\");
-      console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src="${src}"`);
+//      console.log(`Reparsing SRC: langID=${ids[0]} codeID=${ids[1]} src="${src}"`);
       parse(lang, src, (err, ast) => {
         if (ast) {
           updatePieceAST(ids[1], user, lang, ast, (err) => {
@@ -751,8 +751,10 @@ function comp(auth, lang, code, data, options, resume) {
               statusCode: res.statusCode,
               data: data,
             });
+            resume(err, data);
+          } else {
+            resume(err, parseJSON(data));
           }
-          resume(err, parseJSON(data));
         });
         res.on('error', function (err) {
           console.log("ERROR [1] comp() err=" + err);

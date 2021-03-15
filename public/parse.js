@@ -471,7 +471,6 @@ var Ast = (function () {
       elts.push(elt);
     }
     var nameId = pop(ctx);
-    console.log("expr() nameId=" + nameId);
     var e = node(ctx, nameId).elts;
     assert(e && e.length > 0, "Ill formed node.");
     var name = e[0];
