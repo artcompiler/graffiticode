@@ -958,10 +958,12 @@ function getTip(id, resume) {
 }
 
 app.post('/code', function (req, res) {
-  const lang = req.body.language;
+  const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  console.log("POST /code body=" + JSON.stringify(body));
+  const lang = body.language;
   const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
   const t0 = new Date;
-  validateUser(req.body.jwt, lang, (err, data) => {
+  validateUser(body.jwt, lang, (err, data) => {
     if (err && err.length) {
       console.log(`ERROR POST /code validateUser err=${err.message}`);
       res.sendStatus(401);
@@ -970,12 +972,12 @@ app.post('/code', function (req, res) {
       // user id against registered user table for this host.
       // Map AST or SRC into OBJ. Store OBJ and return ID.
       // Compile AST or SRC to OBJ. Insert or add item.
-      const { forkID=0, src, ast, parent=0 } = req.body;
+      const { forkID=0, src, ast, parent=0 } = body;
       const ip = req.headers['x-forwarded-for'] ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
-      const user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
+      const user = +body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
       itemToID(user, lang, ast, (err, itemID) => {
         if (err) {
           itemID = null;
