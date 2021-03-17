@@ -1115,8 +1115,9 @@ app.put('/code', (req, res) => {
   } else {
     insertOrUpdatePiece({ res, pieceId: null, lang, src, obj, img });
   }
-  function insertOrUpdatePiece({ res, pieceId:id, lang:language, src, obj, img }) {
-    console.log("insertORUpdatePiece() lang=" + lang + " src=" + src);
+  function insertOrUpdatePiece({ res, id, language, src, obj, img }) {
+    const lang = language;
+    const pieceId = id;
     if (pieceId) {
       // Perform async piece update
       updatePiece(pieceId, src, obj, img, (err) => {
@@ -1127,7 +1128,7 @@ app.put('/code', (req, res) => {
 
       // Don't wait for update. We have what we need to respond.
       const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
-      const codeID = id;
+      const codeID = pieceId;
       const dataID = 0;
       const ids = [langID, codeID, dataID];
       const id = encodeID(ids);
