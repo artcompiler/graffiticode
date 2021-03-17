@@ -100,7 +100,12 @@ app.engine('html', function (templateFile, options, callback) {
 
 // const request = require('request');
 app.get("/", (req, res) => {
-  res.redirect('https://gc.acx.ac/lang?id=0');
+  console.log("GET / host=" + req.headers.host);
+  if (req.headers.host === 'altalabs.tech') {
+    res.redirect('https://altalabs.tech/form?label=home')
+  } else {
+    res.redirect('https://gc.acx.ac/lang?id=0');
+  }
 });
 
 const aliases = {};
