@@ -1115,7 +1115,7 @@ app.put('/code', (req, res) => {
   } else {
     insertOrUpdatePiece({ res, pieceId: null, lang, src, obj, img });
   }
-  function insertOrUpdatePiece({ res, pieceId, lang, src, obj, img }) {
+  function insertOrUpdatePiece({ res, pieceId:id, lang:language, src, obj, img }) {
     console.log("insertORUpdatePiece() lang=" + lang + " src=" + src);
     if (pieceId) {
       // Perform async piece update
