@@ -102,7 +102,7 @@ app.engine('html', function (templateFile, options, callback) {
 app.get("/", (req, res) => {
   console.log("GET / host=" + req.headers.host);
   if (req.headers.host === 'www.altalabs.tech') {
-    res.redirect('https://altalabs.tech/form?label=home')
+    res.redirect('https://www.altalabs.tech/form?label=home')
   } else {
     res.redirect('https://gc.acx.ac/lang?id=0');
   }
