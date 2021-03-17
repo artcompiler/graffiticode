@@ -964,7 +964,6 @@ function getTip(id, resume) {
 
 app.post('/code', function (req, res) {
   const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-  console.log("POST /code body=" + JSON.stringify(body));
   const lang = body.language;
   const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
   const t0 = new Date;
