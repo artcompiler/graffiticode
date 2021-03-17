@@ -36,6 +36,7 @@ function buildGetPiece({ dbQuery }) {
       } else if (result.rows.length <= 0 || result.rows[0].id < 1000 ) {
         resume(new Error('Invalid Id'));
       } else {
+        console.log("getPiece() row=" + JSON.stringify(result.rows[0], null, 2));
         resume(null, result.rows[0]);
       }
     });
