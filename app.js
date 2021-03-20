@@ -102,7 +102,7 @@ app.engine('html', function (templateFile, options, callback) {
 app.get("/", (req, res) => {
   console.log("GET / host=" + req.headers.host);
   if (req.headers.host === 'www.altalabs.tech') {
-    res.redirect('https://www.altalabs.tech/form?label=altalabshome')
+    res.redirect('https://www.altalabs.tech/form?label=altalabs-splash')
   } else {
     res.redirect('https://gc.acx.ac/lang?id=0');
   }
@@ -414,7 +414,6 @@ app.get("/form", function (req, res) {
     // Try to find an ID.
     getLastItemByLabel(req.query.label, (err, item) => {
       if (err && err.length || !item) {
-        console.log(`ERROR GET /lang getLastItemByLabel err=${err.message} item=${JSON.stringify(item)}`);
         res.sendStatus(500);
       } else if (item) {
         res.redirect(`/form?id=${item.itemid}`);
@@ -515,6 +514,7 @@ function pingLang(lang, resume) {
 }
 
 function get(language, path, resume) {
+  console.trace("get() language=" + language);
   const data = [];
   const options = {
     host: getAPIHost(language),
@@ -1055,6 +1055,7 @@ function putData(auth, data, resume) {
   });
 }
 function putCode(auth, lang, rawSrc, resume) {
+  console.trace("putCode() lang=" + lang);
   const t0 = new Date;
   // Compile AST or SRC to OBJ. Insert or add item.
   const src = cleanAndTrimSrc(rawSrc);
@@ -1095,7 +1096,7 @@ app.put('/code', (req, res) => {
   const t0 = new Date;
   const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   const { id, language, src, obj, img } = body;
-  const lang = language;
+  let lang = language;
   const ids = id !== undefined ? decodeID(id) : [0, 0, 0];
   const ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
@@ -1108,15 +1109,14 @@ app.put('/code', (req, res) => {
       let pieceId = null;
       if (!err && piece) {
         pieceId = piece.id;
+        lang = piece.language;
       }
-      insertOrUpdatePiece({ res, pieceId, lang, src, obj, img });
+      insertOrUpdatePiece(res, pieceId, lang, src, obj, img);
     });
   } else {
-    insertOrUpdatePiece({ res, pieceId: null, lang, src, obj, img });
+    insertOrUpdatePiece(res, null, lang, src, obj, img);
   }
-  function insertOrUpdatePiece({ res, id, language, src, obj, img }) {
-    const lang = language;
-    const pieceId = id;
+  function insertOrUpdatePiece(res, pieceId, lang, src, obj, img) {
     if (pieceId) {
       // Perform async piece update
       updatePiece(pieceId, src, obj, img, (err) => {
