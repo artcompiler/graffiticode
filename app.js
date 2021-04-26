@@ -90,9 +90,8 @@ app.engine('html', function (templateFile, options, callback) {
 
 // Routes
 
-// const request = require('request');
 app.get("/", (req, res) => {
-  res.redirect('https://gc.acx.ac/lang?id=0');
+  res.redirect(`https://${req.headers.host}/lang?id=0`);
 });
 
 const aliases = {};
@@ -365,16 +364,17 @@ function sendData(auth, id, req, res) {
     dontSave: dontSave,
   };
   compileID(auth, id, options, (err, obj) => {
-    let statusCode;
     if (err && err.length) {
-      console.log(`Failed sendData for ${ids.join('+')} (${id})`);
       console.trace(err);
-      statusCode = statusCodeFromErrors(err);
+      console.log(`ERROR GET /data?id=${ids.join('+')} (${id}) err=${JSON.stringify(err)} obj=${JSON.stringify(obj)}`);
+      const statusCode = statusCodeFromErrors(err);
+      res.sendStatus(statusCode);
     } else {
-      res.setHeader('server', 'graffiticode/1.0');
-      statusCode = 200;
+      console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
+                  (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
+      res.setHeader("server", "graffiticode/1.0");
+      res.status(200).json(obj);
     }
-    res.status(statusCode).json(obj);
   });
 }
 
@@ -562,10 +562,11 @@ function getTip(id, resume) {
 }
 
 app.post('/code', function (req, res) {
-  const lang = req.body.language;
+  const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  const lang = body.language;
   const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
   const t0 = new Date;
-  validateUser(req.body.jwt, lang, (err, data) => {
+  validateUser(body.jwt, lang, (err, data) => {
     if (err && err.length) {
       console.log(`ERROR POST /code validateUser err=${err.message}`);
       res.sendStatus(401);
@@ -574,12 +575,12 @@ app.post('/code', function (req, res) {
       // user id against registered user table for this host.
       // Map AST or SRC into OBJ. Store OBJ and return ID.
       // Compile AST or SRC to OBJ. Insert or add item.
-      const { forkID=0, src, ast, parent=0 } = req.body;
+      const { forkID=0, src, ast, parent=0 } = body;
       const ip = req.headers['x-forwarded-for'] ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
-      const user = +req.body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
+      const user = +body.userID || dot2num(ip);  // Use IP address if userID not avaiable.
       itemToID(user, lang, ast, (err, itemID) => {
         if (err) {
           itemID = null;
@@ -693,7 +694,7 @@ app.put('/code', (req, res) => {
   const t0 = new Date;
   const body = typeof req.body === "string" ? parseJSON(req.body) : req.body;
   const { id, language, src, obj, img } = body;
-  const lang = language;
+  let lang = language;
   const ids = id !== undefined ? decodeID(id) : [0, 0, 0];
   const ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
@@ -706,8 +707,9 @@ app.put('/code', (req, res) => {
       let pieceId = null;
       if (!err && piece) {
         pieceId = piece.id;
+        lang = piece.language;
       }
-      insertOrUpdatePiece({ res, pieceId, lang, src, obj, img });
+      insertOrUpdatePiece(res, pieceId, lang, src, obj, img);
     });
   } else {
     insertOrUpdatePiece({ res, pieceId: null, lang, src, obj, img });
@@ -724,7 +726,7 @@ app.put('/code', (req, res) => {
 
       // Don't wait for update. We have what we need to respond.
       const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
-      const codeID = id;
+      const codeID = pieceId;
       const dataID = 0;
       const ids = [langID, codeID, dataID];
       const id = encodeID(ids);

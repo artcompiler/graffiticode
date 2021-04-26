@@ -667,13 +667,13 @@ var Ast = (function () {
       elts.push(pop(ctx))  // of
     }
     elts.push(pop(ctx))  // exprs
-    push(ctx, {tag: "CASE", elts: elts});
+    push(ctx, {tag: "CASE", elts: elts.reverse()});
   }
   function ofClause(ctx) {
     var elts = [];
     elts.push(pop(ctx));
     elts.push(pop(ctx));
-    push(ctx, {tag: "OF", elts: elts});
+    push(ctx, {tag: "OF", elts: elts.reverse()});
   }
 
   function record(ctx) {
@@ -2225,18 +2225,18 @@ var folder = function() {
     "POW": pow,
     "MOD": mod,
     "CONCAT": concat,
-//    "OR": orelse,
-//    "AND": andalso,
-    "NE": ne,
-    "EQ": eq,
-    "LT": lt,
-    "GT": gt,
-    "LE": le,
-    "GE": ge,
+    // "OR": orelse,
+    // "AND": andalso,
+    // "NE": ne,
+    // "EQ": eq,
+    // "LT": lt,
+    // "GT": gt,
+    // "LE": le,
+    // "GE": ge,
     "NEG": neg,
     "LIST": list,
-    "CASE": caseExpr,
-    "OF": ofClause,
+    // "CASE": caseExpr,
+    // "OF": ofClause,
   };
 
   var canvasWidth = 0;
