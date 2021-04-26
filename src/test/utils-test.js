@@ -2,7 +2,7 @@ const {
   getCompilerHost,
   getCompilerPort,
   isNonEmptyString
-} = require('./utils.js');
+} = require('../utils.js');
 
 describe('utils', () => {
   describe('getCompilerHost', () => {

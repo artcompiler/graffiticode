@@ -1,4 +1,4 @@
-const { decodeID, encodeID } = require('./id');
+const { decodeID, encodeID } = require('../id');
 
 describe('id', () => {
   describe('decodeID', () => {

@@ -1,4 +1,4 @@
-const app = require('./app');
+const app = require('../app');
 const express = require('express');
 const { Pool } = require('pg');
 const request = require('supertest');
@@ -31,7 +31,6 @@ describe('app', () => {
     // Act
     await request(app)
       .get('/fonts/test.txt')
-      .query({ id: 123 })
       .expect(200, 'this is a test.\n');
 
     // Assert
@@ -47,7 +46,7 @@ describe('app', () => {
     // Act
     await request(app)
       .get('/lang')
-      .query({ id: 123 })
+      .query({id: 113})
       .expect(302, `Found. Redirecting to /item?id=${itemid}`);
 
     // Assert
@@ -68,7 +67,7 @@ describe('app', () => {
     // Act
     await request(app)
       .get('/lang')
-      .query({ id: 'foo' })
+      .query({id: 'foo'})
       .expect(400, `language id must be an integer`);
 
     // Assert

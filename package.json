@@ -80,10 +80,10 @@
     "workbox-webpack-plugin": "^5.1.4"
   },
   "scripts": {
-    "build": "webpack --config configs/webpack.config.js --mode production",
-    "build:dev": "webpack --config configs/webpack.config.js --mode development",
+    "build": "webpack --config config/webpack.config.js --mode production",
+    "build:dev": "webpack --config config/webpack.config.js --mode development",
     "start": "npm run build:dev && node app.js",
-    "test": "jest --config configs/jest.config.js",
+    "test": "jest --config config/jest.config.js",
     "watch": "nodemon -w src -w public -w views -w app.js -w package.json --exec make"
   }
 }
