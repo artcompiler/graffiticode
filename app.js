@@ -356,6 +356,7 @@ app.get("/form", function (req, res) {
 // });
 
 function sendData(auth, id, req, res) {
+  const t0 = new Date;
   const ids = decodeID(id);
   const refresh = !!req.query.refresh;
   const dontSave = !!req.query.dontSave;
