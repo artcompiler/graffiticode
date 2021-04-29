@@ -104,7 +104,7 @@ app.get("/", (req, res) => {
   if (req.headers.host === 'www.altalabs.tech') {
     res.redirect('https://www.altalabs.tech/form?label=altalabs-splash')
   } else {
-    res.redirect('https://gc.acx.ac/lang?id=0');
+    res.redirect(`https://${req.headers.host}/lang?id=0`);
   }
 });
 
@@ -514,14 +514,12 @@ function pingLang(lang, resume) {
 }
 
 function get(language, path, resume) {
-  console.trace("get() language=" + language);
   const data = [];
   const options = {
     host: getAPIHost(language),
     port: getAPIPort(language),
     path: `/${language}/${path}`,
   };
-  console.log("get() options=" + JSON.stringify(options, null, 2));
   const protocol = LOCAL_COMPILES && http || https;
   protocol.get(options, (res) => {
     res.on('data', (chunk) => data.push(chunk))
@@ -1055,7 +1053,6 @@ function putData(auth, data, resume) {
   });
 }
 function putCode(auth, lang, rawSrc, resume) {
-  console.trace("putCode() lang=" + lang);
   const t0 = new Date;
   // Compile AST or SRC to OBJ. Insert or add item.
   const src = cleanAndTrimSrc(rawSrc);
@@ -1096,7 +1093,6 @@ app.put('/code', (req, res) => {
   const t0 = new Date;
   const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   const { id, language, src, obj, img } = body;
-  let lang = language;
   const ids = id !== undefined ? decodeID(id) : [0, 0, 0];
   const ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
@@ -1104,6 +1100,7 @@ app.put('/code', (req, res) => {
     req.connection.socket.remoteAddress;
   const user = req.body.userID || dot2num(ip);
   const itemID = id && +ids[1] !== 0 ? ids[1] : undefined;
+  let lang = language;
   if (itemID !== undefined) {
     getPiece(itemID, (err, piece) => {
       let pieceId = null;

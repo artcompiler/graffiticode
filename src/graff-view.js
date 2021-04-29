@@ -275,7 +275,6 @@ class GraffContent extends React.Component {
             // Return the current obj, or base obj if none, while recompiling.
           );
         item.id = itemID;
-
       } else if (this.state[codeID] && !this.state[codeID].obj) {
         // Don't have the base obj set yet.
         assert(this.state[codeID].obj);
