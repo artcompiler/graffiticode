@@ -1207,6 +1207,9 @@ window.gcexports.parser = (function () {
     if (match(ctx, TK_IDENT)) {
       return ident(ctx, cc);
     }
+    if (match(ctx, TK_NUM)) {
+      return number(ctx, cc);
+    }
     return str(ctx, cc);
   }
   function defList(ctx, resume) {
@@ -1328,7 +1331,7 @@ window.gcexports.parser = (function () {
         };
         ret.cls = "punc"
         return ret
-      })
+      });
     };
     return ret;
   }
@@ -1557,8 +1560,8 @@ window.gcexports.parser = (function () {
   }
 
   function pattern(ctx, cc) {
-    // FIXME only matches number literals for now
-    return primaryExpr(ctx, cc);
+    // FIXME only matches idents and literals for now
+    return identOrString(ctx, cc);
   }
 
   function thenClause(ctx, cc) {
