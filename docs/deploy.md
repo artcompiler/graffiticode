@@ -16,3 +16,7 @@ The `deploy` Makefile target runs the `gcloud builds submit` command using the c
 1. Build a docker image using the [Dockerfile](./../Dockerfile)
 1. Push the image to the Google Container Registry
 1. Deploy the image to [Google Cloud Run](https://cloud.google.com/run) ([services](https://console.cloud.google.com/run?project=graffiticode))
+
+# Interesting links for Artcompiler IDE
+- [Metrics](https://console.cloud.google.com/run/detail/us-central1/graffiticode-ide/metrics?project=graffiticode)
+- [Logs](https://console.cloud.google.com/run/detail/us-central1/graffiticode-ide/logs?project=graffiticode)
