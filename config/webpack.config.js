@@ -1,7 +1,8 @@
+const path = require('path');
+
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const path = require('path');
-const {GenerateSW} = require('workbox-webpack-plugin');
+const { GenerateSW } = require('workbox-webpack-plugin');
 
 module.exports = () => {
   return {
@@ -19,17 +20,11 @@ module.exports = () => {
         {
           test: /\.(js|jsx)$/,
           exclude: /node_modules/,
-          use: {
-            loader: "babel-loader"
-          }
+          use: ['babel-loader']
         },
         {
           test: /\.html$/,
-          use: [
-            {
-              loader: "html-loader"
-            }
-          ]
+          use: ['html-loader']
         },
         {
           test: /\.css$/i,
