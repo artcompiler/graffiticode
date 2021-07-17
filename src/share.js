@@ -86,7 +86,7 @@ let ASSERT = true;
 let assert = (function () {
   return !ASSERT ?
     function () { } :
-    function (val: boolean, str: string) {
+    function (val, str) {
       if ( str === void 0 ) {
         str = "failed!";
       }
@@ -97,7 +97,7 @@ let assert = (function () {
     }
 })();
 
-let message = function (errorCode: number, args: Array<string> = []) {
+let message = function (errorCode, args = []) {
   let str = messages[errorCode];
   if (args) {
     args.forEach(function (arg, i) {
@@ -107,7 +107,7 @@ let message = function (errorCode: number, args: Array<string> = []) {
   return errorCode + ": " + str;
 };
 
-let reserveCodeRange = function (first: number, last: number, moduleName: string) {
+let reserveCodeRange = function (first, last, moduleName) {
   assert(first <= last, "Invalid code range");
   let noConflict = reservedCodes.every(function (range) {
     return last < range.first || first > range.last;
