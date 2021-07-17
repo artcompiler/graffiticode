@@ -1,0 +1,6 @@
+BEGIN;
+LOCK items;
+
+ALTER TABLE items ADD COLUMN IF NOT EXISTS label TEXT;
+
+COMMIT;
