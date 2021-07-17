@@ -7,7 +7,7 @@ var nodeStack
 var parse = exports.parse = function(src, lexicon, resume) {
   var stream = new parser.StringStream(src);
   var state = {
-    cc: window.gcexports.parser.program,   // top level parsing function
+    cc: parser.program,   // top level parsing function
     argc: 0,
     argcStack: [0],
     paramc: 0,
@@ -20,7 +20,7 @@ var parse = exports.parse = function(src, lexicon, resume) {
     nodePool: ["unused"],
     nodeMap: {},
     nextToken: -1,
-    errors: window.gcexports.errors = [],
+    errors: [],
     coords: [],
     inStr: 0,
     quoteCharStack: [],
