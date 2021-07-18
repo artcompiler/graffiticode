@@ -1,35 +1,17 @@
-/*
- * Copyright 2014, Art Compiler LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * you may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2021, ARTCOMPILER INC
 
-/*
- TODO
- -- Fold expressions until fully applied or there are no more arguments:
-    (<x y: add x y> 10) 20..
- */
-
+var CodeMirror;
 if (typeof CodeMirror === "undefined") {
-  CodeMirror = {
+  var CodeMirror = {
     Pos: function () {
       return {};
     }
   };
 }
 
+var window;
 if (typeof window === "undefined") {
-  window = {};
+  var window = {};
   window = {
     gcexports: {
       coords: {},
@@ -471,6 +453,7 @@ var Ast = (function () {
       elts.push(elt);
     }
     var nameId = pop(ctx);
+    assert(nameId, "Ill formed node.");
     var e = node(ctx, nameId).elts;
     assert(e && e.length > 0, "Ill formed node.");
     var name = e[0];
@@ -1224,6 +1207,9 @@ window.gcexports.parser = (function () {
     if (match(ctx, TK_IDENT)) {
       return ident(ctx, cc);
     }
+    if (match(ctx, TK_NUM)) {
+      return number(ctx, cc);
+    }
     return str(ctx, cc);
   }
   function defList(ctx, resume) {
@@ -1345,7 +1331,7 @@ window.gcexports.parser = (function () {
         };
         ret.cls = "punc"
         return ret
-      })
+      });
     };
     return ret;
   }
@@ -1574,8 +1560,8 @@ window.gcexports.parser = (function () {
   }
 
   function pattern(ctx, cc) {
-    // FIXME only matches number literals for now
-    return primaryExpr(ctx, cc);
+    // FIXME only matches idents and literals for now
+    return identOrString(ctx, cc);
   }
 
   function thenClause(ctx, cc) {
@@ -2242,18 +2228,18 @@ var folder = function() {
     "POW": pow,
     "MOD": mod,
     "CONCAT": concat,
-//    "OR": orelse,
-//    "AND": andalso,
-    "NE": ne,
-    "EQ": eq,
-    "LT": lt,
-//    "GT": gt,
-    "LE": le,
-    "GE": ge,
+    // "OR": orelse,
+    // "AND": andalso,
+    // "NE": ne,
+    // "EQ": eq,
+    // "LT": lt,
+    // "GT": gt,
+    // "LE": le,
+    // "GE": ge,
     "NEG": neg,
     "LIST": list,
-//    "CASE": caseExpr,
-//    "OF": ofClause,
+    // "CASE": caseExpr,
+    // "OF": ofClause,
   };
 
   var canvasWidth = 0;
@@ -2582,3 +2568,7 @@ var folder = function() {
   }
 }();
 
+
+if (typeof exports !== "undefined") {
+  exports.parser = window.gcexports.parser;
+}

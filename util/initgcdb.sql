@@ -59,7 +59,8 @@ CREATE TABLE items (
     langid integer,
     codeid bigint,
     dataid character varying(100),
-    mark integer
+    mark integer,
+    label TEXT
 );
 
 
@@ -103,7 +104,7 @@ CREATE TABLE pieces (
     language character varying(32),
     img text,
     address character(42),
-    label character varying(30),
+    label TEXT,
     ast json,
     hash text
 );
@@ -193,7 +194,7 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regcl
 -- Data for Name: items; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY items (id, created, userid, itemid, langid, codeid, dataid, mark) FROM stdin;
+COPY items (id, created, userid, itemid, langid, codeid, dataid, mark, label) FROM stdin;
 \.
 
 

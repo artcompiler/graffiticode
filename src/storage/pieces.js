@@ -134,7 +134,7 @@ function buildUpdatePiece({ dbQuery, isNonEmptyString, cleanAndTrimSrc, cleanAnd
   };
 }
 
-function buildUpdatePieceAST({ dbQuery, createPieceHash, isNonEmptyString, parseJSON, itemToHash, cleanAndTrimSrc }) {
+function buildUpdatePieceAST({ dbQuery, createPieceHash, cleanAndTrimSrc }) {
   return function updatePieceAST(id, userID, lang, ast, resume) {
     createPieceHash(userID, lang, ast, (err, hash) => {
       if (err) {
