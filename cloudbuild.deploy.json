@@ -1,0 +1,37 @@
+{
+  "steps": [
+    {
+      "name": "docker",
+      "id": "docker:build",
+      "args": [
+        "build",
+        "-t",
+        "gcr.io/$PROJECT_ID/graffiticode-ide:$COMMIT_SHA",
+        "."
+      ]
+    },
+    {
+      "name": "docker",
+      "id": "docker:push",
+      "args": [
+        "push",
+        "gcr.io/$PROJECT_ID/graffiticode-ide:$COMMIT_SHA"
+      ]
+    },
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
+      "entrypoint": "gcloud",
+      "id": "gcloud:run:deploy",
+      "args": [
+        "run", "deploy",
+        "graffiticode-ide",
+        "--region", "us-central1",
+        "--allow-unauthenticated",
+        "--image", "gcr.io/$PROJECT_ID/graffiticode-ide:$COMMIT_SHA"
+      ]
+    }
+  ],
+  "images": [
+    "gcr.io/$PROJECT_ID/graffiticode-ide:$COMMIT_SHA"
+  ]
+}
