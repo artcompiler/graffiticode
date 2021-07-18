@@ -1,18 +1,27 @@
+const { URL } = require('url');
+
 const bent = require('bent');
 
 const { buildCompile } = require('./compile');
 const { buildGetLangAsset } = require('./lang-asset');
 const { buildPingLang } = require('./ping-lang');
 
-
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
-const API_HOST = process.env.API_HOST || 'api.acx.ac';
+const API_HOST = process.env.API_HOST || 'https://api.acx.ac';
 
 let apiUrl;
 if (LOCAL_COMPILES) {
   apiUrl = 'http://localhost:3100';
 } else {
-  apiUrl = `https://${API_HOST}`;
+  apiUrl = API_HOST;
+  try {
+    new URL(apiUrl);
+  } catch (err) {
+    if (err.code !== 'ERR_INVALID_URL') {
+      throw err;
+    }
+    apiUrl = `https://${apiUrl}`;
+  }
 }
 console.log(`API host: ${apiUrl}`);
 
