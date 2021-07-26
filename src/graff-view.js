@@ -2,9 +2,6 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import {
   assert,
-  message,
-  messages,
-  reserveCodeRange,
   decodeID,
   encodeID,
 } from "./share.js"
@@ -65,7 +62,7 @@ class GraffContent extends React.Component {
       self.pendingCompRequests++;
       try {
         window.gcexports.updateStat && window.gcexports.updateStat(itemID);
-        d3.json(location.origin + "/data/?id=" + itemID + params, (err, obj) => {
+        d3.json(location.origin + "/data?id=" + itemID + params, (err, obj) => {
           if (err) {
             // let state = {};
             // state[gcexports.id] = {
@@ -82,7 +79,7 @@ class GraffContent extends React.Component {
           //   // This is the magic where we collapse the "tail" into a JSON object.
           //   // Next this JSON object gets interned as static data (in L113).
           //   console.log(decodeID(window.gcexports.id).join("+") + " --> " + dataID);
-          //   d3.json(location.origin + "/data/?id=" + encodeID(dataID) + params, (err, data) => {
+          //   d3.json(location.origin + "/data?id=" + encodeID(dataID) + params, (err, data) => {
           //     let state = {};
           //     state[lang] = {
           //       id: itemID,
@@ -275,7 +272,6 @@ class GraffContent extends React.Component {
             // Return the current obj, or base obj if none, while recompiling.
           );
         item.id = itemID;
-
       } else if (this.state[codeID] && !this.state[codeID].obj) {
         // Don't have the base obj set yet.
         assert(this.state[codeID].obj);

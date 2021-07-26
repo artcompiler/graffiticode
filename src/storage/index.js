@@ -14,14 +14,19 @@ const { buildItemsApi } = require('./items');
 const { buildPiecesApi } = require('./pieces');
 const { buildReadinessCheck } = require('./readiness');
 
+const localDatabase = (process.env.LOCAL_DATABASE == 'true');
 const connectionString = process.env.DATABASE_URL;
 
-const pool = new pg.Pool({
-  connectionString,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+let poolOptions = { connectionString };
+if (!localDatabase) {
+  poolOptions = {
+    ...poolOptions,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  };
+}
+const pool = new pg.Pool(poolOptions);
 
 const dbQuery = buildDbQuery({ assert, isNonEmptyString, pool });
 const {
