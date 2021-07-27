@@ -5,5 +5,5 @@ Artcompiler IDE is a Graffiticode IDE  web app implementation for writing Graffi
 ### Links
 - [Development](./docs/development.md)
 
-### ArtCompiler Links
+### Artcompiler Links
 - [Deploy](./docs/deploy.md)
