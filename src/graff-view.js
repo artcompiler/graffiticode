@@ -58,7 +58,7 @@ class GraffContent extends React.Component {
       state.refresh = false;
     }
     if (codeID && itemID && (refresh || itemID !== this.lastItemID)) {
-      self.lastItemID = itemID;
+      self.lastItemID = window.gcexports.lastItemID = itemID;
       self.pendingCompRequests++;
       try {
         window.gcexports.updateStat && window.gcexports.updateStat(itemID);
@@ -262,15 +262,14 @@ class GraffContent extends React.Component {
       let item = data[itemID];
       if (item && (!item.obj || item.recompileCode)) {
         let recompileCode = item.recompileCode;
+        let lastItemID = window.gcexports.lastItemID || codeID;
         // If item doesn't have an obj, then get it from the previous compile of this itemID or codeID.
         item.obj =
           !recompileCode && this.state[itemID] && this.state[itemID].obj ||
           !recompileCode && ids[2] === 0 && this.state[codeID] && this.state[codeID].obj ||
-          this.compileCode(itemID) || (
-            this.state[itemID] && this.state[itemID].obj ||
-            this.state[codeID] && this.state[codeID].obj
-            // Return the current obj, or base obj if none, while recompiling.
-          );
+          this.compileCode(itemID) ||
+          this.state[lastItemID] && this.state[lastItemID].obj;
+        // Return the current obj, or base obj if none, while recompiling.
         item.id = itemID;
       } else if (this.state[codeID] && !this.state[codeID].obj) {
         // Don't have the base obj set yet.
