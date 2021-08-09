@@ -722,7 +722,6 @@ app.put('/code', (req, res) => {
           console.log(`ERROR PUT /code updatePiece err=${err.message}`);
         }
       });
-
       // Don't wait for update. We have what we need to respond.
       const langID = lang.charAt(0) === 'L' ? +lang.substring(1) : +lang;
       const codeID = pieceId;
