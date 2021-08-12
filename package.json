@@ -39,7 +39,7 @@
     "linkfs": "^2.1.0",
     "memfs": "^3.2.0",
     "method-override": "latest",
-    "morgan": "latest",
+    "morgan": "^1.10.0",
     "pg": "^8.2.1",
     "qs": "latest",
     "react": "^17.0.1",
