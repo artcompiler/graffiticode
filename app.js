@@ -100,7 +100,7 @@ app.engine('html', function (templateFile, options, callback) {
 
 // const request = require('request');
 app.get("/", (req, res) => {
-  res.redirect('https://gc.acx.ac/lang?id=0');
+  res.sendStatus(200);
 });
 
 const aliases = {};
