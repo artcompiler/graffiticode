@@ -1345,6 +1345,7 @@ process.on('uncaughtException', (err) => {
 
 function postAuth(path, data, resume) {
   const encodedData = JSON.stringify(data);
+  console.log("postAuth() path=" + path + " data=" + encodedData);
   const options = {
     host: "auth.artcompiler.com",
     port: "443",
