@@ -1347,7 +1347,7 @@ function postAuth(path, data, resume) {
   const encodedData = JSON.stringify(data);
   console.log("postAuth() path=" + path + " data=" + encodedData);
   const options = {
-    host: "https://auth-artcompiler.herokuapp.com",
+    host: "auth-artcompiler.herokuapp.com",
     port: "443",
     path: path,
     method: "POST",
