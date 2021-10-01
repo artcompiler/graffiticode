@@ -46,7 +46,7 @@ const {
 
 // Configuration
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
-const API_HOST = process.env.API_HOST || "api.artcompiler.com";
+const API_HOST = process.env.API_HOST || "api-artcompiler.herokuapp.com";
 
 const env = process.env.NODE_ENV || 'development';
 
