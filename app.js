@@ -494,6 +494,7 @@ function pingLang(lang, resume) {
       port: getAPIPort(lang),
       path: '/lang?id=' + lang.slice(1),
     };
+    console.log("pingLang() options=" + JSON.stringify(options, null, 2));
     const protocol = LOCAL_COMPILES && http || https;
     const req = protocol.request(options, function(r) {
       const pong = r.statusCode === 200;
