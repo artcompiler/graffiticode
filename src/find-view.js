@@ -244,6 +244,8 @@ class FindContent extends React.Component {
         state[id] = {
           id: id,
           recompileCode: true,
+          refresh: true,
+          status: "Compiled",
         };
         window.gcexports.dispatcher.dispatch(state);
       }
