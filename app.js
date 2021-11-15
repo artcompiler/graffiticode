@@ -373,7 +373,8 @@ function sendData(auth, id, req, res) {
       console.log("GET /data?id=" + ids.join("+") + " (" + id + ") in " +
                   (new Date - t0) + "ms" + (refresh ? " [refresh]" : ""));
       res.setHeader("server", "graffiticode/1.0");
-      obj = obj.data || obj;  // obj = {data, error, _}, so get the data if present.
+      // FIXME Remove this hack!
+      obj = obj.error && obj.data || obj;  // obj = {data, error, _}, so get the data if present.
       res.status(200).json(obj);
     }
   });
