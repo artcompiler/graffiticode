@@ -875,8 +875,6 @@ function num2dot(num) {
   return d;
 }
 
-const assetCache = new Map();
-const assetCacheTtlMs = 5 * 60 * 1000;
 app.get('/:lang/*', (req, res, next) => {
   // /L106/lexicon.js
   const lang = req.params.lang;
@@ -886,9 +884,7 @@ app.get('/:lang/*', (req, res, next) => {
     return;
   }
   const path = req.url;
-  if (!LOCAL_COMPILES && assetCache.has(path)) {
-    res.send(assetCache.get(path));
-  } else if (lang.charAt(0) === 'L') {
+  if (lang.charAt(0) === 'L') {
     pingLang(lang, (pong) => {
       if (pong) {
         const options = {
@@ -907,11 +903,6 @@ app.get('/:lang/*', (req, res, next) => {
             .on('data', (chunk) => chunks.push(chunk))
             .on('end', () => {
               const data = chunks.join('');
-              // Only save if request is not an error
-              if (apiRes.statusCode < 400) {
-                assetCache.set(path, data);
-                setTimeout(() => assetCache.delete(path), assetCacheTtlMs);
-              }
               res.status(apiRes.statusCode).send(data);
             });
         });

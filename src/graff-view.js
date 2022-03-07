@@ -98,6 +98,7 @@ class GraffContent extends React.Component {
           //   dispatch(state);
           // }
           let state = {};
+          obj = obj.status && obj.data || obj;  // Compatibility with new API protocol.
           assert(obj);
           state[itemID] = {
             id: itemID,
