@@ -886,6 +886,9 @@ app.get('/:lang/*', (req, res, next) => {
   }
   const path = req.url;
   if (!LOCAL_COMPILES && assetCache.has(path)) {
+    if (path.indexOf('.svg') > 0) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+    }
     res.send(assetCache.get(path));
   } else if (lang.charAt(0) === 'L') {
     pingLang(lang, (pong) => {
@@ -910,6 +913,9 @@ app.get('/:lang/*', (req, res, next) => {
               if (apiRes.statusCode < 400) {
                 assetCache.set(path, data);
                 setTimeout(() => assetCache.delete(path), assetCacheTtlMs);
+              }
+              if (path.indexOf('.svg') > 0) {
+                res.setHeader('Content-Type', 'image/svg+xml');
               }
               res.status(apiRes.statusCode).send(data);
             });
