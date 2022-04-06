@@ -98,6 +98,7 @@ class GraffContent extends React.Component {
           //   dispatch(state);
           // }
           let state = {};
+          obj = obj.status && obj.data || obj;  // Compatibility with new API protocol.
           assert(obj);
           state[itemID] = {
             id: itemID,
@@ -175,6 +176,7 @@ class GraffContent extends React.Component {
   }
 
   postData(itemID, obj, label, parentID) {
+    const self = this;
     // Save the data and recompile code with data if the viewer requests it by
     // setting recompileCode=true. See L121 for an example.
     if (obj && Object.keys(obj).length > 0) {
@@ -208,7 +210,9 @@ class GraffContent extends React.Component {
             let ids = decodeID(itemID);
             let lastDataID = encodeID(ids.slice(2));
             let dataID = data.id;
-            ids = ids.slice(0, 2).concat(decodeID(dataID));
+            const rootIDs = decodeID(self.rootID);
+            // Lop off 0 and concat new data to the rootID.
+            ids = rootIDs.slice(0, rootIDs.length - 1).concat(decodeID(dataID));
             itemID = encodeID(ids);
             if (dataID !== lastDataID && state.recompileCode) {
               self.compileCode(itemID, true);
@@ -242,6 +246,9 @@ class GraffContent extends React.Component {
       return;
     }
     let itemID = window.gcexports.id;
+
+    this.rootID = this.rootID || itemID;
+
     if (this.state === null) {
       let state = data;
       let ids = decodeID(itemID);

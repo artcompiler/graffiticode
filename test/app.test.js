@@ -35,22 +35,22 @@ describe('app', () => {
 
     // Assert
   });
-  it('should /lang redirect to languages last item', async () => {
-    // Arrange
-    function buildQueryImpl(err, data) {
-      return (query, resume) =>  setTimeout(() => resume(err, data), 0);
-    }
-    const itemid = '456';
-    pool.query.mockImplementationOnce(buildQueryImpl(null, { rows: [{ itemid }], rowCount: 1 }));
+  // it('should /lang redirect to languages last item', async () => {
+  //   // Arrange
+  //   function buildQueryImpl(err, data) {
+  //     return (query, resume) =>  setTimeout(() => resume(err, data), 0);
+  //   }
+  //   const itemid = '456';
+  //   pool.query.mockImplementationOnce(buildQueryImpl(null, { rows: [{ itemid }], rowCount: 1 }));
 
-    // Act
-    await request(app)
-      .get('/lang')
-      .query({id: 113})
-      .expect(302, `Found. Redirecting to /item?id=${itemid}`);
+  //   // Act
+  //   await request(app)
+  //     .get('/lang')
+  //     .query({id: 113})
+  //     .expect(302, `Found. Redirecting to /item?id=${itemid}`);
 
-    // Assert
-  });
+  //   // Assert
+  // });
   it('should /lang no id returns 400', async () => {
     // Arrange
 
