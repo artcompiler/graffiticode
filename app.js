@@ -902,6 +902,9 @@ app.get('/:lang/*', (req, res, next) => {
             })
             .on('data', (chunk) => chunks.push(chunk))
             .on('end', () => {
+              if (path.indexOf('.svg') > 0) {
+                res.setHeader('Content-Type', 'image/svg+xml');
+              }
               const data = chunks.join('');
               res.status(apiRes.statusCode).send(data);
             });
