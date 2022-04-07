@@ -7,7 +7,8 @@ const { buildGetLangAsset } = require('./lang-asset');
 const { buildPingLang } = require('./ping-lang');
 
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
-const API_HOST = process.env.API_HOST || 'https://api.acx.ac';
+const API_HOST = process.env.API_HOST || 'https://api.graffiticode.com';
+console.log(`API_HOST=${API_HOST}`);
 
 let apiUrl;
 if (LOCAL_COMPILES) {
