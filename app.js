@@ -45,7 +45,7 @@ const {
 
 // Configuration
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
-const API_HOST = process.env.API_HOST || "api.acx.ac";
+const API_HOST = process.env.API_HOST || "api.graffiticode.com";
 
 const env = process.env.NODE_ENV || 'development';
 
