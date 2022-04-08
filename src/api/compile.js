@@ -15,8 +15,8 @@ exports.buildCompile = ({ pingLang, postJSON }) => {
               options,
             },
           };
-          const res = await postJSON('/compile', req);
-          resume(null, res);
+          const val = await postJSON('/compile', req);
+          resume(null, val.status && val.data || val);
         } catch(err) {
           // TODO translate to status code
           resume([{ error: err.message, statusCode: err.statusCode || 500 }]);
