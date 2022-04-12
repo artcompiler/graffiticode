@@ -239,6 +239,7 @@ class GraffContent extends React.Component {
     }
   }
 
+
   onChange(data) {
     // Every dispatch comes through here.
     if (!window.gcexports) {
