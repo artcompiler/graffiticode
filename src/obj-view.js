@@ -109,33 +109,6 @@ class ObjectView extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
   }
-
-  executeCode() {
-    return;
-    var mountNode = ReactDOM.findDOMNode(this.refs.mount);
-    try {
-      React.unmountComponentAtNode(mountNode);
-    } catch (e) {
-    }
-    try {
-      var compiledCode = this.compileCode();
-      if (this.props.renderCode) {
-        ReactDOM.render(
-          <CodeMirrorEditor codeText={compiledCode} readOnly={true} />,
-          mountNode
-        );
-      } else {
-        eval(compiledCode);
-      }
-    } catch (err) {
-      this.setTimeout(function() {
-        React.render(
-          <div className="playgroundError">{"ERROR:" + err.toString()}</div>,
-          mountNode
-        );
-      }, 500);
-    }
-  }
 }
 
 ObjectView.propTypes = {
