@@ -16,7 +16,7 @@
     "@babel/preset-react": "^7.12.10",
     "@google-cloud/storage": "^5.8.4",
     "atob": "2.1.1",
-    "aws-sdk": "2.286.2",
+    "aws-sdk": "^2.1116.0",
     "babel-loader": "^8.1.0",
     "bent": "^7.3.12",
     "body-parser": "latest",
@@ -50,7 +50,7 @@
     "stylus": "latest",
     "underscore": "1.12.x",
     "unionfs": "^4.4.0",
-    "webpack": "^4.44.2"
+    "webpack": "^5.72.0"
   },
   "devDependencies": {
     "clean-webpack-plugin": "^3.0.0",
