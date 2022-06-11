@@ -884,12 +884,7 @@ app.get('/:lang/*', (req, res, next) => {
     return;
   }
   const path = req.url;
-  if (!LOCAL_COMPILES && assetCache.has(path)) {
-    if (path.indexOf('.svg') > 0) {
-      res.setHeader('Content-Type', 'image/svg+xml');
-    }
-    res.send(assetCache.get(path));
-  } else if (lang.charAt(0) === 'L') {
+  if (lang.charAt(0) === 'L') {
     pingLang(lang, (pong) => {
       if (pong) {
         const options = {
@@ -911,11 +906,6 @@ app.get('/:lang/*', (req, res, next) => {
                 res.setHeader('Content-Type', 'image/svg+xml');
               }
               const data = chunks.join('');
-              // Only save if request is not an error
-              if (apiRes.statusCode < 400) {
-                assetCache.set(path, data);
-                setTimeout(() => assetCache.delete(path), assetCacheTtlMs);
-              }
               if (path.indexOf('.svg') > 0) {
                 res.setHeader('Content-Type', 'image/svg+xml');
               }
