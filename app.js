@@ -1,3 +1,4 @@
+
 const express = require('express');
 const _ = require('underscore');
 const fs = require('fs');
@@ -45,7 +46,7 @@ const {
 
 // Configuration
 const LOCAL_COMPILES = process.env.LOCAL_COMPILES === 'true' || false;
-const API_HOST = process.env.API_HOST || "api-artcompiler.herokuapp.com";
+const API_HOST = process.env.API_HOST || "api.graffiticode.com";
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -906,6 +907,9 @@ app.get('/:lang/*', (req, res, next) => {
             })
             .on('data', (chunk) => chunks.push(chunk))
             .on('end', () => {
+              if (path.indexOf('.svg') > 0) {
+                res.setHeader('Content-Type', 'image/svg+xml');
+              }
               const data = chunks.join('');
               // Only save if request is not an error
               if (apiRes.statusCode < 400) {
