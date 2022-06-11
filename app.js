@@ -487,7 +487,6 @@ app.put('/comp', function (req, res) {
   const date = new Date().toUTCString();
   postAuth("/validate", { jwt: auth }, (err, val) => {
     const t1 = new Date;
-    console.log("postAuth() in " + (t1 - t0) + "ms");
     if (err && err.length) {
       res.sendStatus(err);
     } else {
@@ -941,7 +940,6 @@ function getAPIPort(lang) {
 
 function postAuth(path, data, resume) {
   const encodedData = JSON.stringify(data);
-  console.log("postAuth() path=" + path + " data=" + encodedData);
   const options = {
     host: "auth-artcompiler.herokuapp.com",
     port: "443",
